@@ -458,9 +458,9 @@ namespace Step23
 
     const std::string filename = "solution-" +
                                  Utilities::int_to_string (timestep_number, 3) +
-                                 ".gnuplot";
+                                 ".eps";
     std::ofstream output (filename.c_str());
-    data_out.write_gnuplot (output);
+    data_out.write_eps (output);
   }
 
 
