@@ -11,5 +11,9 @@ IF(NOT ${deal.II_FOUND})
     )
 ENDIF()
 
-add_subdirectory(exe)
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+DEAL_II_INITIALIZE_CACHED_VARIABLES()
+
+PROJECT(wavePI)
+add_subdirectory(src)
 # add_subdirectory(lib)

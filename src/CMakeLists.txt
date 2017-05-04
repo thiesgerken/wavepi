@@ -1,0 +1,2 @@
+ADD_EXECUTABLE(step-23 step-23.cc)
+DEAL_II_SETUP_TARGET(step-23)
