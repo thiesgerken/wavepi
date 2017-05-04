@@ -465,9 +465,10 @@ namespace Step23
     std::ofstream output (filename.c_str());
     data_out.write_vtu (output);
 
-  times_and_names.push_back (std::pair<double,std::string> (time, filename));
-  std::ofstream pvd_output ("solution.pvd");
-  DataOutBase::write_pvd_record (pvd_output, times_and_names);
+    static std::vector<std::pair<double,std::string> > times_and_names;
+    times_and_names.push_back (std::pair<double,std::string> (time, filename));
+    std::ofstream pvd_output ("solution.pvd");
+    DataOutBase::write_pvd_record (pvd_output, times_and_names);
 }
 
 
