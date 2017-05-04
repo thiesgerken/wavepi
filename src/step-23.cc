@@ -50,6 +50,8 @@
 
 #include <fstream>
 #include <iostream>
+#include <utility>
+
 
 // Here are the only three include files of some new interest: The first one
 // is already used, for example, for the
@@ -141,6 +143,7 @@ namespace Step23
     Vector<double>       system_rhs;
 
     double time_step, time;
+    std::vector<std::pair<double,std::string>> times_and_names; 
     unsigned int timestep_number;
     const double theta;
   };
@@ -458,10 +461,14 @@ namespace Step23
 
     const std::string filename = "solution-" +
                                  Utilities::int_to_string (timestep_number, 3) +
-                                 ".eps";
+                                 ".vtu";
     std::ofstream output (filename.c_str());
-    data_out.write_eps (output);
-  }
+    data_out.write_vtu (output);
+
+  times_and_names.push_back (std::pair<double,std::string> (time, filename));
+  std::ofstream pvd_output ("solution.pvd");
+  DataOutBase::write_pvd_record (pvd_output, times_and_names);
+}
 
 
 
