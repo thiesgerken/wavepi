@@ -1,2 +1,3 @@
-ADD_EXECUTABLE(step-23 step-23.cc)
-DEAL_II_SETUP_TARGET(step-23)
+ADD_EXECUTABLE(wave_test test.cc)
+DEAL_II_SETUP_TARGET(wave_test)
+TARGET_LINK_LIBRARIES(wave_test wavepi)
