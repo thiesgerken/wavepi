@@ -8,10 +8,10 @@ int main ()
     {
       using namespace wavepi;
 
-      WaveEquation<2> wave_equation_solver;
+      WaveEquation<2> wave_eq;
+      wave_eq.boundary_values_u = &wave_eq.one;
 
-
-      wave_equation_solver.run ();
+      wave_eq.run ();
     }
   catch (std::exception &exc)
     {
