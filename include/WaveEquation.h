@@ -43,51 +43,51 @@
 #include <utility>
 
 namespace wavepi {
-using namespace dealii;
+   using namespace dealii;
 
-template<int dim>
-class WaveEquation {
-public:
-	WaveEquation();
-	void run();
+   template<int dim>
+   class WaveEquation {
+      public:
+         WaveEquation();
+         void run();
 
-	Function<dim> *initial_values_u, *initial_values_v;
-	Function<dim> *boundary_values_u, *boundary_values_v;
-	Function<dim> *right_hand_side;
-	Function<dim> *param_c, *param_nu, *param_a, *param_q;
+         Function<dim> *initial_values_u, *initial_values_v;
+         Function<dim> *boundary_values_u, *boundary_values_v;
+         Function<dim> *right_hand_side;
+         Function<dim> *param_c, *param_nu, *param_a, *param_q;
 
-	double theta;
-	double time_end;
-	double time_step;
+         double theta;
+         double time_end;
+         double time_step;
 
-	ZeroFunction<dim> zero = ZeroFunction<dim>(1);
-	ConstantFunction<dim> one = ConstantFunction<dim>(1.0, 1);
-private:
-	void setup_system();
-	void solve_u();
-	void solve_v();
-	void output_results() const;
+         ZeroFunction<dim> zero = ZeroFunction<dim>(1);
+         ConstantFunction<dim> one = ConstantFunction<dim>(1.0, 1);
+      private:
+         void setup_system();
+         void solve_u();
+         void solve_v();
+         void output_results() const;
 
-	Triangulation<dim> triangulation;
-	FE_Q<dim> fe;
-	DoFHandler<dim> dof_handler;
+         Triangulation<dim> triangulation;
+         FE_Q<dim> fe;
+         DoFHandler<dim> dof_handler;
 
-	ConstraintMatrix constraints;
+         ConstraintMatrix constraints;
 
-	SparsityPattern sparsity_pattern;
-	SparseMatrix<double> mass_matrix;
-	SparseMatrix<double> laplace_matrix;
-	SparseMatrix<double> matrix_u;
-	SparseMatrix<double> matrix_v;
+         SparsityPattern sparsity_pattern;
+         SparseMatrix<double> mass_matrix;
+         SparseMatrix<double> laplace_matrix;
+         SparseMatrix<double> matrix_u;
+         SparseMatrix<double> matrix_v;
 
-	Vector<double> solution_u, solution_v;
-	Vector<double> old_solution_u, old_solution_v;
-	Vector<double> system_rhs;
+         Vector<double> solution_u, solution_v;
+         Vector<double> old_solution_u, old_solution_v;
+         Vector<double> system_rhs;
 
-	double time;
-	std::vector<std::pair<double, std::string>> times_and_names;
-	unsigned int timestep_number;
-};
+         double time;
+         std::vector<std::pair<double, std::string>> times_and_names;
+         unsigned int timestep_number;
+   };
 }
 
 #endif /* INCLUDE_WAVEEQUATION_H_ */

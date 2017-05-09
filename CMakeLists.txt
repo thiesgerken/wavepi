@@ -1,5 +1,17 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8.8)
 
+ADD_CUSTOM_TARGET(debug
+  COMMAND ${CMAKE_COMMAND} -DCMAKE_BUILD_TYPE=Debug ${CMAKE_SOURCE_DIR}
+  COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target all
+  COMMENT "Switch CMAKE_BUILD_TYPE to Debug"
+  )
+
+ADD_CUSTOM_TARGET(release
+  COMMAND ${CMAKE_COMMAND} -DCMAKE_BUILD_TYPE=Release ${CMAKE_SOURCE_DIR}
+  COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target all
+  COMMENT "Switch CMAKE_BUILD_TYPE to Release"
+  )
+  
 # If deal.II can not be found: either pass a flag -DDEAL_II_DIR=/path/to/deal.II to cmake
 # or set an environment variable "DEAL_II_DIR" that contains this path.
 FIND_PACKAGE(deal.II 8.5.0 REQUIRED QUIET
