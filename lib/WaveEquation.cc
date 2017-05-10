@@ -29,8 +29,9 @@ namespace wavepi {
 
    template<int dim>
    void WaveEquation<dim>::setup_system() {
-      GridGenerator::hyper_cube(triangulation, -1, 1);
-      triangulation.refine_global(5);
+//      GridGenerator::hyper_cube(triangulation, -1, 1);
+      GridGenerator::cheese(triangulation, std::vector<unsigned int> ({2,2}));
+      triangulation.refine_global(4);
 
       std::cout << "Number of active cells: " << triangulation.n_active_cells() << std::endl;
 
