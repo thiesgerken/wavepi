@@ -57,13 +57,14 @@ namespace wavepi {
          Function<dim> *param_c, *param_nu, *param_a, *param_q;
 
          double theta;
-         double time_end;
-         double time_step;
+         double time_end; // = T
+         double time_step; // = \Delta t
 
          ZeroFunction<dim> zero = ZeroFunction<dim>(1);
          ConstantFunction<dim> one = ConstantFunction<dim>(1.0, 1);
       private:
-         void setup_system();
+         void init_system();
+         void setup_step();
          void solve_u();
          void solve_v();
          void output_results() const;
@@ -73,20 +74,34 @@ namespace wavepi {
          DoFHandler<dim> dof_handler;
 
          ConstraintMatrix constraints;
-
          SparsityPattern sparsity_pattern;
-         SparseMatrix<double> mass_matrix;
-         SparseMatrix<double> laplace_matrix;
+
+         // matrices corresponding to the operators A, B, C at the current and the last time step
+         SparseMatrix<double> matrix_A;
+         SparseMatrix<double> matrix_B;
+         SparseMatrix<double> matrix_C;
+
+         SparseMatrix<double> matrix_A_old;
+         SparseMatrix<double> matrix_B_old;
+         SparseMatrix<double> matrix_C_old;
+
+         // solution and its derivative at the current and the last time step
+         Vector<double> solution_u, solution_v;
+         Vector<double> solution_u_old, solution_v_old;
+         Vector<double> rhs, rhs_old;
+
+         // space for linear systems and their right hand sides
          SparseMatrix<double> matrix_u;
          SparseMatrix<double> matrix_v;
 
-         Vector<double> solution_u, solution_v;
-         Vector<double> old_solution_u, old_solution_v;
          Vector<double> system_rhs;
 
-         double time;
-         std::vector<std::pair<double, std::string>> times_and_names;
+         // current time and time step
          unsigned int timestep_number;
+         double time;
+
+         // for output to paraview
+         std::vector<std::pair<double, std::string>> times_and_names;
    };
 }
 
