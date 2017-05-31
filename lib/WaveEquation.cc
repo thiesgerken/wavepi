@@ -119,35 +119,34 @@ namespace wavepi {
       system_rhs = 0.0;
 
       matrix_C_old.vmult(tmp, solution_v_old);
-      system_rhs.add(theta / time_step, tmp);
+      system_rhs.add(theta * time_step, tmp);
 
-      system_rhs.add(theta * theta, rhs);
+      system_rhs.add(theta * theta  * time_step * time_step, rhs);
 
-      system_rhs.add(theta * (1.0 - theta), rhs_old);
+      system_rhs.add(theta * (1.0 - theta) * time_step * time_step, rhs_old);
 
       matrix_B_old.vmult(tmp, solution_v_old);
-      system_rhs.add(-1.0 * theta * (1.0 - theta), tmp);
+      system_rhs.add(-1.0 * theta * (1.0 - theta) * time_step * time_step, tmp);
 
       matrix_A_old.vmult(tmp, solution_u_old);
-      system_rhs.add(-1.0 * theta * (1.0 - theta), tmp);
+      system_rhs.add(-1.0 * theta * (1.0 - theta) * time_step * time_step, tmp);
 
       Vector<double> tmp2(solution_u.size());
-      tmp2.add(1.0 / time_step, solution_u_old);
-      tmp2.add(1.0 - theta, solution_v_old);
+      tmp2.add(1.0 , solution_u_old);
+      tmp2.add((1.0 - theta) * time_step, solution_v_old);
 
       matrix_C.vmult(tmp, tmp2);
-      system_rhs.add(1.0 / time_step, tmp);
+      system_rhs.add(1.0, tmp);
 
       matrix_B.vmult(tmp, tmp2);
-      system_rhs.add(theta, tmp);
+      system_rhs.add(theta * time_step, tmp);
 
       std::map<types::global_dof_index, double> boundary_values;
       VectorTools::interpolate_boundary_values(dof_handler, 0, *boundary_values_u, boundary_values);
 
-      system_matrix = 0.0;
-      system_matrix.add(1.0 / (time_step * time_step), matrix_C);
-      system_matrix.add(theta / time_step, matrix_B);
-      system_matrix.add(theta * theta, matrix_A);
+      system_matrix.copy_from(matrix_C);
+      system_matrix.add(theta * time_step, matrix_B);
+      system_matrix.add(theta * theta * time_step * time_step, matrix_A);
 
       MatrixTools::apply_boundary_values(boundary_values, system_matrix, solution_u, system_rhs);
    }
@@ -158,27 +157,27 @@ namespace wavepi {
       system_rhs = 0.0;
 
       matrix_C_old.vmult(tmp, solution_v_old);
-      system_rhs.add(1.0 / time_step, tmp);
+      system_rhs.add(1.0, tmp);
 
-      system_rhs.add(theta, rhs);
+      system_rhs.add(theta * time_step, rhs);
 
       matrix_A.vmult(tmp, solution_u);
-      system_rhs.add(-1.0 * theta, tmp);
+      system_rhs.add(-1.0 * theta * time_step, tmp);
 
-      system_rhs.add(1.0 - theta, rhs_old);
+      system_rhs.add((1.0 - theta) * time_step, rhs_old);
 
       matrix_B_old.vmult(tmp, solution_v_old);
-      system_rhs.add(-1.0 * (1.0 - theta), tmp);
+      system_rhs.add(-1.0 * (1.0 - theta) * time_step, tmp);
 
       matrix_A_old.vmult(tmp, solution_u_old);
-      system_rhs.add(-1.0 * (1.0 - theta), tmp);
+      system_rhs.add(-1.0 * (1.0 - theta) * time_step, tmp);
 
       std::map<types::global_dof_index, double> boundary_values;
       VectorTools::interpolate_boundary_values(dof_handler, 0, *boundary_values_v, boundary_values);
 
       system_matrix = 0.0;
-      system_matrix.add(1.0 / time_step, matrix_C);
-      system_matrix.add(theta, matrix_B);
+      system_matrix.add(1.0, matrix_C);
+      system_matrix.add(theta * time_step, matrix_B);
 
       MatrixTools::apply_boundary_values(boundary_values, system_matrix, solution_v, system_rhs);
    }
@@ -192,7 +191,7 @@ namespace wavepi {
 
       std::cout << "   u-equation: " << solver_control.last_step() << " CG steps." << std::endl;
       std::cout << "               " << "norm of system_rhs = " << system_rhs.l2_norm() << std::endl;
-      std::cout << "               " << "norm of solution u = " << solution_v.l2_norm() << std::endl;
+      std::cout << "               " << "norm of solution u = " << solution_u.l2_norm() << std::endl;
    }
 
    template<int dim>
@@ -212,8 +211,8 @@ namespace wavepi {
       DataOut<dim> data_out;
 
       data_out.attach_dof_handler(dof_handler);
-      data_out.add_data_vector(solution_u, "U");
-      data_out.add_data_vector(solution_v, "V");
+      data_out.add_data_vector(solution_u, "sol_u");
+      data_out.add_data_vector(solution_v, "sol_v");
 
       data_out.build_patches();
 

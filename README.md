@@ -6,6 +6,8 @@
 
 Developed as part of my PhD-Project [*Dynamic Inverse Problems for Wave Equations*](https://git.thiesgerken.de/thies/promotion)
 
+This is a work in progress, cf. [Todo.md](Todo.md).
+
 ## Dependencies
 
  * `cmake   >= 2.8.8`
@@ -22,8 +24,8 @@ cmake ..
 make -jN
 ```
 
-Generate Eclipse Project Files:
+Generate Eclipse Project Files: (Don't do this in a child directory)
 
 ```shell
-cmake -G "Eclipse CDT4 - Unix Makefiles" /path/to/wavepi
+cmake -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_ECLIPSE_VERSION=4.6 /path/to/wavepi
 ```
