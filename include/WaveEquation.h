@@ -65,6 +65,8 @@ namespace wavepi {
       private:
          void init_system();
          void setup_step();
+         void assemble_u();
+         void assemble_v();
          void solve_u();
          void solve_v();
          void output_results() const;
@@ -91,9 +93,7 @@ namespace wavepi {
          Vector<double> rhs, rhs_old;
 
          // space for linear systems and their right hand sides
-         SparseMatrix<double> matrix_u;
-         SparseMatrix<double> matrix_v;
-
+         SparseMatrix<double> system_matrix;
          Vector<double> system_rhs;
 
          // current time and time step

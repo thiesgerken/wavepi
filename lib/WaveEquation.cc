@@ -24,7 +24,7 @@ namespace wavepi {
          : initial_values_u(&zero), initial_values_v(&zero), boundary_values_u(&zero), boundary_values_v(
                &zero), right_hand_side(&zero), param_c(&one), param_nu(&zero), param_a(&one), param_q(
                &zero), theta(0.5), time_end(1), time_step(1. / 64), fe(1), dof_handler(
-               triangulation), timestep_number(1), time(time_step) {
+               triangulation), timestep_number(0), time(0.0) {
    }
 
    template<int dim>
@@ -33,7 +33,7 @@ namespace wavepi {
       timestep_number = 0;
 
       // GridGenerator::hyper_cube(triangulation, -1, 1);
-      GridGenerator::cheese(triangulation, std::vector<unsigned int>( { 2, 2 }));
+      GridGenerator::cheese(triangulation, std::vector<unsigned int>( { 1, 1 }));
       triangulation.refine_global(4);
 
       std::cout << "Number of active cells: " << triangulation.n_active_cells() << std::endl;
@@ -57,8 +57,7 @@ namespace wavepi {
       matrix_B_old.reinit(sparsity_pattern);
       matrix_C_old.reinit(sparsity_pattern);
 
-      matrix_u.reinit(sparsity_pattern);
-      matrix_v.reinit(sparsity_pattern);
+      system_matrix.reinit(sparsity_pattern);
 
       solution_u.reinit(dof_handler.n_dofs());
       solution_v.reinit(dof_handler.n_dofs());
@@ -79,15 +78,13 @@ namespace wavepi {
       VectorTools::interpolate(dof_handler, *initial_values_u, solution_u);
       VectorTools::interpolate(dof_handler, *initial_values_v, solution_v);
 
-      // TODO: setup rhs, matrix_A,B,C for time = 0
-      //      MatrixCreator::create_mass_matrix(dof_handler, QGauss<dim>(3), mass_matrix);
-      //      MatrixCreator::create_laplace_matrix(dof_handler, QGauss<dim>(3), laplace_matrix);
+      // setup right hand side and the matrices for time = 0
+      setup_step();
    }
 
    template<int dim>
    void WaveEquation<dim>::setup_step() {
-      // TODO: copy matrices to old matrices, generate new ones
-
+      // matrices, solution and right hand side of current time step -> matrices, solution and rhs of last time step
       matrix_A_old.copy_from(matrix_A);
       matrix_B_old.copy_from(matrix_B);
       matrix_C_old.copy_from(matrix_C);
@@ -96,9 +93,94 @@ namespace wavepi {
       solution_u_old = solution_u;
       solution_v_old = solution_v;
 
-      // TODO: setup rhs, matrix_A,B,C for current time
-      //      MatrixCreator::create_mass_matrix(dof_handler, QGauss<dim>(3), mass_matrix);
-      //      MatrixCreator::create_laplace_matrix(dof_handler, QGauss<dim>(3), laplace_matrix);
+      // setup matrices and right hand side for current time step
+      param_a->set_time(time);
+      param_nu->set_time(time);
+      param_q->set_time(time);
+      param_c->set_time(time);
+      right_hand_side->set_time(time);
+      boundary_values_u->set_time(time);
+      boundary_values_v->set_time(time);
+
+      // Note: system_matrix is used as temporary storage
+      MatrixCreator::create_mass_matrix(dof_handler, QGauss<dim>(3), system_matrix, param_q);
+      MatrixCreator::create_laplace_matrix(dof_handler, QGauss<dim>(3), matrix_A, param_a);
+      matrix_A.add(1.0, system_matrix);
+
+      MatrixCreator::create_mass_matrix(dof_handler, QGauss<dim>(3), matrix_B, param_nu);
+      MatrixCreator::create_mass_matrix(dof_handler, QGauss<dim>(3), matrix_C, param_c);
+
+      VectorTools::create_right_hand_side(dof_handler, QGauss<dim>(2), *right_hand_side, rhs);
+    }
+
+   template<int dim>
+   void WaveEquation<dim>::assemble_u() {
+      Vector<double> tmp(solution_u.size());
+      system_rhs = 0.0;
+
+      matrix_C_old.vmult(tmp, solution_v_old);
+      system_rhs.add(theta / time_step, tmp);
+
+      system_rhs.add(theta * theta, rhs);
+
+      system_rhs.add(theta * (1.0 - theta), rhs_old);
+
+      matrix_B_old.vmult(tmp, solution_v_old);
+      system_rhs.add(-1.0 * theta * (1.0 - theta), tmp);
+
+      matrix_A_old.vmult(tmp, solution_u_old);
+      system_rhs.add(-1.0 * theta * (1.0 - theta), tmp);
+
+      Vector<double> tmp2(solution_u.size());
+      tmp2.add(1.0 / time_step, solution_u_old);
+      tmp2.add(1.0 - theta, solution_v_old);
+
+      matrix_C.vmult(tmp, tmp2);
+      system_rhs.add(1.0 / time_step, tmp);
+
+      matrix_B.vmult(tmp, tmp2);
+      system_rhs.add(theta, tmp);
+
+      std::map<types::global_dof_index, double> boundary_values;
+      VectorTools::interpolate_boundary_values(dof_handler, 0, *boundary_values_u, boundary_values);
+
+      system_matrix = 0.0;
+      system_matrix.add(1.0 / (time_step * time_step), matrix_C);
+      system_matrix.add(theta / time_step, matrix_B);
+      system_matrix.add(theta * theta, matrix_A);
+
+      MatrixTools::apply_boundary_values(boundary_values, system_matrix, solution_u, system_rhs);
+   }
+
+   template<int dim>
+   void WaveEquation<dim>::assemble_v() {
+      Vector<double> tmp(solution_u.size());
+      system_rhs = 0.0;
+
+      matrix_C_old.vmult(tmp, solution_v_old);
+      system_rhs.add(1.0 / time_step, tmp);
+
+      system_rhs.add(theta, rhs);
+
+      matrix_A.vmult(tmp, solution_u);
+      system_rhs.add(-1.0 * theta, tmp);
+
+      system_rhs.add(1.0 - theta, rhs_old);
+
+      matrix_B_old.vmult(tmp, solution_v_old);
+      system_rhs.add(-1.0 * (1.0 - theta), tmp);
+
+      matrix_A_old.vmult(tmp, solution_u_old);
+      system_rhs.add(-1.0 * (1.0 - theta), tmp);
+
+      std::map<types::global_dof_index, double> boundary_values;
+      VectorTools::interpolate_boundary_values(dof_handler, 0, *boundary_values_v, boundary_values);
+
+      system_matrix = 0.0;
+      system_matrix.add(1.0 / time_step, matrix_C);
+      system_matrix.add(theta, matrix_B);
+
+      MatrixTools::apply_boundary_values(boundary_values, system_matrix, solution_v, system_rhs);
    }
 
    template<int dim>
@@ -106,10 +188,11 @@ namespace wavepi {
       SolverControl solver_control(1000, 1e-8 * system_rhs.l2_norm());
       SolverCG<> cg(solver_control);
 
-      cg.solve(matrix_u, solution_u, system_rhs, PreconditionIdentity());
+      cg.solve(system_matrix, solution_u, system_rhs, PreconditionIdentity());
 
-      std::cout << "   u-equation: " << solver_control.last_step() << " CG iterations."
-            << std::endl;
+      std::cout << "   u-equation: " << solver_control.last_step() << " CG steps." << std::endl;
+      std::cout << "               " << "norm of system_rhs = " << system_rhs.l2_norm() << std::endl;
+      std::cout << "               " << "norm of solution u = " << solution_v.l2_norm() << std::endl;
    }
 
    template<int dim>
@@ -117,10 +200,11 @@ namespace wavepi {
       SolverControl solver_control(1000, 1e-8 * system_rhs.l2_norm());
       SolverCG<> cg(solver_control);
 
-      cg.solve(matrix_v, solution_v, system_rhs, PreconditionIdentity());
+      cg.solve(system_matrix, solution_v, system_rhs, PreconditionIdentity());
 
-      std::cout << "   v-equation: " << solver_control.last_step() << " CG iterations."
-            << std::endl;
+      std::cout << "   v-equation: " << solver_control.last_step() << " CG steps." << std::endl;
+      std::cout << "               " << "norm of rhs = " << system_rhs.l2_norm() << std::endl;
+      std::cout << "               " << "norm of solution v = " << solution_v.l2_norm() << std::endl;
    }
 
    template<int dim>
@@ -152,70 +236,18 @@ namespace wavepi {
       // add initial values to output data
       output_results();
 
-      Vector<double> tmp(solution_u.size());
-      Vector<double> forcing_terms(solution_u.size());
-
       for (timestep_number = 1, time = time_step; time <= time_end;
             time += time_step, timestep_number++) {
          std::cout << "Time step " << timestep_number << " at t=" << time << std::endl;
          setup_step();
 
-         // solve for $U^n$
-//         mass_matrix.vmult(system_rhs, old_solution_u);
-//
-//         mass_matrix.vmult(tmp, old_solution_v);
-//         system_rhs.add(time_step, tmp);
-//
-//         laplace_matrix.vmult(tmp, old_solution_u);
-//         system_rhs.add(-theta * (1 - theta) * time_step * time_step, tmp);
-//
-//         right_hand_side->set_time(time);
-//         VectorTools::create_right_hand_side(dof_handler, QGauss<dim>(2), *right_hand_side, tmp);
-//         forcing_terms = tmp;
-//         forcing_terms *= theta * time_step;
-//
-//         right_hand_side->set_time(time - time_step);
-//         VectorTools::create_right_hand_side(dof_handler, QGauss<dim>(2), *right_hand_side, tmp);
-//
-//         forcing_terms.add((1 - theta) * time_step, tmp);
-//
-//         system_rhs.add(theta * time_step, forcing_terms);
-//
-//         {
-//            boundary_values_u->set_time(time);
-//
-//            std::map<types::global_dof_index, double> boundary_values;
-//            VectorTools::interpolate_boundary_values(dof_handler, 0, *boundary_values_u,
-//                  boundary_values);
-//
-//            matrix_u.copy_from(mass_matrix);
-//            matrix_u.add(theta * theta * time_step * time_step, laplace_matrix);
-//            MatrixTools::apply_boundary_values(boundary_values, matrix_u, solution_u, system_rhs);
-//         }
-//         solve_u();
-//
-//         // solve for $V^n$
-//         laplace_matrix.vmult(system_rhs, solution_u);
-//         system_rhs *= -theta * time_step;
-//
-//         mass_matrix.vmult(tmp, old_solution_v);
-//         system_rhs += tmp;
-//
-//         laplace_matrix.vmult(tmp, old_solution_u);
-//         system_rhs.add(-time_step * (1 - theta), tmp);
-//
-//         system_rhs += forcing_terms;
-//
-//         {
-//            boundary_values_v->set_time(time);
-//
-//            std::map<types::global_dof_index, double> boundary_values;
-//            VectorTools::interpolate_boundary_values(dof_handler, 0, *boundary_values_v,
-//                  boundary_values);
-//            matrix_v.copy_from(mass_matrix);
-//            MatrixTools::apply_boundary_values(boundary_values, matrix_v, solution_v, system_rhs);
-//         }
-//         solve_v();
+         // solve for $u^{n+1}$
+         assemble_u();
+         solve_u();
+
+         // solve for $v^{n+1}$
+         assemble_v();
+         solve_v();
 
          output_results();
       }

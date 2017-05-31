@@ -22,7 +22,7 @@ double RHS<dim>::value (const Point<dim> &p,
  if ((this->get_time() <= 0.5))
    return std::sin (this->get_time() * 4 * numbers::PI);
  else
-   return 0;
+   return 0.0;
 }
 
 int main() {
@@ -31,6 +31,8 @@ int main() {
       WaveEquation<2> wave_eq;
       RHS<2> rhs;
       wave_eq.right_hand_side = &rhs;
+      wave_eq.time_end = 5.0;
+      wave_eq.theta = 0.5;
 
       wave_eq.run();
    } catch (std::exception &exc) {
