@@ -34,13 +34,13 @@
 #include <deal.II/fe/fe_q.h>
 #include <deal.II/fe/fe_values.h>
 
-#include <deal.II/numerics/data_out.h>
 #include <deal.II/numerics/vector_tools.h>
 #include <deal.II/numerics/matrix_tools.h>
 
-#include <fstream>
-#include <iostream>
 #include <utility>
+#include <cmath>
+
+#include <DiscretizedFunction.h>
 
 namespace wavepi {
    using namespace dealii;
@@ -48,8 +48,8 @@ namespace wavepi {
    template<int dim>
    class WaveEquation {
       public:
-         WaveEquation();
-         void run();
+         WaveEquation(DoFHandler<dim> *dof_handler);
+         DiscretizedFunction<dim> run();
 
          Function<dim> *initial_values_u, *initial_values_v;
          Function<dim> *boundary_values_u, *boundary_values_v;
@@ -69,11 +69,8 @@ namespace wavepi {
          void assemble_v();
          void solve_u();
          void solve_v();
-         void output_results() const;
 
-         Triangulation<dim> triangulation;
-         FE_Q<dim> fe;
-         DoFHandler<dim> dof_handler;
+         DoFHandler<dim> *dof_handler;
 
          ConstraintMatrix constraints;
          SparsityPattern sparsity_pattern;
@@ -99,9 +96,6 @@ namespace wavepi {
          // current time and time step
          unsigned int timestep_number;
          double time;
-
-         // for output to paraview
-         std::vector<std::pair<double, std::string>> times_and_names;
    };
 }
 
