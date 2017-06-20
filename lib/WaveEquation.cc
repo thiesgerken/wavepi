@@ -205,7 +205,7 @@ namespace wavepi {
       init_system();
 
       int total_steps = (int) std::ceil((double) (time_end / time_step));
-      DiscretizedFunction<dim> u(total_steps, true);
+      DiscretizedFunction<dim> u(true, total_steps);
 
       // add initial values to output data
       u.push_back(dof_handler, 0.0, solution_u, solution_v);

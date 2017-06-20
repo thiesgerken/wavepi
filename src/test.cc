@@ -17,9 +17,8 @@ template<int dim>
 double TestF<dim>::value(const Point<dim> &p, const unsigned int component) const {
    (void) component;
    Assert(component == 0, ExcIndexRange(component, 0, 1));
-   if ((this->get_time() <= 0.5)
-         && (p.distance(Point<2>(0.5, 0.5)) < 0.2 || p.distance(Point<2>(2.5, 2.5)) < 0.2))
-      return 1000 * std::sin(this->get_time() * 4 * numbers::PI);
+   if ((this->get_time() <= 0.5) && (p.distance(Point<2>(1.0, 0.5)) < 0.4))
+      return std::sin(this->get_time() * 2 * numbers::PI);
    else
       return 0.0;
 }
@@ -33,14 +32,38 @@ class TestC: public Function<dim> {
       double value(const Point<dim> &p, const unsigned int component = 0) const;
 };
 
+
+template<int dim>
+double rho(const Point<dim> &p, double t) {
+// return  p.distance(Point<2>(1.0*std::cos(2*numbers::PI * t / 8.0), 1.0*std::sin(2*numbers::PI * t / 8.0))) < 0.65 ? 20.0 : 1.0;
+   return p.distance(Point<2>(t-3.0, t-2.0)) < 1.2 ? 1.0/150.0 : 1.0;
+}
+
 template<int dim>
 double TestC<dim>::value(const Point<dim> &p, const unsigned int component) const {
    (void) component;
    Assert(component == 0, ExcIndexRange(component, 0, 1));
 
-   double v = 1 + 2 * p[1] + p[0];
-   return 1 / (v * v);
+   return 1.0 / rho(p, this->get_time());
 }
+
+template<int dim>
+class TestA: public Function<dim> {
+   public:
+      TestA()
+            : Function<dim>() {
+      }
+      double value(const Point<dim> &p, const unsigned int component = 0) const;
+};
+
+template<int dim>
+double TestA<dim>::value(const Point<dim> &p, const unsigned int component) const {
+   (void) component;
+   Assert(component == 0, ExcIndexRange(component, 0, 1));
+
+   return 1.0 / rho(p, this->get_time());
+}
+
 
 const int dim = 2;
 
@@ -48,9 +71,9 @@ template<int dim>
 void test() {
    Triangulation<dim> triangulation;
 
-   // GridGenerator::hyper_cube(triangulation, -1, 1);
-   GridGenerator::cheese(triangulation, std::vector<unsigned int>( { 1, 1 }));
-   triangulation.refine_global(4);
+   GridGenerator::hyper_cube(triangulation, -5, 5);
+//   GridGenerator::cheese(triangulation, std::vector<unsigned int>( { 1, 1 }));
+   triangulation.refine_global(7);
 
    FE_Q<dim> fe(1);
    DoFHandler<dim> dof_handler;
@@ -64,14 +87,24 @@ void test() {
    TestF<dim> rhs;
    wave_eq.right_hand_side = &rhs;
 
-   wave_eq.time_end = 5.0;
+   wave_eq.time_end = 6.0;
    wave_eq.theta = 0.5;
 
    TestC<dim> c;
    wave_eq.param_c = &c;
 
+   TestA<dim> a;
+    wave_eq.param_a = &a;
+
    DiscretizedFunction<dim> sol = wave_eq.run();
-  sol.write_pvd("solution", "sol_u", "sol_v");
+   sol.write_pvd("solution", "sol_u", "sol_v");
+
+   DiscretizedFunction<dim> adisc(false, sol.times.size());
+   for (size_t i=0; i<sol.times.size(); i++) {
+      adisc.push_back(sol.dof_handlers[i], sol.times[i], &a);
+   }
+
+   adisc.write_pvd("param_a", "param_a");
 }
 
 int main() {

@@ -37,6 +37,19 @@ namespace wavepi {
    }
 
    template<int dim>
+   void DiscretizedFunction<dim>::push_back(DoFHandler<dim>* dof_handler, double time,      Function<dim>* function) {
+      assert(!has_derivative);
+
+      function->set_time(time);
+      Vector<double> function_coeff(dof_handler->n_dofs());
+      VectorTools::interpolate(*dof_handler, *function, function_coeff);
+
+      dof_handlers.push_back(dof_handler);
+      times.push_back(time);
+      function_coefficients.push_back(function_coeff);
+   }
+
+   template<int dim>
    DiscretizedFunction<dim>::~DiscretizedFunction() {
    }
 
@@ -69,7 +82,7 @@ namespace wavepi {
          std::string name_deriv) const {
 
       assert(times.size() < 10000); // 4 digits are ok
-      std::vector<std::pair<double, std::string>> times_and_names(times.size());
+      std::vector<std::pair<double, std::string>> times_and_names;
 
       for (size_t i = 0; i < times.size(); i++) {
          DataOut<dim> data_out;
