@@ -11,13 +11,14 @@ ADD_CUSTOM_TARGET(release
   COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target all
   COMMENT "Switch CMAKE_BUILD_TYPE to Release"
   )
-  
+
 # If deal.II can not be found: either pass a flag -DDEAL_II_DIR=/path/to/deal.II to cmake
 # or set an environment variable "DEAL_II_DIR" that contains this path.
 FIND_PACKAGE(deal.II 8.5.0 REQUIRED QUIET
   HINTS ${deal.II_DIR} ${DEAL_II_DIR} ../ ../../ $ENV{DEAL_II_DIR}
   )
 
+set(CMAKE_ECLIPSE_VERSION 4.6)
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
 

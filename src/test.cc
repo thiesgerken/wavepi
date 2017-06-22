@@ -32,11 +32,10 @@ class TestC: public Function<dim> {
       double value(const Point<dim> &p, const unsigned int component = 0) const;
 };
 
-
 template<int dim>
 double rho(const Point<dim> &p, double t) {
 // return  p.distance(Point<2>(1.0*std::cos(2*numbers::PI * t / 8.0), 1.0*std::sin(2*numbers::PI * t / 8.0))) < 0.65 ? 20.0 : 1.0;
-   return p.distance(Point<2>(t-3.0, t-2.0)) < 1.2 ? 1.0/150.0 : 1.0;
+   return p.distance(Point<2>(t - 3.0, t - 2.0)) < 1.2 ? 1.0 / 150.0 : 1.0;
 }
 
 template<int dim>
@@ -64,7 +63,6 @@ double TestA<dim>::value(const Point<dim> &p, const unsigned int component) cons
    return 1.0 / rho(p, this->get_time());
 }
 
-
 const int dim = 2;
 
 template<int dim>
@@ -72,7 +70,7 @@ void test() {
    Triangulation<dim> triangulation;
 
    GridGenerator::hyper_cube(triangulation, -5, 5);
-//   GridGenerator::cheese(triangulation, std::vector<unsigned int>( { 1, 1 }));
+   // GridGenerator::cheese(triangulation, std::vector<unsigned int>( { 1, 1 }));
    triangulation.refine_global(7);
 
    FE_Q<dim> fe(1);
@@ -94,16 +92,13 @@ void test() {
    wave_eq.param_c = &c;
 
    TestA<dim> a;
-    wave_eq.param_a = &a;
+   wave_eq.param_a = &a;
 
    DiscretizedFunction<dim> sol = wave_eq.run();
    sol.write_pvd("solution", "sol_u", "sol_v");
 
-   DiscretizedFunction<dim> adisc(false, sol.times.size());
-   for (size_t i=0; i<sol.times.size(); i++) {
-      adisc.push_back(sol.dof_handlers[i], sol.times[i], &a);
-   }
-
+   DiscretizedFunction<dim> adisc = DiscretizedFunction<dim>::discretize(&a, sol.get_times(),
+         sol.get_dof_handlers());
    adisc.write_pvd("param_a", "param_a");
 }
 

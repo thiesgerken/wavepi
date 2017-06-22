@@ -24,12 +24,6 @@ namespace wavepi {
    template<int dim>
    class DiscretizedFunction {
       public:
-         bool has_derivative;
-
-         std::vector<double> times;
-         std::vector<DoFHandler<dim>*> dof_handlers;
-         std::vector<Vector<double>> function_coefficients;
-         std::vector<Vector<double>> derivative_coefficients;
 
          DiscretizedFunction(bool store_derivative, int capacity);
          DiscretizedFunction(bool store_derivative);
@@ -39,15 +33,29 @@ namespace wavepi {
                const Vector<double>& function_coeff);
          void push_back(DoFHandler<dim>* dof_handler, double time,
                const Vector<double>& function_coeff, const Vector<double>& deriv_coeff);
-         void push_back(DoFHandler<dim>* dof_handler, double time,
-               Function<dim>* function);
+         void push_back(DoFHandler<dim>* dof_handler, double time, Function<dim>* function);
+
+         static DiscretizedFunction<dim> discretize(Function<dim>* function,
+               const std::vector<double>& times, const std::vector<DoFHandler<dim>*>& handlers);
 
          void write_pvd(std::string path, std::string name, std::string name_deriv) const;
          void write_pvd(std::string path, std::string name) const;
 
          virtual ~DiscretizedFunction();
-      private:
 
+         const std::vector<Vector<double> >& get_derivative_coefficients() const;
+         const std::vector<DoFHandler<dim> *>& get_dof_handlers() const;
+         const std::vector<Vector<double> >& get_function_coefficients() const;
+         bool has_derivative() const;
+         const std::vector<double>& get_times() const;
+
+      private:
+         bool store_derivative;
+
+         std::vector<double> times;
+         std::vector<DoFHandler<dim>*> dof_handlers;
+         std::vector<Vector<double>> function_coefficients;
+         std::vector<Vector<double>> derivative_coefficients;
    };
 }
 

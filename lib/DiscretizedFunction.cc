@@ -18,7 +18,7 @@ namespace wavepi {
    template<int dim>
    void DiscretizedFunction<dim>::push_back(DoFHandler<dim>* dof_handler, double time,
          const Vector<double>& function_coeff) {
-      assert(!has_derivative);
+      assert(!store_derivative);
 
       dof_handlers.push_back(dof_handler);
       times.push_back(time);
@@ -28,7 +28,7 @@ namespace wavepi {
    template<int dim>
    void DiscretizedFunction<dim>::push_back(DoFHandler<dim>* dof_handler, double time,
          const Vector<double>& function_coeff, const Vector<double>& deriv_coeff) {
-      assert(has_derivative);
+      assert(store_derivative);
 
       dof_handlers.push_back(dof_handler);
       times.push_back(time);
@@ -37,8 +37,9 @@ namespace wavepi {
    }
 
    template<int dim>
-   void DiscretizedFunction<dim>::push_back(DoFHandler<dim>* dof_handler, double time,      Function<dim>* function) {
-      assert(!has_derivative);
+   void DiscretizedFunction<dim>::push_back(DoFHandler<dim>* dof_handler, double time,
+         Function<dim>* function) {
+      assert(!store_derivative);
 
       function->set_time(time);
       Vector<double> function_coeff(dof_handler->n_dofs());
@@ -50,12 +51,37 @@ namespace wavepi {
    }
 
    template<int dim>
+   inline const std::vector<Vector<double> >& DiscretizedFunction<dim>::get_derivative_coefficients() const {
+      return derivative_coefficients;
+   }
+
+   template<int dim>
+   inline const std::vector<DoFHandler<dim> *>& DiscretizedFunction<dim>::get_dof_handlers() const {
+      return dof_handlers;
+   }
+
+   template<int dim>
+   inline const std::vector<Vector<double> >& DiscretizedFunction<dim>::get_function_coefficients() const {
+      return function_coefficients;
+   }
+
+   template<int dim>
+   inline bool DiscretizedFunction<dim>::has_derivative() const {
+      return store_derivative;
+   }
+
+   template<int dim>
+   inline const std::vector<double>& DiscretizedFunction<dim>::get_times() const {
+      return times;
+   }
+
+   template<int dim>
    DiscretizedFunction<dim>::~DiscretizedFunction() {
    }
 
    template<int dim>
    DiscretizedFunction<dim>::DiscretizedFunction(bool store_derivative, int capacity)
-         : has_derivative(store_derivative), times(), dof_handlers(), function_coefficients(), derivative_coefficients() {
+         : store_derivative(store_derivative), times(), dof_handlers(), function_coefficients(), derivative_coefficients() {
       times.reserve(capacity);
       dof_handlers.reserve(capacity);
       function_coefficients.reserve(capacity);
@@ -70,6 +96,17 @@ namespace wavepi {
    template<int dim>
    DiscretizedFunction<dim>::DiscretizedFunction()
          : DiscretizedFunction(false) {
+   }
+
+   template<int dim>
+   DiscretizedFunction<dim> DiscretizedFunction<dim>::discretize(Function<dim>* function,
+         const std::vector<double>& times, const std::vector<DoFHandler<dim>*>& handlers) {
+      DiscretizedFunction<dim> fdisc(false, times.size());
+
+      for (size_t i = 0; i < times.size(); i++)
+         fdisc.push_back(handlers[i], times[i], function);
+
+      return fdisc;
    }
 
    template<int dim>
@@ -90,7 +127,7 @@ namespace wavepi {
          data_out.attach_dof_handler(*dof_handlers[i]);
          data_out.add_data_vector(function_coefficients[i], name);
 
-         if (has_derivative)
+         if (store_derivative)
             data_out.add_data_vector(derivative_coefficients[i], name_deriv);
 
          data_out.build_patches();
