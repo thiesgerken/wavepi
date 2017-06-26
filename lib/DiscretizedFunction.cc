@@ -117,6 +117,7 @@ namespace wavepi {
    template<int dim>
    void DiscretizedFunction<dim>::write_pvd(std::string path, std::string name,
          std::string name_deriv) const {
+      LogStream::Prefix p("DiscFunc(" + name + ")");
 
       assert(times.size() < 10000); // 4 digits are ok
       std::vector<std::pair<double, std::string>> times_and_names;
@@ -135,14 +136,14 @@ namespace wavepi {
          const std::string filename = path + "-" + Utilities::int_to_string(i, 4) + ".vtu";
          std::ofstream output(filename.c_str());
 
-         std::cout << "Writing " << filename << std::endl;
+         deallog << "Writing " << filename << std::endl;
          data_out.write_vtu(output);
 
          times_and_names.push_back(std::pair<double, std::string>(times[i], filename));
       }
 
       std::ofstream pvd_output(path + ".pvd");
-      std::cout << "Writing " << path + ".pvd" << std::endl;
+      deallog << "Writing " << path + ".pvd" << std::endl;
       DataOutBase::write_pvd_record(pvd_output, times_and_names);
    }
 

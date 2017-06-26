@@ -23,14 +23,12 @@ namespace wavepi {
    WaveEquation<dim>::WaveEquation(DoFHandler<dim> *dof_hndl)
          : initial_values_u(&zero), initial_values_v(&zero), boundary_values_u(&zero), boundary_values_v(
                &zero), right_hand_side(&zero), param_c(&one), param_nu(&zero), param_a(&one), param_q(
-               &zero), theta(0.5), time_end(1), time_step(1. / 64), dof_handler(dof_hndl), timestep_number(0), time(0.0) {
+               &zero), theta(0.5), time_end(1), time_step(1. / 64), backwards(false), dof_handler(
+               dof_hndl) {
    }
 
    template<int dim>
    void WaveEquation<dim>::init_system() {
-      time = 0.0;
-      timestep_number = 0;
-
       DynamicSparsityPattern dsp(dof_handler->n_dofs(), dof_handler->n_dofs());
       DoFTools::make_sparsity_pattern(*dof_handler, dsp);
       sparsity_pattern.copy_from(dsp);
@@ -65,13 +63,10 @@ namespace wavepi {
       //   VectorTools::project(*dof_handler, constraints, QGauss<dim>(3),*initial_values_v, old_solution_v);
       VectorTools::interpolate(*dof_handler, *initial_values_u, solution_u);
       VectorTools::interpolate(*dof_handler, *initial_values_v, solution_v);
-
-      // setup right hand side and the matrices for time = 0
-      setup_step();
    }
 
    template<int dim>
-   void WaveEquation<dim>::setup_step() {
+   void WaveEquation<dim>::setup_step(double time) {
       // matrices, solution and right hand side of current time step -> matrices, solution and rhs of last time step
       matrix_A_old.copy_from(matrix_A);
       matrix_B_old.copy_from(matrix_B);
@@ -174,46 +169,60 @@ namespace wavepi {
 
    template<int dim>
    void WaveEquation<dim>::solve_u() {
+      LogStream::Prefix p("solve_u");
+
       SolverControl solver_control(1000, 1e-8 * system_rhs.l2_norm());
       SolverCG<> cg(solver_control);
 
       cg.solve(system_matrix, solution_u, system_rhs, PreconditionIdentity());
 
-      std::cout << "   u-equation: " << solver_control.last_step() << " CG steps." << std::endl;
-      std::cout << "               " << "norm of system_rhs = " << system_rhs.l2_norm()
-            << std::endl;
-      std::cout << "               " << "norm of solution u = " << solution_u.l2_norm()
-            << std::endl;
+      deallog << std::scientific;
+      deallog << "Steps: " << solver_control.last_step();
+      deallog << " ‖res‖ = " << solver_control.last_value();
+      deallog << " ‖rhs‖ = " << system_rhs.l2_norm();
+      deallog << " ‖sol‖ = " << solution_u.l2_norm();
+      deallog << std::fixed << std::endl;
    }
 
    template<int dim>
    void WaveEquation<dim>::solve_v() {
+      LogStream::Prefix p("solve_v");
+
       SolverControl solver_control(1000, 1e-8 * system_rhs.l2_norm());
       SolverCG<> cg(solver_control);
 
       cg.solve(system_matrix, solution_v, system_rhs, PreconditionIdentity());
 
-      std::cout << "   v-equation: " << solver_control.last_step() << " CG steps." << std::endl;
-      std::cout << "               " << "norm of rhs = " << system_rhs.l2_norm() << std::endl;
-      std::cout << "               " << "norm of solution v = " << solution_v.l2_norm()
-            << std::endl;
+      deallog << std::scientific;
+      deallog << "Steps: " << solver_control.last_step();
+      deallog << " ‖res‖ = " << solver_control.last_value();
+      deallog << " ‖rhs‖ = " << system_rhs.l2_norm();
+      deallog << " ‖sol‖ = " << solution_v.l2_norm();
+      deallog << std::fixed << std::endl;
    }
 
    template<int dim>
    DiscretizedFunction<dim> WaveEquation<dim>::run() {
-      // setup: u, v contain the initial values, u_old and v_old are not defined.
+      LogStream::Prefix p("WaveEq");
+
+      // initialize everything and project/interpolate initial values
       init_system();
 
-      int total_steps = (int) std::ceil((double) (time_end / time_step));
-      DiscretizedFunction<dim> u(true, total_steps);
+      DiscretizedFunction<dim> u(true, (int) std::ceil(time_end / time_step));
+      double time = backwards ? time_end : 0.0;
+
+      // create matrices for first time step
+      setup_step(time);
 
       // add initial values to output data
-      u.push_back(dof_handler, 0.0, solution_u, solution_v);
+      u.push_back(dof_handler, time, solution_u, solution_v);
+      deallog << std::endl;
 
-      for (timestep_number = 1, time = time_step; time <= time_end;
-            time += time_step, timestep_number++) {
-         std::cout << "Time step " << timestep_number << " at t=" << time << std::endl;
-         setup_step();
+      for (int i = 1; (!backwards && time < time_end) || (backwards && time > 0.0); i++) {
+         time += backwards ? -time_step : time_step;
+
+         deallog << "Time step " << i << " at t=" << time << std::endl;
+         setup_step(time);
 
          // solve for $u^{n+1}$
          assemble_u();
@@ -224,6 +233,7 @@ namespace wavepi {
          solve_v();
 
          u.push_back(dof_handler, time, solution_u, solution_v);
+         deallog << std::endl;
       }
 
       return u;

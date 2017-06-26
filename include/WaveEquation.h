@@ -59,12 +59,13 @@ namespace wavepi {
          double theta;
          double time_end; // = T
          double time_step; // = \Delta t
+         bool backwards;
 
          ZeroFunction<dim> zero = ZeroFunction<dim>(1);
          ConstantFunction<dim> one = ConstantFunction<dim>(1.0, 1);
       private:
          void init_system();
-         void setup_step();
+         void setup_step(double time);
          void assemble_u();
          void assemble_v();
          void solve_u();
@@ -92,10 +93,6 @@ namespace wavepi {
          // space for linear systems and their right hand sides
          SparseMatrix<double> system_matrix;
          Vector<double> system_rhs;
-
-         // current time and time step
-         unsigned int timestep_number;
-         double time;
    };
 }
 
