@@ -207,9 +207,9 @@ namespace wavepi {
          near_enough = std::abs(times[idx] - time) < 1e-3 * std::abs(times[idx + 1] - times[idx]);
 
       if (!near_enough) {
-         std::string err;
+         std::stringstream err;
          err << "requested time " << time << " not found, nearest is " << times[idx];
-         Assert(false, ExcMessage(err));
+         Assert(false, ExcMessage(err.str()));
       }
 
       return idx;
