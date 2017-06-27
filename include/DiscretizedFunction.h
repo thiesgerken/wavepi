@@ -44,14 +44,23 @@ namespace wavepi {
 
          virtual ~DiscretizedFunction();
 
+         size_t find_time(double time) const;
+         size_t find_nearest_time(double time) const;
+
+         void at(double time, const Vector<double>* &coeffs, const Vector<double>* &deriv_coeffs,
+               DoFHandler<dim>* &handler) const;
+         void at(double time, const Vector<double>* &coeffs, DoFHandler<dim>* &handler) const;
+         void at(double time, const Vector<double>* &coeffs) const;
+
          const std::vector<Vector<double> >& get_derivative_coefficients() const;
          const std::vector<DoFHandler<dim> *>& get_dof_handlers() const;
          const std::vector<Vector<double> >& get_function_coefficients() const;
          bool has_derivative() const;
          const std::vector<double>& get_times() const;
-
       private:
          bool store_derivative;
+
+         size_t find_time(double time, size_t low, size_t up, bool increasing) const;
 
          std::vector<double> times;
          std::vector<DoFHandler<dim>*> dof_handlers;

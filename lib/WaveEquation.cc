@@ -93,7 +93,7 @@ namespace wavepi {
       MatrixCreator::create_mass_matrix(*dof_handler, QGauss<dim>(3), matrix_B, param_nu);
       MatrixCreator::create_mass_matrix(*dof_handler, QGauss<dim>(3), matrix_C, param_c);
 
-      VectorTools::create_right_hand_side(*dof_handler, QGauss<dim>(2), *right_hand_side, rhs);
+      VectorTools::create_right_hand_side(*dof_handler, QGauss<dim>(3), *right_hand_side, rhs);
    }
 
    template<int dim>
