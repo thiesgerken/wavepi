@@ -67,6 +67,8 @@ namespace wavepi {
 
    template<int dim>
    void WaveEquation<dim>::setup_step(double time) {
+      LogStream::Prefix p("setup_step");
+
       // matrices, solution and right hand side of current time step -> matrices, solution and rhs of last time step
       matrix_A_old.copy_from(matrix_A);
       matrix_B_old.copy_from(matrix_B);
@@ -85,6 +87,9 @@ namespace wavepi {
       boundary_values_u->set_time(time);
       boundary_values_v->set_time(time);
 
+Timer timer;
+timer.start();
+
       // Note: system_matrix is used as temporary storage
       MatrixCreator::create_mass_matrix(*dof_handler, QGauss<dim>(3), system_matrix, param_q);
       MatrixCreator::create_laplace_matrix(*dof_handler, QGauss<dim>(3), matrix_A, param_a);
@@ -94,7 +99,10 @@ namespace wavepi {
       MatrixCreator::create_mass_matrix(*dof_handler, QGauss<dim>(3), matrix_C, param_c);
 
       VectorTools::create_right_hand_side(*dof_handler, QGauss<dim>(3), *right_hand_side, rhs);
-   }
+
+  timer.stop();
+deallog << "Assembling of matrices took   " << timer.wall_time() << " s of wall time" << std::endl;
+}
 
    template<int dim>
    void WaveEquation<dim>::assemble_u() {
@@ -180,7 +188,7 @@ namespace wavepi {
       deallog << "Steps: " << solver_control.last_step();
       deallog << " ‖res‖ = " << solver_control.last_value();
       deallog << " ‖rhs‖ = " << system_rhs.l2_norm();
-      deallog << " ‖sol‖ = " << solution_u.l2_norm();
+      // deallog << " ‖sol‖ = " << solution_u.l2_norm();
       deallog << std::fixed << std::endl;
    }
 
@@ -197,7 +205,7 @@ namespace wavepi {
       deallog << "Steps: " << solver_control.last_step();
       deallog << " ‖res‖ = " << solver_control.last_value();
       deallog << " ‖rhs‖ = " << system_rhs.l2_norm();
-      deallog << " ‖sol‖ = " << solution_v.l2_norm();
+      // deallog << " ‖sol‖ = " << solution_v.l2_norm();
       deallog << std::fixed << std::endl;
    }
 
@@ -233,7 +241,10 @@ namespace wavepi {
          solve_v();
 
          u.push_back(dof_handler, time, solution_u, solution_v);
-         deallog << std::endl;
+
+         deallog << std::scientific;
+         deallog << "‖u‖ = " << solution_u.l2_norm() << ", ‖v‖ = " << solution_v.l2_norm();
+         deallog << std::fixed << std::endl << std::endl;
       }
 
       return u;

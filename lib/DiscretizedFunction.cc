@@ -118,35 +118,44 @@ namespace wavepi {
    template<int dim>
    void DiscretizedFunction<dim>::write_pvd(std::string path, std::string name,
          std::string name_deriv) const {
-      LogStream::Prefix p("DiscFunc(" + name + ")");
+      LogStream::Prefix p("DiscFunc");
 
       Assert(times.size() < 10000, ExcNotImplemented()); // 4 digits are ok
       std::vector<std::pair<double, std::string>> times_and_names;
 
+   Threads::TaskGroup<void> task_group;
+
       for (size_t i = 0; i < times.size(); i++) {
-         DataOut<dim> data_out;
-
-         data_out.attach_dof_handler(*dof_handlers[i]);
-         data_out.add_data_vector(function_coefficients[i], name);
-
-         if (store_derivative)
-            data_out.add_data_vector(derivative_coefficients[i], name_deriv);
-
-         data_out.build_patches();
-
          const std::string filename = path + "-" + Utilities::int_to_string(i, 4) + ".vtu";
-         std::ofstream output(filename.c_str());
-
-         deallog << "Writing " << filename << std::endl;
-         data_out.write_vtu(output);
-
          times_and_names.push_back(std::pair<double, std::string>(times[i], filename));
-      }
+
+    task_group += Threads::new_task (&DiscretizedFunction<dim>::write_vtk, *this, name, name_deriv, filename, i);
+                                   }
+
+  task_group.join_all ();
 
       std::ofstream pvd_output(path + ".pvd");
       deallog << "Writing " << path + ".pvd" << std::endl;
       DataOutBase::write_pvd_record(pvd_output, times_and_names);
    }
+
+      template<int dim>
+      void DiscretizedFunction<dim>::write_vtk(const std::string name, const std::string name_deriv, const std::string filename, size_t i) const {
+             DataOut<dim> data_out;
+
+           data_out.attach_dof_handler(*dof_handlers[i]);
+           data_out.add_data_vector(function_coefficients[i], name);
+
+           if (store_derivative)
+              data_out.add_data_vector(derivative_coefficients[i], name_deriv);
+
+           data_out.build_patches();
+
+           deallog << "Writing " << filename << std::endl;
+           std::ofstream output(filename.c_str());
+           data_out.write_vtu(output);
+            }
+
 
    // tries to find a given time in the times vector (using a binary search)
    // returns the index of the nearest time, the caller has to decide whether it is good enough.

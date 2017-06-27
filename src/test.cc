@@ -69,7 +69,7 @@ template<int dim>
 void test() {
    std::ofstream logout("test.log");
    deallog.attach(logout);
-   deallog.depth_console(2);
+   deallog.depth_console(1);
    deallog.depth_file(100);
    deallog.precision(3);
    deallog.pop();
@@ -79,7 +79,7 @@ void test() {
 
    GridGenerator::hyper_cube(triangulation, -5, 5);
    // GridGenerator::cheese(triangulation, std::vector<unsigned int>( { 1, 1 }));
-   triangulation.refine_global(4);
+   triangulation.refine_global(6);
 
    FE_Q<dim> fe(1);
    DoFHandler<dim> dof_handler;
@@ -105,8 +105,7 @@ void test() {
    DiscretizedFunction<dim> sol = wave_eq.run();
    sol.write_pvd("solution", "sol_u", "sol_v");
 
-   DiscretizedFunction<dim> adisc = DiscretizedFunction<dim>::discretize(&a, sol.get_times(),
-         sol.get_dof_handlers());
+   DiscretizedFunction<dim> adisc = DiscretizedFunction<dim>::discretize(&a, sol.get_times(),         sol.get_dof_handlers());
    adisc.write_pvd("param_a", "param_a");
 
    deallog.timestamp();

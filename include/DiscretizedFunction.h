@@ -60,6 +60,8 @@ namespace wavepi {
       private:
          bool store_derivative;
 
+         void write_vtk(const std::string name, const std::string name_deriv, const std::string filename, size_t i) const;
+
          size_t find_time(double time, size_t low, size_t up, bool increasing) const;
 
          std::vector<double> times;
