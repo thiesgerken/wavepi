@@ -42,6 +42,8 @@
 #include <cmath>
 
 #include <DiscretizedFunction.h>
+#include <MatrixCreator.h>
+
 
 namespace wavepi {
    using namespace dealii;

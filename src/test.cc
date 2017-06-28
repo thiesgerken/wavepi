@@ -35,7 +35,7 @@ class TestC: public Function<dim> {
 template<int dim>
 double rho(const Point<dim> &p, double t) {
 // return  p.distance(Point<2>(1.0*std::cos(2*numbers::PI * t / 8.0), 1.0*std::sin(2*numbers::PI * t / 8.0))) < 0.65 ? 20.0 : 1.0;
-   return p.distance(Point<2>(t - 3.0, t - 2.0)) < 1.2 ? 1.0 / 150.0 : 1.0;
+   return p.distance(Point<2>(t - 3.0, t - 2.0)) < 1.2 ? 1.0 / 3.0 : 1.0;
 }
 
 template<int dim>
@@ -43,7 +43,7 @@ double TestC<dim>::value(const Point<dim> &p, const unsigned int component) cons
    (void) component;
    Assert(component == 0, ExcIndexRange(component, 0, 1));
 
-   return 1.0 / rho(p, this->get_time());
+   return 1.0 / (rho(p, this->get_time()) * 4.0);
 }
 
 template<int dim>

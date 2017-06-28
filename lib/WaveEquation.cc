@@ -11,9 +11,8 @@
 
 #include "WaveEquation.h"
 
-using namespace dealii;
-
 namespace wavepi {
+   using namespace dealii;
 
    template class WaveEquation<1> ;
    template class WaveEquation<2> ;
@@ -87,22 +86,26 @@ namespace wavepi {
       boundary_values_u->set_time(time);
       boundary_values_v->set_time(time);
 
-Timer timer;
-timer.start();
+      Timer timer;
+      timer.start();
 
-      // Note: system_matrix is used as temporary storage
-      MatrixCreator::create_mass_matrix(*dof_handler, QGauss<dim>(3), system_matrix, param_q);
-      MatrixCreator::create_laplace_matrix(*dof_handler, QGauss<dim>(3), matrix_A, param_a);
-      matrix_A.add(1.0, system_matrix);
+      matrix_A = 0;
+      matrix_B = 0;
+      matrix_C = 0;
+      rhs = 0;
 
-      MatrixCreator::create_mass_matrix(*dof_handler, QGauss<dim>(3), matrix_B, param_nu);
-      MatrixCreator::create_mass_matrix(*dof_handler, QGauss<dim>(3), matrix_C, param_c);
+      Quadrature<dim> q = QGauss<dim>(3);
 
-      VectorTools::create_right_hand_side(*dof_handler, QGauss<dim>(3), *right_hand_side, rhs);
+      MatrixCreator::create_laplace_mass_matrix(*dof_handler, q, matrix_A, param_a, param_q);
+      MatrixCreator::create_mass_matrix(*dof_handler, q, matrix_B, param_nu);
+      MatrixCreator::create_mass_matrix(*dof_handler, q, matrix_C, param_c);
 
-  timer.stop();
-deallog << "Assembling of matrices took   " << timer.wall_time() << " s of wall time" << std::endl;
-}
+      VectorTools::create_right_hand_side(*dof_handler, q, *right_hand_side, rhs);
+
+      timer.stop();
+      deallog << "Assembling of matrices took " << timer.wall_time() << " s of wall time"
+            << std::endl;
+   }
 
    template<int dim>
    void WaveEquation<dim>::assemble_u() {
