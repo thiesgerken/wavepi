@@ -82,7 +82,7 @@ namespace wavepi {
 
    template<int dim>
    DiscretizedFunction<dim>::DiscretizedFunction(bool store_derivative, int capacity)
-         : store_derivative(store_derivative), times(), dof_handlers(), function_coefficients(), derivative_coefficients() {
+         : store_derivative(store_derivative), cur_time_idx(0), times(), dof_handlers(), function_coefficients(), derivative_coefficients() {
       times.reserve(capacity);
       dof_handlers.reserve(capacity);
       function_coefficients.reserve(capacity);
@@ -156,7 +156,6 @@ namespace wavepi {
            data_out.write_vtu(output);
             }
 
-
    // tries to find a given time in the times vector (using a binary search)
    // returns the index of the nearest time, the caller has to decide whether it is good enough.
    // must not be called on a empty discretization!
@@ -203,19 +202,22 @@ namespace wavepi {
    }
 
    template<int dim>
+      bool DiscretizedFunction<dim>::near_enough(double time, size_t idx) const {
+	   Assert(idx >= 0 && idx < times.size(), ExcIndexRange(idx, 0, times.size()));
+
+	   if (times.size() == 1)
+	         return std::abs(times[idx] - time) < 1e-3;
+	      else if (idx > 0)
+	         return  std::abs(times[idx] - time) < 1e-3 * std::abs(times[idx] - times[idx - 1]);
+	      else
+	        return std::abs(times[idx] - time) < 1e-3 * std::abs(times[idx + 1] - times[idx]);
+   }
+
+   template<int dim>
    size_t DiscretizedFunction<dim>::find_time(double time) const {
       size_t idx = find_nearest_time(time);
 
-      bool near_enough = true;
-
-      if (times.size() == 1)
-         near_enough = std::abs(times[idx] - time) < 1e-3;
-      else if (idx > 0)
-         near_enough = std::abs(times[idx] - time) < 1e-3 * std::abs(times[idx] - times[idx - 1]);
-      else
-         near_enough = std::abs(times[idx] - time) < 1e-3 * std::abs(times[idx + 1] - times[idx]);
-
-      if (!near_enough) {
+      if (!near_enough(time, idx)) {
          std::stringstream err;
          err << "requested time " << time << " not found, nearest is " << times[idx];
          Assert(false, ExcMessage(err.str()));
@@ -250,5 +252,23 @@ namespace wavepi {
 
       coeffs = &function_coefficients[idx];
    }
+
+
+   template<int dim>
+   double DiscretizedFunction<dim>::value(const Point<dim> &p, const unsigned int component) const {
+       Assert(component == 0, ExcIndexRange(component, 0, 1));
+       Assert(near_enough(Function<dim>::get_time(), cur_time_idx), ExcNotImplemented());
+       Assert(cur_time_idx >= 0 && cur_time_idx < times.size(), ExcIndexRange(cur_time_idx, 0, times.size()));
+
+     return   VectorTools::point_value(*dof_handlers[cur_time_idx], function_coefficients[cur_time_idx] ,
+                         p);
+   }
+
+   template<int dim>
+     void DiscretizedFunction<dim>::set_time 	( 	const double new_time	) {
+	   Function<dim>::set_time(new_time);
+	   cur_time_idx = find_nearest_time(new_time);
+   }
+
 
 }

@@ -3,9 +3,9 @@
 ## Direct Solver
 
 * grid adaptivity
-* discretized parameters and rhs should also work in WaveEquation
+* discretized parameters and rhs should also work in WaveEquation (Parameter class and subclasses DiscretizedParameter, ContinuousParameter? take references to parameters as arguments in WaveEquation? a and q must be in the same fashion?)
 * Interpolation of time steps (DiscretizedFunction::at)
-* Test discretized stuff as parameters by 'wrapping' a discretized function in a normal one? -> make DiscretizedFunction extend Function ?!)
+
 ## Inversion
 
 * implement L^2-Landweber / Shrinkage scheme (as  a class?) 

@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "WaveEquation.h"
+
 using namespace dealii;
 using namespace wavepi;
 
@@ -15,7 +16,6 @@ class TestF: public Function<dim> {
 
 template<int dim>
 double TestF<dim>::value(const Point<dim> &p, const unsigned int component) const {
-   (void) component;
    Assert(component == 0, ExcIndexRange(component, 0, 1));
    if ((this->get_time() <= 0.5) && (p.distance(Point<2>(1.0, 0.5)) < 0.4))
       return std::sin(this->get_time() * 2 * numbers::PI);
@@ -40,7 +40,6 @@ double rho(const Point<dim> &p, double t) {
 
 template<int dim>
 double TestC<dim>::value(const Point<dim> &p, const unsigned int component) const {
-   (void) component;
    Assert(component == 0, ExcIndexRange(component, 0, 1));
 
    return 1.0 / (rho(p, this->get_time()) * 4.0);
@@ -57,7 +56,6 @@ class TestA: public Function<dim> {
 
 template<int dim>
 double TestA<dim>::value(const Point<dim> &p, const unsigned int component) const {
-   (void) component;
    Assert(component == 0, ExcIndexRange(component, 0, 1));
 
    return 1.0 / rho(p, this->get_time());
@@ -102,10 +100,21 @@ void test() {
    TestA<dim> a;
    wave_eq.param_a = &a;
 
+   Timer timer;
+   timer.start();
    DiscretizedFunction<dim> sol = wave_eq.run();
-   sol.write_pvd("solution", "sol_u", "sol_v");
+   timer.stop();
+   deallog << "Continuous: " << timer.wall_time() << " s of wall time"         << std::endl;
 
    DiscretizedFunction<dim> adisc = DiscretizedFunction<dim>::discretize(&a, sol.get_times(),         sol.get_dof_handlers());
+
+   timer.restart();
+   wave_eq.param_a = &adisc;
+    DiscretizedFunction<dim> sol2 = wave_eq.run();
+   timer.stop();
+   deallog << "Discrete: " << timer.wall_time() << " s of wall time"         << std::endl;
+
+   sol.write_pvd("solution", "sol_u", "sol_v");
    adisc.write_pvd("param_a", "param_a");
 
    deallog.timestamp();
