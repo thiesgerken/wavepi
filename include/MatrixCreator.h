@@ -31,6 +31,8 @@
 #include <deal.II/fe/fe_q.h>
 #include <deal.II/fe/fe_values.h>
 
+#include <deal.II/numerics/vector_tools.h>
+
 #include <functional>
 
 namespace dealii {

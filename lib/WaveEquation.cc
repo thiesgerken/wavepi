@@ -58,8 +58,8 @@ namespace wavepi {
 
       /* projecting might make more sense, but VectorTools::project
        leads to a mutex error (deadlock) on my laptop (Core i5 6267U) */
-      //   VectorTools::project(*dof_handler, constraints, QGauss<dim>(3),*initial_values_u, old_solution_u);
-      //   VectorTools::project(*dof_handler, constraints, QGauss<dim>(3),*initial_values_v, old_solution_v);
+      //   VectorTools::project(*dof_handler, constraints, QGauss<dim>(3), *initial_values_u, old_solution_u);
+      //   VectorTools::project(*dof_handler, constraints, QGauss<dim>(3), *initial_values_v, old_solution_v);
       VectorTools::interpolate(*dof_handler, *initial_values_u, solution_u);
       VectorTools::interpolate(*dof_handler, *initial_values_v, solution_v);
    }
