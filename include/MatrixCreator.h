@@ -35,23 +35,54 @@
 
 #include <functional>
 
-namespace dealii {
-  namespace MatrixCreator {
-     using namespace dealii;
+namespace wavepi {
+   namespace MatrixCreator {
+      using namespace dealii;
 
-     /**
-      * like dealii::MatrixCreator::create_laplace_matrix, but with a zero order coefficient q as well.
-      * a and q must be valid function handles.
-      */
-     template <int dim, int spacedim, typename number>
-     void create_laplace_mass_matrix (const DoFHandler<dim,spacedim>    &dof,
-                              const Quadrature<dim>    &quad,
-                              SparseMatrix<number>     &matrix,
-                              const Function<spacedim,number> *const a,
-                              const Function<spacedim,number> *const q);
+      /**
+       * like dealii::MatrixCreator::create_laplace_matrix, but with a zero order coefficient q as well.
+       * a and q must be valid function handles.
+       */
+      template<int dim>
+      void create_laplace_mass_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad,
+            SparseMatrix<double> &matrix, const Function<dim> * const a,
+            const Function<dim> * const q);
 
+      /**
+       * like dealii::MatrixCreator::create_laplace_matrix, but with a zero order coefficient q as well.
+       * a must be a valid function handle and q a discretized function on the same mesh.
+       */
+      template<int dim>
+      void create_laplace_mass_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad,
+            SparseMatrix<double> &matrix, const Function<dim> * const a,
+            const Vector<double>& q);
 
+      /**
+       * like dealii::MatrixCreator::create_laplace_matrix, but with a zero order coefficient q as well.
+       * q must be a valid function handle and a a discretized function on the same mesh.
+       */
+      template<int dim>
+      void create_laplace_mass_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad,
+            SparseMatrix<double> &matrix, const Vector<double>& a,
+            const Function<dim> * const q);
 
-  }
+      /**
+       * like dealii::MatrixCreator::create_laplace_matrix, but with a zero order coefficient q as well.
+       * a and q are supplied as discretized FE functions  (living on the same mesh).
+       */
+      template<int dim>
+      void create_laplace_mass_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad,
+            SparseMatrix<double> &matrix, const Vector<double>& a, const Vector<double>& q);
+
+      /**
+       * like dealii::MatrixCreator::create_mass_matrix, but with a discretized coefficient c (living on the same mesh)
+       * you could just pass this coefficient to dealii::MatrixCreator::create_mass_matrix, but in tests this took 20x longer than
+       *  when using the continuous version. This implementation did it in 2x the time.
+       */
+      template<int dim>
+      void create_mass_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad,
+            SparseMatrix<double> &matrix, const Vector<double>& c);
+
+   }
 }
 #endif /* INCLUDE_MATRIXCREATOR_H_ */

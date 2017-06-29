@@ -14,16 +14,11 @@
 namespace wavepi {
    using namespace dealii;
 
-   template class WaveEquation<1> ;
-   template class WaveEquation<2> ;
-   template class WaveEquation<3> ;
-
    template<int dim>
    WaveEquation<dim>::WaveEquation(DoFHandler<dim> *dof_hndl)
-         : initial_values_u(&zero), initial_values_v(&zero), boundary_values_u(&zero), boundary_values_v(
-               &zero), right_hand_side(&zero), param_c(&one), param_nu(&zero), param_a(&one), param_q(
-               &zero), theta(0.5), time_end(1), time_step(1. / 64), backwards(false), dof_handler(
-               dof_hndl) {
+         : theta(0.5), time_end(1), time_step(1. / 64), backwards(false), dof_handler(dof_hndl), initial_values_u(
+               &zero), initial_values_v(&zero), boundary_values_u(&zero), boundary_values_v(&zero), param_c(
+               &one), param_nu(&zero), param_a(&one), param_q(&zero), right_hand_side(&zero_rhs) {
    }
 
    template<int dim>
@@ -82,12 +77,9 @@ namespace wavepi {
       param_nu->set_time(time);
       param_q->set_time(time);
       param_c->set_time(time);
-      right_hand_side->set_time(time);
       boundary_values_u->set_time(time);
       boundary_values_v->set_time(time);
-
-      Timer timer;
-      timer.start();
+      right_hand_side->set_time(time);
 
       matrix_A = 0;
       matrix_B = 0;
@@ -96,15 +88,35 @@ namespace wavepi {
 
       Quadrature<dim> q = QGauss<dim>(3);
 
-      MatrixCreator::create_laplace_mass_matrix(*dof_handler, q, matrix_A, param_a, param_q);
-      MatrixCreator::create_mass_matrix(*dof_handler, q, matrix_B, param_nu);
-      MatrixCreator::create_mass_matrix(*dof_handler, q, matrix_C, param_c);
+      // fill matrix_A
+      if (param_a_disc != nullptr && param_q_disc != nullptr)
+         MatrixCreator::create_laplace_mass_matrix(*dof_handler, q, matrix_A,
+               param_a_disc->get_function_coefficients()[param_a_disc->get_time_index()],
+               param_q_disc->get_function_coefficients()[param_q_disc->get_time_index()]);
+      else if (param_a_disc != nullptr && param_q_disc == nullptr)
+         MatrixCreator::create_laplace_mass_matrix(*dof_handler, q, matrix_A,
+               param_a_disc->get_function_coefficients()[param_a_disc->get_time_index()], param_q);
+      else if (param_a_disc == nullptr && param_q_disc != nullptr)
+         MatrixCreator::create_laplace_mass_matrix(*dof_handler, q, matrix_A, param_a,
+               param_q_disc->get_function_coefficients()[param_q_disc->get_time_index()]);
+      else
+         MatrixCreator::create_laplace_mass_matrix(*dof_handler, q, matrix_A, param_a, param_q);
 
-      VectorTools::create_right_hand_side(*dof_handler, q, *right_hand_side, rhs);
+      // fill matrix_B
+      if (param_nu_disc != nullptr)
+         MatrixCreator::create_mass_matrix(*dof_handler, q, matrix_B,
+               param_nu_disc->get_function_coefficients()[param_nu_disc->get_time_index()]);
+      else
+         dealii::MatrixCreator::create_mass_matrix(*dof_handler, q, matrix_B, param_nu);
 
-      timer.stop();
-      deallog << "Assembling of matrices took " << timer.wall_time() << " s of wall time"
-            << std::endl;
+      // fill matrix_C
+      if (param_c_disc != nullptr)
+         MatrixCreator::create_mass_matrix(*dof_handler, q, matrix_C,
+               param_c_disc->get_function_coefficients()[param_c_disc->get_time_index()]);
+      else
+         dealii::MatrixCreator::create_mass_matrix(*dof_handler, q, matrix_C, param_c);
+
+      right_hand_side->create_right_hand_side(*dof_handler, q, rhs);
    }
 
    template<int dim>
@@ -185,7 +197,12 @@ namespace wavepi {
       SolverControl solver_control(1000, 1e-8 * system_rhs.l2_norm());
       SolverCG<> cg(solver_control);
 
-      cg.solve(system_matrix, solution_u, system_rhs, PreconditionIdentity());
+      // Fewer (~half) iterations using preconditioner, but at least in 2D this is still not worth the effort
+      // PreconditionSSOR<SparseMatrix<double> > precondition;
+      // precondition.initialize (system_matrix, PreconditionSSOR<SparseMatrix<double> >::AdditionalData(.6));
+      PreconditionIdentity precondition = PreconditionIdentity();
+
+      cg.solve(system_matrix, solution_u, system_rhs, precondition);
 
       deallog << std::scientific;
       deallog << "Steps: " << solver_control.last_step();
@@ -202,7 +219,12 @@ namespace wavepi {
       SolverControl solver_control(1000, 1e-8 * system_rhs.l2_norm());
       SolverCG<> cg(solver_control);
 
-      cg.solve(system_matrix, solution_v, system_rhs, PreconditionIdentity());
+      // Fewer (~half) iterations using preconditioner, but at least in 2D this is still not worth the effort
+      // PreconditionSSOR<SparseMatrix<double> > precondition;
+      // precondition.initialize (system_matrix, PreconditionSSOR<SparseMatrix<double> >::AdditionalData(.6));
+      PreconditionIdentity precondition = PreconditionIdentity();
+
+      cg.solve(system_matrix, solution_v, system_rhs, precondition());
 
       deallog << std::scientific;
       deallog << "Steps: " << solver_control.last_step();
@@ -252,4 +274,117 @@ namespace wavepi {
 
       return u;
    }
+
+   template<int dim> void WaveEquation<dim>::set_initial_values_u(Function<dim>* values_u) {
+      initial_values_u = values_u;
+   }
+
+   template<int dim> void WaveEquation<dim>::set_initial_values_v(Function<dim>* values_v) {
+      initial_values_v = values_v;
+   }
+
+   template<int dim> Function<dim>* WaveEquation<dim>::get_initial_values_u() const {
+      return initial_values_u;
+   }
+
+   template<int dim> Function<dim>* WaveEquation<dim>::get_initial_values_v() const {
+      return initial_values_v;
+   }
+
+   template<int dim> void WaveEquation<dim>::set_boundary_values_u(Function<dim>* values_u) {
+      initial_values_u = values_u;
+   }
+
+   template<int dim> void WaveEquation<dim>::set_boundary_values_v(Function<dim>* values_v) {
+      initial_values_v = values_v;
+   }
+
+   template<int dim> Function<dim>* WaveEquation<dim>::get_boundary_values_u() const {
+      return boundary_values_u;
+   }
+
+   template<int dim> Function<dim>* WaveEquation<dim>::get_boundary_values_v() const {
+      return boundary_values_v;
+   }
+
+   template<int dim> void WaveEquation<dim>::set_param_c(Function<dim>* param) {
+      param_c = param;
+      param_c_disc = dynamic_cast<DiscretizedFunction<dim>*>(param_c);
+   }
+
+   template<int dim> Function<dim>* WaveEquation<dim>::get_param_c() const {
+      return param_c;
+   }
+
+   template<int dim> void WaveEquation<dim>::set_param_nu(Function<dim>* param) {
+      param_nu = param;
+      param_nu_disc = dynamic_cast<DiscretizedFunction<dim>*>(param_nu);
+   }
+
+   template<int dim> Function<dim>* WaveEquation<dim>::get_param_nu() const {
+      return param_nu;
+   }
+
+   template<int dim> void WaveEquation<dim>::set_param_a(Function<dim>* param) {
+      param_a = param;
+      param_a_disc = dynamic_cast<DiscretizedFunction<dim>*>(param_a);
+   }
+
+   template<int dim> Function<dim>* WaveEquation<dim>::get_param_a() const {
+      return param_a;
+   }
+
+   template<int dim> void WaveEquation<dim>::set_param_q(Function<dim>* param) {
+      param_q = param;
+      param_q_disc = dynamic_cast<DiscretizedFunction<dim>*>(param_q);
+   }
+
+   template<int dim> Function<dim>* WaveEquation<dim>::get_param_q() const {
+      return param_q;
+   }
+
+   template<int dim> void WaveEquation<dim>::set_right_hand_side(RightHandSide<dim>* rhs) {
+      right_hand_side = rhs;
+   }
+
+   template<int dim> RightHandSide<dim>* WaveEquation<dim>::get_right_hand_side() const {
+      return right_hand_side;
+   }
+
+   template<int dim> bool WaveEquation<dim>::is_backwards() const {
+      return backwards;
+   }
+
+   template<int dim> void WaveEquation<dim>::set_backwards(bool backwards) {
+      this->backwards = backwards;
+   }
+
+   template<int dim> double WaveEquation<dim>::get_theta() const {
+      return theta;
+   }
+
+   template<int dim> void WaveEquation<dim>::set_theta(double theta) {
+      this->theta = theta;
+   }
+
+   template<int dim> double WaveEquation<dim>::get_time_end() const {
+      return time_end;
+   }
+
+   template<int dim> void WaveEquation<dim>::set_time_end(double time_end) {
+      this->time_end = time_end;
+   }
+
+   template<int dim> double WaveEquation<dim>::get_time_step() const {
+      return time_step;
+   }
+
+   template<int dim> void WaveEquation<dim>::set_time_step(double time_step) {
+      this->time_step = time_step;
+   }
+
+   template class WaveEquation<1> ;
+   template class WaveEquation<2> ;
+   template class WaveEquation<3> ;
+
 }

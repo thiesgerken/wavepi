@@ -23,7 +23,7 @@ namespace wavepi {
    using namespace dealii;
 
    template<int dim>
-   class DiscretizedFunction : public Function<dim> {
+   class DiscretizedFunction: public Function<dim> {
       public:
          DiscretizedFunction(bool store_derivative, int capacity);
          DiscretizedFunction(bool store_derivative);
@@ -51,24 +51,25 @@ namespace wavepi {
          void at(double time, const Vector<double>* &coeffs, DoFHandler<dim>* &handler) const;
          void at(double time, const Vector<double>* &coeffs) const;
 
-  	   double value(const Point<dim> &p, const unsigned int component = 0) const;
-
-  	     void set_time 	( 	const double new_time	);
-
+         double value(const Point<dim> &p, const unsigned int component = 0) const;
+         double get_time_index() const;
+         void set_time(const double new_time);
 
          const std::vector<Vector<double> >& get_derivative_coefficients() const;
          const std::vector<DoFHandler<dim> *>& get_dof_handlers() const;
          const std::vector<Vector<double> >& get_function_coefficients() const;
-         bool has_derivative() const;
          const std::vector<double>& get_times() const;
+
+         bool has_derivative() const;
       private:
          bool store_derivative;
          size_t cur_time_idx;
 
-         void write_vtk(const std::string name, const std::string name_deriv, const std::string filename, size_t i) const;
+         void write_vtk(const std::string name, const std::string name_deriv,
+               const std::string filename, size_t i) const;
 
          size_t find_time(double time, size_t low, size_t up, bool increasing) const;
-           bool near_enough(double time, size_t idx) const;
+         bool near_enough(double time, size_t idx) const;
 
          std::vector<double> times;
          std::vector<DoFHandler<dim>*> dof_handlers;

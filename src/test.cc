@@ -77,45 +77,57 @@ void test() {
 
    GridGenerator::hyper_cube(triangulation, -5, 5);
    // GridGenerator::cheese(triangulation, std::vector<unsigned int>( { 1, 1 }));
-   triangulation.refine_global(6);
+   triangulation.refine_global(5);
 
    FE_Q<dim> fe(1);
    DoFHandler<dim> dof_handler;
    dof_handler.initialize(triangulation, fe);
 
-   std::cout << "Number of active cells: " << triangulation.n_active_cells() << std::endl;
-   std::cout << "Number of degrees of freedom: " << dof_handler.n_dofs() << std::endl << std::endl;
+   deallog << "Number of active cells: " << triangulation.n_active_cells() << std::endl;
+   deallog << "Number of degrees of freedom: " << dof_handler.n_dofs() << std::endl << std::endl;
 
    WaveEquation<dim> wave_eq(&dof_handler);
 
    TestF<dim> rhs;
-   wave_eq.right_hand_side = &rhs;
+   L2RightHandSide<dim> l2rhs(&rhs);
+   wave_eq.set_right_hand_side(&l2rhs);
 
-   wave_eq.time_end = 6.0;
-   wave_eq.theta = 0.5;
-
-   TestC<dim> c;
-   wave_eq.param_c = &c;
+   wave_eq.set_time_end(6.0);
+   wave_eq.set_theta(0.5);
 
    TestA<dim> a;
-   wave_eq.param_a = &a;
+   wave_eq.set_param_a(&a);
+
+   TestC<dim> c;
+   wave_eq.set_param_c(&c);
 
    Timer timer;
    timer.start();
    DiscretizedFunction<dim> sol = wave_eq.run();
    timer.stop();
-   deallog << "Continuous: " << timer.wall_time() << " s of wall time"         << std::endl;
+   deallog << "Continuous c, a: " << timer.wall_time() << " s of wall time" << std::endl;
 
-   DiscretizedFunction<dim> adisc = DiscretizedFunction<dim>::discretize(&a, sol.get_times(),         sol.get_dof_handlers());
+//   DiscretizedFunction<dim> cdisc = DiscretizedFunction<dim>::discretize(&c, sol.get_times(),
+//         sol.get_dof_handlers());
+//   wave_eq.set_param_c(&cdisc);
+//
+//   timer.restart();
+//   DiscretizedFunction<dim> sol2 = wave_eq.run();
+//   timer.stop();
+//   deallog << "Discrete c: " << timer.wall_time() << " s of wall time" << std::endl;
+//
+//   DiscretizedFunction<dim> adisc = DiscretizedFunction<dim>::discretize(&a, sol.get_times(),
+//         sol.get_dof_handlers());
+//   wave_eq.set_param_a(&adisc);
+//   wave_eq.set_param_c(&c);
+//
+//   timer.restart();
+//   DiscretizedFunction<dim> sol3 = wave_eq.run();
+//   timer.stop();
+//   deallog << "Discrete a: " << timer.wall_time() << " s of wall time" << std::endl;
 
-   timer.restart();
-   wave_eq.param_a = &adisc;
-    DiscretizedFunction<dim> sol2 = wave_eq.run();
-   timer.stop();
-   deallog << "Discrete: " << timer.wall_time() << " s of wall time"         << std::endl;
-
-   sol.write_pvd("solution", "sol_u", "sol_v");
-   adisc.write_pvd("param_a", "param_a");
+//   sol.write_pvd("solution", "sol_u", "sol_v");
+//   adisc.write_pvd("param_a", "param_a");
 
    deallog.timestamp();
 }
