@@ -205,6 +205,14 @@ void DistributionRightHandSide<dim>::create_right_hand_side(
 	auto f1_d = dynamic_cast<DiscretizedFunction<dim>*>(f1);
 	auto f2_d = dynamic_cast<DiscretizedFunction<dim>*>(f2);
 
+	if (f1_d != nullptr)
+	Assert(f1_d->get_function_coefficients()[f1_d->get_time_index()].size() == dof.n_dofs(),
+			ExcDimensionMismatch (f1_d->get_function_coefficients()[f1_d->get_time_index()].size() , dof.n_dofs()));
+
+	if (f2_d != nullptr)
+	Assert(f2_d->get_function_coefficients()[f2_d->get_time_index()].size() == dof.n_dofs(),
+			ExcDimensionMismatch (f2_d->get_function_coefficients()[f2_d->get_time_index()].size() , dof.n_dofs()));
+
 	if (f1_d != nullptr && f2_d != nullptr)
 		WorkStream::run(dof.begin_active(), dof.end(),
 				std::bind(&local_assemble_cc<dim>,

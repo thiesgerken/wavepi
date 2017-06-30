@@ -35,7 +35,8 @@ template<int dim>
 AssemblyScratchData<dim>::AssemblyScratchData(const FiniteElement<dim> &fe,
 		const Quadrature<dim> &quad) :
 		fe_values(fe, quad,
-				update_values | update_gradients | update_quadrature_points | update_JxW_values) {
+				update_values | update_gradients | update_quadrature_points
+						| update_JxW_values) {
 }
 
 template<int dim>
@@ -43,7 +44,8 @@ AssemblyScratchData<dim>::AssemblyScratchData(
 		const AssemblyScratchData &scratch_data) :
 		fe_values(scratch_data.fe_values.get_fe(),
 				scratch_data.fe_values.get_quadrature(),
-				update_values | update_gradients | update_quadrature_points | update_JxW_values) {
+				update_values | update_gradients | update_quadrature_points
+						| update_JxW_values) {
 }
 
 struct AssemblyCopyData {
@@ -125,20 +127,26 @@ void DivRightHandSide<dim>::create_right_hand_side(const DoFHandler<dim> &dof,
 	auto a_d = dynamic_cast<DiscretizedFunction<dim>*>(a);
 	auto u_d = dynamic_cast<DiscretizedFunction<dim>*>(u);
 
-	if (a_d != nullptr && u_d != nullptr)
+	if (a_d != nullptr && u_d != nullptr) {
+		Vector<double> ca =
+				a_d->get_function_coefficients()[a_d->get_time_index()];
+		Vector<double> cu =
+				u_d->get_function_coefficients()[u_d->get_time_index()];
+
+		Assert(ca.size() == dof.n_dofs(),
+				ExcDimensionMismatch (ca.size() , dof.n_dofs()));
+		Assert(cu.size() == dof.n_dofs(),
+				ExcDimensionMismatch (cu.size() , dof.n_dofs()));
+
 		WorkStream::run(dof.begin_active(), dof.end(),
-				std::bind(&local_assemble_dd<dim>,
-						std::ref(
-								a_d->get_function_coefficients()[a_d->get_time_index()]),
-						std::ref(
-								u_d->get_function_coefficients()[u_d->get_time_index()]),
+				std::bind(&local_assemble_dd<dim>, std::ref(ca), std::ref(cu),
 						std::placeholders::_1, std::placeholders::_2,
 						std::placeholders::_3),
 				std::bind(&copy_local_to_global, std::ref(rhs),
 						std::placeholders::_1),
 				AssemblyScratchData<dim>(dof.get_fe(), quad),
 				AssemblyCopyData());
-	else
+	} else
 		WorkStream::run(dof.begin_active(), dof.end(),
 				std::bind(&local_assemble_cc<dim>, a, u, std::placeholders::_1,
 						std::placeholders::_2, std::placeholders::_3),

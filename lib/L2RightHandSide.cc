@@ -82,25 +82,27 @@ void local_assemble(const Vector<double> &f,
 }
 
 template<int dim>
-void L2RightHandSide<dim>::create_right_hand_side(
-		const DoFHandler<dim> &dof, const Quadrature<dim> &quad,
-		Vector<double> &rhs) const {
+void L2RightHandSide<dim>::create_right_hand_side(const DoFHandler<dim> &dof,
+		const Quadrature<dim> &quad, Vector<double> &rhs) const {
 	base_rhs->set_time(this->get_time());
 
 	auto base_rhs_d = dynamic_cast<DiscretizedFunction<dim>*>(base_rhs);
 
-	if (base_rhs_d != nullptr)
+	if (base_rhs_d != nullptr) {
+		Vector<double> coeffs =
+				base_rhs_d->get_function_coefficients()[base_rhs_d->get_time_index()];
+		Assert(coeffs.size() == dof.n_dofs(),
+				ExcDimensionMismatch (coeffs.size() , dof.n_dofs()));
+
 		WorkStream::run(dof.begin_active(), dof.end(),
-				std::bind(&local_assemble<dim>,
-						std::ref(
-								base_rhs_d->get_function_coefficients()[base_rhs_d->get_time_index()]),
+				std::bind(&local_assemble<dim>, std::ref(coeffs),
 						std::placeholders::_1, std::placeholders::_2,
 						std::placeholders::_3),
 				std::bind(&copy_local_to_global, std::ref(rhs),
 						std::placeholders::_1),
 				AssemblyScratchData<dim>(dof.get_fe(), quad),
 				AssemblyCopyData());
-	else
+	} else
 		VectorTools::create_right_hand_side(dof, quad, *base_rhs, rhs);
 }
 
