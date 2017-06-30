@@ -1,4 +1,4 @@
-file(GLOB LIBSOURCES *.cc)
+file(GLOB LIBSOURCES *.cpp)
 
 # the commit's SHA1, and whether the building workspace was dirty or not
 execute_process(COMMAND
