@@ -99,7 +99,7 @@ template<int dim>
 void test() {
    std::ofstream logout("test.log");
    deallog.attach(logout);
-   deallog.depth_console(1);
+   deallog.depth_console(2);
    deallog.depth_file(100);
    deallog.precision(3);
    deallog.pop();

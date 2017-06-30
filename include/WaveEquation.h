@@ -13,6 +13,7 @@
 #include <deal.II/base/logstream.h>
 #include <deal.II/base/utilities.h>
 #include <deal.II/base/timer.h>
+#include <deal.II/base/thread_management.h>
 
 #include <deal.II/lac/vector.h>
 #include <deal.II/lac/full_matrix.h>
@@ -105,6 +106,10 @@ namespace wavepi {
          void solve_u();
          void solve_v();
 
+         void fill_A();
+         void fill_B();
+         void fill_C();
+
          double theta;
          double time_end; // = T
          double time_step; // = \Delta t
@@ -116,6 +121,7 @@ namespace wavepi {
          Function<dim> *boundary_values_u, *boundary_values_v;
          Function<dim> *param_c, *param_nu, *param_a, *param_q;
 
+     	Quadrature<dim> quad = QGauss<dim>(3);
          DiscretizedFunction<dim> *param_c_disc = nullptr, *param_nu_disc = nullptr, *param_a_disc= nullptr, *param_q_disc=nullptr;
 
          RightHandSide<dim>* right_hand_side;
