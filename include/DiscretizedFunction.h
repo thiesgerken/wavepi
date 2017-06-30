@@ -9,6 +9,7 @@
 #define DISCRETIZEDFUNCTION_H_
 
 #include <deal.II/base/function.h>
+#include <deal.II/base/tensor.h>
 #include <deal.II/base/logstream.h>
 #include <deal.II/base/utilities.h>
 #include <deal.II/lac/vector.h>
@@ -52,7 +53,9 @@ namespace wavepi {
          void at(double time, const Vector<double>* &coeffs) const;
 
          double value(const Point<dim> &p, const unsigned int component = 0) const;
-         double get_time_index() const;
+                 Tensor<1,dim, double> gradient(const Point<dim> &p, const unsigned int component) const;
+
+             double get_time_index() const;
          void set_time(const double new_time);
 
          const std::vector<Vector<double> >& get_derivative_coefficients() const;

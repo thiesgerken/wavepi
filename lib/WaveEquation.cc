@@ -237,6 +237,8 @@ namespace wavepi {
    template<int dim>
    DiscretizedFunction<dim> WaveEquation<dim>::run() {
       LogStream::Prefix p("WaveEq");
+      Timer timer;
+      timer.start();
 
       // initialize everything and project/interpolate initial values
       init_system();
@@ -249,12 +251,11 @@ namespace wavepi {
 
       // add initial values to output data
       u.push_back(dof_handler, time, solution_u, solution_v);
-      deallog << std::endl;
 
       for (int i = 1; (!backwards && time < time_end) || (backwards && time > 0.0); i++) {
-         time += backwards ? -time_step : time_step;
+    	 LogStream::Prefix pp("step-"+ Utilities::int_to_string(i, 4));
+    	 time += backwards ? -time_step : time_step;
 
-         deallog << "Time step " << i << " at t=" << time << std::endl;
          setup_step(time);
 
          // solve for $u^{n+1}$
@@ -267,10 +268,13 @@ namespace wavepi {
 
          u.push_back(dof_handler, time, solution_u, solution_v);
 
-         deallog << std::scientific;
+         deallog << "t = " << std::fixed << time << std::scientific << ": ";
          deallog << "‖u‖ = " << solution_u.l2_norm() << ", ‖v‖ = " << solution_v.l2_norm();
-         deallog << std::fixed << std::endl << std::endl;
+         deallog << std::fixed << std::endl;
       }
+
+      timer.stop();
+      deallog << "solved pde in " << std::fixed << timer.wall_time() << std::fixed << "s" << std::endl;
 
       return u;
    }
