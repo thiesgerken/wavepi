@@ -21,64 +21,97 @@
 #include <iostream>
 
 namespace wavepi {
-   using namespace dealii;
+using namespace dealii;
 
-   template<int dim>
-   class DiscretizedFunction: public Function<dim> {
-      public:
-         DiscretizedFunction(bool store_derivative, int capacity);
-         DiscretizedFunction(bool store_derivative);
-         DiscretizedFunction();
+template<int dim>
+class DiscretizedFunction: public Function<dim> {
+public:
+	DiscretizedFunction(bool store_derivative, int capacity);
+	DiscretizedFunction(bool store_derivative);
+	DiscretizedFunction();
+	DiscretizedFunction(const DiscretizedFunction& that) = delete;
+	DiscretizedFunction(const DiscretizedFunction&& that);
 
-         void push_back(DoFHandler<dim>* dof_handler, double time,
-               const Vector<double>& function_coeff);
-         void push_back(DoFHandler<dim>* dof_handler, double time,
-               const Vector<double>& function_coeff, const Vector<double>& deriv_coeff);
-         void push_back(DoFHandler<dim>* dof_handler, double time, Function<dim>* function);
+	DiscretizedFunction<dim>& operator=(DiscretizedFunction<dim> && V);
 
-         static DiscretizedFunction<dim> discretize(Function<dim>* function,
-               const std::vector<double>& times, const std::vector<DoFHandler<dim>*>& handlers);
+	DiscretizedFunction<dim>& operator+=(const DiscretizedFunction<dim> & V);
+	DiscretizedFunction<dim>& operator-=(const DiscretizedFunction<dim> & V);
 
-         void write_pvd(std::string path, std::string name, std::string name_deriv) const;
-         void write_pvd(std::string path, std::string name) const;
+	DiscretizedFunction<dim>& operator*=(const double factor);
+	DiscretizedFunction<dim>& operator/=(const double factor);
 
-         virtual ~DiscretizedFunction();
+	void add(const double a, const DiscretizedFunction<dim> & V);
 
-         size_t find_time(double time) const;
-         size_t find_nearest_time(double time) const;
+	// scale by s and add a*V
+	void sadd(const double s, const double a,
+			const DiscretizedFunction<dim> & V);
 
-         void at(double time, const Vector<double>* &coeffs, const Vector<double>* &deriv_coeffs,
-               DoFHandler<dim>* &handler) const;
-         void at(double time, const Vector<double>* &coeffs, DoFHandler<dim>* &handler) const;
-         void at(double time, const Vector<double>* &coeffs) const;
+	// vector l2 scalar product
+	double operator*(const DiscretizedFunction<dim> & V) const;
 
-         double value(const Point<dim> &p, const unsigned int component = 0) const;
-                 Tensor<1,dim, double> gradient(const Point<dim> &p, const unsigned int component) const;
+	// vector l2 norm in time and space
+	double l2_norm() const;
 
-             double get_time_index() const;
-         void set_time(const double new_time);
+	// some functions complain if one operand has a derivative and the other doesn't
+	// also you might want to conserve memory
+	void throw_away_derivative() ;
 
-         const std::vector<Vector<double> >& get_derivative_coefficients() const;
-         const std::vector<DoFHandler<dim> *>& get_dof_handlers() const;
-         const std::vector<Vector<double> >& get_function_coefficients() const;
-         const std::vector<double>& get_times() const;
+	void push_back(DoFHandler<dim>* dof_handler, double time,
+			const Vector<double>& function_coeff);
+	void push_back(DoFHandler<dim>* dof_handler, double time,
+			const Vector<double>& function_coeff,
+			const Vector<double>& deriv_coeff);
+	void push_back(DoFHandler<dim>* dof_handler, double time,
+			Function<dim>* function);
 
-         bool has_derivative() const;
-      private:
-         bool store_derivative;
-         size_t cur_time_idx;
+	static DiscretizedFunction<dim> discretize(Function<dim>* function,
+			const std::vector<double>& times,
+			const std::vector<DoFHandler<dim>*>& handlers);
 
-         void write_vtk(const std::string name, const std::string name_deriv,
-               const std::string filename, size_t i) const;
+	void write_pvd(std::string path, std::string name,
+			std::string name_deriv) const;
+	void write_pvd(std::string path, std::string name) const;
 
-         size_t find_time(double time, size_t low, size_t up, bool increasing) const;
-         bool near_enough(double time, size_t idx) const;
+	virtual ~DiscretizedFunction();
 
-         std::vector<double> times;
-         std::vector<DoFHandler<dim>*> dof_handlers;
-         std::vector<Vector<double>> function_coefficients;
-         std::vector<Vector<double>> derivative_coefficients;
-   };
+	size_t find_time(double time) const;
+	size_t find_nearest_time(double time) const;
+
+	void at(double time, const Vector<double>* &coeffs,
+			const Vector<double>* &deriv_coeffs,
+			DoFHandler<dim>* &handler) const;
+	void at(double time, const Vector<double>* &coeffs,
+			DoFHandler<dim>* &handler) const;
+	void at(double time, const Vector<double>* &coeffs) const;
+
+	double value(const Point<dim> &p, const unsigned int component = 0) const;
+	Tensor<1, dim, double> gradient(const Point<dim> &p,
+			const unsigned int component) const;
+
+	double get_time_index() const;
+	void set_time(const double new_time);
+
+	const std::vector<Vector<double> >& get_derivative_coefficients() const;
+	const std::vector<DoFHandler<dim> *>& get_dof_handlers() const;
+	const std::vector<Vector<double> >& get_function_coefficients() const;
+	const std::vector<double>& get_times() const;
+
+	bool has_derivative() const;
+private:
+	bool store_derivative;
+	size_t cur_time_idx;
+
+	void write_vtk(const std::string name, const std::string name_deriv,
+			const std::string filename, size_t i) const;
+
+	size_t find_time(double time, size_t low, size_t up, bool increasing) const;
+	bool near_enough(double time, size_t idx) const;
+
+	std::vector<double> times;
+	std::vector<DoFHandler<dim>*> dof_handlers;
+	std::vector<Vector<double>> function_coefficients;
+	std::vector<Vector<double>> derivative_coefficients;
+};
 }
 
 #endif /* DISCRETIZEDFUNCTION_H_ */

@@ -102,6 +102,152 @@ DiscretizedFunction<dim>::DiscretizedFunction() :
 }
 
 template<int dim>
+DiscretizedFunction<dim>::DiscretizedFunction(const DiscretizedFunction&& o) :
+		store_derivative(o.store_derivative), cur_time_idx(o.cur_time_idx), times(
+				o.times), dof_handlers(o.dof_handlers), function_coefficients(
+				o.function_coefficients), derivative_coefficients(
+				o.derivative_coefficients) {
+}
+
+template<int dim>
+DiscretizedFunction<dim>& DiscretizedFunction<dim>::operator=(
+		DiscretizedFunction<dim> && o) {
+	store_derivative = o.store_derivative;
+	cur_time_idx = o.cur_time_idx;
+	times = std::move(o.times);
+	dof_handlers = std::move(o.dof_handlers);
+	function_coefficients = std::move(o.function_coefficients);
+	derivative_coefficients = std::move(o.derivative_coefficients);
+
+	return *this;
+}
+
+template<int dim>
+DiscretizedFunction<dim>& DiscretizedFunction<dim>::operator+=(
+		const DiscretizedFunction<dim> & V) {
+	this->add(1.0, V);
+
+	return *this;
+}
+
+template<int dim>
+DiscretizedFunction<dim>& DiscretizedFunction<dim>::operator-=(
+		const DiscretizedFunction<dim> & V) {
+	this->add(-1.0, V);
+
+	return *this;
+}
+
+template<int dim>
+DiscretizedFunction<dim>& DiscretizedFunction<dim>::operator*=(
+		const double factor) {
+	for (size_t i = 0; i < times.size(); i++) {
+		function_coefficients[i] *= factor;
+
+		if (store_derivative)
+			derivative_coefficients[i] *= factor;
+	}
+
+	return *this;
+}
+
+template<int dim>
+DiscretizedFunction<dim>& DiscretizedFunction<dim>::operator/=(
+		const double factor) {
+	this->operator /=(1.0 / factor);
+
+	return *this;
+}
+
+template<int dim>
+void DiscretizedFunction<dim>::add(const double a,
+		const DiscretizedFunction<dim> & V) {
+	Assert(times.size() == V.times.size(),
+			ExcDimensionMismatch (times.size() , V.times.size()));
+	Assert(!store_derivative || (store_derivative == V.store_derivative),
+			ExcInternalError ());
+
+	for (size_t i = 0; i < times.size(); i++) {
+		Assert(times[i] == V.times[i], ExcInternalError());
+		Assert(
+				function_coefficients[i].size() == V.function_coefficients[i].size(),
+				ExcDimensionMismatch (function_coefficients[i].size() , V.function_coefficients[i].size()));
+
+		function_coefficients[i].add(a, V.function_coefficients[i]);
+
+		if (store_derivative) {
+			Assert(
+					derivative_coefficients[i].size() == V.derivative_coefficients[i].size(),
+					ExcDimensionMismatch (derivative_coefficients[i].size() , V.derivative_coefficients[i].size()));
+
+			derivative_coefficients[i].add(a, V.derivative_coefficients[i]);
+		}
+	}
+}
+
+template<int dim>
+void DiscretizedFunction<dim>::sadd(const double s, const double a,
+		const DiscretizedFunction<dim> & V) {
+	Assert(times.size() == V.times.size(),
+			ExcDimensionMismatch (times.size() , V.times.size()));
+	Assert(!store_derivative || (store_derivative == V.store_derivative),
+			ExcInternalError ());
+
+	for (size_t i = 0; i < times.size(); i++) {
+		Assert(times[i] == V.times[i], ExcInternalError());
+		Assert(
+				function_coefficients[i].size() == V.function_coefficients[i].size(),
+				ExcDimensionMismatch (function_coefficients[i].size() , V.function_coefficients[i].size()));
+
+		function_coefficients[i].sadd(s, a, V.function_coefficients[i]);
+
+		if (store_derivative) {
+			Assert(
+					derivative_coefficients[i].size() == V.derivative_coefficients[i].size(),
+					ExcDimensionMismatch (derivative_coefficients[i].size() , V.derivative_coefficients[i].size()));
+
+			derivative_coefficients[i].sadd(s, a, V.derivative_coefficients[i]);
+		}
+	}
+}
+
+template<int dim>
+void DiscretizedFunction<dim>::throw_away_derivative() {
+	store_derivative = false;
+	derivative_coefficients = std::vector<Vector<double>>();
+}
+
+template<int dim>
+double DiscretizedFunction<dim>::operator*(
+		const DiscretizedFunction<dim> & V) const {
+	Assert(times.size() == V.times.size(),
+			ExcDimensionMismatch (times.size() , V.times.size()));
+
+	double result = 0;
+
+	for (size_t i = 0; i < times.size(); i++) {
+		Assert(times[i] == V.times[i], ExcInternalError());
+		Assert(
+				function_coefficients[i].size() == V.function_coefficients[i].size(),
+				ExcInternalError());
+
+		result += function_coefficients[i] * V.function_coefficients[i];
+	}
+
+	return result;
+}
+
+template<int dim>
+double DiscretizedFunction<dim>::l2_norm() const {
+	double result = 0;
+
+	for (size_t i = 0; i < times.size(); i++)
+		result += function_coefficients[i].norm_sqr();
+
+	return std::sqrt(result);
+}
+
+template<int dim>
 DiscretizedFunction<dim> DiscretizedFunction<dim>::discretize(
 		Function<dim>* function, const std::vector<double>& times,
 		const std::vector<DoFHandler<dim>*>& handlers) {
