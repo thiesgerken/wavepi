@@ -1,17 +1,17 @@
 /*
- * L2RightHandSide.h
+ * DivRightHandSide.h
  *
  *  Created on: 29.06.2017
  *      Author: thies
  */
 
-#ifndef LIB_L2RIGHTHANDSIDE_H_
-#define LIB_L2RIGHTHANDSIDE_H_
+#ifndef LIB_DIVRIGHTHANDSIDE_H_
+#define LIB_DIVRIGHTHANDSIDE_H_
 
 #include <deal.II/base/quadrature_lib.h>
 #include <deal.II/base/function.h>
 #include <deal.II/base/utilities.h>
-
+#include <deal.II/base/tensor.h>
 #include <deal.II/base/work_stream.h>
 
 #include <deal.II/lac/vector.h>
@@ -38,19 +38,25 @@
 namespace wavepi {
    using namespace dealii;
 
+   // implements the H^{-1} function f=div(a \nabla u) as a possible right hand side,
+   // this means <f,v> = (-a\nabla u, \nabla v) [note the sign!]
    template <int dim>
-   class L2RightHandSide: public RightHandSide<dim> {
+   class DivRightHandSide: public RightHandSide<dim> {
       public:
-         L2RightHandSide(Function<dim>* f);
-         virtual ~L2RightHandSide();
+
+	   // optimization is used only when a _and_ u are discretized
+	   // if u is continuous, then u has to have an implementation of gradient
+	   DivRightHandSide(Function<dim>* a, Function<dim>* u);
+         virtual ~DivRightHandSide();
 
          virtual void create_right_hand_side(const DoFHandler<dim> &dof_handler,
                       const Quadrature<dim> &q, Vector<double> &rhs) const;
 
       private:
-         Function<dim> *base_rhs;
+         Function<dim> *a;
+         Function<dim> *u;
    };
 
 } /* namespace wavepi */
 
-#endif /* LIB_L2RIGHTHANDSIDE_H_ */
+#endif /* LIB_DIVRIGHTHANDSIDE_H_ */

@@ -224,7 +224,7 @@ namespace wavepi {
       // precondition.initialize (system_matrix, PreconditionSSOR<SparseMatrix<double> >::AdditionalData(.6));
       PreconditionIdentity precondition = PreconditionIdentity();
 
-      cg.solve(system_matrix, solution_v, system_rhs, precondition());
+      cg.solve(system_matrix, solution_v, system_rhs, precondition);
 
       deallog << std::scientific;
       deallog << "Steps: " << solver_control.last_step();

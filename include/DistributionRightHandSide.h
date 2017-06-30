@@ -1,12 +1,12 @@
 /*
- * L2RightHandSide.h
+ * DistributionRightHandSide.h
  *
- *  Created on: 29.06.2017
+ *  Created on: 30.06.2017
  *      Author: thies
  */
 
-#ifndef LIB_L2RIGHTHANDSIDE_H_
-#define LIB_L2RIGHTHANDSIDE_H_
+#ifndef LIB_DISTRIBUTIONRIGHTHANDSIDE_H_
+#define LIB_DISTRIBUTIONRIGHTHANDSIDE_H_
 
 #include <deal.II/base/quadrature_lib.h>
 #include <deal.II/base/function.h>
@@ -38,19 +38,24 @@
 namespace wavepi {
    using namespace dealii;
 
-   template <int dim>
-   class L2RightHandSide: public RightHandSide<dim> {
-      public:
-         L2RightHandSide(Function<dim>* f);
-         virtual ~L2RightHandSide();
+// Element of the dual space of H^1_0, represented by L^2 scalar products (f1, v) + (f2, nabla v)
+template<int dim>
+class DistributionRightHandSide: public RightHandSide<dim> {
+public:
 
-         virtual void create_right_hand_side(const DoFHandler<dim> &dof_handler,
-                      const Quadrature<dim> &q, Vector<double> &rhs) const;
+	// either of the functions may be zero
+	DistributionRightHandSide(Function<dim>* f1, Function<dim>* f2);
+    virtual ~DistributionRightHandSide();
 
-      private:
-         Function<dim> *base_rhs;
-   };
+    virtual void create_right_hand_side(const DoFHandler<dim> &dof_handler,
+                 const Quadrature<dim> &q, Vector<double> &rhs) const;
+
+ private:
+    Function<dim> *f1;
+    Function<dim> *f2;
+
+};
 
 } /* namespace wavepi */
 
-#endif /* LIB_L2RIGHTHANDSIDE_H_ */
+#endif /* LIB_DISTRIBUTIONRIGHTHANDSIDE_H_ */
