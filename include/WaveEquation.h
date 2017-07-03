@@ -50,10 +50,11 @@
 namespace wavepi {
    using namespace dealii;
 
+   // parameters and rhs must be discretized on the same space-time grid!
    template<int dim>
    class WaveEquation {
       public:
-         WaveEquation(DoFHandler<dim> *dof_handler);
+         WaveEquation(DoFHandler<dim> *dof_handler, std::vector<double> times);
          DiscretizedFunction<dim> run();
 
          ZeroFunction<dim> zero = ZeroFunction<dim>(1);
@@ -86,23 +87,17 @@ namespace wavepi {
          void set_right_hand_side(RightHandSide<dim>* rhs);
          RightHandSide<dim>* get_right_hand_side() const;
 
-         bool is_backwards() const;
-         void set_backwards(bool backwards);
-
          double get_theta() const;
          void set_theta(double theta);
 
-         double get_time_end() const;
-         void set_time_end(double time_end);
-
-         double get_time_step() const;
-         void set_time_step(double time_step);
+         const std::vector<double>& getTimes() const;
+         void setTimes(const std::vector<double>& times);
 
       private:
          void init_system();
          void setup_step(double time);
-         void assemble_u();
-         void assemble_v();
+         void assemble_u(double time_step);
+         void assemble_v(double time_step);
          void solve_u();
          void solve_v();
 
@@ -111,18 +106,17 @@ namespace wavepi {
          void fill_C();
 
          double theta;
-         double time_end; // = T
-         double time_step; // = \Delta t
-         bool backwards;
 
          DoFHandler<dim> *dof_handler;
+         std::vector<double> times;
 
          Function<dim> *initial_values_u, *initial_values_v;
          Function<dim> *boundary_values_u, *boundary_values_v;
          Function<dim> *param_c, *param_nu, *param_a, *param_q;
 
-     	Quadrature<dim> quad = QGauss<dim>(3);
-         DiscretizedFunction<dim> *param_c_disc = nullptr, *param_nu_disc = nullptr, *param_a_disc= nullptr, *param_q_disc=nullptr;
+         Quadrature<dim> quad = QGauss<dim>(3);
+         DiscretizedFunction<dim> *param_c_disc = nullptr, *param_nu_disc = nullptr;
+         DiscretizedFunction<dim> *param_a_disc = nullptr, *param_q_disc = nullptr;
 
          RightHandSide<dim>* right_hand_side;
 

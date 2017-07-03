@@ -35,7 +35,7 @@ double TestF<2>::value(const Point<2> &p, const unsigned int component) const {
 template<>
 double TestF<3>::value(const Point<3> &p, const unsigned int component) const {
    Assert(component == 0, ExcIndexRange(component, 0, 1));
-   if ((this->get_time() <= 0.5) && (p.distance(Point<3>(1.0, 0.5,0.0)) < 0.4))
+   if ((this->get_time() <= 0.5) && (p.distance(Point<3>(1.0, 0.5, 0.0)) < 0.4))
       return std::sin(this->get_time() * 2 * numbers::PI);
    else
       return 0.0;
@@ -49,7 +49,6 @@ class TestC: public Function<dim> {
       }
       double value(const Point<dim> &p, const unsigned int component = 0) const;
 };
-
 
 template<int dim>
 double rho(const Point<dim> &p, double t);
@@ -107,8 +106,8 @@ void test() {
 
    Triangulation<dim> triangulation;
 
-   GridGenerator::hyper_cube(triangulation, -5, 5);
    // GridGenerator::cheese(triangulation, std::vector<unsigned int>( { 1, 1 }));
+   GridGenerator::hyper_cube(triangulation, -5, 5);
    triangulation.refine_global(5);
 
    FE_Q<dim> fe(1);
@@ -118,14 +117,18 @@ void test() {
    deallog << "Number of active cells: " << triangulation.n_active_cells() << std::endl;
    deallog << "Number of degrees of freedom: " << dof_handler.n_dofs() << std::endl;
 
-   WaveEquation<dim> wave_eq(&dof_handler);
+   double t_start = 0.0, t_end = 6.0, dt = 1.0 / 64.0;
+   std::vector<double> times;
+
+   for (size_t i = 0; t_start + i * dt <= t_end; i++)
+      times.push_back(t_start + i * dt);
+
+   WaveEquation<dim> wave_eq(&dof_handler, times);
+   wave_eq.set_theta(0.5);
 
    TestF<dim> rhs;
    L2RightHandSide<dim> l2rhs(&rhs);
    wave_eq.set_right_hand_side(&l2rhs);
-
-   wave_eq.set_time_end(6.0);
-   wave_eq.set_theta(0.5);
 
    TestA<dim> a;
    wave_eq.set_param_a(&a);
@@ -168,16 +171,13 @@ int main() {
    try {
       test<2>();
    } catch (std::exception &exc) {
-      std::cerr << std::endl << std::endl << "----------------------------------------------------"
-            << std::endl;
-      std::cerr << "Exception on processing: " << std::endl << exc.what() << std::endl
-            << "Aborting!" << std::endl << "----------------------------------------------------"
-            << std::endl;
+      std::cerr << std::endl << std::endl << "----------------------------------------------------" << std::endl;
+      std::cerr << "Exception on processing: " << std::endl << exc.what() << std::endl << "Aborting!" << std::endl
+            << "----------------------------------------------------" << std::endl;
 
       return 1;
    } catch (...) {
-      std::cerr << std::endl << std::endl << "----------------------------------------------------"
-            << std::endl;
+      std::cerr << std::endl << std::endl << "----------------------------------------------------" << std::endl;
       std::cerr << "Unknown exception!" << std::endl << "Aborting!" << std::endl
             << "----------------------------------------------------" << std::endl;
       return 1;

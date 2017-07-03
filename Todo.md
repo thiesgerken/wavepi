@@ -1,10 +1,13 @@
 # WavePI Todo List
 
+## General 
+
+* organize code into sub-namespaces (`direct`, `inversion`, ...)
+
 ## Direct Solver
 
 * grid adaptivity
 * Interpolation of time steps (DiscretizedFunction::at)
-* WaveEq: give more than a step size, but the whole discretization instead (-> index discrete params by this?)
 
 ## Inversion
 
@@ -13,3 +16,7 @@
 * base class: IterativeRegularization (virtual calculateStep = 0, start, test) and maybe even Regularization
 * Adjoint -> use L2 (almost self-adjoint, integrate backward in time) 
 * after that REGINN (+ LinearRegularization + some possibilities for that (CG, LW) ) 
+
+## Tests
+
+* solution for discretized parameters+rhs the same as when passing those as functions (have to obfuscate that they are DiscretizedFunctions)  

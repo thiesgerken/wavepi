@@ -18,9 +18,11 @@ FIND_PACKAGE(deal.II 8.5.0 REQUIRED QUIET
   HINTS ${deal.II_DIR} ${DEAL_II_DIR} ../ ../../ $ENV{DEAL_II_DIR}
   )
 
-set(CMAKE_ECLIPSE_VERSION 4.6)
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
+
+# cmake -G "Eclipse CDT4 - Unix Makefiles" -D_ECLIPSE_VERSION=4.7 ~/Promotion/WavePI/
+# set(CMAKE_ECLIPSE_VERSION "4.7.0")
 
 PROJECT(wavePI)
 include_directories("include")
