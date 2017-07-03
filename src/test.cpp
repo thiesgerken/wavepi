@@ -1,6 +1,8 @@
 #include <iostream>
 
 #include "WaveEquation.h"
+#include "NonlinearProblem.h"
+#include "Landweber.h"
 
 using namespace dealii;
 using namespace wavepi;
@@ -95,6 +97,28 @@ double TestA<dim>::value(const Point<dim> &p, const unsigned int component) cons
 }
 
 template<int dim>
+class TestProblem: public NonlinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>> {
+   public:
+      virtual ~TestProblem() {
+      }
+
+      virtual LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>& derivative(
+            const DiscretizedFunction<dim>& f) const {
+         // TODO
+      }
+
+      virtual DiscretizedFunction<dim>& generateNoise(const DiscretizedFunction<dim>& Sol, double norm) const {
+         // TODO;
+      }
+
+      virtual DiscretizedFunction<dim>& forward(const DiscretizedFunction<dim>& f) const {
+         // TODO
+      }
+
+      // virtual void progress(const DiscretizedFunction<dim>& current_estimate, const DiscretizedFunction<dim>& current_residual, int iteration_number) {}
+};
+
+template<int dim>
 void test() {
    std::ofstream logout("wave_test.log");
    deallog.attach(logout);
@@ -142,27 +166,10 @@ void test() {
    timer.stop();
    deallog << "Continuous c, a: " << timer.wall_time() << " s of wall time" << std::endl;
 
-//   DiscretizedFunction<dim> cdisc = DiscretizedFunction<dim>::discretize(&c, sol.get_times(),
-//         sol.get_dof_handlers());
-//   wave_eq.set_param_c(&cdisc);
-//
-//   timer.restart();
-//   DiscretizedFunction<dim> sol2 = wave_eq.run();
-//   timer.stop();
-//   deallog << "Discrete c: " << timer.wall_time() << " s of wall time" << std::endl;
-//
-//   DiscretizedFunction<dim> adisc = DiscretizedFunction<dim>::discretize(&a, sol.get_times(),
-//         sol.get_dof_handlers());
-//   wave_eq.set_param_a(&adisc);
-//   wave_eq.set_param_c(&c);
-//
-//   timer.restart();
-//   DiscretizedFunction<dim> sol3 = wave_eq.run();
-//   timer.stop();
-//   deallog << "Discrete a: " << timer.wall_time() << " s of wall time" << std::endl;
+   TestProblem<dim> my_problem;
+   Landweber<DiscretizedFunction<dim>, DiscretizedFunction<dim>> lw(&my_problem);
 
-//   sol.write_pvd("solution", "sol_u", "sol_v");
-//   adisc.write_pvd("param_a", "param_a");
+   lw.test(sol, 1e-4, 1.0);
 
    deallog.timestamp();
 }

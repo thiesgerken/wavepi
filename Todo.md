@@ -3,6 +3,8 @@
 ## General 
 
 - [ ] organize code into sub-namespaces (`direct`, `inversion`, ...)
+- [ ] watch dog for linear methods
+- [ ] `DiscretizedFunction::discretize` should have an overload for a time vector and a single dofhandler
 
 ## Direct Solver
 
