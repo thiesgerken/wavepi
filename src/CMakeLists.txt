@@ -1,3 +1,7 @@
-ADD_EXECUTABLE(wave_test test.cpp)
-DEAL_II_SETUP_TARGET(wave_test)
-TARGET_LINK_LIBRARIES(wave_test wavepi)
+ADD_EXECUTABLE(test_direct test_direct.cpp)
+DEAL_II_SETUP_TARGET(test_direct)
+TARGET_LINK_LIBRARIES(test_direct wavepi_forward)
+
+ADD_EXECUTABLE(test_inverse test_inverse.cpp)
+DEAL_II_SETUP_TARGET(test_inverse)
+TARGET_LINK_LIBRARIES(test_inverse wavepi_forward wavepi_inversion)

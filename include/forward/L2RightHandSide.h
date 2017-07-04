@@ -5,8 +5,8 @@
  *      Author: thies
  */
 
-#ifndef LIB_L2RIGHTHANDSIDE_H_
-#define LIB_L2RIGHTHANDSIDE_H_
+#ifndef FORWARD_L2RIGHTHANDSIDE_H_
+#define FORWARD_L2RIGHTHANDSIDE_H_
 
 #include <deal.II/base/quadrature_lib.h>
 #include <deal.II/base/function.h>
@@ -32,25 +32,27 @@
 
 #include <functional>
 
-#include <DiscretizedFunction.h>
-#include <RightHandSide.h>
+#include <forward/DiscretizedFunction.h>
+#include <forward/RightHandSide.h>
 
 namespace wavepi {
-   using namespace dealii;
+namespace forward {
+using namespace dealii;
 
-   template <int dim>
-   class L2RightHandSide: public RightHandSide<dim> {
-      public:
-         L2RightHandSide(Function<dim>* f);
-         virtual ~L2RightHandSide();
+template<int dim>
+class L2RightHandSide: public RightHandSide<dim> {
+   public:
+      L2RightHandSide(Function<dim>* f);
+      virtual ~L2RightHandSide();
 
-         virtual void create_right_hand_side(const DoFHandler<dim> &dof_handler,
-                      const Quadrature<dim> &q, Vector<double> &rhs) const;
+      virtual void create_right_hand_side(const DoFHandler<dim> &dof_handler, const Quadrature<dim> &q,
+            Vector<double> &rhs) const;
 
-      private:
-         Function<dim> *base_rhs;
-   };
+   private:
+      Function<dim> *base_rhs;
+};
 
+} /* namespace forward */
 } /* namespace wavepi */
 
 #endif /* LIB_L2RIGHTHANDSIDE_H_ */

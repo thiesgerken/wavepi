@@ -2,9 +2,13 @@
 
 ## General 
 
-- [ ] organize code into sub-namespaces (`direct`, `inversion`, ...)
+- [x] organize code into sub-namespaces (`direct`, `inversion`, ...)
+- [x] `DiscretizedFunction::discretize` should have an overload for a time vector and a single dofhandler
+- [ ] `NonlinearProblem::get_derivative` should also get the current solution of the forward problem
+- [ ] class `QLinearizedProblem` in `test_inverse.cpp`
 - [ ] watch dog for linear methods
-- [ ] `DiscretizedFunction::discretize` should have an overload for a time vector and a single dofhandler
+- [ ] Maybe for Products of Basis functions as RHS you need a better quadrature rule (it is a higher order polynomial)
+
 
 ## Direct Solver
 
@@ -13,7 +17,7 @@
 
 ## Inversion
 
-- [ ] implement $`L^2`$-Landweber scheme (as  a class?) $`c_{k+1} = c_k + \omega (S' c_k)^* (g - S c_k)`$
+- [x] implement $`L^2`$-Landweber scheme (as  a class?) $`c_{k+1} = c_k + \omega (S' c_k)^* (g - S c_k)`$
 - [ ] add Shrinkage step
 - [ ] base class: IterativeRegularization (virtual calculateStep = 0, start, test) and maybe even Regularization
 - [ ] Adjoint: use $`L^2`$ (almost self-adjoint, integrate backward in time) 

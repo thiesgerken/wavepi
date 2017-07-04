@@ -1,11 +1,9 @@
 #include <iostream>
 
-#include "WaveEquation.h"
-#include "NonlinearProblem.h"
-#include "Landweber.h"
+#include <forward/WaveEquation.h>
 
 using namespace dealii;
-using namespace wavepi;
+using namespace wavepi::forward;
 
 template<int dim>
 class TestF: public Function<dim> {
@@ -97,28 +95,6 @@ double TestA<dim>::value(const Point<dim> &p, const unsigned int component) cons
 }
 
 template<int dim>
-class TestProblem: public NonlinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>> {
-   public:
-      virtual ~TestProblem() {
-      }
-
-      virtual LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>& derivative(
-            const DiscretizedFunction<dim>& f) const {
-         // TODO
-      }
-
-      virtual DiscretizedFunction<dim>& generateNoise(const DiscretizedFunction<dim>& Sol, double norm) const {
-         // TODO;
-      }
-
-      virtual DiscretizedFunction<dim>& forward(const DiscretizedFunction<dim>& f) const {
-         // TODO
-      }
-
-      // virtual void progress(const DiscretizedFunction<dim>& current_estimate, const DiscretizedFunction<dim>& current_residual, int iteration_number) {}
-};
-
-template<int dim>
 void test() {
    std::ofstream logout("wave_test.log");
    deallog.attach(logout);
@@ -148,7 +124,6 @@ void test() {
       times.push_back(t_start + i * dt);
 
    WaveEquation<dim> wave_eq(&dof_handler, times);
-   wave_eq.set_theta(0.5);
 
    TestF<dim> rhs;
    L2RightHandSide<dim> l2rhs(&rhs);
@@ -165,11 +140,6 @@ void test() {
    DiscretizedFunction<dim> sol = wave_eq.run();
    timer.stop();
    deallog << "Continuous c, a: " << timer.wall_time() << " s of wall time" << std::endl;
-
-   TestProblem<dim> my_problem;
-   Landweber<DiscretizedFunction<dim>, DiscretizedFunction<dim>> lw(&my_problem);
-
-   lw.test(sol, 1e-4, 1.0);
 
    deallog.timestamp();
 }
