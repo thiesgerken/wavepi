@@ -3,6 +3,7 @@
 
 #include <forward/WaveEquation.h>
 #include <forward/L2ProductRightHandSide.h>
+#include <forward/DivRightHandSide.h>
 #include <inversion/WaveProblem.h>
 #include <inversion/Landweber.h>
 
@@ -171,6 +172,84 @@ class QProblem: public WaveProblem<dim> {
 };
 
 template<int dim>
+class ALinearizedProblem: public LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>> {
+   public:
+      virtual ~ALinearizedProblem() {
+      }
+
+      ALinearizedProblem(WaveEquation<dim> &weq, DiscretizedFunction<dim>& a, DiscretizedFunction<dim>& u)
+            : weq(weq), a(a), u(u), rhs(&this->u, &this->u) {
+
+         this->weq.set_param_a(&this->a);
+         this->weq.set_initial_values_u(&this->weq.zero);
+         this->weq.set_initial_values_v(&this->weq.zero);
+         this->weq.set_boundary_values_u(&this->weq.zero);
+         this->weq.set_boundary_values_v(&this->weq.zero);
+         this->weq.set_right_hand_side(&this->rhs);
+
+         times = this->weq.get_times();
+         times_reversed = this->weq.get_times();
+         std::reverse(times_reversed.begin(), times_reversed.end());
+      }
+
+      virtual DiscretizedFunction<dim> forward(DiscretizedFunction<dim>& h) {
+         weq.set_times(times);
+         rhs.set_func1(&h);
+
+         DiscretizedFunction<dim> res = weq.run();
+         res.throw_away_derivative();
+
+         return res;
+      }
+
+      // L2 adjoint, theoretically not correct!
+      // TODO: is this even the L2 adjoint?
+      virtual DiscretizedFunction<dim> adjoint(DiscretizedFunction<dim>& g) {
+         weq.set_times(times_reversed);
+         rhs.set_func1(&g);
+
+         DiscretizedFunction<dim> res = weq.run();
+         res.throw_away_derivative();
+         res.reverse();
+
+         return res;
+      }
+   private:
+      WaveEquation<dim> weq;
+      DiscretizedFunction<dim> a;
+      DiscretizedFunction<dim> u;
+
+      DivRightHandSide<dim> rhs;
+      std::vector<double> times;
+      std::vector<double> times_reversed;
+};
+
+template<int dim>
+class AProblem: public WaveProblem<dim> {
+   public:
+      virtual ~AProblem() {
+      }
+
+      AProblem(WaveEquation<dim>& weq)
+            : WaveProblem<dim>(weq) {
+      }
+
+      virtual std::unique_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>> derivative(
+            DiscretizedFunction<dim>& a, DiscretizedFunction<dim>& u) {
+         return std::make_unique<QLinearizedProblem<dim>>(this->wave_equation, a, u);
+      }
+
+      virtual DiscretizedFunction<dim> forward(DiscretizedFunction<dim>& a) {
+         this->wave_equation.set_param_a(&a);
+
+         DiscretizedFunction<dim> res = this->wave_equation.run();
+         res.throw_away_derivative();
+
+         return res;
+      }
+};
+
+template<int dim>
 void test() {
    std::ofstream logout("wave_test.log");
    deallog.attach(logout);
@@ -228,7 +307,7 @@ void test() {
    DiscretizedFunction<dim> initialGuess(data_exact); // same grids!
    initialGuess = 0.0;
 
-   Landweber<DiscretizedFunction<dim>, DiscretizedFunction<dim>> lw(&my_problem, initialGuess, 1e2);
+   Landweber<DiscretizedFunction<dim>, DiscretizedFunction<dim>> lw(&my_problem, initialGuess, 5e1);
 
    lw.invert(data, 1.5 * epsilon, &q_exact);
 
