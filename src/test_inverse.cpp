@@ -228,7 +228,7 @@ void test() {
    DiscretizedFunction<dim> initialGuess(data_exact); // same grids!
    initialGuess = 0.0;
 
-   Landweber<DiscretizedFunction<dim>, DiscretizedFunction<dim>> lw(&my_problem, initialGuess, 2e2);
+   Landweber<DiscretizedFunction<dim>, DiscretizedFunction<dim>> lw(&my_problem, initialGuess, 1e2);
 
    lw.invert(data, 1.5 * epsilon, &q_exact);
 
