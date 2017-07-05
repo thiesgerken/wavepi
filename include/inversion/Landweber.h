@@ -32,12 +32,14 @@ class Landweber: public NewtonRegularization<Param, Sol> {
          Param estimate(initial_guess);
 
          Sol residual(data);
-         residual -= this->problem->forward(estimate);
+         Sol data_current = this->problem->forward(estimate);
+         residual -= data_current;
 
          double discrepancy = residual.norm();
 
          for (int i = 0; discrepancy > targetDiscrepancy; i++) {
-            std::unique_ptr<LinearProblem<Param, Sol>> lp = this->problem->derivative(estimate);
+            std::unique_ptr<LinearProblem<Param, Sol>>
+            lp = this->problem->derivative(estimate, data_current);
 
             Param adj = lp->adjoint(residual);
 
@@ -46,7 +48,8 @@ class Landweber: public NewtonRegularization<Param, Sol> {
 
             // calculate new residual and discrepancy for next step
             residual = Sol(data);
-            residual -= this->problem->forward(estimate);
+            data_current = this->problem->forward(estimate);
+            residual -= data_current;
             discrepancy = residual.norm();
 
             this->problem->progress(estimate, residual, data, i, exact_param);

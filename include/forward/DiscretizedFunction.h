@@ -83,6 +83,8 @@ class DiscretizedFunction: public Function<dim> {
 
       virtual ~DiscretizedFunction();
 
+      void reverse();
+
       size_t find_time(double time) const;
       size_t find_nearest_time(double time) const;
 

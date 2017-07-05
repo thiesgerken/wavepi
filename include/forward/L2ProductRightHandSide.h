@@ -50,6 +50,11 @@ class L2ProductRightHandSide: public RightHandSide<dim> {
       virtual void create_right_hand_side(const DoFHandler<dim> &dof_handler, const Quadrature<dim> &q,
             Vector<double> &rhs) const;
 
+      DiscretizedFunction<dim>* get_func1() const;
+      void set_func1(DiscretizedFunction<dim>* func1);
+      DiscretizedFunction<dim>* get_func2() const;
+      void set_func2(DiscretizedFunction<dim>* func2);
+
    private:
       DiscretizedFunction<dim> *func1;
       DiscretizedFunction<dim> *func2;

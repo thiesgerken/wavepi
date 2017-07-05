@@ -24,37 +24,27 @@ template<int dim>
 L2RightHandSide<dim>::~L2RightHandSide() {
 }
 
-template<int dim>
-struct AssemblyScratchData {
-      AssemblyScratchData(const FiniteElement<dim> &fe, const Quadrature<dim> &quad);
-      AssemblyScratchData(const AssemblyScratchData &scratch_data);
-      FEValues<dim> fe_values;
-};
 
 template<int dim>
-AssemblyScratchData<dim>::AssemblyScratchData(const FiniteElement<dim> &fe, const Quadrature<dim> &quad)
+L2RightHandSide<dim>::AssemblyScratchData::AssemblyScratchData(const FiniteElement<dim> &fe, const Quadrature<dim> &quad)
       : fe_values(fe, quad, update_values | update_quadrature_points | update_JxW_values) {
 }
 
 template<int dim>
-AssemblyScratchData<dim>::AssemblyScratchData(const AssemblyScratchData &scratch_data)
+L2RightHandSide<dim>::AssemblyScratchData::AssemblyScratchData(const AssemblyScratchData &scratch_data)
       : fe_values(scratch_data.fe_values.get_fe(), scratch_data.fe_values.get_quadrature(),
             update_values | update_quadrature_points | update_JxW_values) {
 }
 
-struct AssemblyCopyData {
-      Vector<double> cell_rhs;
-      std::vector<types::global_dof_index> local_dof_indices;
-};
-
-void copy_local_to_global(Vector<double> &result, const AssemblyCopyData &copy_data) {
+template<int dim>
+void L2RightHandSide<dim>::copy_local_to_global(Vector<double> &result, const AssemblyCopyData &copy_data) {
    for (unsigned int i = 0; i < copy_data.local_dof_indices.size(); ++i)
       result(copy_data.local_dof_indices[i]) += copy_data.cell_rhs(i);
 }
 
 template<int dim>
-void local_assemble(const Vector<double> &f, const typename DoFHandler<dim>::active_cell_iterator &cell,
-      AssemblyScratchData<dim> &scratch_data, AssemblyCopyData &copy_data) {
+void L2RightHandSide<dim>::local_assemble(const Vector<double> &f, const typename DoFHandler<dim>::active_cell_iterator &cell,
+      AssemblyScratchData &scratch_data, AssemblyCopyData &copy_data) {
    const unsigned int dofs_per_cell = scratch_data.fe_values.get_fe().dofs_per_cell;
    const unsigned int n_q_points = scratch_data.fe_values.get_quadrature().size();
 
@@ -83,9 +73,9 @@ void L2RightHandSide<dim>::create_right_hand_side(const DoFHandler<dim> &dof, co
       Assert(coeffs.size() == dof.n_dofs(), ExcDimensionMismatch (coeffs.size() , dof.n_dofs()));
 
       WorkStream::run(dof.begin_active(), dof.end(),
-            std::bind(&local_assemble<dim>, std::ref(coeffs), std::placeholders::_1, std::placeholders::_2,
-                  std::placeholders::_3), std::bind(&copy_local_to_global, std::ref(rhs), std::placeholders::_1),
-            AssemblyScratchData<dim>(dof.get_fe(), quad), AssemblyCopyData());
+            std::bind(&L2RightHandSide<dim>::local_assemble, *this, std::ref(coeffs), std::placeholders::_1, std::placeholders::_2,
+                  std::placeholders::_3), std::bind(&L2RightHandSide<dim>::copy_local_to_global, *this, std::ref(rhs), std::placeholders::_1),
+            AssemblyScratchData(dof.get_fe(), quad), AssemblyCopyData());
    } else
       VectorTools::create_right_hand_side(dof, quad, *base_rhs, rhs);
 }

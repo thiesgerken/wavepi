@@ -7,6 +7,7 @@
 
 #include <forward/DiscretizedFunction.h>
 #include <random>
+#include <algorithm>
 
 using namespace dealii;
 
@@ -112,6 +113,13 @@ DiscretizedFunction<dim>::DiscretizedFunction(const DiscretizedFunction& o)
       : Function<dim>(), store_derivative(o.store_derivative), cur_time_idx(o.cur_time_idx), times(o.times), dof_handlers(
             o.dof_handlers), function_coefficients(o.function_coefficients), derivative_coefficients(
             o.derivative_coefficients) {
+}
+
+template<int dim>
+void DiscretizedFunction<dim>::reverse() {
+  std::reverse(times.begin(), times.end());
+  std::reverse(function_coefficients.begin(), function_coefficients.end());
+  std::reverse(derivative_coefficients.begin(), derivative_coefficients.end());
 }
 
 template<int dim>

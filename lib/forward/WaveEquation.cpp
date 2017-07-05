@@ -16,6 +16,11 @@ namespace forward {
 using namespace dealii;
 
 template<int dim>
+WaveEquation<dim>::~WaveEquation() {
+
+}
+
+template<int dim>
 WaveEquation<dim>::WaveEquation(DoFHandler<dim> *dof_hndl, std::vector<double> times)
       : theta(0.5), dof_handler(dof_hndl), times(times), initial_values_u(&zero), initial_values_v(&zero), boundary_values_u(
             &zero), boundary_values_v(&zero), param_c(&one), param_nu(&zero), param_a(&one), param_q(&zero), right_hand_side(
@@ -384,11 +389,11 @@ template<int dim> void WaveEquation<dim>::set_theta(double theta) {
    this->theta = theta;
 }
 
-template<int dim> const std::vector<double>& WaveEquation<dim>::getTimes() const {
+template<int dim> const std::vector<double>& WaveEquation<dim>::get_times() const {
    return times;
 }
 
-template<int dim> void WaveEquation<dim>::setTimes(const std::vector<double>& times) {
+template<int dim> void WaveEquation<dim>::set_times(const std::vector<double>& times) {
    this->times = times;
 }
 

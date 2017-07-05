@@ -94,6 +94,26 @@ void L2ProductRightHandSide<dim>::create_right_hand_side(const DoFHandler<dim> &
          AssemblyScratchData<dim>(dof.get_fe(), quad), AssemblyCopyData());
 }
 
+template<int dim>
+inline DiscretizedFunction<dim>* L2ProductRightHandSide<dim>::get_func1() const {
+   return func1;
+}
+
+template<int dim>
+inline void L2ProductRightHandSide<dim>::set_func1(DiscretizedFunction<dim>* func1) {
+   this->func1 = func1;
+}
+
+template<int dim>
+inline DiscretizedFunction<dim>* L2ProductRightHandSide<dim>::get_func2() const {
+   return func2;
+}
+
+template<int dim>
+inline void L2ProductRightHandSide<dim>::set_func2(DiscretizedFunction<dim>* func2) {
+   this->func2 = func2;
+}
+
 template class L2ProductRightHandSide<1> ;
 template class L2ProductRightHandSide<2> ;
 template class L2ProductRightHandSide<3> ;

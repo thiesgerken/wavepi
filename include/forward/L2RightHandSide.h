@@ -50,6 +50,21 @@ class L2RightHandSide: public RightHandSide<dim> {
 
    private:
       Function<dim> *base_rhs;
+
+      struct AssemblyScratchData {
+            AssemblyScratchData(const FiniteElement<dim> &fe, const Quadrature<dim> &quad);
+            AssemblyScratchData(const AssemblyScratchData &scratch_data);
+            FEValues<dim> fe_values;
+      };
+
+      struct AssemblyCopyData {
+            Vector<double> cell_rhs;
+            std::vector<types::global_dof_index> local_dof_indices;
+      };
+
+    void copy_local_to_global(Vector<double> &result, const AssemblyCopyData &copy_data);
+    void local_assemble(const Vector<double> &f, const typename DoFHandler<dim>::active_cell_iterator &cell,
+          AssemblyScratchData &scratch_data, AssemblyCopyData &copy_data);
 };
 
 } /* namespace forward */

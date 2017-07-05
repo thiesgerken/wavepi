@@ -28,9 +28,9 @@ class WaveProblem: public NonlinearProblem<DiscretizedFunction<dim>, Discretized
       virtual ~WaveProblem();
 
       // no adaptivity; weq contains the space-time grid that the data and the parameters live on
-      WaveProblem(WaveEquation<dim> weq);
+      WaveProblem(WaveEquation<dim> &weq);
 
-      const WaveEquation<dim>& get_wave_equation() const;
+      WaveEquation<dim>& get_wave_equation();
 
       DiscretizedFunction<dim> generateNoise(const DiscretizedFunction<dim>& like, double norm) const;
 
@@ -39,6 +39,8 @@ class WaveProblem: public NonlinearProblem<DiscretizedFunction<dim>, Discretized
 
    protected:
       WaveEquation<dim> wave_equation;
+      LogStream::Prefix p = LogStream::Prefix("WaveProblem");
+
 };
 
 } /* namespace inversion */

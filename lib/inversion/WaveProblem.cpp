@@ -12,7 +12,7 @@ namespace inversion {
 using namespace dealii;
 
 template<int dim>
-inline const WaveEquation<dim>& WaveProblem<dim>::get_wave_equation() const {
+inline WaveEquation<dim>& WaveProblem<dim>::get_wave_equation() {
    return wave_equation;
 }
 
@@ -21,7 +21,7 @@ WaveProblem<dim>::~WaveProblem() {
 }
 
 template<int dim>
-WaveProblem<dim>::WaveProblem(WaveEquation<dim> weq)
+WaveProblem<dim>::WaveProblem(WaveEquation<dim>& weq)
       : wave_equation(weq) {
 }
 
@@ -29,16 +29,15 @@ template<int dim>
 void WaveProblem<dim>::progress(const DiscretizedFunction<dim>& current_estimate,
       const DiscretizedFunction<dim>& current_residual, const DiscretizedFunction<dim>& data, int iteration_number,
       const DiscretizedFunction<dim>* exact_param) {
-   LogStream::Prefix p("WaveProblem");
-
-   deallog << "i=" << std::setw(3) << iteration_number << ", rel. res = "
-         << current_residual.l2_norm() / data.l2_norm();
+   deallog << "i=" << std::setw(3) << iteration_number << ": disc=" << current_residual.l2_norm() / data.l2_norm();
 
    if (exact_param != nullptr) {
-      DiscretizedFunction < dim > tmp(current_estimate);
+      DiscretizedFunction<dim> tmp(current_estimate);
       tmp -= *exact_param;
-      deallog << ", rel. error = " << tmp.l2_norm() / exact_param->l2_norm();
-   }
+      deallog << ", norm=" << current_estimate.norm() / exact_param->norm() << ", err="
+            << tmp.l2_norm() / exact_param->l2_norm();
+   } else
+      deallog << ", norm=" << current_estimate.norm();
 
    deallog << std::endl;
 }

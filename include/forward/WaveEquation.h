@@ -57,6 +57,7 @@ class WaveEquation {
    public:
       WaveEquation(DoFHandler<dim> *dof_handler, std::vector<double> times);
       WaveEquation(WaveEquation<dim>& weq);
+      ~WaveEquation();
 
       DiscretizedFunction<dim> run();
 
@@ -93,8 +94,8 @@ class WaveEquation {
       double get_theta() const;
       void set_theta(double theta);
 
-      const std::vector<double>& getTimes() const;
-      void setTimes(const std::vector<double>& times);
+      const std::vector<double>& get_times() const;
+      void set_times(const std::vector<double>& times);
 
    private:
       void init_system();
