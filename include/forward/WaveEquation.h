@@ -55,8 +55,8 @@ using namespace dealii;
 template<int dim>
 class WaveEquation {
    public:
-      WaveEquation(DoFHandler<dim> *dof_handler, std::vector<double> times);
-      WaveEquation(WaveEquation<dim>& weq);
+      WaveEquation(DoFHandler<dim> *dof_handler, const std::vector<double> &times, const Quadrature<dim> quad);
+      WaveEquation(const WaveEquation<dim>& weq);
       ~WaveEquation();
 
       DiscretizedFunction<dim> run();
@@ -118,7 +118,7 @@ class WaveEquation {
       Function<dim> *boundary_values_u, *boundary_values_v;
       Function<dim> *param_c, *param_nu, *param_a, *param_q;
 
-      Quadrature<dim> quad = QGauss<dim>(3);
+      Quadrature<dim> quad;
       DiscretizedFunction<dim> *param_c_disc = nullptr, *param_nu_disc = nullptr;
       DiscretizedFunction<dim> *param_a_disc = nullptr, *param_q_disc = nullptr;
 

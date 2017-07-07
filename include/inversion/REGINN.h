@@ -55,18 +55,20 @@ class REGINN: public NewtonRegularization<Param, Sol> {
          deallog.pop();
 
          for (int i = 0; discrepancy > target_discrepancy; i++) {
-            double theta_n = 0.9; // TODO
+            double theta_n = 0.7; // TODO
 
             linear_solver->set_problem(this->problem->derivative(estimate, data_current));
             Param step = linear_solver->invert(residual, discrepancy * theta_n, nullptr);
             estimate += step;
 
             // calculate new residual and discrepancy
+            deallog.push("post-step");
             residual = Sol(data);
             data_current = this->problem->forward(estimate);
             residual -= data_current;
             discrepancy = residual.norm();
 
+            deallog.pop();
             this->problem->progress(estimate, residual, data, i, exact_param);
          }
 

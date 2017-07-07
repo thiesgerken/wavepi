@@ -21,17 +21,17 @@ WaveEquation<dim>::~WaveEquation() {
 }
 
 template<int dim>
-WaveEquation<dim>::WaveEquation(DoFHandler<dim> *dof_hndl, std::vector<double> times)
+WaveEquation<dim>::WaveEquation(DoFHandler<dim> *dof_hndl, const std::vector<double>& times, const Quadrature<dim> quad)
       : theta(0.5), dof_handler(dof_hndl), times(times), initial_values_u(&zero), initial_values_v(&zero), boundary_values_u(
-            &zero), boundary_values_v(&zero), param_c(&one), param_nu(&zero), param_a(&one), param_q(&zero), right_hand_side(
+            &zero), boundary_values_v(&zero), param_c(&one), param_nu(&zero), param_a(&one), param_q(&zero), quad(quad), right_hand_side(
             &zero_rhs) {
 }
 
 template<int dim>
-WaveEquation<dim>::WaveEquation(WaveEquation<dim>& weq)
+WaveEquation<dim>::WaveEquation(const WaveEquation<dim>& weq)
       : theta(weq.theta), dof_handler(weq.dof_handler), times(weq.times), initial_values_u(weq.initial_values_u), initial_values_v(
             weq.initial_values_v), boundary_values_u(weq.boundary_values_u), boundary_values_v(weq.boundary_values_v), param_c(
-            weq.param_c), param_nu(weq.param_nu), param_a(weq.param_a), param_q(weq.param_q), right_hand_side(
+            weq.param_c), param_nu(weq.param_nu), param_a(weq.param_a), param_q(weq.param_q), quad(weq.quad),  right_hand_side(
             weq.right_hand_side) {
 }
 

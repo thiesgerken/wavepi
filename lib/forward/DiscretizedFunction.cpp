@@ -198,9 +198,36 @@ DiscretizedFunction<dim> DiscretizedFunction<dim>::noise(const DiscretizedFuncti
 
 template<int dim>
 DiscretizedFunction<dim>& DiscretizedFunction<dim>::operator/=(const double factor) {
-   this->operator /=(1.0 / factor);
+   this->operator *=(1.0 / factor);
 
    return *this;
+}
+
+template<int dim>
+void DiscretizedFunction<dim>::pointwise_multiplication(const DiscretizedFunction<dim> & V) {
+   Assert(times.size() == V.times.size(), ExcDimensionMismatch (times.size() , V.times.size()));
+   Assert(!store_derivative || (store_derivative == V.store_derivative), ExcInternalError ());
+
+   for (size_t i = 0; i < times.size(); i++) {
+      Assert(times[i] == V.times[i], ExcInternalError());
+      Assert(function_coefficients[i].size() == V.function_coefficients[i].size(),
+            ExcDimensionMismatch (function_coefficients[i].size() , V.function_coefficients[i].size()));
+
+      if (store_derivative) {
+         Assert(derivative_coefficients[i].size() == V.derivative_coefficients[i].size(),
+               ExcDimensionMismatch (derivative_coefficients[i].size() , V.derivative_coefficients[i].size()));
+
+
+         derivative_coefficients[i].scale(V.function_coefficients[i]);
+
+         Vector <double > tmp = function_coefficients[i];
+         tmp.scale(V.derivative_coefficients[i]);
+
+         derivative_coefficients[i] += tmp;
+      }
+
+      function_coefficients[i].scale(V.function_coefficients[i]);
+   }
 }
 
 template<int dim>

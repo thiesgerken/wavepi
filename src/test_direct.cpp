@@ -111,7 +111,9 @@ void test() {
    triangulation.refine_global(5);
 
    FE_Q<dim> fe(1);
-   DoFHandler<dim> dof_handler;
+	Quadrature<dim> quad = QGauss<dim>(3); // exact in poly degree 2n-1 (needed: fe_dim^3)
+
+	DoFHandler<dim> dof_handler;
    dof_handler.initialize(triangulation, fe);
 
    deallog << "Number of active cells: " << triangulation.n_active_cells() << std::endl;
@@ -123,7 +125,7 @@ void test() {
    for (size_t i = 0; t_start + i * dt <= t_end; i++)
       times.push_back(t_start + i * dt);
 
-   WaveEquation<dim> wave_eq(&dof_handler, times);
+   WaveEquation<dim> wave_eq(&dof_handler, times, quad);
 
    TestF<dim> rhs;
    L2RightHandSide<dim> l2rhs(&rhs);

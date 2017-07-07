@@ -43,6 +43,16 @@ void L2RightHandSide<dim>::copy_local_to_global(Vector<double> &result, const As
 }
 
 template<int dim>
+inline Function<dim>* L2RightHandSide<dim>::get_base_rhs() const {
+	return base_rhs;
+}
+
+template<int dim>
+inline void L2RightHandSide<dim>::set_base_rhs(Function<dim>* base_rhs) {
+	this->base_rhs = base_rhs;
+}
+
+template<int dim>
 void L2RightHandSide<dim>::local_assemble(const Vector<double> &f, const typename DoFHandler<dim>::active_cell_iterator &cell,
       AssemblyScratchData &scratch_data, AssemblyCopyData &copy_data) {
    const unsigned int dofs_per_cell = scratch_data.fe_values.get_fe().dofs_per_cell;

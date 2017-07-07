@@ -33,24 +33,26 @@ class DiscretizedFunction: public Function<dim> {
       DiscretizedFunction(const DiscretizedFunction& that);
       DiscretizedFunction(const DiscretizedFunction&& that);
 
-      DiscretizedFunction<dim>& operator=(DiscretizedFunction<dim> && V);
+      DiscretizedFunction<dim>& operator=(DiscretizedFunction<dim>&& V);
 
       // works only for x = 0
       DiscretizedFunction<dim>& operator=(double x);
 
-      DiscretizedFunction<dim>& operator+=(const DiscretizedFunction<dim> & V);
-      DiscretizedFunction<dim>& operator-=(const DiscretizedFunction<dim> & V);
+      DiscretizedFunction<dim>& operator+=(const DiscretizedFunction<dim>& V);
+      DiscretizedFunction<dim>& operator-=(const DiscretizedFunction<dim>& V);
 
       DiscretizedFunction<dim>& operator*=(const double factor);
       DiscretizedFunction<dim>& operator/=(const double factor);
 
-      void add(const double a, const DiscretizedFunction<dim> & V);
+      void add(const double a, const DiscretizedFunction<dim>& V);
 
       // scale by s and add a*V
-      void sadd(const double s, const double a, const DiscretizedFunction<dim> & V);
+      void sadd(const double s, const double a, const DiscretizedFunction<dim>& V);
 
       // vector l2 scalar product
       double operator*(const DiscretizedFunction<dim> & V) const;
+
+      void pointwise_multiplication(const DiscretizedFunction<dim>& V);
 
       // vector l2 norm in time and space
       double l2_norm() const;

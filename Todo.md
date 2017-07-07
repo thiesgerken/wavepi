@@ -13,6 +13,9 @@
 - [ ] "Abort now" like in old code
 - [ ] Measurements
 - [ ] multiple RHS 
+- [ ] `shared_ptr` instead of regular pointers everywhere
+- [ ] copy constructors should have `const` qualifiers for args 
+- [ ] norms are not really l2 norms (only for uniform grids, but I guess this does not depend on the FE-degree?)
 
 ## Direct Solver
 
@@ -27,6 +30,10 @@
 - [x] Adjoint: use $`L^2`$ (almost self-adjoint, integrate backward in time) 
 - [x] after that REGINN (+ LinearRegularization + some possibilities for that (CG, LW) ) 
 - [ ] make REGINN-CG work (CG has a problem)
+- [ ] REGINN tolerance choice (-> class)
+- [ ] gradient method instead of conjugate gradients (maybe more robust?)
+- [ ] check adjointness? (for P2-elements it seems to work, why?)
+- [ ] maybe look at cg-directions visually to figure out where it goes wrong (boundary?)
 - [ ] linear Tikhonov (using "Tikhonov-CG"?)
 - [ ] Adjoints for a, nu and q (base problem class for linearizations? `LinearizedWaveProblem`)
 

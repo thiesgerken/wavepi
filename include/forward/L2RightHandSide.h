@@ -48,6 +48,9 @@ class L2RightHandSide: public RightHandSide<dim> {
       virtual void create_right_hand_side(const DoFHandler<dim> &dof_handler, const Quadrature<dim> &q,
             Vector<double> &rhs) const;
 
+	 Function<dim>* get_base_rhs() const;
+	void set_base_rhs(Function<dim>* base_rhs);
+
    private:
       Function<dim> *base_rhs;
 
