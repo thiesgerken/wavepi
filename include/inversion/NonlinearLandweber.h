@@ -5,37 +5,42 @@
  *      Author: thies
  */
 
-#ifndef INVERSION_LANDWEBER_H_
-#define INVERSION_LANDWEBER_H_
+#ifndef INVERSION_NONLINEARLANDWEBER_H_
+#define INVERSION_NONLINEARLANDWEBER_H_
 
 #include <inversion/Regularization.h>
-#include <inversion/LinearRegularization.h>
+#include <inversion/NewtonRegularization.h>
 #include <inversion/LinearProblem.h>
+#include <inversion/NonlinearProblem.h>
 
-#include <deal.II/base/logstream.h>
+#include <deal.II/base/exceptions.h>
+
+#include <memory>
 
 namespace wavepi {
 namespace inversion {
+
 using namespace dealii;
 
-// linear Landweber iteration
+// nonlinear Landweber iteration (it can be regarded as an inexact newton method,
+// applying one linear landweber step to the linearized problem to 'solve' it)
 template<typename Param, typename Sol>
-class Landweber: public LinearRegularization<Param, Sol> {
+class NonlinearLandweber: public NewtonRegularization<Param, Sol> {
    public:
-      Landweber(std::shared_ptr<LinearProblem<Param, Sol>> problem, const Param& initial_guess, double omega)
-            : LinearRegularization<Param, Sol>(problem), omega(omega), initial_guess(initial_guess) {
+      NonlinearLandweber(std::shared_ptr<NonlinearProblem<Param, Sol>> problem, const Param& initial_guess, double omega)
+            : NewtonRegularization<Param, Sol>(problem), omega(omega), initial_guess(initial_guess) {
       }
 
-      Landweber(const Param& initial_guess, double omega)
+      NonlinearLandweber(const Param& initial_guess, double omega)
             : omega(omega), initial_guess(initial_guess) {
       }
 
-      virtual ~Landweber() {
+      virtual ~NonlinearLandweber() {
       }
 
       virtual Param invert(const Sol& data, double target_discrepancy, const Param* exact_param) {
          LogStream::Prefix p = LogStream::Prefix("Landweber");
-         Assert(this->problem, ExcInternalError());
+       Assert(this->problem, ExcInternalError());
 
          Param estimate(initial_guess);
 
@@ -46,9 +51,12 @@ class Landweber: public LinearRegularization<Param, Sol> {
          double discrepancy = residual.norm();
 
          for (int i = 0; discrepancy > target_discrepancy; i++) {
-            Param adj = this->problem->adjoint(residual);
+            std::unique_ptr<LinearProblem<Param, Sol>>
+            lp = this->problem->derivative(estimate, data_current);
 
-            // $`c_{k+1} = c_k + \omega A^* (g - A c_k)`$
+            Param adj = lp->adjoint(residual);
+
+            // $`c_{k+1} = c_k + \omega (S' c_k)^* (g - S c_k)`$
             estimate.add(omega, adj);
 
             // calculate new residual and discrepancy for next step

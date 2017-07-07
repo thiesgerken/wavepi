@@ -4,14 +4,15 @@
 #include <forward/WaveEquation.h>
 #include <forward/L2ProductRightHandSide.h>
 #include <forward/DivRightHandSide.h>
+#include <inversion/NonlinearLandweber.h>
 #include <inversion/WaveProblem.h>
+#include <inversion/REGINN.h>
+#include <inversion/ConjugateGradients.h>
 #include <inversion/Landweber.h>
 
 using namespace dealii;
 using namespace wavepi::forward;
 using namespace wavepi::inversion;
-
-//template<int dim> Point<dim> actor_position;
 
 template<int dim>
 class TestF: public Function<dim> {
@@ -136,6 +137,23 @@ class QLinearizedProblem: public LinearProblem<DiscretizedFunction<dim>, Discret
 
          return res;
       }
+
+     void progress(const DiscretizedFunction<dim>& current_estimate,
+            const DiscretizedFunction<dim>& current_residual, const DiscretizedFunction<dim>& data, int iteration_number,
+            const DiscretizedFunction<dim>* exact_param) {
+         deallog << "i=" << std::setw(3) << iteration_number << ": rdisc=" << current_residual.l2_norm() / data.l2_norm();
+
+         if (exact_param != nullptr) {
+            DiscretizedFunction<dim> tmp(current_estimate);
+            tmp -= *exact_param;
+            deallog << ", rnorm=" << current_estimate.norm() / exact_param->norm() << ", rerr="
+                  << tmp.l2_norm() / exact_param->l2_norm();
+         } else
+            deallog << ", norm=" << current_estimate.norm();
+
+         deallog << std::endl;
+      }
+
    private:
       WaveEquation<dim> weq;
       DiscretizedFunction<dim> q;
@@ -253,7 +271,7 @@ template<int dim>
 void test() {
    std::ofstream logout("wave_test.log");
    deallog.attach(logout);
-   deallog.depth_console(1);
+   deallog.depth_console(2);
    deallog.depth_file(100);
    deallog.precision(3);
    deallog.pop();
@@ -295,21 +313,22 @@ void test() {
 
    wave_eq.set_param_q(&q);
 
-   QProblem<dim> my_problem(wave_eq);
-   double epsilon = 1e-2;
-
    DiscretizedFunction<dim> data_exact = wave_eq.run();
    data_exact.throw_away_derivative();
 
+   double epsilon = 1e-2;
    DiscretizedFunction<dim> data = DiscretizedFunction<dim>::noise(data_exact, epsilon * data_exact.norm());
    data.add(1.0, data_exact);
 
    DiscretizedFunction<dim> initialGuess(data_exact); // same grids!
    initialGuess = 0.0;
 
-   Landweber<DiscretizedFunction<dim>, DiscretizedFunction<dim>> lw(&my_problem, initialGuess, 5e1);
+//   NonlinearLandweber<DiscretizedFunction<dim>, DiscretizedFunction<dim>> lw(std::make_unique<QProblem<dim>>(wave_eq), initialGuess, 5e1);
+//   lw.invert(data, 1.5 * epsilon * data_exact.norm(), &q_exact);
 
-   lw.invert(data, 1.5 * epsilon, &q_exact);
+  REGINN<DiscretizedFunction<dim>, DiscretizedFunction<dim>> reginn(std::make_unique<QProblem<dim>>(wave_eq), std::make_unique<ConjugateGradients<DiscretizedFunction<dim>, DiscretizedFunction<dim>>>(), initialGuess);
+//  REGINN<DiscretizedFunction<dim>, DiscretizedFunction<dim>> reginn(std::make_unique<QProblem<dim>>(wave_eq), std::make_unique<Landweber<DiscretizedFunction<dim>, DiscretizedFunction<dim>>>(initialGuess, 1e2), initialGuess);
+    reginn.invert(data, 1.5 * epsilon * data_exact.norm(), &q_exact);
 
    deallog.timestamp();
 }

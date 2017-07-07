@@ -39,7 +39,6 @@ class WaveProblem: public NonlinearProblem<DiscretizedFunction<dim>, Discretized
 
    protected:
       WaveEquation<dim> wave_equation;
-      LogStream::Prefix p = LogStream::Prefix("WaveProblem");
 
 };
 

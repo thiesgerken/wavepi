@@ -19,16 +19,10 @@ namespace inversion {
 template<typename Param, typename Sol>
 class Regularization {
    public:
-      Regularization(InverseProblem<Param, Sol> *problem)
-            : problem(problem) {
-      }
-
       virtual ~Regularization() {
       }
 
-      virtual Param invert(const Sol& data, double targetDiscrepancy, const Param* exact_param) = 0;
-   private:
-      InverseProblem<Param, Sol> *problem;
+      virtual Param invert(const Sol& data, double target_discrepancy, const Param* exact_param) = 0;
 };
 
 } /* namespace inversion */

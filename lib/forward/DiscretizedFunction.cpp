@@ -117,9 +117,9 @@ DiscretizedFunction<dim>::DiscretizedFunction(const DiscretizedFunction& o)
 
 template<int dim>
 void DiscretizedFunction<dim>::reverse() {
-  std::reverse(times.begin(), times.end());
-  std::reverse(function_coefficients.begin(), function_coefficients.end());
-  std::reverse(derivative_coefficients.begin(), derivative_coefficients.end());
+   std::reverse(times.begin(), times.end());
+   std::reverse(function_coefficients.begin(), function_coefficients.end());
+   std::reverse(derivative_coefficients.begin(), derivative_coefficients.end());
 }
 
 template<int dim>
@@ -139,10 +139,10 @@ DiscretizedFunction<dim>& DiscretizedFunction<dim>::operator=(double x) {
    Assert(x == 0, ExcNotImplemented());
 
    for (size_t i = 0; i < times.size(); i++) {
-      function_coefficients[i] = 0;
+      function_coefficients[i] = 0.0;
 
       if (store_derivative)
-         derivative_coefficients[i] = 0;
+         derivative_coefficients[i] = 0.0;
    }
 
    return *this;
@@ -185,10 +185,9 @@ void DiscretizedFunction<dim>::rand() {
          coeff[i] = distribution(generator);
 }
 
-
 template<int dim>
-DiscretizedFunction<dim> DiscretizedFunction<dim>::noise(const DiscretizedFunction<dim>& like, double norm)  {
-   DiscretizedFunction < dim > result(like);
+DiscretizedFunction<dim> DiscretizedFunction<dim>::noise(const DiscretizedFunction<dim>& like, double norm) {
+   DiscretizedFunction<dim> result(like);
 
    result.throw_away_derivative(); // to be on the safe side
    result.rand();
@@ -270,10 +269,21 @@ double DiscretizedFunction<dim>::operator*(const DiscretizedFunction<dim> & V) c
 
 template<int dim>
 double DiscretizedFunction<dim>::l2_norm() const {
+   // trapezoidal rule (only approx to L2(0,T, L2)-Norm if spatial grid is uniform!
    double result = 0;
 
-   for (size_t i = 0; i < times.size(); i++)
-      result += function_coefficients[i].norm_sqr();
+   // for (size_t i = 0; i < times.size() - 1; i++)
+   //  result += (function_coefficients[i].norm_sqr() + function_coefficients[i+1].norm_sqr()) / 2 * (std::abs(times[i+1] - times[i]));
+
+   for (size_t i = 0; i < times.size(); i++) {
+      double nrm2 = function_coefficients[i].norm_sqr() / function_coefficients[i].size();
+
+      if (i > 0)
+         result += nrm2 / 2 * (std::abs(times[i] - times[i - 1]));
+
+      if (i < times.size() - 1)
+         result += nrm2 / 2 * (std::abs(times[i + 1] - times[i]));
+   }
 
    return std::sqrt(result);
 }

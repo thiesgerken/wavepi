@@ -11,24 +11,36 @@
 #include <inversion/Regularization.h>
 #include <inversion/LinearProblem.h>
 
+#include <memory>
+
 namespace wavepi {
 namespace inversion {
 
 // Param and Sol need at least banach space structure
 template<typename Param, typename Sol>
-class LinearRegularization: Regularization<Param, Sol> {
+class LinearRegularization: public Regularization<Param, Sol> {
    public:
-      LinearRegularization(LinearProblem<Param, Sol> problem)
-            : Regularization(problem), problem(problem) {
+      LinearRegularization(std::shared_ptr<LinearProblem<Param, Sol>> problem)
+            : problem(problem) {
+      }
+
+      LinearRegularization()
+            : problem() {
       }
 
       virtual ~LinearRegularization() {
       }
 
-      // virtual Param invert(Sol data, double targetDiscrepancy) = 0;
+      const std::shared_ptr<LinearProblem<Param, Sol> >& get_problem() const {
+         return problem;
+      }
+
+      void set_problem(const std::shared_ptr<LinearProblem<Param, Sol> >& problem) {
+         this->problem = problem;
+      }
 
    protected:
-      LinearProblem problem;
+      std::shared_ptr<LinearProblem<Param, Sol>> problem;
 };
 
 } /* namespace inversion */

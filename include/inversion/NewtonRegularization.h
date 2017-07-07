@@ -12,6 +12,8 @@
 #include <inversion/LinearProblem.h>
 #include <inversion/NonlinearProblem.h>
 
+#include <memory>
+
 namespace wavepi {
 namespace inversion {
 
@@ -19,17 +21,29 @@ namespace inversion {
 template<typename Param, typename Sol>
 class NewtonRegularization: public Regularization<Param, Sol> {
    public:
-      NewtonRegularization(NonlinearProblem<Param, Sol>* problem)
-            : Regularization<Param, Sol>(problem), problem(problem) {
+      NewtonRegularization(std::shared_ptr<NonlinearProblem<Param, Sol>> problem)
+            : problem(problem) {
+      }
+
+      NewtonRegularization()
+            : problem() {
       }
 
       virtual ~NewtonRegularization() {
       }
 
+      const std::shared_ptr<NonlinearProblem<Param, Sol> >& get_problem() const {
+         return problem;
+      }
+
+      void set_problem(const std::shared_ptr<NonlinearProblem<Param, Sol> >& problem) {
+         this->problem = problem;
+      }
+
       // virtual Param invert(Sol data, double targetDiscrepancy) = 0;
 
    protected:
-      NonlinearProblem<Param, Sol> *problem;
+      std::shared_ptr<NonlinearProblem<Param, Sol>> problem;
 };
 
 } /* namespace inversion */
