@@ -27,7 +27,8 @@ using namespace dealii;
 template<typename Param, typename Sol>
 class NonlinearLandweber: public NewtonRegularization<Param, Sol> {
    public:
-      NonlinearLandweber(std::shared_ptr<NonlinearProblem<Param, Sol>> problem, const Param& initial_guess, double omega)
+      NonlinearLandweber(std::shared_ptr<NonlinearProblem<Param, Sol>> problem, const Param& initial_guess,
+            double omega)
             : NewtonRegularization<Param, Sol>(problem), omega(omega), initial_guess(initial_guess) {
       }
 
@@ -38,9 +39,10 @@ class NonlinearLandweber: public NewtonRegularization<Param, Sol> {
       virtual ~NonlinearLandweber() {
       }
 
-      virtual Param invert(const Sol& data, double target_discrepancy, const Param* exact_param) {
+      virtual Param invert(const Sol& data, double target_discrepancy, std::shared_ptr<const Param> exact_param) {
          LogStream::Prefix p = LogStream::Prefix("Landweber");
-       Assert(this->problem, ExcInternalError());
+         Assert(this->problem, ExcInternalError());
+         deallog.push("init");
 
          Param estimate(initial_guess);
 
@@ -50,9 +52,11 @@ class NonlinearLandweber: public NewtonRegularization<Param, Sol> {
 
          double discrepancy = residual.norm();
 
-         for (int i = 0; discrepancy > target_discrepancy; i++) {
-            std::unique_ptr<LinearProblem<Param, Sol>>
-            lp = this->problem->derivative(estimate, data_current);
+         deallog.pop();
+         this->problem->progress(estimate, residual, data, 0, exact_param);
+
+         for (int i = 1; discrepancy > target_discrepancy; i++) {
+            std::unique_ptr<LinearProblem<Param, Sol>> lp = this->problem->derivative(estimate, data_current);
 
             Param adj = lp->adjoint(residual);
 

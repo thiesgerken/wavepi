@@ -36,7 +36,7 @@ class NewtonRegularization: public Regularization<Param, Sol> {
          return problem;
       }
 
-      void set_problem(const std::shared_ptr<NonlinearProblem<Param, Sol> >& problem) {
+      void set_problem(const std::shared_ptr<NonlinearProblem<Param, Sol>>& problem) {
          this->problem = problem;
       }
 

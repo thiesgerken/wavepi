@@ -199,36 +199,38 @@ void copy_local_to_global(SparseMatrix<double> &matrix, const AssemblyCopyData &
 
 template<int dim>
 void create_laplace_mass_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
-      const Function<dim> * const a, const Function<dim> * const q) {
-   Assert(a != nullptr && q != nullptr, ExcZero());
+      std::shared_ptr<Function<dim>> a, std::shared_ptr<Function<dim>> q) {
+   Assert(a, ExcZero());
+   Assert(q, ExcZero());
 
    WorkStream::run(dof.begin_active(), dof.end(),
-         std::bind(&local_assemble_laplace_mass_cc<dim>, a, q, std::placeholders::_1, std::placeholders::_2,
+         std::bind(&local_assemble_laplace_mass_cc<dim>, a.get(), q.get(), std::placeholders::_1, std::placeholders::_2,
                std::placeholders::_3), std::bind(&copy_local_to_global, std::ref(matrix), std::placeholders::_1),
          LaplaceAssemblyScratchData<dim>(dof.get_fe(), quad), AssemblyCopyData());
 }
 
 template<int dim>
 void create_laplace_mass_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
-      const Function<dim> * const a, const Vector<double> &q) {
-   Assert(a != nullptr, ExcZero());
+      std::shared_ptr<Function<dim>> a, const Vector<double> &q) {
+   Assert(a, ExcZero());
    Assert(q.size() == dof.n_dofs(), ExcDimensionMismatch (q.size() , dof.n_dofs()));
 
    WorkStream::run(dof.begin_active(), dof.end(),
-         std::bind(&local_assemble_laplace_mass_cd<dim>, a, std::ref(q), std::placeholders::_1, std::placeholders::_2,
+         std::bind(&local_assemble_laplace_mass_cd<dim>, a.get(), std::ref(q), std::placeholders::_1, std::placeholders::_2,
                std::placeholders::_3), std::bind(&copy_local_to_global, std::ref(matrix), std::placeholders::_1),
          LaplaceAssemblyScratchData<dim>(dof.get_fe(), quad), AssemblyCopyData());
 }
 
 template<int dim>
 void create_laplace_mass_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
-      const Vector<double> &a, const Function<dim> * const q) {
-   Assert(q != nullptr, ExcZero());
+      const Vector<double> &a, std::shared_ptr<Function<dim>> q) {
+   Assert(q, ExcZero());
    Assert(a.size() == dof.n_dofs(), ExcDimensionMismatch (a.size() , dof.n_dofs()));
 
    WorkStream::run(dof.begin_active(), dof.end(),
-         std::bind(&local_assemble_laplace_mass_dc<dim>, std::ref(a), q, std::placeholders::_1, std::placeholders::_2,
-               std::placeholders::_3), std::bind(&copy_local_to_global, std::ref(matrix), std::placeholders::_1),
+         std::bind(&local_assemble_laplace_mass_dc<dim>, std::ref(a), q.get(), std::placeholders::_1,
+               std::placeholders::_2, std::placeholders::_3),
+         std::bind(&copy_local_to_global, std::ref(matrix), std::placeholders::_1),
          LaplaceAssemblyScratchData<dim>(dof.get_fe(), quad), AssemblyCopyData());
 }
 
@@ -257,31 +259,31 @@ void create_mass_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad,
 }
 
 template void create_laplace_mass_matrix(const DoFHandler<1>&, const Quadrature<1>&, SparseMatrix<double>&,
-      const Function<1, double> * const, const Function<1> * const);
+      std::shared_ptr<Function<1>>, std::shared_ptr<Function<1>>);
 
 template void create_laplace_mass_matrix(const DoFHandler<2>&, const Quadrature<2>&, SparseMatrix<double>&,
-      const Function<2, double> * const, const Function<2> * const);
+      std::shared_ptr<Function<2>>, std::shared_ptr<Function<2>>);
 
 template void create_laplace_mass_matrix(const DoFHandler<3>&, const Quadrature<3>&, SparseMatrix<double>&,
-      const Function<3> * const, const Function<3> * const);
+      std::shared_ptr<Function<3>>, std::shared_ptr<Function<3>>);
 
 template void create_laplace_mass_matrix(const DoFHandler<1>&, const Quadrature<1>&, SparseMatrix<double>&,
-      const Vector<double> &, const Function<1> * const);
+      const Vector<double> &, std::shared_ptr<Function<1>>);
 
 template void create_laplace_mass_matrix(const DoFHandler<2>&, const Quadrature<2>&, SparseMatrix<double>&,
-      const Vector<double> &, const Function<2> * const);
+      const Vector<double> &, std::shared_ptr<Function<2>>);
 
 template void create_laplace_mass_matrix(const DoFHandler<3>&, const Quadrature<3>&, SparseMatrix<double>&,
-      const Vector<double> &, const Function<3> * const);
+      const Vector<double> &, std::shared_ptr<Function<3>>);
 
 template void create_laplace_mass_matrix(const DoFHandler<1>&, const Quadrature<1>&, SparseMatrix<double>&,
-      const Function<1, double> * const, const Vector<double> &);
+      std::shared_ptr<Function<1>>, const Vector<double> &);
 
 template void create_laplace_mass_matrix(const DoFHandler<2>&, const Quadrature<2>&, SparseMatrix<double>&,
-      const Function<2, double> * const, const Vector<double> &);
+      std::shared_ptr<Function<2>>, const Vector<double> &);
 
 template void create_laplace_mass_matrix(const DoFHandler<3>&, const Quadrature<3>&, SparseMatrix<double>&,
-      const Function<3> * const, const Vector<double> &);
+      std::shared_ptr<Function<3>>, const Vector<double> &);
 
 template void create_laplace_mass_matrix(const DoFHandler<1>&, const Quadrature<1>&, SparseMatrix<double>&,
       const Vector<double> &, const Vector<double> &);

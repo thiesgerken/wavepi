@@ -36,7 +36,7 @@ class ConjugateGradients: public LinearRegularization<Param, Sol> {
       virtual ~ConjugateGradients() {
       }
 
-      virtual Param invert(const Sol& data, double target_discrepancy, const Param* exact_param) {
+      virtual Param invert(const Sol& data, double target_discrepancy, std::shared_ptr<const Param> exact_param) {
          LogStream::Prefix p = LogStream::Prefix("CG");
          Assert(this->problem, ExcInternalError());
 
@@ -51,7 +51,9 @@ class ConjugateGradients: public LinearRegularization<Param, Sol> {
          Param estimate(p_k1);
          estimate = 0.0;
 
-         for (int k = 0; discrepancy > target_discrepancy; k++) {
+         this->problem->progress(estimate, r_k, data, 0, exact_param);
+
+         for (int k = 1; discrepancy > target_discrepancy; k++) {
             Sol q_k = this->problem->forward(p_k1);
             double alpha_k = square(norm_dk / q_k.norm());
 

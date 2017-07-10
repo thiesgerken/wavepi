@@ -31,7 +31,7 @@ class LinearRegularization: public Regularization<Param, Sol> {
       virtual ~LinearRegularization() {
       }
 
-      const std::shared_ptr<LinearProblem<Param, Sol> >& get_problem() const {
+      const std::shared_ptr<LinearProblem<Param, Sol>>& get_problem() const {
          return problem;
       }
 

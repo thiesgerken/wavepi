@@ -111,9 +111,9 @@ void test() {
    triangulation.refine_global(5);
 
    FE_Q<dim> fe(1);
-	Quadrature<dim> quad = QGauss<dim>(3); // exact in poly degree 2n-1 (needed: fe_dim^3)
+   Quadrature<dim> quad = QGauss<dim>(3); // exact in poly degree 2n-1 (needed: fe_dim^3)
 
-	DoFHandler<dim> dof_handler;
+   DoFHandler<dim> dof_handler;
    dof_handler.initialize(triangulation, fe);
 
    deallog << "Number of active cells: " << triangulation.n_active_cells() << std::endl;
@@ -127,15 +127,9 @@ void test() {
 
    WaveEquation<dim> wave_eq(&dof_handler, times, quad);
 
-   TestF<dim> rhs;
-   L2RightHandSide<dim> l2rhs(&rhs);
-   wave_eq.set_right_hand_side(&l2rhs);
-
-   TestA<dim> a;
-   wave_eq.set_param_a(&a);
-
-   TestC<dim> c;
-   wave_eq.set_param_c(&c);
+   wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(std::make_shared<TestF<dim>>()));
+   wave_eq.set_param_a(std::make_shared<TestA<dim>>());
+   wave_eq.set_param_c(std::make_shared<TestC<dim>>());
 
    Timer timer;
    timer.start();
@@ -150,15 +144,17 @@ int main() {
    try {
       test<2>();
    } catch (std::exception &exc) {
-      std::cerr << std::endl << std::endl << "----------------------------------------------------" << std::endl;
-      std::cerr << "Exception on processing: " << std::endl << exc.what() << std::endl << "Aborting!" << std::endl
-            << "----------------------------------------------------" << std::endl;
+      std::cerr << std::endl << std::endl;
+      std::cerr << "----------------------------------------------------" << std::endl;
+      std::cerr << "Exception on processing: " << std::endl << exc.what() << std::endl << "Aborting!" << std::endl;
+      std::cerr << "----------------------------------------------------" << std::endl;
 
       return 1;
    } catch (...) {
-      std::cerr << std::endl << std::endl << "----------------------------------------------------" << std::endl;
-      std::cerr << "Unknown exception!" << std::endl << "Aborting!" << std::endl
-            << "----------------------------------------------------" << std::endl;
+      std::cerr << std::endl << std::endl;
+      std::cerr << "----------------------------------------------------" << std::endl;
+      std::cerr << "Unknown exception!" << std::endl << "Aborting!" << std::endl;
+      std::cerr << "----------------------------------------------------" << std::endl;
       return 1;
    }
 

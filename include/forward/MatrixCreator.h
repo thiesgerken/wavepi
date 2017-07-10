@@ -33,6 +33,7 @@
 #include <deal.II/numerics/vector_tools.h>
 
 #include <functional>
+#include <memory>
 
 namespace wavepi {
 namespace forward {
@@ -45,7 +46,7 @@ using namespace dealii;
  */
 template<int dim>
 void create_laplace_mass_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
-      const Function<dim> * const a, const Function<dim> * const q);
+      std::shared_ptr<Function<dim>> a,  std::shared_ptr<Function<dim>> q);
 
 /**
  * like dealii::MatrixCreator::create_laplace_matrix, but with a zero order coefficient q as well.
@@ -53,7 +54,7 @@ void create_laplace_mass_matrix(const DoFHandler<dim> &dof, const Quadrature<dim
  */
 template<int dim>
 void create_laplace_mass_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
-      const Function<dim> * const a, const Vector<double>& q);
+      std::shared_ptr<Function<dim>> a, const Vector<double>& q);
 
 /**
  * like dealii::MatrixCreator::create_laplace_matrix, but with a zero order coefficient q as well.
@@ -61,7 +62,7 @@ void create_laplace_mass_matrix(const DoFHandler<dim> &dof, const Quadrature<dim
  */
 template<int dim>
 void create_laplace_mass_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
-      const Vector<double>& a, const Function<dim> * const q);
+      const Vector<double>& a,  std::shared_ptr<Function<dim>> q);
 
 /**
  * like dealii::MatrixCreator::create_laplace_matrix, but with a zero order coefficient q as well.

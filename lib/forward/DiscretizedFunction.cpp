@@ -41,12 +41,12 @@ void DiscretizedFunction<dim>::push_back(DoFHandler<dim>* dof_handler, double ti
 }
 
 template<int dim>
-void DiscretizedFunction<dim>::push_back(DoFHandler<dim>* dof_handler, double time, Function<dim>* function) {
+void DiscretizedFunction<dim>::push_back(DoFHandler<dim>* dof_handler, double time, Function<dim>& function) {
    Assert(!store_derivative, ExcInvalidState());
 
-   function->set_time(time);
+   function.set_time(time);
    Vector<double> function_coeff(dof_handler->n_dofs());
-   VectorTools::interpolate(*dof_handler, *function, function_coeff);
+   VectorTools::interpolate(*dof_handler, function, function_coeff);
 
    dof_handlers.push_back(dof_handler);
    times.push_back(time);
@@ -113,6 +113,36 @@ DiscretizedFunction<dim>::DiscretizedFunction(const DiscretizedFunction& o)
       : Function<dim>(), store_derivative(o.store_derivative), cur_time_idx(o.cur_time_idx), times(o.times), dof_handlers(
             o.dof_handlers), function_coefficients(o.function_coefficients), derivative_coefficients(
             o.derivative_coefficients) {
+}
+
+template<int dim>
+DiscretizedFunction<dim>::DiscretizedFunction(Function<dim>& function, const std::vector<double>& times,
+      const std::vector<DoFHandler<dim>*>& handlers)
+      : DiscretizedFunction<dim>(false, times.size()) {
+   for (size_t i = 0; i < times.size(); i++)
+      this->push_back(handlers[i], times[i], function);
+}
+
+template<int dim>
+DiscretizedFunction<dim>::DiscretizedFunction(Function<dim>& function, const std::vector<double>& times,
+      DoFHandler<dim>* handler)
+      : DiscretizedFunction<dim>(false, times.size()) {
+
+   for (size_t i = 0; i < times.size(); i++)
+      this->push_back(handler, times[i], function);
+}
+
+template<int dim>
+DiscretizedFunction<dim>::DiscretizedFunction(const std::vector<double>& times, DoFHandler<dim>* handler)
+      : DiscretizedFunction<dim>(false, times.size()) {
+
+   this->times = times;
+
+   for (size_t i = 0; i < times.size(); i++) {
+      dof_handlers.push_back(handler);
+      Vector<double> function_coeff(handler->n_dofs());
+      function_coefficients.push_back(function_coeff);
+   }
 }
 
 template<int dim>
@@ -217,10 +247,9 @@ void DiscretizedFunction<dim>::pointwise_multiplication(const DiscretizedFunctio
          Assert(derivative_coefficients[i].size() == V.derivative_coefficients[i].size(),
                ExcDimensionMismatch (derivative_coefficients[i].size() , V.derivative_coefficients[i].size()));
 
-
          derivative_coefficients[i].scale(V.function_coefficients[i]);
 
-         Vector <double > tmp = function_coefficients[i];
+         Vector<double> tmp = function_coefficients[i];
          tmp.scale(V.derivative_coefficients[i]);
 
          derivative_coefficients[i] += tmp;
@@ -318,28 +347,6 @@ double DiscretizedFunction<dim>::l2_norm() const {
 template<int dim>
 double DiscretizedFunction<dim>::norm() const {
    return l2_norm();
-}
-
-template<int dim>
-DiscretizedFunction<dim> DiscretizedFunction<dim>::discretize(Function<dim>* function, const std::vector<double>& times,
-      const std::vector<DoFHandler<dim>*>& handlers) {
-   DiscretizedFunction<dim> fdisc(false, times.size());
-
-   for (size_t i = 0; i < times.size(); i++)
-      fdisc.push_back(handlers[i], times[i], function);
-
-   return fdisc;
-}
-
-template<int dim>
-DiscretizedFunction<dim> DiscretizedFunction<dim>::discretize(Function<dim>* function, const std::vector<double>& times,
-      DoFHandler<dim>* handler) {
-   DiscretizedFunction<dim> fdisc(false, times.size());
-
-   for (size_t i = 0; i < times.size(); i++)
-      fdisc.push_back(handler, times[i], function);
-
-   return fdisc;
 }
 
 template<int dim>

@@ -35,6 +35,8 @@
 #include <forward/DiscretizedFunction.h>
 #include <forward/RightHandSide.h>
 
+#include <memory>
+
 namespace wavepi {
 namespace forward {
 using namespace dealii;
@@ -42,17 +44,17 @@ using namespace dealii;
 template<int dim>
 class L2RightHandSide: public RightHandSide<dim> {
    public:
-      L2RightHandSide(Function<dim>* f);
+      L2RightHandSide(std::shared_ptr<Function<dim>> f);
       virtual ~L2RightHandSide();
 
       virtual void create_right_hand_side(const DoFHandler<dim> &dof_handler, const Quadrature<dim> &q,
             Vector<double> &rhs) const;
 
-	 Function<dim>* get_base_rhs() const;
-	void set_base_rhs(Function<dim>* base_rhs);
+      std::shared_ptr<Function<dim>> get_base_rhs() const;
+      void set_base_rhs(std::shared_ptr<Function<dim>> base_rhs);
 
    private:
-      Function<dim> *base_rhs;
+      std::shared_ptr<Function<dim>> base_rhs;
 
       struct AssemblyScratchData {
             AssemblyScratchData(const FiniteElement<dim> &fe, const Quadrature<dim> &quad);
@@ -65,9 +67,9 @@ class L2RightHandSide: public RightHandSide<dim> {
             std::vector<types::global_dof_index> local_dof_indices;
       };
 
-    void copy_local_to_global(Vector<double> &result, const AssemblyCopyData &copy_data);
-    void local_assemble(const Vector<double> &f, const typename DoFHandler<dim>::active_cell_iterator &cell,
-          AssemblyScratchData &scratch_data, AssemblyCopyData &copy_data);
+      void copy_local_to_global(Vector<double> &result, const AssemblyCopyData &copy_data);
+      void local_assemble(const Vector<double> &f, const typename DoFHandler<dim>::active_cell_iterator &cell,
+            AssemblyScratchData &scratch_data, AssemblyCopyData &copy_data);
 };
 
 } /* namespace forward */

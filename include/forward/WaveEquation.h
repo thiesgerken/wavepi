@@ -41,6 +41,7 @@
 
 #include <utility>
 #include <cmath>
+#include <memory>
 
 #include <forward/DiscretizedFunction.h>
 #include <forward/MatrixCreator.h>
@@ -61,41 +62,43 @@ class WaveEquation {
 
       DiscretizedFunction<dim> run();
 
-      ZeroFunction<dim> zero = ZeroFunction<dim>(1);
-      ConstantFunction<dim> one = ConstantFunction<dim>(1.0, 1);
+      std::shared_ptr<Function<dim>> zero = std::make_shared<ZeroFunction<dim>>(1);
+      std::shared_ptr<Function<dim>> one = std::make_shared<ConstantFunction<dim>>(1.0, 1);
 
-      L2RightHandSide<dim> zero_rhs = L2RightHandSide<dim>(&zero);
-
-      void set_initial_values_u(Function<dim>* values_u);
-      void set_initial_values_v(Function<dim>* values_u);
-      Function<dim>* get_initial_values_u() const;
-      Function<dim>* get_initial_values_v() const;
-
-      void set_boundary_values_u(Function<dim>* values_u);
-      void set_boundary_values_v(Function<dim>* values_u);
-      Function<dim>* get_boundary_values_u() const;
-      Function<dim>* get_boundary_values_v() const;
-
-      void set_param_c(Function<dim>* param);
-      Function<dim>* get_param_c() const;
-
-      void set_param_nu(Function<dim>* param);
-      Function<dim>* get_param_nu() const;
-
-      void set_param_a(Function<dim>* param);
-      Function<dim>* get_param_a() const;
-
-      void set_param_q(Function<dim>* param);
-      Function<dim>* get_param_q() const;
-
-      void set_right_hand_side(RightHandSide<dim>* rhs);
-      RightHandSide<dim>* get_right_hand_side() const;
+      std::shared_ptr<RightHandSide<dim>> zero_rhs = std::make_shared<L2RightHandSide<dim>>(zero);
 
       double get_theta() const;
       void set_theta(double theta);
 
       const std::vector<double>& get_times() const;
       void set_times(const std::vector<double>& times);
+
+      std::shared_ptr<Function<dim>> get_boundary_values_u() const;
+      void set_boundary_values_u(std::shared_ptr<Function<dim>> boundary_values_u);
+
+      std::shared_ptr<Function<dim>> get_boundary_values_v() const;
+      void set_boundary_values_v(std::shared_ptr<Function<dim>> boundary_values_v);
+
+      std::shared_ptr<Function<dim>> get_initial_values_u() const;
+      void set_initial_values_u(std::shared_ptr<Function<dim>> initial_values_u);
+
+      std::shared_ptr<Function<dim>> get_initial_values_v() const;
+      void set_initial_values_v(std::shared_ptr<Function<dim>> initial_values_v);
+
+      std::shared_ptr<Function<dim>> get_param_a() const;
+      void set_param_a(std::shared_ptr<Function<dim>> param_a);
+
+      std::shared_ptr<Function<dim>> get_param_c() const;
+      void set_param_c(std::shared_ptr<Function<dim>> param_c);
+
+      std::shared_ptr<Function<dim>> get_param_nu() const;
+      void set_param_nu(std::shared_ptr<Function<dim>> param_nu);
+
+      std::shared_ptr<Function<dim>> get_param_q() const;
+      void set_param_q(std::shared_ptr<Function<dim>> param_q);
+
+      std::shared_ptr<RightHandSide<dim> > get_right_hand_side() const;
+      void set_right_hand_side(std::shared_ptr<RightHandSide<dim>> right_hand_side);
 
    private:
       void init_system();
@@ -112,17 +115,17 @@ class WaveEquation {
       double theta;
 
       DoFHandler<dim> *dof_handler;
+      Quadrature<dim> quad;
       std::vector<double> times;
 
-      Function<dim> *initial_values_u, *initial_values_v;
-      Function<dim> *boundary_values_u, *boundary_values_v;
-      Function<dim> *param_c, *param_nu, *param_a, *param_q;
+      std::shared_ptr<Function<dim>> initial_values_u, initial_values_v;
+      std::shared_ptr<Function<dim>> boundary_values_u, boundary_values_v;
+      std::shared_ptr<Function<dim>> param_c, param_nu, param_a, param_q;
 
-      Quadrature<dim> quad;
-      DiscretizedFunction<dim> *param_c_disc = nullptr, *param_nu_disc = nullptr;
-      DiscretizedFunction<dim> *param_a_disc = nullptr, *param_q_disc = nullptr;
+      std::shared_ptr<DiscretizedFunction<dim>> param_c_disc = nullptr, param_nu_disc = nullptr;
+      std::shared_ptr<DiscretizedFunction<dim>> param_a_disc = nullptr, param_q_disc = nullptr;
 
-      RightHandSide<dim>* right_hand_side;
+      std::shared_ptr<RightHandSide<dim>> right_hand_side;
 
       ConstraintMatrix constraints;
       SparsityPattern sparsity_pattern;

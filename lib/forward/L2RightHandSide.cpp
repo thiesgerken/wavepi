@@ -16,7 +16,7 @@ namespace forward {
 using namespace dealii;
 
 template<int dim>
-L2RightHandSide<dim>::L2RightHandSide(Function<dim>* f)
+L2RightHandSide<dim>::L2RightHandSide(std::shared_ptr<Function<dim>> f)
       : base_rhs(f) {
 }
 
@@ -43,12 +43,12 @@ void L2RightHandSide<dim>::copy_local_to_global(Vector<double> &result, const As
 }
 
 template<int dim>
-inline Function<dim>* L2RightHandSide<dim>::get_base_rhs() const {
+inline std::shared_ptr<Function<dim>> L2RightHandSide<dim>::get_base_rhs() const {
 	return base_rhs;
 }
 
 template<int dim>
-inline void L2RightHandSide<dim>::set_base_rhs(Function<dim>* base_rhs) {
+inline void L2RightHandSide<dim>::set_base_rhs(std::shared_ptr<Function<dim>> base_rhs) {
 	this->base_rhs = base_rhs;
 }
 
@@ -76,9 +76,9 @@ void L2RightHandSide<dim>::create_right_hand_side(const DoFHandler<dim> &dof, co
       Vector<double> &rhs) const {
    base_rhs->set_time(this->get_time());
 
-   auto base_rhs_d = dynamic_cast<DiscretizedFunction<dim>*>(base_rhs);
+   auto base_rhs_d = std::dynamic_pointer_cast<DiscretizedFunction<dim>>(base_rhs);
 
-   if (base_rhs_d != nullptr) {
+   if (base_rhs_d) {
       Vector<double> coeffs = base_rhs_d->get_function_coefficients()[base_rhs_d->get_time_index()];
       Assert(coeffs.size() == dof.n_dofs(), ExcDimensionMismatch (coeffs.size() , dof.n_dofs()));
 
@@ -87,7 +87,7 @@ void L2RightHandSide<dim>::create_right_hand_side(const DoFHandler<dim> &dof, co
                   std::placeholders::_3), std::bind(&L2RightHandSide<dim>::copy_local_to_global, *this, std::ref(rhs), std::placeholders::_1),
             AssemblyScratchData(dof.get_fe(), quad), AssemblyCopyData());
    } else
-      VectorTools::create_right_hand_side(dof, quad, *base_rhs, rhs);
+      VectorTools::create_right_hand_side(dof, quad, *base_rhs.get(), rhs);
 }
 
 template class L2RightHandSide<1> ;

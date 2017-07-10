@@ -17,22 +17,21 @@ using namespace dealii;
 
 template<int dim>
 WaveEquation<dim>::~WaveEquation() {
-
 }
 
 template<int dim>
 WaveEquation<dim>::WaveEquation(DoFHandler<dim> *dof_hndl, const std::vector<double>& times, const Quadrature<dim> quad)
-      : theta(0.5), dof_handler(dof_hndl), times(times), initial_values_u(&zero), initial_values_v(&zero), boundary_values_u(
-            &zero), boundary_values_v(&zero), param_c(&one), param_nu(&zero), param_a(&one), param_q(&zero), quad(quad), right_hand_side(
-            &zero_rhs) {
+      : theta(0.5), dof_handler(dof_hndl), quad(quad), times(times), initial_values_u(zero), initial_values_v(zero), boundary_values_u(
+            zero), boundary_values_v(zero), param_c(one), param_nu(zero), param_a(one), param_q(zero), right_hand_side(
+            zero_rhs) {
 }
 
 template<int dim>
 WaveEquation<dim>::WaveEquation(const WaveEquation<dim>& weq)
-      : theta(weq.theta), dof_handler(weq.dof_handler), times(weq.times), initial_values_u(weq.initial_values_u), initial_values_v(
-            weq.initial_values_v), boundary_values_u(weq.boundary_values_u), boundary_values_v(weq.boundary_values_v), param_c(
-            weq.param_c), param_nu(weq.param_nu), param_a(weq.param_a), param_q(weq.param_q), quad(weq.quad),  right_hand_side(
-            weq.right_hand_side) {
+      : theta(weq.theta), dof_handler(weq.dof_handler), quad(weq.quad), times(weq.times), initial_values_u(
+            weq.initial_values_u), initial_values_v(weq.initial_values_v), boundary_values_u(weq.boundary_values_u), boundary_values_v(
+            weq.boundary_values_v), param_c(weq.param_c), param_nu(weq.param_nu), param_a(weq.param_a), param_q(
+            weq.param_q), right_hand_side(weq.right_hand_side) {
 }
 
 template<int dim>
@@ -113,14 +112,14 @@ void WaveEquation<dim>::setup_step(double time) {
 
 template<int dim>
 void WaveEquation<dim>::fill_A() {
-   if (param_a_disc != nullptr && param_q_disc != nullptr)
+   if (param_a_disc && param_q_disc)
       MatrixCreator::create_laplace_mass_matrix(*dof_handler, quad, matrix_A,
             param_a_disc->get_function_coefficients()[param_a_disc->get_time_index()],
             param_q_disc->get_function_coefficients()[param_q_disc->get_time_index()]);
-   else if (param_a_disc != nullptr && param_q_disc == nullptr)
+   else if (param_a_disc && !param_q_disc)
       MatrixCreator::create_laplace_mass_matrix(*dof_handler, quad, matrix_A,
             param_a_disc->get_function_coefficients()[param_a_disc->get_time_index()], param_q);
-   else if (param_a_disc == nullptr && param_q_disc != nullptr)
+   else if (!param_a_disc && param_q_disc)
       MatrixCreator::create_laplace_mass_matrix(*dof_handler, quad, matrix_A, param_a,
             param_q_disc->get_function_coefficients()[param_q_disc->get_time_index()]);
    else
@@ -129,20 +128,20 @@ void WaveEquation<dim>::fill_A() {
 
 template<int dim>
 void WaveEquation<dim>::fill_B() {
-   if (param_nu_disc != nullptr)
+   if (param_nu_disc)
       MatrixCreator::create_mass_matrix(*dof_handler, quad, matrix_B,
             param_nu_disc->get_function_coefficients()[param_nu_disc->get_time_index()]);
    else
-      dealii::MatrixCreator::create_mass_matrix(*dof_handler, quad, matrix_B, param_nu);
+      dealii::MatrixCreator::create_mass_matrix(*dof_handler, quad, matrix_B, param_nu.get());
 }
 
 template<int dim>
 void WaveEquation<dim>::fill_C() {
-   if (param_c_disc != nullptr)
+   if (param_c_disc)
       MatrixCreator::create_mass_matrix(*dof_handler, quad, matrix_C,
             param_c_disc->get_function_coefficients()[param_c_disc->get_time_index()]);
    else
-      dealii::MatrixCreator::create_mass_matrix(*dof_handler, quad, matrix_C, param_c);
+      dealii::MatrixCreator::create_mass_matrix(*dof_handler, quad, matrix_C, param_c.get());
 }
 
 template<int dim>
@@ -228,12 +227,12 @@ void WaveEquation<dim>::solve_u() {
 
    cg.solve(system_matrix, solution_u, system_rhs, precondition);
 
-   deallog << std::scientific;
+   std::ios::fmtflags f(deallog.flags(std::ios_base::scientific));
    deallog << "Steps: " << solver_control.last_step();
-   deallog << " ‖res‖ = " << solver_control.last_value();
-   deallog << " ‖rhs‖ = " << system_rhs.l2_norm();
-   // deallog << " ‖sol‖ = " << solution_u.l2_norm();
-   deallog << std::fixed << std::endl;
+   deallog << ", ‖res‖ = " << solver_control.last_value();
+   deallog << ", ‖rhs‖ = " << system_rhs.l2_norm() << std::endl;
+
+   deallog.flags(f);
 }
 
 template<int dim>
@@ -248,12 +247,13 @@ void WaveEquation<dim>::solve_v() {
 
    cg.solve(system_matrix, solution_v, system_rhs, precondition);
 
-   deallog << std::scientific;
+   std::ios::fmtflags f(deallog.flags(std::ios_base::scientific));
+
    deallog << "Steps: " << solver_control.last_step();
-   deallog << " ‖res‖ = " << solver_control.last_value();
-   deallog << " ‖rhs‖ = " << system_rhs.l2_norm();
-   // deallog << " ‖sol‖ = " << solution_v.l2_norm();
-   deallog << std::fixed << std::endl;
+   deallog << ", ‖res‖ = " << solver_control.last_value();
+   deallog << ", ‖rhs‖ = " << system_rhs.l2_norm() << std::endl;
+
+   deallog.flags(f);
 }
 
 template<int dim>
@@ -293,92 +293,112 @@ DiscretizedFunction<dim> WaveEquation<dim>::run() {
 
       u.push_back(dof_handler, times[i], solution_u, solution_v);
 
-      deallog << "t=" << std::fixed << times[i] << std::scientific << ", ";
-      deallog << "‖u‖=" << solution_u.l2_norm() << ", ‖v‖=" << solution_v.l2_norm();
-      deallog << std::fixed << std::endl;
+      std::ios::fmtflags f(deallog.flags(std::ios_base::fixed));
+      deallog << "t=" << times[i] << std::scientific << ", ";
+      deallog << "‖u‖=" << solution_u.l2_norm() << ", ‖v‖=" << solution_v.l2_norm() << std::endl;
+      deallog.flags(f);
    }
 
    timer.stop();
-   deallog << "solved pde in " << std::fixed << timer.wall_time() << "s (setup " << setup_timer.wall_time() << "s)"
-         << std::fixed << std::endl;
+   std::ios::fmtflags f(deallog.flags(std::ios_base::fixed));
+   deallog << "solved pde in " << timer.wall_time() << "s (setup " << setup_timer.wall_time() << "s)" << std::endl;
+   deallog.flags(f);
 
    return u;
 }
 
-template<int dim> void WaveEquation<dim>::set_initial_values_u(Function<dim>* values_u) {
-   initial_values_u = values_u;
-}
-
-template<int dim> void WaveEquation<dim>::set_initial_values_v(Function<dim>* values_v) {
-   initial_values_v = values_v;
-}
-
-template<int dim> Function<dim>* WaveEquation<dim>::get_initial_values_u() const {
-   return initial_values_u;
-}
-
-template<int dim> Function<dim>* WaveEquation<dim>::get_initial_values_v() const {
-   return initial_values_v;
-}
-
-template<int dim> void WaveEquation<dim>::set_boundary_values_u(Function<dim>* values_u) {
-   initial_values_u = values_u;
-}
-
-template<int dim> void WaveEquation<dim>::set_boundary_values_v(Function<dim>* values_v) {
-   initial_values_v = values_v;
-}
-
-template<int dim> Function<dim>* WaveEquation<dim>::get_boundary_values_u() const {
+template<int dim>
+inline std::shared_ptr<Function<dim> > WaveEquation<dim>::get_boundary_values_u() const {
    return boundary_values_u;
 }
 
-template<int dim> Function<dim>* WaveEquation<dim>::get_boundary_values_v() const {
+template<int dim>
+inline void WaveEquation<dim>::set_boundary_values_u(std::shared_ptr<Function<dim> > boundary_values_u) {
+   this->boundary_values_u = boundary_values_u;
+}
+
+template<int dim>
+inline std::shared_ptr<Function<dim> > WaveEquation<dim>::get_boundary_values_v() const {
    return boundary_values_v;
 }
 
-template<int dim> void WaveEquation<dim>::set_param_c(Function<dim>* param) {
-   param_c = param;
-   param_c_disc = dynamic_cast<DiscretizedFunction<dim>*>(param_c);
+template<int dim>
+inline void WaveEquation<dim>::set_boundary_values_v(std::shared_ptr<Function<dim>> boundary_values_v) {
+   this->boundary_values_v = boundary_values_v;
 }
 
-template<int dim> Function<dim>* WaveEquation<dim>::get_param_c() const {
-   return param_c;
+template<int dim>
+inline std::shared_ptr<Function<dim>> WaveEquation<dim>::get_initial_values_u() const {
+   return initial_values_u;
 }
 
-template<int dim> void WaveEquation<dim>::set_param_nu(Function<dim>* param) {
-   param_nu = param;
-   param_nu_disc = dynamic_cast<DiscretizedFunction<dim>*>(param_nu);
+template<int dim>
+inline void WaveEquation<dim>::set_initial_values_u(std::shared_ptr<Function<dim>> initial_values_u) {
+   this->initial_values_u = initial_values_u;
 }
 
-template<int dim> Function<dim>* WaveEquation<dim>::get_param_nu() const {
-   return param_nu;
+template<int dim>
+inline std::shared_ptr<Function<dim>> WaveEquation<dim>::get_initial_values_v() const {
+   return initial_values_v;
 }
 
-template<int dim> void WaveEquation<dim>::set_param_a(Function<dim>* param) {
-   param_a = param;
-   param_a_disc = dynamic_cast<DiscretizedFunction<dim>*>(param_a);
+template<int dim>
+inline void WaveEquation<dim>::set_initial_values_v(std::shared_ptr<Function<dim>> initial_values_v) {
+   this->initial_values_v = initial_values_v;
 }
 
-template<int dim> Function<dim>* WaveEquation<dim>::get_param_a() const {
+template<int dim>
+inline std::shared_ptr<Function<dim>> WaveEquation<dim>::get_param_a() const {
    return param_a;
 }
 
-template<int dim> void WaveEquation<dim>::set_param_q(Function<dim>* param) {
-   param_q = param;
-   param_q_disc = dynamic_cast<DiscretizedFunction<dim>*>(param_q);
+template<int dim>
+inline void WaveEquation<dim>::set_param_a(std::shared_ptr<Function<dim>> param_a) {
+   this->param_a = param_a;
+   this->param_a_disc = std::dynamic_pointer_cast<DiscretizedFunction<dim>, Function<dim>>(param_a);
 }
 
-template<int dim> Function<dim>* WaveEquation<dim>::get_param_q() const {
+template<int dim>
+inline std::shared_ptr<Function<dim>> WaveEquation<dim>::get_param_c() const {
+   return param_c;
+}
+
+template<int dim>
+inline void WaveEquation<dim>::set_param_c(std::shared_ptr<Function<dim>> param_c) {
+   this->param_c = param_c;
+   this->param_c_disc = std::dynamic_pointer_cast<DiscretizedFunction<dim>, Function<dim>>(param_c);
+}
+
+template<int dim>
+inline std::shared_ptr<Function<dim>> WaveEquation<dim>::get_param_nu() const {
+   return param_nu;
+}
+
+template<int dim>
+inline void WaveEquation<dim>::set_param_nu(std::shared_ptr<Function<dim>> param_nu) {
+   this->param_nu = param_nu;
+   this->param_nu_disc = std::dynamic_pointer_cast<DiscretizedFunction<dim>, Function<dim>>(param_nu);
+}
+
+template<int dim>
+inline std::shared_ptr<Function<dim>> WaveEquation<dim>::get_param_q() const {
    return param_q;
 }
 
-template<int dim> void WaveEquation<dim>::set_right_hand_side(RightHandSide<dim>* rhs) {
-   right_hand_side = rhs;
+template<int dim>
+inline void WaveEquation<dim>::set_param_q(std::shared_ptr<Function<dim>> param_q) {
+   this->param_q = param_q;
+   this->param_q_disc = std::dynamic_pointer_cast<DiscretizedFunction<dim>, Function<dim>>(param_q);
 }
 
-template<int dim> RightHandSide<dim>* WaveEquation<dim>::get_right_hand_side() const {
+template<int dim>
+inline std::shared_ptr<RightHandSide<dim>> WaveEquation<dim>::get_right_hand_side() const {
    return right_hand_side;
+}
+
+template<int dim>
+inline void WaveEquation<dim>::set_right_hand_side(std::shared_ptr<RightHandSide<dim> > right_hand_side) {
+   this->right_hand_side = right_hand_side;
 }
 
 template<int dim> double WaveEquation<dim>::get_theta() const {

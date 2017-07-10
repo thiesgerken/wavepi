@@ -38,9 +38,9 @@ class REGINN: public NewtonRegularization<Param, Sol> {
       virtual ~REGINN() {
       }
 
-      virtual Param invert(const Sol& data, double target_discrepancy, const Param* exact_param) {
+      virtual Param invert(const Sol& data, double target_discrepancy, std::shared_ptr<const Param> exact_param) {
          LogStream::Prefix p = LogStream::Prefix("REGINN");
-         deallog.push("Init");
+         deallog.push("init");
 
          Assert(this->problem, ExcInternalError());
          Assert(linear_solver, ExcInternalError());
@@ -52,17 +52,19 @@ class REGINN: public NewtonRegularization<Param, Sol> {
          residual -= data_current;
 
          double discrepancy = residual.norm();
-         deallog.pop();
 
-         for (int i = 0; discrepancy > target_discrepancy; i++) {
+         deallog.pop();
+         this->problem->progress(estimate, residual, data, 0, exact_param);
+
+         for (int i = 1; discrepancy > target_discrepancy; i++) {
             double theta_n = 0.7; // TODO
 
             linear_solver->set_problem(this->problem->derivative(estimate, data_current));
             Param step = linear_solver->invert(residual, discrepancy * theta_n, nullptr);
             estimate += step;
 
+            deallog.push("post_step");
             // calculate new residual and discrepancy
-            deallog.push("post-step");
             residual = Sol(data);
             data_current = this->problem->forward(estimate);
             residual -= data_current;

@@ -33,7 +33,7 @@ class Landweber: public LinearRegularization<Param, Sol> {
       virtual ~Landweber() {
       }
 
-      virtual Param invert(const Sol& data, double target_discrepancy, const Param* exact_param) {
+      virtual Param invert(const Sol& data, double target_discrepancy, std::shared_ptr<const Param> exact_param) {
          LogStream::Prefix p = LogStream::Prefix("Landweber");
          Assert(this->problem, ExcInternalError());
 
@@ -45,7 +45,9 @@ class Landweber: public LinearRegularization<Param, Sol> {
 
          double discrepancy = residual.norm();
 
-         for (int i = 0; discrepancy > target_discrepancy; i++) {
+         this->problem->progress(estimate, residual, data, 0, exact_param);
+
+         for (int i = 1; discrepancy > target_discrepancy; i++) {
             Param adj = this->problem->adjoint(residual);
 
             // $`c_{k+1} = c_k + \omega A^* (g - A c_k)`$

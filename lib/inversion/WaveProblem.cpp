@@ -28,14 +28,14 @@ WaveProblem<dim>::WaveProblem(WaveEquation<dim>& weq)
 template<int dim>
 void WaveProblem<dim>::progress(const DiscretizedFunction<dim>& current_estimate,
       const DiscretizedFunction<dim>& current_residual, const DiscretizedFunction<dim>& data, int iteration_number,
-      const DiscretizedFunction<dim>* exact_param) {
-   deallog << "i=" << std::setw(3) << iteration_number << ": rdisc=" << current_residual.l2_norm() / data.l2_norm();
+      std::shared_ptr<const DiscretizedFunction<dim>> exact_param) {
+   deallog << "i=" << iteration_number << ": rdisc=" << current_residual.norm() / data.norm();
 
-   if (exact_param != nullptr) {
+   if (exact_param) {
       DiscretizedFunction<dim> tmp(current_estimate);
       tmp -= *exact_param;
       deallog << ", rnorm=" << current_estimate.norm() / exact_param->norm() << ", rerr="
-            << tmp.l2_norm() / exact_param->l2_norm();
+            << tmp.norm() / exact_param->norm();
    } else
       deallog << ", norm=" << current_estimate.norm();
 

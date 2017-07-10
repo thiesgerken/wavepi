@@ -8,6 +8,8 @@
 #ifndef INVERSION_INVERSEPROBLEM_H_
 #define INVERSION_INVERSEPROBLEM_H_
 
+#include<memory>
+
 namespace wavepi {
 namespace inversion {
 
@@ -29,7 +31,7 @@ class InverseProblem {
       //  int iteration_number, const Param* exact_param);
       virtual void progress(const Param& current_estimate __attribute__((unused)),
             const Sol& current_residual __attribute__((unused)), const Sol& data __attribute__((unused)),
-            int iteration_number __attribute__((unused)), const Param* exact_param __attribute__((unused))) {
+            int iteration_number __attribute__((unused)),std::shared_ptr<const Param> exact_param __attribute__((unused))) {
       }
 
 };

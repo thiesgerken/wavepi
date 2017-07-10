@@ -32,8 +32,12 @@ class DiscretizedFunction: public Function<dim> {
       DiscretizedFunction();
       DiscretizedFunction(const DiscretizedFunction& that);
       DiscretizedFunction(const DiscretizedFunction&& that);
+      DiscretizedFunction(Function<dim>& function, const std::vector<double>& times,
+            const std::vector<DoFHandler<dim>*>& handlers);
+      DiscretizedFunction(Function<dim>& function, const std::vector<double>& times, DoFHandler<dim>* handler);
+      DiscretizedFunction(const std::vector<double>& times, DoFHandler<dim>* handler);
 
-      DiscretizedFunction<dim>& operator=(DiscretizedFunction<dim>&& V);
+      DiscretizedFunction<dim>& operator=(DiscretizedFunction<dim> && V);
 
       // works only for x = 0
       DiscretizedFunction<dim>& operator=(double x);
@@ -72,13 +76,7 @@ class DiscretizedFunction: public Function<dim> {
       void push_back(DoFHandler<dim>* dof_handler, double time, const Vector<double>& function_coeff);
       void push_back(DoFHandler<dim>* dof_handler, double time, const Vector<double>& function_coeff,
             const Vector<double>& deriv_coeff);
-      void push_back(DoFHandler<dim>* dof_handler, double time, Function<dim>* function);
-
-      static DiscretizedFunction<dim> discretize(Function<dim>* function, const std::vector<double>& times,
-            const std::vector<DoFHandler<dim>*>& handlers);
-
-      static DiscretizedFunction<dim> discretize(Function<dim>* function, const std::vector<double>& times,
-            DoFHandler<dim>* handler);
+      void push_back(DoFHandler<dim>* dof_handler, double time, Function<dim>& function);
 
       void write_pvd(std::string path, std::string name, std::string name_deriv) const;
       void write_pvd(std::string path, std::string name) const;

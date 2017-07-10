@@ -11,6 +11,7 @@
 #include <inversion/InverseProblem.h>
 
 #include <iostream>
+#include <memory>
 
 namespace wavepi {
 namespace inversion {
@@ -22,7 +23,7 @@ class Regularization {
       virtual ~Regularization() {
       }
 
-      virtual Param invert(const Sol& data, double target_discrepancy, const Param* exact_param) = 0;
+      virtual Param invert(const Sol& data, double target_discrepancy, std::shared_ptr<const Param> exact_param) = 0;
 };
 
 } /* namespace inversion */
