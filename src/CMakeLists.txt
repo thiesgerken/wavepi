@@ -1,7 +1,7 @@
-ADD_EXECUTABLE(test_direct test_direct.cpp)
-DEAL_II_SETUP_TARGET(test_direct)
-TARGET_LINK_LIBRARIES(test_direct wavepi_forward)
+ADD_EXECUTABLE(wavepi_direct wavepi_direct.cpp)
+DEAL_II_SETUP_TARGET(wavepi_direct)
+TARGET_LINK_LIBRARIES(wavepi_direct wavepi_forward)
 
-ADD_EXECUTABLE(test_inverse test_inverse.cpp)
-DEAL_II_SETUP_TARGET(test_inverse)
-TARGET_LINK_LIBRARIES(test_inverse wavepi_forward wavepi_inversion)
+ADD_EXECUTABLE(wavepi_inverse wavepi_inverse.cpp)
+DEAL_II_SETUP_TARGET(wavepi_inverse)
+TARGET_LINK_LIBRARIES(wavepi_inverse wavepi_forward wavepi_inversion)

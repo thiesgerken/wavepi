@@ -35,6 +35,25 @@ WaveEquation<dim>::WaveEquation(const WaveEquation<dim>& weq)
 }
 
 template<int dim>
+WaveEquation<dim>& WaveEquation<dim>::operator=(const WaveEquation<dim>& weq) {
+   theta = weq.theta;
+   dof_handler = weq.dof_handler;
+   quad = weq.quad;
+   times = weq.times;
+   initial_values_u = weq.initial_values_u;
+   initial_values_v = weq.initial_values_v;
+   boundary_values_u = weq.boundary_values_u;
+   boundary_values_v = weq.boundary_values_v;
+   param_c = weq.param_c;
+   param_nu = weq.param_nu;
+   param_a = weq.param_a;
+   param_q = weq.param_q;
+   right_hand_side = weq.right_hand_side;
+
+   return *this;
+}
+
+template<int dim>
 void WaveEquation<dim>::init_system() {
    DynamicSparsityPattern dsp(dof_handler->n_dofs(), dof_handler->n_dofs());
    DoFTools::make_sparsity_pattern(*dof_handler, dsp);

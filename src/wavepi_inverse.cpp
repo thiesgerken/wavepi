@@ -108,7 +108,7 @@ class QLinearizedProblem: public LinearProblem<DiscretizedFunction<dim>, Discret
          this->u = std::make_shared<DiscretizedFunction<dim>>(u);
 
          this->rhs_adj = std::make_shared<L2RightHandSide<dim>>(this->u);
-         this->rhs = std::make_shared<L2ProductRightHandSide<dim>>(this->u.get(), this->u.get());
+         this->rhs = std::make_shared<L2ProductRightHandSide<dim>>(this->u, this->u);
 
          this->weq.set_initial_values_u(this->weq.zero);
          this->weq.set_initial_values_v(this->weq.zero);
@@ -124,7 +124,7 @@ class QLinearizedProblem: public LinearProblem<DiscretizedFunction<dim>, Discret
       }
 
       virtual DiscretizedFunction<dim> forward(DiscretizedFunction<dim>& h) {
-         rhs->set_func1(&h);
+         rhs->set_func1(std::make_shared<DiscretizedFunction<dim>>(h));
 
          weq.set_times(times);
          weq.set_right_hand_side(rhs);

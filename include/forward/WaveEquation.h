@@ -60,6 +60,8 @@ class WaveEquation {
       WaveEquation(const WaveEquation<dim>& weq);
       ~WaveEquation();
 
+      WaveEquation<dim>& operator=(const WaveEquation<dim>& weq);
+
       DiscretizedFunction<dim> run();
 
       std::shared_ptr<Function<dim>> zero = std::make_shared<ZeroFunction<dim>>(1);
