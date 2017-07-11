@@ -41,6 +41,6 @@
 
 ## Documentation and Tests
 
-- [ ] solution for discretized parameters+rhs the same as when passing those as functions (have to obfuscate that they are DiscretizedFunctions) all params (q and nu as well, make their influences higher, variations of q and a as well (to check all possibilities)
+- [x] solution for discretized parameters+rhs the same as when passing those as functions (have to obfuscate that they are DiscretizedFunctions) all params (q and nu as well, make their influences higher, variations of q and a as well (to check all possibilities)
 - [ ] test of adjointness
 - [ ] Class documentation
