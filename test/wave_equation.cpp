@@ -27,6 +27,16 @@ public:
 };
 
 template<int dim>
+class TestG: public Function<dim> {
+public:
+	double value(const Point<dim> &p, const unsigned int component = 0) const {
+		Assert(component == 0, ExcIndexRange(component, 0, 1));
+
+		return p.norm() * this->get_time();
+	}
+};
+
+template<int dim>
 double rho(const Point<dim> &p, double t) {
 	return p.norm() + t + 1.0;
 }
@@ -274,32 +284,164 @@ void run_discretized_test(int fe_order, int quad_order, int refines) {
 			<< std::endl;
 	EXPECT_LT(err_disguised_vs_disc, 1e-7);
 }
+
+// checks, whether the matrix assembly of discretized parameters works correct
+// (by supplying DiscretizedFunctions and DiscretizedFunctionDisguises)
+template<int dim>
+void run_l2adjoint_test(int fe_order, int quad_order, int refines) {
+	std::ofstream logout("wavepi_test.log");
+	deallog.attach(logout);
+	deallog.depth_console(0);
+	deallog.depth_file(100);
+	deallog.precision(3);
+	deallog.pop();
+
+	Triangulation<dim> triangulation;
+	GridGenerator::hyper_cube(triangulation, -1, 1);
+	triangulation.refine_global(refines);
+
+	FE_Q<dim> fe(fe_order);
+	Quadrature<dim> quad = QGauss<dim>(quad_order); // exact in poly degree 2n-1 (needed: fe_dim^3)
+
+	DoFHandler<dim> dof_handler;
+	dof_handler.initialize(triangulation, fe);
+
+	double t_start = 0.0, t_end = 2.0, dt = 1.0 / 64.0;
+	std::vector<double> times;
+
+	for (size_t i = 0; t_start + i * dt <= t_end; i++)
+		times.push_back(t_start + i * dt);
+
+	std::vector<double> times_reversed(times);
+	std::reverse(times_reversed.begin(), times_reversed.end());
+
+	deallog << std::endl << "Number of active cells: "
+			<< triangulation.n_active_cells() << std::endl;
+	deallog << "Number of degrees of freedom: " << dof_handler.n_dofs()
+			<< std::endl;
+	deallog << "Number of time steps: " << times.size() << std::endl
+			<< std::endl;
+
+	WaveEquation<dim> wave_eq(&dof_handler, times, quad);
+
+	/* continuous */
+
+	wave_eq.set_param_a(std::make_shared<TestA<dim>>());
+	wave_eq.set_param_c(std::make_shared<TestC<dim>>());
+	wave_eq.set_param_q(std::make_shared<TestQ<dim>>());
+	wave_eq.set_param_nu(std::make_shared<TestNu<dim>>());
+
+	TestF<dim> f_cont;
+	auto f = std::make_shared<DiscretizedFunction<dim>>(f_cont, times,
+			&dof_handler);
+
+	wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(f));
+	wave_eq.set_times(times);
+	DiscretizedFunction<dim> sol_f = wave_eq.run();
+	EXPECT_GT(sol_f.norm(), 0.0);
+
+	wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(f));
+	wave_eq.set_times(times_reversed);
+	DiscretizedFunction<dim> adj_f = wave_eq.run();
+	adj_f.reverse();
+	EXPECT_GT(adj_f.norm(), 0.0);
+
+	TestG<dim> g_cont;
+	auto g = std::make_shared<DiscretizedFunction<dim>>(g_cont, times,
+			&dof_handler);
+
+	wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(g));
+	wave_eq.set_times(times);
+	DiscretizedFunction<dim> sol_g = wave_eq.run();
+	EXPECT_GT(sol_g.norm(), 0.0);
+
+	wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(g));
+	wave_eq.set_times(times_reversed);
+	DiscretizedFunction<dim> adj_g = wave_eq.run();
+	adj_g.reverse();
+	EXPECT_GT(adj_g.norm(), 0.0);
+
+
+	double dot_solf_f = sol_f * (*f);
+	double dot_f_adjf = (*f) * adj_f;
+
+	deallog << std::scientific << "(Lf, f) = " << dot_solf_f << ", (f, L*f) = "
+			<< dot_f_adjf << ", rel. error = "
+			<< std::abs(dot_solf_f - dot_f_adjf) / std::abs(dot_solf_f) << std::endl;
+
+	double dot_solg_g = sol_g * (*g);
+	double dot_g_adjg = (*g) * adj_g;
+
+	deallog << std::scientific << "(Lg, g) = " << dot_solg_g << ", (g, L*g) = "
+			<< dot_g_adjg << ", rel. error = "
+			<< std::abs(dot_solg_g - dot_g_adjg) / std::abs(dot_solg_g) << std::endl;
+
+	double dot_solg_f = sol_g * (*f);
+	double dot_g_adjf = (*g) * adj_f;
+
+	deallog << std::scientific << "(Lg, f) = " << dot_solg_f << ", (g, L*f) = "
+			<< dot_g_adjf << ", rel. error = "
+			<< std::abs(dot_solg_f - dot_g_adjf) / std::abs(dot_solg_f) << std::endl;
+
+
+	double dot_solf_g = sol_f * (*g);
+	double dot_f_adjg = (*f) * adj_g;
+
+	deallog << std::scientific << "(Lf, g) = " << dot_solf_g << ", (f, L*g) = "
+			<< dot_f_adjg << ", rel. error = "
+			<< std::abs(dot_solf_g - dot_f_adjg) / std::abs(dot_solf_g) << std::endl << std::endl;
+}
+
 }
 
 TEST(WaveEquationTest, DiscretizedParameters1DFE1) {
 	run_discretized_test<1>(1, 3, 8);
 }
 
-TEST(WaveEquationTest, DiscretizedParameters2DFE1) {
-	run_discretized_test<2>(1, 3, 4);
-}
-
-TEST(WaveEquationTest, DiscretizedParameters3DFE1) {
-	run_discretized_test<3>(1, 3, 2);
-}
-
 TEST(WaveEquationTest, DiscretizedParameters1DFE2) {
 	run_discretized_test<1>(2, 4, 8);
+}
+
+TEST(WaveEquationTest, DiscretizedParameters2DFE1) {
+	run_discretized_test<2>(1, 3, 4);
 }
 
 TEST(WaveEquationTest, DiscretizedParameters2DFE2) {
 	run_discretized_test<2>(2, 4, 4);
 }
 
+TEST(WaveEquationTest, DiscretizedParameters3DFE1) {
+	run_discretized_test<3>(1, 3, 2);
+}
+
 TEST(WaveEquationTest, DiscretizedParameters3DFE2) {
 	run_discretized_test<3>(2, 4, 1);
 }
 
-TEST(WaveEquationTest, L2Adjointness) {
-	EXPECT_EQ(0, 0); // TODO
+TEST(WaveEquationTest, L2Adjointness1DFE1) {
+	run_l2adjoint_test<1>(1, 3, 8);
+	run_l2adjoint_test<1>(1, 3, 10);
+}
+
+TEST(WaveEquationTest, L2Adjointness1DFE2) {
+	run_l2adjoint_test<1>(2, 4, 8);
+	run_l2adjoint_test<1>(1, 3, 10);
+}
+
+TEST(WaveEquationTest, L2Adjointness2DFE1) {
+	run_l2adjoint_test<2>(1, 3, 4);
+	run_l2adjoint_test<2>(1, 3, 6);
+}
+
+TEST(WaveEquationTest, L2Adjointness2DFE2) {
+	run_l2adjoint_test<2>(2, 4, 4);
+	run_l2adjoint_test<2>(2, 4, 6);
+}
+
+TEST(WaveEquationTest, L2Adjointness3DFE1) {
+	run_l2adjoint_test<3>(1, 3, 2);
+}
+
+TEST(WaveEquationTest, L2Adjointness3DFE2) {
+	run_l2adjoint_test<3>(2, 4, 2);
 }

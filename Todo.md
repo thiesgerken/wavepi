@@ -16,8 +16,10 @@
 - [ ] Measurements
 - [ ] multiple RHS 
 - [ ] inverse problem functions (forward, adjoint) should expect pointers (they have to save `DiscretizedFunction`s)
-- [ ] norms are not really l2 norms (only for uniform grids, but I guess this does not depend on the FE-degree?)
+- [ ] **norms are not really l2 norms** (not even for uniform grids (lumped mass), should increase quality of adjointness -> test)
 - [ ] watch dog for linear methods
+- [ ] `DiscretizedFunction`: scalar product 
+- [ ] **`DiscretizedFunction`: settings for what `norm()` returns (also what kind of scalar product, if any)**
 
 ## Direct Solver
 
@@ -31,16 +33,17 @@
 - [x] Adjoint: use $`L^2`$ (almost self-adjoint, integrate backward in time) 
 - [x] after that REGINN (+ LinearRegularization + some possibilities for that (CG, LW) ) 
 - [ ] add Shrinkage step to Landweber
-- [ ] make REGINN-CG work (CG has a problem)
+- [ ] **give `progress(..)` the discrepancy and norms** (calculating them could be time-consuming)
+- [ ] **make REGINN-CG work** (CG has a problem, might be due to wrong norm? have to use mass matrix!)
 - [ ] REGINN tolerance choice (-> class)
 - [ ] gradient method instead of conjugate gradients (maybe more robust?)
-- [ ] check adjointness? (for P2-elements it seems to work, why?)
 - [ ] maybe look at cg-directions visually to figure out where it goes wrong (boundary?)
 - [ ] linear Tikhonov (using "Tikhonov-CG"?)
 - [ ] Adjoints for a, nu and q (base problem class for linearizations? `LinearizedWaveProblem`)
 
 ## Documentation and Tests
 
-- [x] solution for discretized parameters+rhs the same as when passing those as functions (have to obfuscate that they are DiscretizedFunctions) all params (q and nu as well, make their influences higher, variations of q and a as well (to check all possibilities)
-- [ ] test of adjointness
+- [x] solution for discretized parameters+rhs the same as when passing those as functions
+- [x] test of adjointness
+- [ ] test with reference solution
 - [ ] Class documentation
