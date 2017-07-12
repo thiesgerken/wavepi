@@ -1,10 +1,21 @@
 stages:
   - build
+  - test
 
-build_test:
+build:
   stage: build
   script:
     - mkdir -p build
     - cd build
     - cmake ..
     - make
+
+test:
+  stage: test
+  script:
+    - mkdir -p build
+    - cd build
+    - cmake ..
+    - make
+    - ./wavepi_test
+  when: manual
