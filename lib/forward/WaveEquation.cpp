@@ -334,11 +334,11 @@ DiscretizedFunction<dim> WaveEquation<dim>::run(bool backwards) {
       setup_timer.stop();
 
       // solve for $u^{n+1}$
-      assemble_u(time - last_time);
+      assemble_u(std::abs(time - last_time));
       solve_u();
 
       // solve for $v^{n+1}$
-      assemble_v(time - last_time);
+      assemble_v(std::abs(time - last_time));
       solve_v();
 
       u.set(time_idx, solution_u, solution_v);

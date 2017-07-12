@@ -58,15 +58,13 @@ class ConjugateGradients: public LinearRegularization<Param, Sol> {
             double alpha_k = square(norm_dk / q_k.norm());
 
             estimate.add(alpha_k, p_k1);
-
             r_k.add(-1.0 * alpha_k, q_k);
-
             discrepancy = r_k.norm();
 
             this->problem->progress(estimate, r_k, data, k, exact_param);
 
             // saves one evaluation of the adjoint if we are finished
-            if (discrepancy < target_discrepancy)
+            if (discrepancy <= target_discrepancy)
                break;
 
             d_k = this->problem->adjoint(r_k);

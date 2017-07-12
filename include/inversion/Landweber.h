@@ -49,7 +49,7 @@ class Landweber: public LinearRegularization<Param, Sol> {
 
          this->problem->progress(estimate, residual, data, 0, exact_param);
 
-         for (int i = 1; discrepancy > target_discrepancy; i++) {
+         for (int k = 1; discrepancy > target_discrepancy; k++) {
             Param adj = this->problem->adjoint(residual);
 
             // $`c_{k+1} = c_k + \omega A^* (g - A c_k)`$
@@ -61,7 +61,7 @@ class Landweber: public LinearRegularization<Param, Sol> {
             residual -= data_current;
             discrepancy = residual.norm();
 
-            this->problem->progress(estimate, residual, data, i, exact_param);
+            this->problem->progress(estimate, residual, data, k, exact_param);
          }
 
          return estimate;

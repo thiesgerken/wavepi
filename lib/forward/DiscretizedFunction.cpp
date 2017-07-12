@@ -186,9 +186,7 @@ DiscretizedFunction<dim> DiscretizedFunction<dim>::noise(const DiscretizedFuncti
 
 template<int dim>
 DiscretizedFunction<dim>& DiscretizedFunction<dim>::operator/=(const double factor) {
-   this->operator *=(1.0 / factor);
-
-   return *this;
+   return this->operator *=(1.0 / factor);
 }
 
 template<int dim>

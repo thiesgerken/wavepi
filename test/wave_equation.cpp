@@ -56,6 +56,22 @@ class TestG: public Function<dim> {
       double value(const Point<dim> &p, const unsigned int component = 0) const {
          Assert(component == 0, ExcIndexRange(component, 0, 1));
 
+         Point<dim> pc = Point<dim>::unit_vector(0);
+         pc *= 0.5;
+
+         if (std::abs(this->get_time() - 1.0) < 0.5 && (p.distance(pc) < 0.5))
+               return std::sin(this->get_time() * 1 * numbers::PI);
+		 else
+		       return 0.0;
+      }
+};
+
+template<int dim>
+class TestH: public Function<dim> {
+   public:
+      double value(const Point<dim> &p, const unsigned int component = 0) const {
+         Assert(component == 0, ExcIndexRange(component, 0, 1));
+
          return p.norm() * this->get_time();
       }
 };
@@ -415,7 +431,6 @@ TEST(WaveEquationTest, L2Adjointness1DFE1) {
 
 TEST(WaveEquationTest, L2Adjointness1DFE2) {
    run_l2adjoint_test<1>(2, 4, 8);
-   run_l2adjoint_test<1>(1, 3, 10);
 }
 
 TEST(WaveEquationTest, L2Adjointness2DFE1) {
@@ -425,13 +440,12 @@ TEST(WaveEquationTest, L2Adjointness2DFE1) {
 
 TEST(WaveEquationTest, L2Adjointness2DFE2) {
    run_l2adjoint_test<2>(2, 4, 4);
-   run_l2adjoint_test<2>(2, 4, 6);
 }
 
 TEST(WaveEquationTest, L2Adjointness3DFE1) {
-   run_l2adjoint_test<3>(1, 3, 2);
+   run_l2adjoint_test<3>(1, 3, 1);
 }
 
 TEST(WaveEquationTest, L2Adjointness3DFE2) {
-   run_l2adjoint_test<3>(2, 4, 2);
+   run_l2adjoint_test<3>(2, 4, 1);
 }

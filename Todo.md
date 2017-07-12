@@ -35,6 +35,8 @@
 - [x] Adjoint: use $`L^2`$ (almost self-adjoint, integrate backward in time) 
 - [x] after that REGINN (+ LinearRegularization + some possibilities for that (CG, LW) ) 
 - [ ] add Shrinkage step to Landweber
+- [ ] ** Linear Landweber: remove initial guess and simplify **
+- [ ] ** `LinearProblem` needs allocator for zero params (for `GradientDescent` and LW)  **
 - [ ] **give `progress(..)` the discrepancy and norms** (calculating them could be time-consuming)
 - [ ] **make REGINN-CG work** (CG has a problem, might be due to wrong norm? have to use mass matrix!)
 - [ ] REGINN tolerance choice (-> class)

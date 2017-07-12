@@ -27,6 +27,7 @@
 #include <forward/WaveEquation.h>
 
 #include <inversion/ConjugateGradients.h>
+#include <inversion/GradientDescent.h>
 #include <inversion/Landweber.h>
 #include <inversion/LinearProblem.h>
 #include <inversion/NonlinearLandweber.h>
@@ -134,25 +135,21 @@ class QLinearizedProblem: public LinearProblem<DiscretizedFunction<dim>, Discret
 
       QLinearizedProblem(WaveEquation<dim> &weq, DiscretizedFunction<dim>& q, DiscretizedFunction<dim>& u)
             : weq(weq) {
-
          this->q = std::make_shared<DiscretizedFunction<dim>>(q);
          this->u = std::make_shared<DiscretizedFunction<dim>>(u);
 
-         this->rhs_adj = std::make_shared<L2RightHandSide<dim>>(this->u);
          this->rhs = std::make_shared<L2ProductRightHandSide<dim>>(this->u, this->u);
+         this->rhs_adj = std::make_shared<L2RightHandSide<dim>>(this->u);
 
          this->weq.set_initial_values_u(this->weq.zero);
          this->weq.set_initial_values_v(this->weq.zero);
          this->weq.set_boundary_values_u(this->weq.zero);
          this->weq.set_boundary_values_v(this->weq.zero);
-
          this->weq.set_param_q(this->q);
-         this->weq.set_right_hand_side(this->rhs);
       }
 
       virtual DiscretizedFunction<dim> forward(DiscretizedFunction<dim>& h) {
-         rhs->set_func1(std::make_shared<DiscretizedFunction<dim>>(h));
-
+    	  rhs->set_func1(std::make_shared<DiscretizedFunction<dim>>(h));
          weq.set_right_hand_side(rhs);
 
          DiscretizedFunction<dim> res = weq.run();
@@ -161,16 +158,19 @@ class QLinearizedProblem: public LinearProblem<DiscretizedFunction<dim>, Discret
          return res;
       }
 
-      // L2 adjoint, theoretically not correct!
+      // L2 adjoint
       virtual DiscretizedFunction<dim> adjoint(DiscretizedFunction<dim>& g) {
          rhs_adj->set_base_rhs(std::make_shared<DiscretizedFunction<dim>>(g));
-
           weq.set_right_hand_side(rhs_adj);
 
+          // L*
          DiscretizedFunction<dim> res = weq.run(true);
          res.throw_away_derivative();
+
+         // M*
          res *= -1.0;
-         res.pointwise_multiplication(*this->u.get());
+         res.pointwise_multiplication(*u);
+         // a bit awkward: res has the right nodal values, but it should be a quadratic polynomial by now.
 
          return res;
       }
@@ -365,7 +365,7 @@ void test() {
    //   lw.invert(data, 1.5 * epsilon * data_exact.norm(), &q_exact);
 
    REGINN<DiscretizedFunction<dim>, DiscretizedFunction<dim>> reginn(std::make_unique<QProblem<dim>>(wave_eq),
-         std::make_unique<ConjugateGradients<DiscretizedFunction<dim>, DiscretizedFunction<dim>>>(), initialGuess);
+         std::make_unique<GradientDescent<DiscretizedFunction<dim>, DiscretizedFunction<dim>>>(), initialGuess);
    reginn.invert(data, 2 * epsilon * data_exact.norm(), q_exact);
 
    deallog.timestamp();
