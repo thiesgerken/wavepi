@@ -8,12 +8,11 @@
 #ifndef INCLUDE_INVERSION_CONJUGATEGRADIENTS_H_
 #define INCLUDE_INVERSION_CONJUGATEGRADIENTS_H_
 
-#include <inversion/Regularization.h>
-#include <inversion/LinearRegularization.h>
-#include <inversion/LinearProblem.h>
-
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/logstream.h>
+
+#include <inversion/LinearProblem.h>
+#include <inversion/LinearRegularization.h>
 
 #include <memory>
 
@@ -36,7 +35,8 @@ class ConjugateGradients: public LinearRegularization<Param, Sol> {
       virtual ~ConjugateGradients() {
       }
 
-      virtual Param invert(const Sol& data, double target_discrepancy, std::shared_ptr<const Param> exact_param) {
+      virtual Param invert(const Sol& data, double target_discrepancy,
+            std::shared_ptr<const Param> exact_param) {
          LogStream::Prefix p = LogStream::Prefix("CG");
          Assert(this->problem, ExcInternalError());
 

@@ -8,14 +8,11 @@
 #ifndef INVERSION_REGINN_H_
 #define INVERSION_REGINN_H_
 
-#include <inversion/Regularization.h>
-#include <inversion/NewtonRegularization.h>
-#include <inversion/LinearRegularization.h>
-#include <inversion/LinearProblem.h>
-#include <inversion/NonlinearProblem.h>
-
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/logstream.h>
+
+#include <inversion/LinearRegularization.h>
+#include <inversion/NewtonRegularization.h>
 
 #include <memory>
 

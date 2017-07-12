@@ -8,8 +8,8 @@
 #ifndef INVERSION_LINEARREGULARIZATION_H_
 #define INVERSION_LINEARREGULARIZATION_H_
 
-#include <inversion/Regularization.h>
 #include <inversion/LinearProblem.h>
+#include <inversion/Regularization.h>
 
 #include <memory>
 

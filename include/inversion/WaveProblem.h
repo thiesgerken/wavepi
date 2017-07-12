@@ -8,11 +8,10 @@
 #ifndef INVERSION_WAVEPROBLEM_H_
 #define INVERSION_WAVEPROBLEM_H_
 
-#include <inversion/NonlinearProblem.h>
-#include <inversion/LinearProblem.h>
-
-#include <forward/WaveEquation.h>
 #include <forward/DiscretizedFunction.h>
+#include <forward/WaveEquation.h>
+
+#include <inversion/NonlinearProblem.h>
 
 #include <memory>
 

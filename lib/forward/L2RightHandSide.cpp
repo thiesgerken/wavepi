@@ -5,11 +5,15 @@
  *      Author: thies
  */
 
-#include <deal.II/base/quadrature.h>
-#include <deal.II/dofs/dof_handler.h>
-#include <deal.II/lac/vector.h>
+#include <deal.II/base/exceptions.h>
+#include <deal.II/base/work_stream.h>
+#include <deal.II/fe/fe_update_flags.h>
+#include <deal.II/numerics/vector_tools.h>
 
+#include <forward/DiscretizedFunction.h>
 #include <forward/L2RightHandSide.h>
+
+#include <functional>
 
 namespace wavepi {
 namespace forward {

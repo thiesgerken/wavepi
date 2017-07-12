@@ -1,14 +1,45 @@
-#include <iostream>
-#include <memory>
+/*
+ * wavepi_inverse.cpp
+ *
+ *  Created on: 01.07.2017
+ *      Author: thies
+ */
 
-#include <forward/WaveEquation.h>
+#include <bits/exception.h>
+
+#include <deal.II/base/exceptions.h>
+#include <deal.II/base/function.h>
+#include <deal.II/base/logstream.h>
+#include <deal.II/base/numbers.h>
+#include <deal.II/base/point.h>
+#include <deal.II/base/quadrature.h>
+#include <deal.II/base/quadrature_lib.h>
+#include <deal.II/dofs/dof_handler.h>
+#include <deal.II/fe/fe_q.h>
+#include <deal.II/grid/grid_generator.h>
+#include <deal.II/grid/tria.h>
+
+#include <forward/ConstantMesh.h>
+#include <forward/DiscretizedFunction.h>
 #include <forward/L2ProductRightHandSide.h>
-#include <forward/DivRightHandSide.h>
-#include <inversion/NonlinearLandweber.h>
-#include <inversion/WaveProblem.h>
-#include <inversion/REGINN.h>
+#include <forward/L2RightHandSide.h>
+#include <forward/SpaceTimeMesh.h>
+#include <forward/WaveEquation.h>
+
 #include <inversion/ConjugateGradients.h>
 #include <inversion/Landweber.h>
+#include <inversion/LinearProblem.h>
+#include <inversion/NonlinearLandweber.h>
+#include <inversion/REGINN.h>
+#include <inversion/WaveProblem.h>
+
+#include <stddef.h>
+#include <algorithm>
+#include <cmath>
+#include <fstream>
+#include <iostream>
+#include <memory>
+#include <vector>
 
 using namespace dealii;
 using namespace wavepi::forward;
@@ -117,16 +148,11 @@ class QLinearizedProblem: public LinearProblem<DiscretizedFunction<dim>, Discret
 
          this->weq.set_param_q(this->q);
          this->weq.set_right_hand_side(this->rhs);
-
-         times = this->weq.get_times();
-         times_reversed = this->weq.get_times();
-         std::reverse(times_reversed.begin(), times_reversed.end());
       }
 
       virtual DiscretizedFunction<dim> forward(DiscretizedFunction<dim>& h) {
          rhs->set_func1(std::make_shared<DiscretizedFunction<dim>>(h));
 
-         weq.set_times(times);
          weq.set_right_hand_side(rhs);
 
          DiscretizedFunction<dim> res = weq.run();
@@ -139,12 +165,10 @@ class QLinearizedProblem: public LinearProblem<DiscretizedFunction<dim>, Discret
       virtual DiscretizedFunction<dim> adjoint(DiscretizedFunction<dim>& g) {
          rhs_adj->set_base_rhs(std::make_shared<DiscretizedFunction<dim>>(g));
 
-         weq.set_times(times_reversed);
-         weq.set_right_hand_side(rhs_adj);
+          weq.set_right_hand_side(rhs_adj);
 
-         DiscretizedFunction<dim> res = weq.run();
+         DiscretizedFunction<dim> res = weq.run(true);
          res.throw_away_derivative();
-         res.reverse();
          res *= -1.0;
          res.pointwise_multiplication(*this->u.get());
 
@@ -167,9 +191,6 @@ class QLinearizedProblem: public LinearProblem<DiscretizedFunction<dim>, Discret
 
       std::shared_ptr<L2ProductRightHandSide<dim>> rhs;
       std::shared_ptr<L2RightHandSide<dim>> rhs_adj;
-
-      std::vector<double> times;
-      std::vector<double> times_reversed;
 };
 
 template<int dim>
@@ -295,18 +316,18 @@ void test() {
    // QGauss<dim>(n) is exact in polynomials of degree <= 2n-1 (needed: fe_order*3)
    // -> fe_order*3 <= 2n-1  ==>  n >= (fe_order*3+1)/2
    const int fe_order = 1;
-   const int quad_order = std::ceil((fe_order * 3 + 1.0) / 2.0);
+   const int quad_order = std::max((int) std::ceil((fe_order * 3 + 1.0) / 2.0), 3);
    FE_Q<dim> fe(fe_order);
    Quadrature<dim> quad = QGauss<dim>(quad_order);
 
-   DoFHandler<dim> dof_handler;
-   dof_handler.initialize(triangulation, fe);
+   auto dof_handler = std::make_shared<DoFHandler<dim>>();
+      dof_handler->initialize(triangulation, fe);
 
    deallog << "fe_order = " << fe_order << std::endl;
    deallog << "quad_order = " << quad_order << std::endl;
 
    deallog << "Number of active cells: " << triangulation.n_active_cells() << std::endl;
-   deallog << "Number of degrees of freedom: " << dof_handler.n_dofs() << std::endl;
+   deallog << "Number of degrees of freedom: " << dof_handler->n_dofs() << std::endl;
 
    double t_start = 0.0, t_end = 2.0, dt = 1.0 / 32.0;
    std::vector<double> times;
@@ -314,14 +335,15 @@ void test() {
    for (size_t i = 0; t_start + i * dt <= t_end; i++)
       times.push_back(t_start + i * dt);
 
-   WaveEquation<dim> wave_eq(&dof_handler, times, quad);
+   std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, dof_handler, quad);
+    WaveEquation<dim> wave_eq(mesh, dof_handler, quad);
 
    wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(std::make_shared<TestF<dim>>()));
    wave_eq.set_param_a(std::make_shared<TestA<dim>>());
    wave_eq.set_param_c(std::make_shared<TestC<dim>>());
 
    TestQ<dim> q;
-   auto q_exact = std::make_shared<DiscretizedFunction<dim>>(q, times, &dof_handler);
+   auto q_exact = std::make_shared<DiscretizedFunction<dim>>(mesh, dof_handler, q);
    wave_eq.set_param_q(q_exact);
 
    deallog.push("generate_data");
@@ -337,7 +359,7 @@ void test() {
    deallog.pop();
 
    // currently using same grids for parameters and solution
-   DiscretizedFunction<dim> initialGuess(times, &dof_handler);
+   DiscretizedFunction<dim> initialGuess(mesh, dof_handler);
 
    //   NonlinearLandweber<DiscretizedFunction<dim>, DiscretizedFunction<dim>> lw(std::make_unique<QProblem<dim>>(wave_eq), initialGuess, 5e1);
    //   lw.invert(data, 1.5 * epsilon * data_exact.norm(), &q_exact);

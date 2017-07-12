@@ -8,11 +8,13 @@
 #ifndef INVERSION_LANDWEBER_H_
 #define INVERSION_LANDWEBER_H_
 
-#include <inversion/Regularization.h>
-#include <inversion/LinearRegularization.h>
-#include <inversion/LinearProblem.h>
-
+#include <deal.II/base/exceptions.h>
 #include <deal.II/base/logstream.h>
+
+#include <inversion/LinearProblem.h>
+#include <inversion/LinearRegularization.h>
+
+#include <memory>
 
 namespace wavepi {
 namespace inversion {

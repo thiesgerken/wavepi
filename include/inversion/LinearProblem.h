@@ -8,7 +8,7 @@
 #ifndef INVERSION_LINEARPROBLEM_H_
 #define INVERSION_LINEARPROBLEM_H_
 
-#include "inversion/InverseProblem.h"
+#include <inversion/InverseProblem.h>
 
 namespace wavepi {
 namespace inversion {

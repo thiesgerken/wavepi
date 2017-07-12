@@ -8,17 +8,20 @@
 #ifndef FORWARD_DISCRETIZEDFUNCTION_H_
 #define FORWARD_DISCRETIZEDFUNCTION_H_
 
+#include <deal.II/base/exceptions.h>
 #include <deal.II/base/function.h>
+#include <deal.II/base/point.h>
 #include <deal.II/base/tensor.h>
-#include <deal.II/base/logstream.h>
-#include <deal.II/base/utilities.h>
+#include <deal.II/dofs/dof_handler.h>
 #include <deal.II/lac/vector.h>
-#include <deal.II/numerics/data_out.h>
-#include <deal.II/numerics/vector_tools.h>
 
-#include <utility>
-#include <fstream>
-#include <iostream>
+
+#include <stddef.h>
+#include <memory>
+#include <string>
+#include <vector>
+
+#include <forward/SpaceTimeMesh.h>
 
 namespace wavepi {
 namespace forward {
@@ -26,112 +29,118 @@ using namespace dealii;
 
 template<int dim>
 class DiscretizedFunction: public Function<dim> {
-public:
-	DiscretizedFunction(bool store_derivative, int capacity);
-	DiscretizedFunction(bool store_derivative);
-	DiscretizedFunction();
-	DiscretizedFunction(const DiscretizedFunction& that);
-	DiscretizedFunction(const DiscretizedFunction&& that);
-	DiscretizedFunction(Function<dim>& function,
-			const std::vector<double>& times,
-			const std::vector<DoFHandler<dim>*>& handlers);
-	DiscretizedFunction(Function<dim>& function,
-			const std::vector<double>& times, DoFHandler<dim>* handler);
-	DiscretizedFunction(const std::vector<double>& times,
-			DoFHandler<dim>* handler);
+   public:
+      enum Norm {
+         L2L2_Vector, L2L2_Mass
+      };
 
-	DiscretizedFunction<dim>& operator=(DiscretizedFunction<dim> && V);
+      virtual ~DiscretizedFunction();
 
-	// works only for x = 0
-	DiscretizedFunction<dim>& operator=(double x);
+      DiscretizedFunction(const DiscretizedFunction& that);
+      DiscretizedFunction(DiscretizedFunction&& that);
 
-	DiscretizedFunction<dim>& operator+=(const DiscretizedFunction<dim>& V);
-	DiscretizedFunction<dim>& operator-=(const DiscretizedFunction<dim>& V);
+      DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>> mesh,
+            std::shared_ptr<DoFHandler<dim>> dof_handler, bool store_derivative);
+      DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>> mesh,
+            std::shared_ptr<DoFHandler<dim>> dof_handler);
+      DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>> mesh,
+            std::shared_ptr<DoFHandler<dim>> dof_handler, Function<dim>& function);
 
-	DiscretizedFunction<dim>& operator*=(const double factor);
-	DiscretizedFunction<dim>& operator/=(const double factor);
+      void set(size_t i, const Vector<double>& u, const Vector<double>& v);
+      void set(size_t i, const Vector<double>& u);
 
-	void add(const double a, const DiscretizedFunction<dim>& V);
+      DiscretizedFunction<dim>& operator=(DiscretizedFunction<dim> && V);
 
-	// scale by s and add a*V
-	void sadd(const double s, const double a,
-			const DiscretizedFunction<dim>& V);
+      // works only for x = 0
+      DiscretizedFunction<dim>& operator=(double x);
 
-	void pointwise_multiplication(const DiscretizedFunction<dim>& V);
+      DiscretizedFunction<dim>& operator+=(const DiscretizedFunction<dim>& V);
+      DiscretizedFunction<dim>& operator-=(const DiscretizedFunction<dim>& V);
 
-	// vector l2 norm and dot product in time and space
-	double l2_norm() const;
-	double l2_dot(const DiscretizedFunction<dim> & V) const;
+      DiscretizedFunction<dim>& operator*=(const double factor);
+      DiscretizedFunction<dim>& operator/=(const double factor);
 
-	// currently the same as l2_norm
-	double norm() const;
+      void add(const double a, const DiscretizedFunction<dim>& V);
 
-	// currently the same as l2_dot
-	double operator*(const DiscretizedFunction<dim> & V) const;
+      // scale by s and add a*V
+      void sadd(const double s, const double a, const DiscretizedFunction<dim>& V);
 
-	// fill this function with random values
-	void rand();
+      void pointwise_multiplication(const DiscretizedFunction<dim>& V);
 
-	static DiscretizedFunction<dim> noise(const DiscretizedFunction<dim>& like,
-			double norm);
+      // vector l2 norm and dot product in time and space
+      // fast, but only a crude approximation (even in case of uniform grids and P1-elements)
+      double l2l2_vec_norm() const;
+      double l2l2_vec_dot(const DiscretizedFunction<dim> & V) const;
 
-	// some functions complain if one operand has a derivative and the other doesn't
-	// also you might want to conserve memory
-	void throw_away_derivative();
+      // l2 norm and dot product in time and space
+      // through trapezoidal rule in time, mass matrix in space
+      double l2l2_mass_norm() const;
+      double l2l2_mass_dot(const DiscretizedFunction<dim> & V) const;
 
-	void push_back(DoFHandler<dim>* dof_handler, double time,
-			const Vector<double>& function_coeff);
-	void push_back(DoFHandler<dim>* dof_handler, double time,
-			const Vector<double>& function_coeff,
-			const Vector<double>& deriv_coeff);
-	void push_back(DoFHandler<dim>* dof_handler, double time,
-			Function<dim>& function);
+      // depending on the norm setting
+      double norm() const;
 
-	void write_pvd(std::string path, std::string name,
-			std::string name_deriv) const;
-	void write_pvd(std::string path, std::string name) const;
+      // depending on the norm setting
+      double operator*(const DiscretizedFunction<dim> & V) const;
+      double dot(const DiscretizedFunction<dim> & V) const;
 
-	virtual ~DiscretizedFunction();
+      // fill this function with random values
+      void rand();
 
-	void reverse();
+      static DiscretizedFunction<dim> noise(const DiscretizedFunction<dim>& like, double norm);
 
-	size_t find_time(double time) const;
-	size_t find_nearest_time(double time) const;
+      // some functions complain if one operand has a derivative and the other doesn't
+      // also you might want to conserve memory
+      void throw_away_derivative();
 
-	void at(double time, const Vector<double>* &coeffs,
-			const Vector<double>* &deriv_coeffs,
-			DoFHandler<dim>* &handler) const;
-	void at(double time, const Vector<double>* &coeffs,
-			DoFHandler<dim>* &handler) const;
-	void at(double time, const Vector<double>* &coeffs) const;
+      void write_pvd(std::string path, std::string name, std::string name_deriv) const;
+      void write_pvd(std::string path, std::string name) const;
 
-	double value(const Point<dim> &p, const unsigned int component = 0) const;
-	Tensor<1, dim, double> gradient(const Point<dim> &p,
-			const unsigned int component) const;
+      double value(const Point<dim> &p, const unsigned int component = 0) const;
+      Tensor<1, dim, double> gradient(const Point<dim> &p, const unsigned int component) const;
 
-	double get_time_index() const;
-	void set_time(const double new_time);
+      double get_time_index() const;
+      void set_time(const double new_time);
 
-	const std::vector<Vector<double> >& get_derivative_coefficients() const;
-	const std::vector<DoFHandler<dim> *>& get_dof_handlers() const;
-	const std::vector<Vector<double> >& get_function_coefficients() const;
-	const std::vector<double>& get_times() const;
+      inline const std::vector<Vector<double> >& get_derivative_coefficients() const {
+         Assert(!store_derivative, ExcInvalidState());
 
-	bool has_derivative() const;
-private:
-	bool store_derivative = false;
-	size_t cur_time_idx = 0;
+         return derivative_coefficients;
+      }
 
-	void write_vtk(const std::string name, const std::string name_deriv,
-			const std::string filename, size_t i) const;
+      inline const std::vector<Vector<double> >& get_function_coefficients() const {
+         return function_coefficients;
+      }
 
-	size_t find_time(double time, size_t low, size_t up, bool increasing) const;
-	bool near_enough(double time, size_t idx) const;
+      inline std::shared_ptr<DoFHandler<dim>> get_dof_handler() const {
+         return dof_handler;
+      }
 
-	std::vector<double> times;
-	std::vector<DoFHandler<dim>*> dof_handlers;
-	std::vector<Vector<double>> function_coefficients;
-	std::vector<Vector<double>> derivative_coefficients;
+      inline bool has_derivative() const {
+         return store_derivative;
+      }
+
+      // get / set what `norm()` and `*` do.
+      Norm get_norm() const;
+      void set_norm(Norm norm);
+
+      std::shared_ptr<SpaceTimeMesh<dim> > get_mesh() const;
+
+   private:
+      Norm norm_type = L2L2_Mass;
+
+      bool store_derivative = false;
+      size_t cur_time_idx = 0;
+
+      std::shared_ptr<SpaceTimeMesh<dim>> mesh;
+      std::shared_ptr<DoFHandler<dim>> dof_handler;
+
+      std::vector<Vector<double>> function_coefficients;
+      std::vector<Vector<double>> derivative_coefficients;
+
+      void write_vtk(const std::string name, const std::string name_deriv, const std::string filename,
+            size_t i) const;
+
 };
 } /* namespace forward */
 } /* namespace wavepi */

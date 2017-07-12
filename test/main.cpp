@@ -1,10 +1,13 @@
+/*
+ * main.cpp
+ *
+ *  Created on: 11.07.2017
+ *      Author: thies
+ */
+
 #include "gtest/gtest.h"
 
-//int PullInWaveEquation();
-
 int main(int argc, char **argv) {
-//   PullInWaveEquation();
-
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+   ::testing::InitGoogleTest(&argc, argv);
+   return RUN_ALL_TESTS();
 }

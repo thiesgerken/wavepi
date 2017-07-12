@@ -8,9 +8,6 @@
 #ifndef INVERSION_REGULARIZATION_H_
 #define INVERSION_REGULARIZATION_H_
 
-#include <inversion/InverseProblem.h>
-
-#include <iostream>
 #include <memory>
 
 namespace wavepi {

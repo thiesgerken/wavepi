@@ -5,7 +5,18 @@
  *      Author: thies
  */
 
-#include "forward/MatrixCreator.h"
+#include <deal.II/base/exceptions.h>
+#include <deal.II/base/types.h>
+#include <deal.II/base/work_stream.h>
+#include <deal.II/fe/fe.h>
+#include <deal.II/fe/fe_update_flags.h>
+#include <deal.II/fe/fe_values.h>
+#include <deal.II/lac/full_matrix.h>
+
+#include <forward/MatrixCreator.h>
+
+#include <functional>
+#include <vector>
 
 namespace wavepi {
 namespace forward {

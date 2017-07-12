@@ -8,9 +8,8 @@
 #ifndef INVERSION_NEWTONREGULARIZATION_H_
 #define INVERSION_NEWTONREGULARIZATION_H_
 
-#include <inversion/Regularization.h>
-#include <inversion/LinearProblem.h>
 #include <inversion/NonlinearProblem.h>
+#include <inversion/Regularization.h>
 
 #include <memory>
 

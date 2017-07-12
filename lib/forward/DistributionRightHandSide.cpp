@@ -5,7 +5,17 @@
  *      Author: thies
  */
 
+#include <deal.II/base/exceptions.h>
+#include <deal.II/base/types.h>
+#include <deal.II/base/work_stream.h>
+#include <deal.II/fe/fe.h>
+#include <deal.II/fe/fe_update_flags.h>
+#include <deal.II/fe/fe_values.h>
+
+#include <forward/DiscretizedFunction.h>
 #include <forward/DistributionRightHandSide.h>
+
+#include <vector>
 
 namespace wavepi {
 namespace forward {

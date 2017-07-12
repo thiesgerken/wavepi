@@ -5,7 +5,9 @@
  *      Author: thies
  */
 
+#include <deal.II/base/logstream.h>
 #include <inversion/WaveProblem.h>
+#include <iostream>
 
 namespace wavepi {
 namespace inversion {

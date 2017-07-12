@@ -1,6 +1,37 @@
-#include <iostream>
+/*
+ * wavepi_direct.cpp
+ *
+ *  Created on: 01.07.2017
+ *      Author: thies
+ */
 
+#include <bits/exception.h>
+
+#include <deal.II/base/exceptions.h>
+#include <deal.II/base/function.h>
+#include <deal.II/base/logstream.h>
+#include <deal.II/base/numbers.h>
+#include <deal.II/base/point.h>
+#include <deal.II/base/quadrature.h>
+#include <deal.II/base/quadrature_lib.h>
+#include <deal.II/base/timer.h>
+#include <deal.II/dofs/dof_handler.h>
+#include <deal.II/fe/fe_q.h>
+#include <deal.II/grid/grid_generator.h>
+#include <deal.II/grid/tria.h>
+
+#include <forward/ConstantMesh.h>
+#include <forward/DiscretizedFunction.h>
+#include <forward/L2RightHandSide.h>
+#include <forward/SpaceTimeMesh.h>
 #include <forward/WaveEquation.h>
+
+#include <stddef.h>
+#include <cmath>
+#include <fstream>
+#include <iostream>
+#include <memory>
+#include <vector>
 
 using namespace dealii;
 using namespace wavepi::forward;
@@ -108,16 +139,20 @@ void test() {
 
    // GridGenerator::cheese(triangulation, std::vector<unsigned int>( { 1, 1 }));
    GridGenerator::hyper_cube(triangulation, -5, 5);
-   triangulation.refine_global(5);
+   triangulation.refine_global(4);
 
-   FE_Q<dim> fe(1);
-   Quadrature<dim> quad = QGauss<dim>(3); // exact in poly degree 2n-1 (needed: fe_dim^3)
+   // QGauss<dim>(n) is exact in polynomials of degree <= 2n-1 (needed: fe_order*3)
+   // -> fe_order*3 <= 2n-1  ==>  n >= (fe_order*3+1)/2
+   const int fe_order = 1;
+   const int quad_order = std::ceil((fe_order * 3 + 1.0) / 2.0);
+   FE_Q<dim> fe(fe_order);
+   Quadrature<dim> quad = QGauss<dim>(quad_order);
 
-   DoFHandler<dim> dof_handler;
-   dof_handler.initialize(triangulation, fe);
+   auto dof_handler = std::make_shared<DoFHandler<dim>>();
+   dof_handler->initialize(triangulation, fe);
 
    deallog << "Number of active cells: " << triangulation.n_active_cells() << std::endl;
-   deallog << "Number of degrees of freedom: " << dof_handler.n_dofs() << std::endl;
+   deallog << "Number of degrees of freedom: " << dof_handler->n_dofs() << std::endl;
 
    double t_start = 0.0, t_end = 6.0, dt = 1.0 / 64.0;
    std::vector<double> times;
@@ -125,7 +160,8 @@ void test() {
    for (size_t i = 0; t_start + i * dt <= t_end; i++)
       times.push_back(t_start + i * dt);
 
-   WaveEquation<dim> wave_eq(&dof_handler, times, quad);
+   std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, dof_handler, quad);
+   WaveEquation<dim> wave_eq(mesh, dof_handler, quad);
 
    wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(std::make_shared<TestF<dim>>()));
    wave_eq.set_param_a(std::make_shared<TestA<dim>>());
@@ -135,7 +171,12 @@ void test() {
    timer.start();
    DiscretizedFunction<dim> sol = wave_eq.run();
    timer.stop();
-   deallog << "Continuous c, a: " << timer.wall_time() << " s of wall time" << std::endl;
+   deallog << "solving took " << timer.wall_time() << " s of wall time" << std::endl;
+
+   deallog << "L2L2-norm of solution: " << std::scientific << sol.norm() <<  std::endl;
+
+   sol.set_norm(DiscretizedFunction<dim>::L2L2_Vector);
+   deallog << "L2L2-norm of solution (lumped mass, different scaling): " << std::scientific << sol.norm() <<  std::endl;
 
    deallog.timestamp();
 }
