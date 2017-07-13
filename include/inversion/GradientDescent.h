@@ -25,17 +25,17 @@ template<typename Param, typename Sol>
 class GradientDescent: public LinearRegularization<Param, Sol> {
    public:
 
-	GradientDescent(std::shared_ptr<LinearProblem<Param, Sol>> problem)
+      GradientDescent(std::shared_ptr<LinearProblem<Param, Sol>> problem)
             : LinearRegularization<Param, Sol>(problem) {
       }
 
-	GradientDescent() {
+      GradientDescent() {
       }
 
       virtual ~GradientDescent() {
       }
 
-     virtual Param invert(const Sol& data, double target_discrepancy,
+      virtual Param invert(const Sol& data, double target_discrepancy,
             std::shared_ptr<const Param> exact_param) {
          LogStream::Prefix p = LogStream::Prefix("Gradient");
          Assert(this->problem, ExcInternalError());
@@ -44,18 +44,19 @@ class GradientDescent: public LinearRegularization<Param, Sol> {
          double discrepancy = residual.norm();
 
          // TODO
- // Param estimate = this->problem->zero_param();
+         // Param estimate = this->problem->zero_param();
          Param estimate(data);
          estimate = 0.0;
 
          this->problem->progress(estimate, residual, data, 0, exact_param);
 
          for (int k = 1; discrepancy > target_discrepancy; k++) {
-           Param step =  this->problem->adjoint(residual);
-        		   Sol Astep = this->problem->forward(step);
-        		      		   double omega = square(step.norm() / Astep.norm());
+            Param step = this->problem->adjoint(residual);
+            Sol Astep = this->problem->forward(step);
+            double omega = square(step.norm() / Astep.norm());
 
-        		      		   estimate.add(omega, step);
+            // deallog << "omega = " << omega << std::endl;
+            estimate.add(omega, step);
 
             // calculate new residual and discrepancy for next step
             residual.add(-1.0 * omega, Astep);

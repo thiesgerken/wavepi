@@ -55,7 +55,9 @@ class ConjugateGradients: public LinearRegularization<Param, Sol> {
 
          for (int k = 1; discrepancy > target_discrepancy; k++) {
             Sol q_k = this->problem->forward(p_k1);
+
             double alpha_k = square(norm_dk / q_k.norm());
+            // deallog << "alpha_k = " << alpha_k << std::endl;
 
             estimate.add(alpha_k, p_k1);
             r_k.add(-1.0 * alpha_k, q_k);
@@ -69,10 +71,14 @@ class ConjugateGradients: public LinearRegularization<Param, Sol> {
 
             d_k = this->problem->adjoint(r_k);
 
+            deallog << "norm of d_k = A* r_k = " << d_k.norm() << std::endl;
+
             double norm_dkm1 = norm_dk;
             norm_dk = d_k.norm();
 
             double beta_k = square(norm_dk / norm_dkm1);
+            // deallog << "beta_k = " << beta_k << std::endl;
+
             p_k1.sadd(beta_k, 1.0, d_k);
          }
 

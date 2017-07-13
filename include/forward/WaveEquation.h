@@ -94,7 +94,7 @@ class WaveEquation {
       }
 
    private:
-      void init_system();
+      void init_system(double initial_time);
       void setup_step(double time);
       void assemble_u(double time_step);
       void assemble_v(double time_step);

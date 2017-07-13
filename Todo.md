@@ -20,8 +20,10 @@
 - [ ] Measurements
 - [ ] multiple RHS 
 - [ ] inverse problem functions (forward, adjoint) should expect pointers (they have to save `DiscretizedFunction`s)
-- [ ] watch dog for linear methods
-- [ ] **adjointness still not good** ...
+- [ ] watch dog for linear methods (residual goes up? -> cancel, also introduce maxiter)
+- [ ] REGINN: if linear method does not converge (diverge or maximum iterations reached) increase tolerance and try again
+- [ ] **adjointness still not good** ... (not enough time steps? -> scalar product in time wrong?)
+- [ ] find a better way of treating multiple boundaries
 
 ## Direct Solver
 
@@ -37,7 +39,7 @@
 - [ ] add Shrinkage step to Landweber
 - [ ] ** Linear Landweber: remove initial guess and simplify **
 - [ ] ** `LinearProblem` needs allocator for zero params (for `GradientDescent` and LW)  **
-- [ ] **give `progress(..)` the discrepancy and norms** (calculating them could be time-consuming)
+- [ ] **give `progress(..)` the discrepancy and norms** (calculating them time-consuming -> struct `ProgressData`?)
 - [ ] **make REGINN-CG work** (CG has a problem, might be due to wrong norm? have to use mass matrix!)
 - [ ] REGINN tolerance choice (-> class)
 - [ ] gradient method instead of conjugate gradients (maybe more robust?)
@@ -49,5 +51,5 @@
 
 - [x] solution for discretized parameters+rhs the same as when passing those as functions
 - [x] test of adjointness
-- [ ] test with reference solution
+- [x] test with reference solution
 - [ ] better documentation

@@ -127,7 +127,7 @@ double TestA<dim>::value(const Point<dim> &p, const unsigned int component) cons
 
 template<int dim>
 void test() {
-   std::ofstream logout("wave_test.log");
+   std::ofstream logout("wavepi_direct.log");
    deallog.attach(logout);
    deallog.depth_console(2);
    deallog.depth_file(100);

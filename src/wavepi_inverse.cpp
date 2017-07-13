@@ -218,87 +218,9 @@ class QProblem: public WaveProblem<dim> {
       }
 };
 
-//template<int dim>
-//class ALinearizedProblem: public LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>> {
-//   public:
-//      virtual ~ALinearizedProblem() {
-//      }
-//
-//      ALinearizedProblem(WaveEquation<dim> &weq, DiscretizedFunction<dim>& a, DiscretizedFunction<dim>& u)
-//            : weq(weq), a(a), u(u), rhs(&this->u, &this->u) {
-//
-//         this->weq.set_param_a(this->a);
-//         this->weq.set_initial_values_u(this->weq.zero);
-//         this->weq.set_initial_values_v(this->weq.zero);
-//         this->weq.set_boundary_values_u(this->weq.zero);
-//         this->weq.set_boundary_values_v(this->weq.zero);
-//         this->weq.set_right_hand_side(this->rhs);
-//
-//         times = this->weq.get_times();
-//         times_reversed = this->weq.get_times();
-//         std::reverse(times_reversed.begin(), times_reversed.end());
-//      }
-//
-//      virtual DiscretizedFunction<dim> forward(DiscretizedFunction<dim>& h) {
-//         weq.set_times(times);
-//         rhs.set_func1(&h);
-//
-//         DiscretizedFunction<dim> res = weq.run();
-//         res.throw_away_derivative();
-//
-//         return res;
-//      }
-//
-//      // L2 adjoint, theoretically not correct!
-//      // TODO: is this even the L2 adjoint?
-//      virtual DiscretizedFunction<dim> adjoint(DiscretizedFunction<dim>& g) {
-//         weq.set_times(times_reversed);
-//         rhs.set_func1(&g);
-//
-//         DiscretizedFunction<dim> res = weq.run();
-//         res.throw_away_derivative();
-//         res.reverse();
-//
-//         return res;
-//      }
-//   private:
-//      WaveEquation<dim> weq;
-//      DiscretizedFunction<dim> a;
-//      DiscretizedFunction<dim> u;
-//
-//      DivRightHandSide<dim> rhs;
-//      std::vector<double> times;
-//      std::vector<double> times_reversed;
-//};
-//
-//template<int dim>
-//class AProblem: public WaveProblem<dim> {
-//   public:
-//      virtual ~AProblem() {
-//      }
-//
-//      AProblem(WaveEquation<dim>& weq)
-//            : WaveProblem<dim>(weq) {
-//      }
-//
-//      virtual std::unique_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>> derivative(
-//            DiscretizedFunction<dim>& a, DiscretizedFunction<dim>& u) {
-//         return std::make_unique<QLinearizedProblem<dim>>(this->wave_equation, a, u);
-//      }
-//
-//      virtual DiscretizedFunction<dim> forward(DiscretizedFunction<dim>& a) {
-//         this->wave_equation.set_param_a(&a);
-//
-//         DiscretizedFunction<dim> res = this->wave_equation.run();
-//         res.throw_away_derivative();
-//
-//         return res;
-//      }
-//};
-
 template<int dim>
 void test() {
-   std::ofstream logout("test_inverse.log");
+   std::ofstream logout("wavepi_inverse.log");
    deallog.attach(logout);
    deallog.depth_console(2);
    deallog.depth_file(100);
@@ -311,7 +233,7 @@ void test() {
 
    // GridGenerator::cheese(triangulation, std::vector<unsigned int>( { 1, 1 }));
    GridGenerator::hyper_cube(triangulation, -5, 5);
-   triangulation.refine_global(4);
+   triangulation.refine_global(5);
 
    // QGauss<dim>(n) is exact in polynomials of degree <= 2n-1 (needed: fe_order*3)
    // -> fe_order*3 <= 2n-1  ==>  n >= (fe_order*3+1)/2
@@ -329,7 +251,7 @@ void test() {
    deallog << "Number of active cells: " << triangulation.n_active_cells() << std::endl;
    deallog << "Number of degrees of freedom: " << dof_handler->n_dofs() << std::endl;
 
-   double t_start = 0.0, t_end = 2.0, dt = 1.0 / 32.0;
+   double t_start = 0.0, t_end = 2.0, dt = 1.0 / 64.0;
    std::vector<double> times;
 
    for (size_t i = 0; t_start + i * dt <= t_end; i++)
@@ -365,7 +287,7 @@ void test() {
    //   lw.invert(data, 1.5 * epsilon * data_exact.norm(), &q_exact);
 
    REGINN<DiscretizedFunction<dim>, DiscretizedFunction<dim>> reginn(std::make_unique<QProblem<dim>>(wave_eq),
-         std::make_unique<GradientDescent<DiscretizedFunction<dim>, DiscretizedFunction<dim>>>(), initialGuess);
+         std::make_unique<ConjugateGradients<DiscretizedFunction<dim>, DiscretizedFunction<dim>>>(), initialGuess);
    reginn.invert(data, 2 * epsilon * data_exact.norm(), q_exact);
 
    deallog.timestamp();

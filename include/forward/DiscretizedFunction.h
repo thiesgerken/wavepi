@@ -50,6 +50,7 @@ class DiscretizedFunction: public Function<dim> {
       void set(size_t i, const Vector<double>& u);
 
       DiscretizedFunction<dim>& operator=(DiscretizedFunction<dim> && V);
+      DiscretizedFunction<dim>& operator=(const DiscretizedFunction<dim> & V);
 
       // works only for x = 0
       DiscretizedFunction<dim>& operator=(double x);
@@ -59,6 +60,8 @@ class DiscretizedFunction: public Function<dim> {
 
       DiscretizedFunction<dim>& operator*=(const double factor);
       DiscretizedFunction<dim>& operator/=(const double factor);
+
+      DiscretizedFunction<dim> derivative();
 
       void add(const double a, const DiscretizedFunction<dim>& V);
 

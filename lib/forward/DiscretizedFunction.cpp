@@ -105,6 +105,29 @@ DiscretizedFunction<dim>& DiscretizedFunction<dim>::operator=(DiscretizedFunctio
 }
 
 template<int dim>
+DiscretizedFunction<dim>& DiscretizedFunction<dim>::operator=(const DiscretizedFunction<dim> & o) {
+   norm_type = o.norm_type;
+   store_derivative = o.store_derivative;
+   cur_time_idx = o.cur_time_idx;
+   mesh = o.mesh;
+   dof_handler = o.dof_handler;
+   function_coefficients = o.function_coefficients;
+   derivative_coefficients = o.derivative_coefficients;
+
+   return *this;
+}
+
+template<int dim>
+DiscretizedFunction<dim> DiscretizedFunction<dim>::derivative() {
+   Assert(store_derivative, ExcInternalError());
+
+   DiscretizedFunction<dim> result(mesh, dof_handler, false);
+   result.function_coefficients = this->derivative_coefficients;
+
+   return result;
+}
+
+template<int dim>
 void DiscretizedFunction<dim>::set(size_t i, const Vector<double>& u, const Vector<double>& v) {
    Assert(store_derivative, ExcInternalError());
    Assert(i >= 0 && i < mesh->get_times().size(), ExcIndexRange(i, 0, mesh->get_times().size()));
@@ -342,7 +365,7 @@ double DiscretizedFunction<dim>::l2l2_mass_dot(const DiscretizedFunction<dim> & 
    // uses trapezoidal rule in time and vector l2 norm in space
    // (only approx to L2(0,T, L2) inner product if spatial grid is uniform!
 
-   double result = 0;
+   double result = 0.0;
 
    for (size_t i = 0; i < mesh->get_times().size(); i++) {
       Assert(function_coefficients[i].size() == V.function_coefficients[i].size(),

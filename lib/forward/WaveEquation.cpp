@@ -75,7 +75,7 @@ WaveEquation<dim>& WaveEquation<dim>::operator=(const WaveEquation<dim>& weq) {
 }
 
 template<int dim>
-void WaveEquation<dim>::init_system() {
+void WaveEquation<dim>::init_system(double initial_time) {
    DynamicSparsityPattern dsp(dof_handler->n_dofs(), dof_handler->n_dofs());
    DoFTools::make_sparsity_pattern(*dof_handler, dsp);
    sparsity_pattern.copy_from(dsp);
@@ -103,6 +103,9 @@ void WaveEquation<dim>::init_system() {
    system_rhs.reinit(dof_handler->n_dofs());
 
    constraints.close();
+
+   initial_values_u->set_time(initial_time);
+   initial_values_v->set_time(initial_time);
 
    /* projecting might make more sense, but VectorTools::project
     leads to a mutex error (deadlock) on my laptop (Core i5 6267U) */
@@ -217,6 +220,10 @@ void WaveEquation<dim>::assemble_u(double time_step) {
    std::map<types::global_dof_index, double> boundary_values;
    VectorTools::interpolate_boundary_values(*dof_handler, 0, *boundary_values_u, boundary_values);
 
+   // kind of ugly, but hypercube has 2 boundaries in 1 dimension
+   if (dim == 1)
+      VectorTools::interpolate_boundary_values(*dof_handler, 1, *boundary_values_u, boundary_values);
+
    system_matrix.copy_from(matrix_C);
    system_matrix.add(theta * time_step, matrix_B);
    system_matrix.add(theta * theta * time_step * time_step, matrix_A);
@@ -248,6 +255,10 @@ void WaveEquation<dim>::assemble_v(double time_step) {
    std::map<types::global_dof_index, double> boundary_values;
    VectorTools::interpolate_boundary_values(*dof_handler, 0, *boundary_values_v, boundary_values);
 
+   // kind of ugly, but hypercube has 2 boundaries in 1 dimension
+   if (dim == 1)
+      VectorTools::interpolate_boundary_values(*dof_handler, 1, *boundary_values_v, boundary_values);
+
    system_matrix = 0.0;
    system_matrix.add(1.0, matrix_C);
    system_matrix.add(theta * time_step, matrix_B);
@@ -259,7 +270,7 @@ template<int dim>
 void WaveEquation<dim>::solve_u() {
    LogStream::Prefix p("solve_u");
 
-   SolverControl solver_control(1000, 1e-8 * system_rhs.l2_norm());
+   SolverControl solver_control(2000, 1e-10 * system_rhs.l2_norm());
    SolverCG<> cg(solver_control);
 
    // Fewer (~half) iterations using preconditioner, but at least in 2D this is still not worth the effort
@@ -281,7 +292,7 @@ template<int dim>
 void WaveEquation<dim>::solve_v() {
    LogStream::Prefix p("solve_v");
 
-   SolverControl solver_control(1000, 1e-8 * system_rhs.l2_norm());
+   SolverControl solver_control(2000, 1e-10 * system_rhs.l2_norm());
    SolverCG<> cg(solver_control);
 
    // See the comment in solve_u about preconditioning
@@ -307,14 +318,15 @@ DiscretizedFunction<dim> WaveEquation<dim>::run(bool backwards) {
    Timer timer, setup_timer;
    timer.start();
 
-   // initialize everything and project/interpolate initial values
-   init_system();
-
+   // this is going to be the result
    DiscretizedFunction<dim> u(mesh, dof_handler, true);
 
-   // create matrices for first time step
    int first_idx = backwards ? mesh->get_times().size() - 1 : 0;
 
+   // initialize everything and project/interpolate initial values
+   init_system(mesh->get_times()[first_idx]);
+
+   // create matrices for first time step
    setup_step(mesh->get_times()[first_idx]);
 
    // add initial values to output data
@@ -334,11 +346,11 @@ DiscretizedFunction<dim> WaveEquation<dim>::run(bool backwards) {
       setup_timer.stop();
 
       // solve for $u^{n+1}$
-      assemble_u(std::abs(time - last_time));
+      assemble_u((time - last_time));
       solve_u();
 
       // solve for $v^{n+1}$
-      assemble_v(std::abs(time - last_time));
+      assemble_v((time - last_time));
       solve_v();
 
       u.set(time_idx, solution_u, solution_v);
