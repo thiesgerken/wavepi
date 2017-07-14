@@ -38,8 +38,11 @@ class NonlinearLandweber: public NewtonRegularization<Param, Sol> {
       virtual ~NonlinearLandweber() {
       }
 
+      using Regularization<Param, Sol>::invert;
+
       virtual Param invert(const Sol& data, double target_discrepancy,
-            std::shared_ptr<const Param> exact_param) {
+            std::shared_ptr<const Param> exact_param,
+            std::shared_ptr<InversionProgress<Param, Sol>> status_out) {
          LogStream::Prefix p = LogStream::Prefix("Landweber");
          Assert(this->problem, ExcInternalError());
          deallog.push("init");
@@ -51,15 +54,19 @@ class NonlinearLandweber: public NewtonRegularization<Param, Sol> {
          residual -= data_current;
 
          double discrepancy = residual.norm();
+         double initial_discrepancy = discrepancy;
          double norm_data = data.norm();
          double norm_exact = exact_param ? exact_param->norm() : -0.0;
 
          deallog.pop();
-         this->problem->progress(
-               InversionProgress(0, estimate, estimate.norm(), residual, discrepancy, data, norm_data,
-                     exact_param, norm_exact));
+         InversionProgress<Param, Sol> status(0, estimate, estimate.norm(), residual, discrepancy, data,
+               norm_data, exact_param, norm_exact);
+         this->problem->progress(status);
 
-         for (int i = 1; discrepancy > target_discrepancy; i++) {
+         for (int i = 1;
+               discrepancy > target_discrepancy
+                     && (!this->abort_discrepancy_doubles || discrepancy < 2 * initial_discrepancy)
+                     && i <= this->max_iterations; i++) {
             std::unique_ptr<LinearProblem<Param, Sol>> lp = this->problem->derivative(estimate, data_current);
 
             Param adj = lp->adjoint(residual);
@@ -71,13 +78,21 @@ class NonlinearLandweber: public NewtonRegularization<Param, Sol> {
             residual = Sol(data);
             data_current = this->problem->forward(estimate);
             residual -= data_current;
+            double discrepancy_last = discrepancy;
             discrepancy = residual.norm();
 
-            if (!this->problem->progress(
-                  InversionProgress(i, estimate, estimate.norm(), residual, discrepancy, data, norm_data,
-                        exact_param, norm_exact)))
+            status = InversionProgress<Param, Sol>(i, estimate, estimate.norm(), residual, discrepancy, data,
+                  norm_data, exact_param, norm_exact);
+
+            if (!this->problem->progress(status))
+               break;
+
+            if (discrepancy_last < discrepancy && this->abort_increasing_discrepancy)
                break;
          }
+
+         if (status_out)
+            *status_out = status;
 
          return estimate;
       }

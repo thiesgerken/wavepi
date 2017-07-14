@@ -36,8 +36,11 @@ class REGINN: public NewtonRegularization<Param, Sol> {
       virtual ~REGINN() {
       }
 
+      using Regularization<Param, Sol>::invert;
+
       virtual Param invert(const Sol& data, double target_discrepancy,
-            std::shared_ptr<const Param> exact_param) {
+            std::shared_ptr<const Param> exact_param,
+            std::shared_ptr<InversionProgress<Param, Sol>> status_out) {
          LogStream::Prefix p = LogStream::Prefix("REGINN");
          deallog.push("init");
 
@@ -51,19 +54,34 @@ class REGINN: public NewtonRegularization<Param, Sol> {
          residual -= data_current;
 
          double discrepancy = residual.norm();
+         double initial_discrepancy = discrepancy;
          double norm_data = data.norm();
          double norm_exact = exact_param ? exact_param->norm() : -0.0;
 
          deallog.pop();
-         this->problem->progress(
-               InversionProgress(0, estimate, estimate.norm(), residual, discrepancy, data, norm_data,
-                     exact_param, norm_exact));
+         InversionProgress<Param, Sol> status(0, &estimate, estimate.norm(), &residual, discrepancy, &data,
+               norm_data, exact_param, norm_exact);
+         this->problem->progress(status);
 
-         for (int i = 1; discrepancy > target_discrepancy; i++) {
-            double theta_n = 0.7; // TODO
+         for (int i = 1;
+               discrepancy > target_discrepancy
+                     && (!this->abort_discrepancy_doubles || discrepancy < 2 * initial_discrepancy)
+                     && i <= this->max_iterations; i++) {
 
+            // TODO
+            double theta_n = 0.7;
+            double linear_target_discrepancy = discrepancy * theta_n;
+
+            auto linear_status = std::make_shared<InversionProgress<Param, Sol>>(status);
             linear_solver->set_problem(this->problem->derivative(estimate, data_current));
-            Param step = linear_solver->invert(residual, discrepancy * theta_n, nullptr);
+            Param step = linear_solver->invert(residual, linear_target_discrepancy, nullptr,
+                  linear_status);
+
+            if (linear_status->current_discrepancy > linear_target_discrepancy) {
+               deallog << "error: linear solver did not converge to desired discrepancy!" << std::endl;
+               break;
+            }
+
             estimate += step;
 
             // calculate new residual and discrepancy
@@ -71,14 +89,22 @@ class REGINN: public NewtonRegularization<Param, Sol> {
             residual = Sol(data);
             data_current = this->problem->forward(estimate);
             residual -= data_current;
+            double discrepancy_last = discrepancy;
             discrepancy = residual.norm();
 
             deallog.pop();
-            if (!this->problem->progress(
-                  InversionProgress(i, estimate, estimate.norm(), residual, discrepancy, data, norm_data,
-                        exact_param, norm_exact)))
+            status = InversionProgress<Param, Sol>(i, &estimate, estimate.norm(), &residual, discrepancy, &data,
+                  norm_data, exact_param, norm_exact);
+
+            if (!this->problem->progress(status))
+               break;
+
+            if (discrepancy_last < discrepancy && this->abort_increasing_discrepancy)
                break;
          }
+
+         if (status_out)
+            *status_out = status;
 
          return estimate;
       }

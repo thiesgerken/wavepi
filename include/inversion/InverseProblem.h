@@ -17,41 +17,62 @@ template<typename Param, typename Sol>
 struct InversionProgress {
       int iteration_number;
 
-      const Param& current_estimate;
+      const Param* current_estimate;
       double norm_current_estimate;
 
-      const Sol& current_residual;
+      const Sol* current_residual;
       double current_discrepancy;
 
-      const Sol& data;
+      const Sol* data;
       double norm_data;
 
       std::shared_ptr<const Param> exact_param;
       double norm_exact_param; // might be <= 0 if !exact_param
       double current_error;
 
-      InversionProgress(int iteration_number, const Param& current_estimate, double norm_current_estimate,
-            const Sol& current_residual, double current_discrepancy, const Sol& data, double norm_data,
+      InversionProgress(int iteration_number, const Param* current_estimate, double norm_current_estimate,
+            const Sol* current_residual, double current_discrepancy, const Sol* data, double norm_data,
             std::shared_ptr<const Param> exact_param, double norm_exact_param)
             : iteration_number(iteration_number), current_estimate(current_estimate), norm_current_estimate(
                   norm_current_estimate), current_residual(current_residual), current_discrepancy(
                   current_discrepancy), data(data), norm_data(norm_data), exact_param(exact_param), norm_exact_param(
                   norm_exact_param) {
          if (exact_param) {
-            Param tmp(current_estimate);
+            Param tmp(*current_estimate);
             tmp -= *exact_param;
             current_error = tmp.norm();
          }
       }
 
-      InversionProgress(int iteration_number, const Param& current_estimate, double norm_current_estimate,
-            const Sol& current_residual, double current_discrepancy, const Sol& data, double norm_data)
+      InversionProgress(int iteration_number, const Param* current_estimate, double norm_current_estimate,
+            Sol* current_residual, double current_discrepancy, const Sol* data, double norm_data)
             : iteration_number(iteration_number), current_estimate(current_estimate), norm_current_estimate(
                   norm_current_estimate), current_residual(current_residual), current_discrepancy(
                   current_discrepancy), data(data), norm_data(norm_data), exact_param(), norm_exact_param(
                   -0.0), current_error(-0.0) {
       }
 
+      InversionProgress(const InversionProgress<Param, Sol>& o)
+            : iteration_number(o.iteration_number), current_estimate(o.current_estimate), norm_current_estimate(
+                  o.norm_current_estimate), current_residual(o.current_residual), current_discrepancy(
+                  o.current_discrepancy), data(o.data), norm_data(o.norm_data), exact_param(o.exact_param), norm_exact_param(
+                  o.norm_exact_param), current_error(o.current_error) {
+      }
+
+      InversionProgress<Param, Sol>& operator=(const InversionProgress<Param, Sol>& o) {
+         iteration_number = o.iteration_number;
+         current_estimate = o.current_estimate;
+         norm_current_estimate = o.norm_current_estimate;
+         current_residual = o.current_residual;
+         current_discrepancy = o.current_discrepancy;
+         data = o.data;
+         norm_data = o.norm_data;
+         exact_param = o.exact_param;
+         norm_exact_param = o.norm_exact_param;
+         current_error = o.current_error;
+
+         return *this;
+      }
 };
 
 template<typename Param, typename Sol>

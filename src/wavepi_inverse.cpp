@@ -235,7 +235,7 @@ void test() {
 
    // GridGenerator::cheese(triangulation, std::vector<unsigned int>( { 1, 1 }));
    GridGenerator::hyper_cube(triangulation, -5, 5);
-   triangulation.refine_global(5);
+   triangulation.refine_global(4);
 
    // QGauss<dim>(n) is exact in polynomials of degree <= 2n-1 (needed: fe_order*3)
    // -> fe_order*3 <= 2n-1  ==>  n >= (fe_order*3+1)/2
@@ -253,7 +253,7 @@ void test() {
    deallog << "Number of active cells: " << triangulation.n_active_cells() << std::endl;
    deallog << "Number of degrees of freedom: " << dof_handler->n_dofs() << std::endl;
 
-   double t_start = 0.0, t_end = 2.0, dt = 1.0 / 64.0;
+   double t_start = 0.0, t_end = 2.0, dt = 1.0 / 32.0;
    std::vector<double> times;
 
    for (size_t i = 0; t_start + i * dt <= t_end; i++)

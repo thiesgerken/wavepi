@@ -385,7 +385,6 @@ void run_l2adjoint_test(int fe_order, int quad_order, int refines,
 	double dot_f_adjf = (*f) * adj_f;
 	double ff_err = std::abs(dot_solf_f - dot_f_adjf)
 			/ (std::abs(dot_solf_f) + 1e-15);
-	EXPECT_LT(ff_err, 1e-2);
 
 	deallog << std::scientific << "(Lf, f) = " << dot_solf_f << ", (f, L*f) = "
 			<< dot_f_adjf << ", rel. error = " << ff_err << std::endl;
@@ -394,7 +393,6 @@ void run_l2adjoint_test(int fe_order, int quad_order, int refines,
 	double dot_g_adjg = (*g) * adj_g;
 	double gg_err = std::abs(dot_solg_g - dot_g_adjg)
 			/ (std::abs(dot_solg_g) + 1e-15);
-	EXPECT_LT(gg_err, 1e-2);
 
 	deallog << std::scientific << "(Lg, g) = " << dot_solg_g << ", (g, L*g) = "
 			<< dot_g_adjg << ", rel. error = " << gg_err << std::endl;
@@ -403,7 +401,6 @@ void run_l2adjoint_test(int fe_order, int quad_order, int refines,
 	double dot_g_adjf = (*g) * adj_f;
 	double gf_err = std::abs(dot_solg_f - dot_g_adjf)
 			/ (std::abs(dot_solg_f) + 1e-15);
-	EXPECT_LT(gf_err, 1e-2);
 
 	deallog << std::scientific << "(Lg, f) = " << dot_solg_f << ", (g, L*f) = "
 			<< dot_g_adjf << ", rel. error = " << gf_err << std::endl;
@@ -412,11 +409,14 @@ void run_l2adjoint_test(int fe_order, int quad_order, int refines,
 	double dot_f_adjg = (*f) * adj_g;
 	double fg_err = std::abs(dot_solf_g - dot_f_adjg)
 			/ (std::abs(dot_solf_g) + 1e-15);
-	EXPECT_LT(fg_err, 1e-2);
 
 	deallog << std::scientific << "(Lf, g) = " << dot_solf_g << ", (f, L*g) = "
-			<< dot_f_adjg << ", rel. error = " << fg_err << std::endl
-			<< std::endl;
+			<< dot_f_adjg << ", rel. error = " << fg_err << std::endl;
+
+	EXPECT_LT(ff_err, 1e-2);
+   EXPECT_LT(gg_err, 1e-2);
+	EXPECT_LT(gf_err, 1e-2);
+	EXPECT_LT(fg_err, 1e-2);
 }
 
 // product of sines in space to have dirichlet b.c. in [0,pi], times a sum of sine and cosine in time.

@@ -363,10 +363,10 @@ double DiscretizedFunction<dim>::l2l2_mass_dot(const DiscretizedFunction<dim> & 
    Assert(mesh == V.mesh, ExcInternalError ());
    // remember to sync this implementation with l2_norm and all l2 adjoints!
    // uses trapezoidal rule in time and vector l2 norm in space
-   // (only approx to L2(0,T, L2) inner product if spatial grid is uniform!
 
    double result = 0.0;
 
+   // trapezoidal rule in time:
    for (size_t i = 0; i < mesh->get_times().size(); i++) {
       Assert(function_coefficients[i].size() == V.function_coefficients[i].size(),
             ExcDimensionMismatch (function_coefficients[i].size() , V.function_coefficients[i].size()));
@@ -381,16 +381,47 @@ double DiscretizedFunction<dim>::l2l2_mass_dot(const DiscretizedFunction<dim> & 
          result += doti / 2 * (std::abs(mesh->get_times()[i + 1] - mesh->get_times()[i]));
    }
 
+   // assume that both functions are linear in time (consistent with crank-nicolson!)
+   // and integrate that exactly (Simpson rule)
+   // problem when mesh changes in time!
+   //   for (size_t i = 0; i < mesh->get_times().size(); i++) {
+   //      Assert(function_coefficients[i].size() == V.function_coefficients[i].size(),
+   //            ExcDimensionMismatch (function_coefficients[i].size() , V.function_coefficients[i].size()));
+   //
+   //      double doti = mesh->get_mass_matrix(i)->matrix_scalar_product(function_coefficients[i],
+   //            V.function_coefficients[i]);
+   //
+   //      if (i > 0)
+   //         result += doti / 3 * (std::abs(mesh->get_times()[i] - mesh->get_times()[i - 1]));
+   //
+   //      if (i < mesh->get_times().size() - 1)
+   //         result += doti / 3 * (std::abs(mesh->get_times()[i + 1] - mesh->get_times()[i]));
+   //   }
+   //
+   //   for (size_t i = 0; i < mesh->get_times().size() - 1; i++) {
+   //      Assert(function_coefficients[i].size() == V.function_coefficients[i+1].size(),
+   //            ExcDimensionMismatch (function_coefficients[i].size() , V.function_coefficients[i+1].size()));
+   //      Assert(function_coefficients[i+1].size() == V.function_coefficients[i].size(),
+   //             ExcDimensionMismatch (function_coefficients[i+1].size() , V.function_coefficients[i].size()));
+   //
+   //      double dot1 = mesh->get_mass_matrix(i)->matrix_scalar_product(function_coefficients[i],
+   //            V.function_coefficients[i + 1]);
+   //      double dot2 = mesh->get_mass_matrix(i + 1)->matrix_scalar_product(function_coefficients[i + 1],
+   //            V.function_coefficients[i]);
+   //
+   //      result += (dot1 + dot2) / 6 * (std::abs(mesh->get_times()[i + 1] - mesh->get_times()[i]));
+   //   }
+
    return result;
 }
 
 template<int dim>
 double DiscretizedFunction<dim>::l2l2_mass_norm() const {
    // remember to sync this implementation with l2_dot and all l2 adjoints!
-   // uses trapezoidal rule in time and vector l2 norm in space
-   // (only approx to L2(0,T, L2) norm if spatial grid is uniform!
+
    double result = 0;
 
+   // trapezoidal rule in time:
    for (size_t i = 0; i < mesh->get_times().size(); i++) {
       double nrm2 = mesh->get_mass_matrix(i)->matrix_norm_square(function_coefficients[i]);
 
@@ -400,6 +431,26 @@ double DiscretizedFunction<dim>::l2l2_mass_norm() const {
       if (i < mesh->get_times().size() - 1)
          result += nrm2 / 2 * (std::abs(mesh->get_times()[i + 1] - mesh->get_times()[i]));
    }
+
+   // assume that function is linear in time (consistent with crank-nicolson!)
+   // and integrate that exactly (Simpson rule)
+   // problem when mesh changes in time!
+   //   for (size_t i = 0; i < mesh->get_times().size(); i++) {
+   //      double nrm2 = mesh->get_mass_matrix(i)->matrix_norm_square(function_coefficients[i]);
+   //
+   //      if (i > 0)
+   //         result += nrm2 / 3 * (std::abs(mesh->get_times()[i] - mesh->get_times()[i - 1]));
+   //
+   //      if (i < mesh->get_times().size() - 1)
+   //         result += nrm2 / 3 * (std::abs(mesh->get_times()[i + 1] - mesh->get_times()[i]));
+   //   }
+   //
+   //   for (size_t i = 0; i < mesh->get_times().size() - 1; i++) {
+   //      double tmp = mesh->get_mass_matrix(i)->matrix_scalar_product(function_coefficients[i],
+   //            function_coefficients[i + 1]);
+   //
+   //      result += tmp / 3 * (std::abs(mesh->get_times()[i + 1] - mesh->get_times()[i]));
+   //   }
 
    return std::sqrt(result);
 }

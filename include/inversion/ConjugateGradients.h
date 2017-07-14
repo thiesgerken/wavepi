@@ -21,24 +21,27 @@ namespace inversion {
 
 using namespace dealii;
 
+// conjugate gradient method applied to normal equation (often called CGNR or CGLS)
 // REGINN(CG) seems to diverge (especially if the time discretization is coarse)
 // while REGINN(Gradient) and REGINN(Landweber) seem to work fine in those cases as well.
 template<typename Param, typename Sol>
 class ConjugateGradients: public LinearRegularization<Param, Sol> {
    public:
-
-      ConjugateGradients(std::shared_ptr<LinearProblem<Param, Sol>> problem)
-            : LinearRegularization<Param, Sol>(problem) {
-      }
-
+      // lambda: regularization parameter
       ConjugateGradients() {
+         // cg should generate decreasing residuals
+         this->abort_discrepancy_doubles = true;
+         this->abort_increasing_discrepancy = true;
       }
 
       virtual ~ConjugateGradients() {
       }
 
+      using Regularization<Param, Sol>::invert;
+
       virtual Param invert(const Sol& data, double target_discrepancy,
-            std::shared_ptr<const Param> exact_param) {
+            std::shared_ptr<const Param> exact_param,
+            std::shared_ptr<InversionProgress<Param, Sol>> status_out) {
          LogStream::Prefix p = LogStream::Prefix("CG");
          Assert(this->problem, ExcInternalError());
 
@@ -51,27 +54,39 @@ class ConjugateGradients: public LinearRegularization<Param, Sol> {
 
          double norm_dk = d_k.norm();
          double discrepancy = r_k.norm();
+         double initial_discrepancy = discrepancy;
          double norm_data = data.norm();
-                  double norm_exact = exact_param ? exact_param->norm() : -0.0;
+         double norm_exact = exact_param ? exact_param->norm() : -0.0;
 
-                  this->problem->progress(
-                        InversionProgress(0, estimate, 0.0, r_k, discrepancy, data, norm_data,
-                              exact_param, norm_exact));
+         InversionProgress<Param, Sol> status(0, &estimate, estimate.norm(), &r_k, discrepancy, &data,
+               norm_data, exact_param, norm_exact);
+         this->problem->progress(status);
 
-         for (int k = 1; discrepancy > target_discrepancy; k++) {
+         for (int k = 1;
+               discrepancy > target_discrepancy
+                     && (!this->abort_discrepancy_doubles || discrepancy < 2 * initial_discrepancy)
+                     && k <= this->max_iterations; k++) {
             Sol q_k = this->problem->forward(p_k1);
 
             double alpha_k = square(norm_dk / q_k.norm());
-            // deallog << "alpha_k = " << alpha_k << std::endl;
+             deallog << "norm(d_k) = " << norm_dk << std::endl;
+             deallog << "norm(q_k) = " << q_k.norm() << std::endl;
 
             estimate.add(alpha_k, p_k1);
             r_k.add(-1.0 * alpha_k, q_k);
 
+            double discrepancy_last = discrepancy;
             discrepancy = r_k.norm();
-            if (!this->problem->progress(
-                         InversionProgress(k, estimate, estimate.norm(), r_k, discrepancy, data, norm_data,
-                               exact_param, norm_exact)))
-                      break;
+
+            status = InversionProgress<Param, Sol>(k, &estimate, estimate.norm(), &r_k, discrepancy, &data,
+                  norm_data, exact_param, norm_exact);
+
+            if (!this->problem->progress(status))
+               break;
+
+            if (discrepancy_last < discrepancy && this->abort_increasing_discrepancy)
+               break;
+
             // saves one evaluation of the adjoint if we are finished
             if (discrepancy <= target_discrepancy)
                break;
@@ -87,6 +102,9 @@ class ConjugateGradients: public LinearRegularization<Param, Sol> {
 
             p_k1.sadd(beta_k, 1.0, d_k);
          }
+
+         if (status_out)
+            *status_out = status;
 
          return estimate;
       }

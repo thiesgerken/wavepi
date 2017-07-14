@@ -24,19 +24,20 @@ using namespace dealii;
 template<typename Param, typename Sol>
 class GradientDescent: public LinearRegularization<Param, Sol> {
    public:
-
-      GradientDescent(std::shared_ptr<LinearProblem<Param, Sol>> problem)
-            : LinearRegularization<Param, Sol>(problem) {
-      }
-
       GradientDescent() {
+         // should generate decreasing residuals
+         this->abort_discrepancy_doubles = true;
+         this->abort_increasing_discrepancy = true;
       }
 
       virtual ~GradientDescent() {
       }
 
+      using Regularization<Param, Sol>::invert;
+
       virtual Param invert(const Sol& data, double target_discrepancy,
-            std::shared_ptr<const Param> exact_param) {
+            std::shared_ptr<const Param> exact_param,
+            std::shared_ptr<InversionProgress<Param, Sol>> status_out) {
          LogStream::Prefix p = LogStream::Prefix("Gradient");
          Assert(this->problem, ExcInternalError());
 
@@ -44,14 +45,18 @@ class GradientDescent: public LinearRegularization<Param, Sol> {
 
          Sol residual(data);
          double discrepancy = residual.norm();
+         double initial_discrepancy = discrepancy;
          double norm_data = data.norm();
          double norm_exact = exact_param ? exact_param->norm() : -0.0;
 
-         this->problem->progress(
-               InversionProgress(0, estimate, 0.0, residual, discrepancy, data, norm_data, exact_param,
-                     norm_exact));
+         InversionProgress<Param, Sol> status(0, &estimate, estimate.norm(), &residual, discrepancy, &data,
+               norm_data, exact_param, norm_exact);
+         this->problem->progress(status);
 
-         for (int k = 1; discrepancy > target_discrepancy; k++) {
+         for (int k = 1;
+               discrepancy > target_discrepancy
+                     && (!this->abort_discrepancy_doubles || discrepancy < 2 * initial_discrepancy)
+                     && k <= this->max_iterations; k++) {
             Param step = this->problem->adjoint(residual);
             Sol Astep = this->problem->forward(step);
             double omega = square(step.norm() / Astep.norm());
@@ -61,13 +66,21 @@ class GradientDescent: public LinearRegularization<Param, Sol> {
 
             // calculate new residual and discrepancy for next step
             residual.add(-1.0 * omega, Astep);
+            double discrepancy_last = discrepancy;
             discrepancy = residual.norm();
 
-            if (!this->problem->progress(
-                  InversionProgress(k, estimate, estimate.norm(), residual, discrepancy, data, norm_data,
-                        exact_param, norm_exact)))
+            status = InversionProgress<Param, Sol>(k, &estimate, estimate.norm(), &residual, discrepancy, &data,
+                  norm_data, exact_param, norm_exact);
+
+            if (!this->problem->progress(status))
+               break;
+
+            if (discrepancy_last < discrepancy && this->abort_increasing_discrepancy)
                break;
          }
+
+         if (status_out)
+            *status_out = status;
 
          return estimate;
       }

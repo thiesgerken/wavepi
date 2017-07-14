@@ -15,7 +15,6 @@
 #include <deal.II/dofs/dof_handler.h>
 #include <deal.II/lac/vector.h>
 
-
 #include <stddef.h>
 #include <memory>
 #include <string>
