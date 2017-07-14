@@ -5,10 +5,10 @@
  *      Author: thies
  */
 
-#include <bits/std_abs.h>
 #include <deal.II/base/exceptions.h>
 #include <forward/SpaceTimeMesh.h>
 #include <iostream>
+#include <cmath>
 
 namespace wavepi {
 namespace forward {
