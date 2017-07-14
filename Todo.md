@@ -19,9 +19,9 @@
 - [ ] maybe look at cg-directions visually to figure out where it goes wrong when unstable
 - [ ] linear Tikhonov (using "Tikhonov-CG"?)
 - [ ] Adjoints for a, nu and q (base problem class for linearizations? `LinearizedWaveProblem`)
-- [ ] **implement stop criteria in all regularization methods** how to communicate this to the caller?
-- [ ] REGINN tolerance choice (-> class)
-- [ ] REGINN: if linear method does not converge (diverge or maximum iterations reached) increase tolerance and try again
+- [ ] **implement stop criteria in all regularization methods** how to communicate this to the caller? last_disc?
+- [ ] ** REGINN: tolerance choice ** (-> abstract class, implement that strategy from Rieder's book/paper) 
+- [ ] REGINN: improve tolerance choice (if linear method does not converge (diverge or maximum iterations reached) increase tolerance and try again)
 - [ ] add Shrinkage step to Landweber
 
 ## Documentation and Tests
