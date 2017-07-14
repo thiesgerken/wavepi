@@ -25,7 +25,8 @@ class REGINN: public NewtonRegularization<Param, Sol> {
    public:
       REGINN(std::shared_ptr<NonlinearProblem<Param, Sol>> problem,
             std::shared_ptr<LinearRegularization<Param, Sol>> linear_solver, const Param& initial_guess)
-            : NewtonRegularization<Param, Sol>(problem), initial_guess(initial_guess), linear_solver(linear_solver) {
+            : NewtonRegularization<Param, Sol>(problem), initial_guess(initial_guess), linear_solver(
+                  linear_solver) {
       }
 
       REGINN(std::shared_ptr<LinearRegularization<Param, Sol>> linear_solver, const Param& initial_guess)
@@ -35,7 +36,8 @@ class REGINN: public NewtonRegularization<Param, Sol> {
       virtual ~REGINN() {
       }
 
-      virtual Param invert(const Sol& data, double target_discrepancy, std::shared_ptr<const Param> exact_param) {
+      virtual Param invert(const Sol& data, double target_discrepancy,
+            std::shared_ptr<const Param> exact_param) {
          LogStream::Prefix p = LogStream::Prefix("REGINN");
          deallog.push("init");
 
@@ -49,9 +51,13 @@ class REGINN: public NewtonRegularization<Param, Sol> {
          residual -= data_current;
 
          double discrepancy = residual.norm();
+         double norm_data = data.norm();
+         double norm_exact = exact_param ? exact_param->norm() : -0.0;
 
          deallog.pop();
-         this->problem->progress(estimate, residual, data, 0, exact_param);
+         this->problem->progress(
+               InversionProgress(0, estimate, estimate.norm(), residual, discrepancy, data, norm_data,
+                     exact_param, norm_exact));
 
          for (int i = 1; discrepancy > target_discrepancy; i++) {
             double theta_n = 0.7; // TODO
@@ -60,15 +66,18 @@ class REGINN: public NewtonRegularization<Param, Sol> {
             Param step = linear_solver->invert(residual, discrepancy * theta_n, nullptr);
             estimate += step;
 
-            deallog.push("post_step");
             // calculate new residual and discrepancy
+            deallog.push("post_step");
             residual = Sol(data);
             data_current = this->problem->forward(estimate);
             residual -= data_current;
             discrepancy = residual.norm();
 
             deallog.pop();
-            this->problem->progress(estimate, residual, data, i, exact_param);
+            if (!this->problem->progress(
+                  InversionProgress(i, estimate, estimate.norm(), residual, discrepancy, data, norm_data,
+                        exact_param, norm_exact)))
+               break;
          }
 
          return estimate;

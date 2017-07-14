@@ -20,14 +20,6 @@ namespace inversion {
 template<typename Param, typename Sol>
 class LinearRegularization: public Regularization<Param, Sol> {
    public:
-      LinearRegularization(std::shared_ptr<LinearProblem<Param, Sol>> problem)
-            : problem(problem) {
-      }
-
-      LinearRegularization()
-            : problem() {
-      }
-
       virtual ~LinearRegularization() {
       }
 

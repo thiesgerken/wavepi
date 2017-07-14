@@ -24,30 +24,29 @@ using namespace dealii;
 template<typename Param, typename Sol>
 class Landweber: public LinearRegularization<Param, Sol> {
    public:
-      Landweber(std::shared_ptr<LinearProblem<Param, Sol>> problem, const Param& initial_guess, double omega)
-            : LinearRegularization<Param, Sol>(problem), omega(omega), initial_guess(initial_guess) {
-      }
-
-      Landweber(const Param& initial_guess, double omega)
-            : omega(omega), initial_guess(initial_guess) {
+      Landweber(double omega)
+            : omega(omega) {
       }
 
       virtual ~Landweber() {
       }
 
-      virtual Param invert(const Sol& data, double target_discrepancy, std::shared_ptr<const Param> exact_param) {
+      virtual Param invert(const Sol& data, double target_discrepancy,
+            std::shared_ptr<const Param> exact_param) {
          LogStream::Prefix p = LogStream::Prefix("Landweber");
          Assert(this->problem, ExcInternalError());
 
-         Param estimate(initial_guess);
-
+         Param estimate = this->problem->zero();
          Sol residual(data);
-         Sol data_current = this->problem->forward(estimate);
-         residual -= data_current;
 
          double discrepancy = residual.norm();
+         double norm_data = data.norm();
+         double norm_exact = exact_param ? exact_param->norm() : -0.0;
 
-         this->problem->progress(estimate, residual, data, 0, exact_param);
+         deallog.pop();
+         this->problem->progress(
+               InversionProgress(0, estimate, estimate.norm(), residual, discrepancy, data, norm_data,
+                     exact_param, norm_exact));
 
          for (int k = 1; discrepancy > target_discrepancy; k++) {
             Param adj = this->problem->adjoint(residual);
@@ -57,11 +56,14 @@ class Landweber: public LinearRegularization<Param, Sol> {
 
             // calculate new residual and discrepancy for next step
             residual = Sol(data);
-            data_current = this->problem->forward(estimate);
+            Sol data_current = this->problem->forward(estimate);
             residual -= data_current;
             discrepancy = residual.norm();
 
-            this->problem->progress(estimate, residual, data, k, exact_param);
+            if (!this->problem->progress(
+                  InversionProgress(k, estimate, estimate.norm(), residual, discrepancy, data, norm_data,
+                        exact_param, norm_exact)))
+               break;
          }
 
          return estimate;
@@ -69,7 +71,6 @@ class Landweber: public LinearRegularization<Param, Sol> {
 
    private:
       double omega;
-      const Param initial_guess;
 };
 
 } /* namespace inversion */

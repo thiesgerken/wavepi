@@ -28,20 +28,17 @@ WaveProblem<dim>::WaveProblem(WaveEquation<dim>& weq)
 }
 
 template<int dim>
-void WaveProblem<dim>::progress(const DiscretizedFunction<dim>& current_estimate,
-      const DiscretizedFunction<dim>& current_residual, const DiscretizedFunction<dim>& data, int iteration_number,
-      std::shared_ptr<const DiscretizedFunction<dim>> exact_param) {
-   deallog << "i=" << iteration_number << ": rdisc=" << current_residual.norm() / data.norm();
+bool WaveProblem<dim>::progress(InversionProgress<DiscretizedFunction<dim>, DiscretizedFunction<dim>> state) {
+   deallog << "i=" << state.iteration_number << ": rdisc=" << state.current_discrepancy / state.norm_data;
 
-   if (exact_param) {
-      DiscretizedFunction<dim> tmp(current_estimate);
-      tmp -= *exact_param;
-      deallog << ", rnorm=" << current_estimate.norm() / exact_param->norm() << ", rerr="
-            << tmp.norm() / exact_param->norm();
+   if (state.norm_exact_param > 0.0) {
+      deallog << ", rnorm=" << state.norm_current_estimate / state.norm_exact_param << ", rerr="
+            << state.current_error / state.norm_exact_param;
    } else
-      deallog << ", norm=" << current_estimate.norm();
+      deallog << ", norm=" << state.norm_current_estimate;
 
    deallog << std::endl;
+   return true;
 }
 
 template class WaveProblem<1> ;

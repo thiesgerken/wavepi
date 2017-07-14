@@ -131,7 +131,8 @@ class QLinearizedProblem: public LinearProblem<DiscretizedFunction<dim>, Discret
       virtual ~QLinearizedProblem() {
       }
 
-      QLinearizedProblem(WaveEquation<dim> &weq, DiscretizedFunction<dim>& q, DiscretizedFunction<dim>& u)
+      QLinearizedProblem(const WaveEquation<dim> &weq, const DiscretizedFunction<dim>& q,
+            const DiscretizedFunction<dim>& u)
             : weq(weq) {
          this->q = std::make_shared<DiscretizedFunction<dim>>(q);
          this->u = std::make_shared<DiscretizedFunction<dim>>(u);
@@ -146,8 +147,8 @@ class QLinearizedProblem: public LinearProblem<DiscretizedFunction<dim>, Discret
          this->weq.set_param_q(this->q);
       }
 
-      virtual DiscretizedFunction<dim> forward(DiscretizedFunction<dim>& h) {
-    	  rhs->set_func1(std::make_shared<DiscretizedFunction<dim>>(h));
+      virtual DiscretizedFunction<dim> forward(const DiscretizedFunction<dim>& h) {
+         rhs->set_func1(std::make_shared<DiscretizedFunction<dim>>(h));
          weq.set_right_hand_side(rhs);
 
          DiscretizedFunction<dim> res = weq.run();
@@ -157,11 +158,11 @@ class QLinearizedProblem: public LinearProblem<DiscretizedFunction<dim>, Discret
       }
 
       // L2 adjoint
-      virtual DiscretizedFunction<dim> adjoint(DiscretizedFunction<dim>& g) {
+      virtual DiscretizedFunction<dim> adjoint(const DiscretizedFunction<dim>& g) {
          rhs_adj->set_base_rhs(std::make_shared<DiscretizedFunction<dim>>(g));
-          weq.set_right_hand_side(rhs_adj);
+         weq.set_right_hand_side(rhs_adj);
 
-          // L*
+         // L*
          DiscretizedFunction<dim> res = weq.run(true);
          res.throw_away_derivative();
 
@@ -173,14 +174,17 @@ class QLinearizedProblem: public LinearProblem<DiscretizedFunction<dim>, Discret
          return res;
       }
 
-      void progress(const DiscretizedFunction<dim>& current_estimate, const DiscretizedFunction<dim>& current_residual,
-            const DiscretizedFunction<dim>& data, int iteration_number,
-            std::shared_ptr<const DiscretizedFunction<dim>> exact_param __attribute__((unused))) {
-         deallog << "k=" << iteration_number << ": rdisc=" << current_residual.norm() / data.norm();
-         deallog << ", norm=" << current_estimate.norm();
-         deallog << std::endl;
+      virtual DiscretizedFunction<dim> zero() {
+         return DiscretizedFunction<dim>(q->get_mesh(), q->get_dof_handler());
       }
 
+      bool progress(InversionProgress<DiscretizedFunction<dim>, DiscretizedFunction<dim>> state) {
+         deallog << "k=" << state.iteration_number << ": rdisc="
+               << state.current_discrepancy / state.norm_data;
+         deallog << ", norm=" << state.norm_current_estimate;
+         deallog << std::endl;
+         return true;
+      }
    private:
       WaveEquation<dim> weq;
 
@@ -202,11 +206,11 @@ class QProblem: public WaveProblem<dim> {
       }
 
       virtual std::unique_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>> derivative(
-            DiscretizedFunction<dim>& q, DiscretizedFunction<dim>& u) {
+            const DiscretizedFunction<dim>& q, const DiscretizedFunction<dim>& u) {
          return std::make_unique<QLinearizedProblem<dim>>(this->wave_equation, q, u);
       }
 
-      virtual DiscretizedFunction<dim> forward(DiscretizedFunction<dim>& q) {
+      virtual DiscretizedFunction<dim> forward(const DiscretizedFunction<dim>& q) {
          this->wave_equation.set_param_q(std::make_shared<DiscretizedFunction<dim>>(q));
 
          DiscretizedFunction<dim> res = this->wave_equation.run();
@@ -241,7 +245,7 @@ void test() {
    Quadrature<dim> quad = QGauss<dim>(quad_order);
 
    auto dof_handler = std::make_shared<DoFHandler<dim>>();
-      dof_handler->initialize(triangulation, fe);
+   dof_handler->initialize(triangulation, fe);
 
    deallog << "fe_order = " << fe_order << std::endl;
    deallog << "quad_order = " << quad_order << std::endl;
@@ -256,7 +260,7 @@ void test() {
       times.push_back(t_start + i * dt);
 
    std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, dof_handler, quad);
-    WaveEquation<dim> wave_eq(mesh, dof_handler, quad);
+   WaveEquation<dim> wave_eq(mesh, dof_handler, quad);
 
    wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(std::make_shared<TestF<dim>>()));
    wave_eq.set_param_a(std::make_shared<TestA<dim>>());
@@ -285,7 +289,8 @@ void test() {
    //   lw.invert(data, 1.5 * epsilon * data_exact.norm(), &q_exact);
 
    REGINN<DiscretizedFunction<dim>, DiscretizedFunction<dim>> reginn(std::make_unique<QProblem<dim>>(wave_eq),
-         std::make_unique<ConjugateGradients<DiscretizedFunction<dim>, DiscretizedFunction<dim>>>(), initialGuess);
+         std::make_unique<ConjugateGradients<DiscretizedFunction<dim>, DiscretizedFunction<dim>>>(),
+         initialGuess);
    reginn.invert(data, 2 * epsilon * data_exact.norm(), q_exact);
 
    deallog.timestamp();
@@ -297,7 +302,8 @@ int main() {
    } catch (std::exception &exc) {
       std::cerr << std::endl << std::endl;
       std::cerr << "----------------------------------------------------" << std::endl;
-      std::cerr << "Exception on processing: " << std::endl << exc.what() << std::endl << "Aborting!" << std::endl;
+      std::cerr << "Exception on processing: " << std::endl << exc.what() << std::endl << "Aborting!"
+            << std::endl;
       std::cerr << "----------------------------------------------------" << std::endl;
 
       return 1;

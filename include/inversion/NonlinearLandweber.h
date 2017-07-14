@@ -38,7 +38,8 @@ class NonlinearLandweber: public NewtonRegularization<Param, Sol> {
       virtual ~NonlinearLandweber() {
       }
 
-      virtual Param invert(const Sol& data, double target_discrepancy, std::shared_ptr<const Param> exact_param) {
+      virtual Param invert(const Sol& data, double target_discrepancy,
+            std::shared_ptr<const Param> exact_param) {
          LogStream::Prefix p = LogStream::Prefix("Landweber");
          Assert(this->problem, ExcInternalError());
          deallog.push("init");
@@ -50,9 +51,13 @@ class NonlinearLandweber: public NewtonRegularization<Param, Sol> {
          residual -= data_current;
 
          double discrepancy = residual.norm();
+         double norm_data = data.norm();
+         double norm_exact = exact_param ? exact_param->norm() : -0.0;
 
          deallog.pop();
-         this->problem->progress(estimate, residual, data, 0, exact_param);
+         this->problem->progress(
+               InversionProgress(0, estimate, estimate.norm(), residual, discrepancy, data, norm_data,
+                     exact_param, norm_exact));
 
          for (int i = 1; discrepancy > target_discrepancy; i++) {
             std::unique_ptr<LinearProblem<Param, Sol>> lp = this->problem->derivative(estimate, data_current);
@@ -68,7 +73,10 @@ class NonlinearLandweber: public NewtonRegularization<Param, Sol> {
             residual -= data_current;
             discrepancy = residual.norm();
 
-            this->problem->progress(estimate, residual, data, i, exact_param);
+            if (!this->problem->progress(
+                  InversionProgress(i, estimate, estimate.norm(), residual, discrepancy, data, norm_data,
+                        exact_param, norm_exact)))
+               break;
          }
 
          return estimate;

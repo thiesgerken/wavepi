@@ -40,15 +40,16 @@ class GradientDescent: public LinearRegularization<Param, Sol> {
          LogStream::Prefix p = LogStream::Prefix("Gradient");
          Assert(this->problem, ExcInternalError());
 
+         Param estimate = this->problem->zero();
+
          Sol residual(data);
          double discrepancy = residual.norm();
+         double norm_data = data.norm();
+         double norm_exact = exact_param ? exact_param->norm() : -0.0;
 
-         // TODO
-         // Param estimate = this->problem->zero_param();
-         Param estimate(data);
-         estimate = 0.0;
-
-         this->problem->progress(estimate, residual, data, 0, exact_param);
+         this->problem->progress(
+               InversionProgress(0, estimate, 0.0, residual, discrepancy, data, norm_data, exact_param,
+                     norm_exact));
 
          for (int k = 1; discrepancy > target_discrepancy; k++) {
             Param step = this->problem->adjoint(residual);
@@ -62,7 +63,10 @@ class GradientDescent: public LinearRegularization<Param, Sol> {
             residual.add(-1.0 * omega, Astep);
             discrepancy = residual.norm();
 
-            this->problem->progress(estimate, residual, data, k, exact_param);
+            if (!this->problem->progress(
+                  InversionProgress(k, estimate, estimate.norm(), residual, discrepancy, data, norm_data,
+                        exact_param, norm_exact)))
+               break;
          }
 
          return estimate;

@@ -19,16 +19,13 @@
 - [ ] "Abort now" like in old code
 - [ ] Measurements
 - [ ] multiple RHS 
-- [ ] inverse problem functions (forward, adjoint) should expect pointers (they have to save `DiscretizedFunction`s)
-- [ ] watch dog for linear methods (residual goes up? -> cancel, also introduce maxiter)
-- [ ] REGINN: if linear method does not converge (diverge or maximum iterations reached) increase tolerance and try again
-- [ ] **adjointness still not good** ... (not enough time steps? -> scalar product in time wrong?)
-- [ ] find a better way of treating multiple boundaries
 
 ## Direct Solver
 
 - [ ] grid adaptivity (decide on a structure, then all those `DoFHandler*`s have to be replaced 
 - [ ] Interpolation of time steps (`DiscretizedFunction::at`)
+- [ ] adjointness still not good, cg unstable when using few time steps (scalar product inconsistent with crank-nicolson?)
+- [ ] find a better way of treating multiple boundaries
 
 ## Inversion
 
@@ -36,16 +33,18 @@
 - [x] base class: IterativeRegularization (virtual calculateStep = 0, start, test) and maybe even Regularization
 - [x] Adjoint: use $`L^2`$ (almost self-adjoint, integrate backward in time) 
 - [x] after that REGINN (+ LinearRegularization + some possibilities for that (CG, LW) ) 
-- [ ] add Shrinkage step to Landweber
-- [ ] ** Linear Landweber: remove initial guess and simplify **
-- [ ] ** `LinearProblem` needs allocator for zero params (for `GradientDescent` and LW)  **
-- [ ] **give `progress(..)` the discrepancy and norms** (calculating them time-consuming -> struct `ProgressData`?)
-- [ ] **make REGINN-CG work** (CG has a problem, might be due to wrong norm? have to use mass matrix!)
-- [ ] REGINN tolerance choice (-> class)
-- [ ] gradient method instead of conjugate gradients (maybe more robust?)
-- [ ] maybe look at cg-directions visually to figure out where it goes wrong (boundary?)
+- [x] gradient method as linear solver
+- [x] make REGINN-CG work (number of time steps seems to be important for stability of cg)
+- [x] give `progress(..)` the discrepancy and norms
+- [x] Linear Landweber: remove initial guess and simplify 
+- [x] `LinearProblem` needs allocator for zero params (for `GradientDescent` and LW)
+- [ ] maybe look at cg-directions visually to figure out where it goes wrong when unstable
 - [ ] linear Tikhonov (using "Tikhonov-CG"?)
 - [ ] Adjoints for a, nu and q (base problem class for linearizations? `LinearizedWaveProblem`)
+- [ ] **implement stop criteria in all regularization methods** how to communicate this to the caller?
+- [ ] REGINN tolerance choice (-> class)
+- [ ] REGINN: if linear method does not converge (diverge or maximum iterations reached) increase tolerance and try again
+- [ ] add Shrinkage step to Landweber
 
 ## Documentation and Tests
 

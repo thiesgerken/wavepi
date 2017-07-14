@@ -35,8 +35,7 @@ class WaveProblem: public NonlinearProblem<DiscretizedFunction<dim>, Discretized
 
       DiscretizedFunction<dim> generateNoise(const DiscretizedFunction<dim>& like, double norm) const;
 
-      void progress(const DiscretizedFunction<dim>& current_estimate, const DiscretizedFunction<dim>& current_residual,
-            const DiscretizedFunction<dim>& data, int iteration_number, std::shared_ptr<const DiscretizedFunction<dim>> exact_param);
+      bool progress(InversionProgress<DiscretizedFunction<dim>, DiscretizedFunction<dim>> state);
 
    protected:
       WaveEquation<dim> wave_equation;
