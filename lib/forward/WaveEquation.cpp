@@ -52,9 +52,9 @@ WaveEquation<dim>::WaveEquation(const WaveEquation<dim>& weq)
       : theta(weq.theta), mesh(weq.mesh), dof_handler(weq.dof_handler), quad(weq.quad), initial_values_u(
             weq.initial_values_u), initial_values_v(weq.initial_values_v), boundary_values_u(
             weq.boundary_values_u), boundary_values_v(weq.boundary_values_v), param_c(weq.param_c), param_nu(
-            weq.param_nu), param_a(weq.param_a), param_q(weq.param_q), right_hand_side(weq.right_hand_side), param_c_disc(
+            weq.param_nu), param_a(weq.param_a), param_q(weq.param_q), param_c_disc(
             weq.param_c_disc), param_nu_disc(weq.param_nu_disc), param_a_disc(weq.param_a_disc), param_q_disc(
-            weq.param_q_disc) {
+            weq.param_q_disc) , right_hand_side(weq.right_hand_side){
 }
 
 template<int dim>

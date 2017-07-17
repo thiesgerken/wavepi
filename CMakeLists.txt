@@ -45,10 +45,10 @@ execute_process(COMMAND
   OUTPUT_VARIABLE GIT_COMMIT_SUBJECT
   ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-list(APPEND CFLAGS -DGIT_DATE="${GIT_DATE}" -DGIT_SHA1="${GIT_SHA1}")
-
 PROJECT(wavePI)
 include_directories("include")
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fextended-identifiers -DGIT_DATE='${GIT_DATE}' -DGIT_SHA1='${GIT_SHA1}'")
 
 add_subdirectory(lib)
 add_subdirectory(src)

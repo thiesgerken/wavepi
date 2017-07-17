@@ -191,8 +191,16 @@ void WaveEquationAdjoint<dim>::assemble_u(size_t i) {
    if (dim == 1)
       VectorTools::interpolate_boundary_values(*dof_handler, 1, ZeroFunction<dim>(1), boundary_values);
 
-   if (i == mesh->get_times().size() - 1) {
-      double time_step = mesh->get_times()[i] - mesh->get_times()[i - 1];
+   if (i == mesh->get_times().size() - 1) { // i == N
+	   /*
+	    * (M_N^2)^t (u_N, v_N)^t = (g_N, 0)^t
+	    *
+	    * g_N = ((M_N^2)^t)_11 u_N + ((M_N^2)^t)_12 v_N
+        *     = [k_N^2 C^N + θ k_N B^N + θ^2 A^N] u_N + (1-θ) A^N v_N
+        *     = [k_N^2 C^N + θ k_N B^N + θ^2 A^N] u_N
+	    */
+
+	   double time_step = mesh->get_times()[i] - mesh->get_times()[i - 1];
 
       system_rhs = rhs;
 
@@ -201,15 +209,21 @@ void WaveEquationAdjoint<dim>::assemble_u(size_t i) {
       system_matrix.add(theta / time_step, matrix_B);
       system_matrix.add(theta * theta, matrix_A);
    } else if (i == 0) {
-      double time_step_last = mesh->get_times()[i + 1] - mesh->get_times()[i];
+	   /*
+	    * (u_0, v_0)^t = (g_0, 0)^t - (M_{i+1}^1)^t (u_1, v_1)^t
+	    *
+	    * u_0 = g_0 + [-θ(1-θ) A^i + k_{i+1}(k_{i+1} C^{i+1} + θ B^{i+1})] u_1
+	    *              - (1-θ) A^i v_1
+	    */
 
-      system_rhs = 0.0;
+	   double time_step_last = mesh->get_times()[i + 1] - mesh->get_times()[i];
 
+      system_rhs = rhs;
       Vector<double> tmp(solution_u.size());
 
       tmp.add(-1.0 * theta * (1 - theta), solution_u_old);
       tmp.add(-1.0 * (1 - theta), solution_v_old);
-      matrix_A.vmult(system_rhs, tmp);
+      matrix_A.vmult_add(system_rhs, tmp);
 
       tmp = solution_u_old;
       tmp *= 1 / (time_step_last * time_step_last);
@@ -217,9 +231,6 @@ void WaveEquationAdjoint<dim>::assemble_u(size_t i) {
 
       tmp *= time_step_last * theta;
       matrix_B_old.vmult_add(system_rhs, tmp);
-
-      system_rhs.add(1.0, rhs);
-      matrix_B.vmult(tmp, solution_u);
 
       // system_matrix = identity
       system_matrix = 0.0;
@@ -266,12 +277,30 @@ void WaveEquationAdjoint<dim>::assemble_v(size_t i) {
       VectorTools::interpolate_boundary_values(*dof_handler, 1, ZeroFunction<dim>(1), boundary_values);
 
    if (i == mesh->get_times().size() - 1) {
+	   /*
+	    * (M_N^2)^t (u_N, v_N)^t = (g_N, 0)^t
+	    *
+	    * 0 = ((M_N^2)^t)_21 u_N + ((M_N^2)^t)_22 v_N
+	    *     \------------/       \------------/
+	    *           = 0                 /= 0
+	    *
+	    *     => v_N = 0
+	    */
+
       system_rhs = 0.0;
 
       // system_matrix = identity
       system_matrix = 0.0;
    } else if (i == 0) {
-      double time_step_last = mesh->get_times()[1] - mesh->get_times()[0];
+	   /*
+	    * (u_0, v_0)^t = (g_0, 0)^t - (M_{i+1}^1)^t (u_1, v_1)^t
+	    *
+	    * v_0 = - ((M_i^1)^t)_21 u_1 - ((M_i^1)^t)_22 v_1
+	    *     = [θ(k_{i+1} C^i - (1-θ) B^i) + (1-θ) (k_{i+1} C^{i+1} + θ B^{i+1})] u_1
+	    *       + [k_{i+1} C^i - (1-θ) B^i)] v_1
+	    */
+
+	   double time_step_last = mesh->get_times()[1] - mesh->get_times()[0];
 
       Vector<double> tmp(solution_u.size());
       system_rhs = 0.0;
@@ -290,7 +319,7 @@ void WaveEquationAdjoint<dim>::assemble_v(size_t i) {
       matrix_C_old.vmult_add(system_rhs, tmp);
 
       tmp *= time_step_last * theta;
-      matrix_B.vmult_add(system_rhs, tmp);
+      matrix_B_old.vmult_add(system_rhs, tmp);
 
       // system_matrix = identity
       system_matrix = 0.0;

@@ -11,8 +11,9 @@
 
 - [ ] grid adaptivity (decide on a structure, then all those `DoFHandler*`s have to be replaced 
 - [ ] Interpolation of time steps (`DiscretizedFunction::at`)
-- [ ] adjointness of `WaveEquationAdjoint` is way better, but seems to have an implementation error (at end/begin?)
+- [ ] adjointness of `WaveEquationAdjoint` is way better, but seems to have an implementation error (complete comments)
 - [ ] find a better way of treating multiple boundaries
+- [ ] `WaveEquationBase` with getters/setters and so on for Parameters and RHS as well as assembly of matrices A, B and C
 
 ## Inversion
 
