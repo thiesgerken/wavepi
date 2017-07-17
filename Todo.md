@@ -11,7 +11,7 @@
 
 - [ ] grid adaptivity (decide on a structure, then all those `DoFHandler*`s have to be replaced 
 - [ ] Interpolation of time steps (`DiscretizedFunction::at`)
-- [ ] adjointness still not good
+- [ ] adjointness of `WaveEquationAdjoint` is way better, but seems to have an implementation error (at end/begin?)
 - [ ] find a better way of treating multiple boundaries
 
 ## Inversion
@@ -21,7 +21,7 @@
 - [ ] linear Tikhonov (using "Tikhonov-CG"?)
 - [ ] Adjoints for a, nu and q (base problem class for linearizations? `LinearizedWaveProblem`)
 - [ ] ** REGINN: tolerance choice ** (-> abstract class, implement that strategy from Rieder's book/paper) 
-- [ ] REGINN: improve tolerance choice (if linear method does not converge (diverge or maximum iterations reached) increase tolerance and try again)
+- [ ] REGINN: improve tolerance choice (if linear method does not converge increase tolerance and try again)
 - [ ] add Shrinkage step to Landweber
 
 ## Documentation and Tests

@@ -23,6 +23,7 @@
 #include <forward/L2RightHandSide.h>
 #include <forward/SpaceTimeMesh.h>
 #include <forward/WaveEquation.h>
+#include <forward/WaveEquationAdjoint.h>
 
 #include <inversion/ConjugateGradients.h>
 #include <inversion/GradientDescent.h>
@@ -133,7 +134,7 @@ class QLinearizedProblem: public LinearProblem<DiscretizedFunction<dim>, Discret
 
       QLinearizedProblem(const WaveEquation<dim> &weq, const DiscretizedFunction<dim>& q,
             const DiscretizedFunction<dim>& u)
-            : weq(weq) {
+            : weq(weq), weq_adj(weq) {
          this->q = std::make_shared<DiscretizedFunction<dim>>(q);
          this->u = std::make_shared<DiscretizedFunction<dim>>(u);
 
@@ -144,7 +145,9 @@ class QLinearizedProblem: public LinearProblem<DiscretizedFunction<dim>, Discret
          this->weq.set_initial_values_v(this->weq.zero);
          this->weq.set_boundary_values_u(this->weq.zero);
          this->weq.set_boundary_values_v(this->weq.zero);
+
          this->weq.set_param_q(this->q);
+         this->weq_adj.set_param_q(this->q);
       }
 
       virtual DiscretizedFunction<dim> forward(const DiscretizedFunction<dim>& h) {
@@ -160,10 +163,11 @@ class QLinearizedProblem: public LinearProblem<DiscretizedFunction<dim>, Discret
       // L2 adjoint
       virtual DiscretizedFunction<dim> adjoint(const DiscretizedFunction<dim>& g) {
          rhs_adj->set_base_rhs(std::make_shared<DiscretizedFunction<dim>>(g));
-         weq.set_right_hand_side(rhs_adj);
+         weq_adj.set_right_hand_side(rhs_adj);
 
          // L*
-         DiscretizedFunction<dim> res = weq.run(true);
+         DiscretizedFunction<dim> res = weq_adj.run();
+         // DiscretizedFunction<dim> res = weq.run(true);
          res.throw_away_derivative();
 
          // M*
@@ -187,6 +191,7 @@ class QLinearizedProblem: public LinearProblem<DiscretizedFunction<dim>, Discret
       }
    private:
       WaveEquation<dim> weq;
+      WaveEquationAdjoint<dim> weq_adj;
 
       std::shared_ptr<DiscretizedFunction<dim>> q;
       std::shared_ptr<DiscretizedFunction<dim>> u;
@@ -253,7 +258,7 @@ void test() {
    deallog << "Number of active cells: " << triangulation.n_active_cells() << std::endl;
    deallog << "Number of degrees of freedom: " << dof_handler->n_dofs() << std::endl;
 
-   double t_start = 0.0, t_end = 2.0, dt = 1.0 / 32.0;
+   double t_start = 0.0, t_end = 2.0, dt = 1.0 / 64.0;
    std::vector<double> times;
 
    for (size_t i = 0; t_start + i * dt <= t_end; i++)

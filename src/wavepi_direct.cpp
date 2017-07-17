@@ -23,6 +23,7 @@
 #include <forward/L2RightHandSide.h>
 #include <forward/SpaceTimeMesh.h>
 #include <forward/WaveEquation.h>
+#include <forward/WaveEquationAdjoint.h>
 
 #include <stddef.h>
 #include <cmath>
@@ -127,7 +128,7 @@ template<int dim>
 void test() {
    std::ofstream logout("wavepi_direct.log");
    deallog.attach(logout);
-   deallog.depth_console(2);
+   deallog.depth_console(3);
    deallog.depth_file(100);
    deallog.precision(3);
    deallog.pop();
@@ -159,7 +160,7 @@ void test() {
       times.push_back(t_start + i * dt);
 
    std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, dof_handler, quad);
-   WaveEquation<dim> wave_eq(mesh, dof_handler, quad);
+   WaveEquationAdjoint<dim> wave_eq(mesh, dof_handler, quad);
 
    wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(std::make_shared<TestF<dim>>()));
    wave_eq.set_param_a(std::make_shared<TestA<dim>>());

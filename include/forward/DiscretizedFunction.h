@@ -105,7 +105,7 @@ class DiscretizedFunction: public Function<dim> {
       void set_time(const double new_time);
 
       inline const std::vector<Vector<double> >& get_derivative_coefficients() const {
-         Assert(!store_derivative, ExcInvalidState());
+         Assert(store_derivative, ExcInvalidState());
 
          return derivative_coefficients;
       }

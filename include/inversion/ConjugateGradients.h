@@ -69,8 +69,8 @@ class ConjugateGradients: public LinearRegularization<Param, Sol> {
             Sol q_k = this->problem->forward(p_k1);
 
             double alpha_k = square(norm_dk / q_k.norm());
-             deallog << "norm(d_k) = " << norm_dk << std::endl;
-             deallog << "norm(q_k) = " << q_k.norm() << std::endl;
+            // deallog << "norm(d_k) = " << norm_dk << std::endl;
+            // deallog << "norm(q_k) = " << q_k.norm() << std::endl;
 
             estimate.add(alpha_k, p_k1);
             r_k.add(-1.0 * alpha_k, q_k);

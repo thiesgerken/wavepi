@@ -7,7 +7,8 @@ SET(LIBSOURCES
         SpaceTimeMesh.cpp
         DiscretizedFunction.cpp        
         L2RightHandSide.cpp         
-        WaveEquation.cpp
+        WaveEquation.cpp       
+        WaveEquationAdjoint.cpp
         DistributionRightHandSide.cpp  
         MatrixCreator.cpp
     )

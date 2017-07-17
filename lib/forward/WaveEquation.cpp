@@ -52,7 +52,9 @@ WaveEquation<dim>::WaveEquation(const WaveEquation<dim>& weq)
       : theta(weq.theta), mesh(weq.mesh), dof_handler(weq.dof_handler), quad(weq.quad), initial_values_u(
             weq.initial_values_u), initial_values_v(weq.initial_values_v), boundary_values_u(
             weq.boundary_values_u), boundary_values_v(weq.boundary_values_v), param_c(weq.param_c), param_nu(
-            weq.param_nu), param_a(weq.param_a), param_q(weq.param_q), right_hand_side(weq.right_hand_side) {
+            weq.param_nu), param_a(weq.param_a), param_q(weq.param_q), right_hand_side(weq.right_hand_side), param_c_disc(
+            weq.param_c_disc), param_nu_disc(weq.param_nu_disc), param_a_disc(weq.param_a_disc), param_q_disc(
+            weq.param_q_disc) {
 }
 
 template<int dim>
@@ -65,10 +67,17 @@ WaveEquation<dim>& WaveEquation<dim>::operator=(const WaveEquation<dim>& weq) {
    initial_values_v = weq.initial_values_v;
    boundary_values_u = weq.boundary_values_u;
    boundary_values_v = weq.boundary_values_v;
+
    param_c = weq.param_c;
    param_nu = weq.param_nu;
    param_a = weq.param_a;
    param_q = weq.param_q;
+
+   param_c_disc = weq.param_c_disc;
+   param_nu_disc = weq.param_nu_disc;
+   param_a_disc = weq.param_a_disc;
+   param_q_disc = weq.param_q_disc;
+
    right_hand_side = weq.right_hand_side;
 
    return *this;
@@ -312,7 +321,7 @@ void WaveEquation<dim>::solve_v() {
 template<int dim>
 DiscretizedFunction<dim> WaveEquation<dim>::run(bool backwards) {
    LogStream::Prefix p("WaveEq");
-   Assert(mesh->get_times().size() > 2, ExcInternalError());
+   Assert(mesh->get_times().size() >= 2, ExcInternalError());
    Assert(mesh->get_times().size() < 10000, ExcNotImplemented());
 
    Timer timer, setup_timer;
@@ -470,6 +479,36 @@ template<int dim> double WaveEquation<dim>::get_theta() const {
 
 template<int dim> void WaveEquation<dim>::set_theta(double theta) {
    this->theta = theta;
+}
+
+template<int dim>
+const Quadrature<dim> WaveEquation<dim>::get_quad() const {
+   return quad;
+}
+
+template<int dim>
+void WaveEquation<dim>::set_quad(const Quadrature<dim> quad) {
+   this->quad = quad;
+}
+
+template<int dim>
+inline const std::shared_ptr<DoFHandler<dim> > WaveEquation<dim>::get_dof_handler() const {
+   return dof_handler;
+}
+
+template<int dim>
+inline void WaveEquation<dim>::set_dof_handler(const std::shared_ptr<DoFHandler<dim> > dof_handler) {
+   this->dof_handler = dof_handler;
+}
+
+template<int dim>
+inline const std::shared_ptr<SpaceTimeMesh<dim> > WaveEquation<dim>::get_mesh() const {
+   return mesh;
+}
+
+template<int dim>
+inline void WaveEquation<dim>::set_mesh(const std::shared_ptr<SpaceTimeMesh<dim> > mesh) {
+   this->mesh = mesh;
 }
 
 template<int dim> int WaveEquation<dim>::get_special_assembly_tactic() const {

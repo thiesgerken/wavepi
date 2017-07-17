@@ -1,12 +1,12 @@
 /*
- * WaveEquation.h
+ * WaveEquationAdjoint.h
  *
- *  Created on: 05.05.2017
+ *  Created on: 17.0.2017
  *      Author: thies
  */
 
-#ifndef FORWARD_WAVEEQUATION_H_
-#define FORWARD_WAVEEQUATION_H_
+#ifndef FORWARD_WAVEEQUATIONADJOINT_H_
+#define FORWARD_WAVEEQUATIONADJOINT_H_
 
 #include <deal.II/base/function.h>
 #include <deal.II/base/quadrature.h>
@@ -20,6 +20,7 @@
 #include <forward/L2RightHandSide.h>
 #include <forward/RightHandSide.h>
 #include <forward/SpaceTimeMesh.h>
+#include <forward/WaveEquation.h>
 
 #include <cmath>
 #include <memory>
@@ -30,16 +31,18 @@ using namespace dealii;
 
 // parameters and rhs must currently be discretized on the same space-time grid!
 template<int dim>
-class WaveEquation {
+class WaveEquationAdjoint {
    public:
-      WaveEquation(std::shared_ptr<SpaceTimeMesh<dim>> mesh, std::shared_ptr<DoFHandler<dim>> dof_handler,
-            const Quadrature<dim> quad);
-      WaveEquation(const WaveEquation<dim>& weq);
-      ~WaveEquation();
+      WaveEquationAdjoint(std::shared_ptr<SpaceTimeMesh<dim>> mesh,
+            std::shared_ptr<DoFHandler<dim>> dof_handler, const Quadrature<dim> quad);
+      WaveEquationAdjoint(const WaveEquationAdjoint<dim>& weq);
+      WaveEquationAdjoint(const WaveEquation<dim>& weq);
 
-      WaveEquation<dim>& operator=(const WaveEquation<dim>& weq);
+      ~WaveEquationAdjoint();
 
-      DiscretizedFunction<dim> run(bool backwards = false);
+      WaveEquationAdjoint<dim>& operator=(const WaveEquationAdjoint<dim>& weq);
+
+      DiscretizedFunction<dim> run();
 
       std::shared_ptr<Function<dim>> zero = std::make_shared<ZeroFunction<dim>>(1);
       std::shared_ptr<Function<dim>> one = std::make_shared<ConstantFunction<dim>>(1.0, 1);
@@ -48,18 +51,6 @@ class WaveEquation {
 
       double get_theta() const;
       void set_theta(double theta);
-
-      std::shared_ptr<Function<dim>> get_boundary_values_u() const;
-      void set_boundary_values_u(std::shared_ptr<Function<dim>> boundary_values_u);
-
-      std::shared_ptr<Function<dim>> get_boundary_values_v() const;
-      void set_boundary_values_v(std::shared_ptr<Function<dim>> boundary_values_v);
-
-      std::shared_ptr<Function<dim>> get_initial_values_u() const;
-      void set_initial_values_u(std::shared_ptr<Function<dim>> initial_values_u);
-
-      std::shared_ptr<Function<dim>> get_initial_values_v() const;
-      void set_initial_values_v(std::shared_ptr<Function<dim>> initial_values_v);
 
       std::shared_ptr<Function<dim>> get_param_a() const;
       void set_param_a(std::shared_ptr<Function<dim>> param_a);
@@ -101,16 +92,18 @@ class WaveEquation {
       void set_mesh(const std::shared_ptr<SpaceTimeMesh<dim> > mesh);
 
    private:
-      void init_system(double initial_time);
+      void init_system();
       void setup_step(double time);
-      void assemble_u(double time_step);
-      void assemble_v(double time_step);
-      void solve_u();
-      void solve_v();
+      void assemble_u(size_t i);
+      void assemble_v(size_t i);
+      void solve_u(size_t i);
+      void solve_v(size_t i);
 
       void fill_A();
       void fill_B();
       void fill_C();
+
+      DiscretizedFunction<dim> apply_R_transpose(const DiscretizedFunction<dim>& u) const;
 
       double theta;
 
@@ -122,8 +115,6 @@ class WaveEquation {
       std::shared_ptr<DoFHandler<dim>> dof_handler;
       Quadrature<dim> quad;
 
-      std::shared_ptr<Function<dim>> initial_values_u, initial_values_v;
-      std::shared_ptr<Function<dim>> boundary_values_u, boundary_values_v;
       std::shared_ptr<Function<dim>> param_c, param_nu, param_a, param_q;
 
       std::shared_ptr<DiscretizedFunction<dim>> param_c_disc = nullptr, param_nu_disc = nullptr;
