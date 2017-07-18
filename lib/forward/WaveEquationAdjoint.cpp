@@ -376,7 +376,7 @@ void WaveEquationAdjoint<dim>::solve_u(size_t i) {
       solution_u = system_rhs;
    else {
 
-      SolverControl solver_control(2000, 1e-10 * system_rhs.l2_norm());
+      SolverControl solver_control(2000, this->tolerance * system_rhs.l2_norm());
       SolverCG<> cg(solver_control);
 
       // Fewer (~half) iterations using preconditioner, but at least in 2D this is still not worth the effort
@@ -402,7 +402,7 @@ void WaveEquationAdjoint<dim>::solve_v(size_t i) {
    if (i == 0 || i == mesh->get_times().size() - 1)
       solution_v = system_rhs;
    else {
-      SolverControl solver_control(2000, 1e-10 * system_rhs.l2_norm());
+      SolverControl solver_control(2000, this->tolerance * system_rhs.l2_norm());
       SolverCG<> cg(solver_control);
 
       // See the comment in solve_u about preconditioning
@@ -478,12 +478,14 @@ DiscretizedFunction<dim> WaveEquationAdjoint<dim>::apply_R_transpose(
    for (size_t j = 0; j < mesh->get_times().size(); j++) {
       Vector<double> tmp(solution_u.size());
 
-      tmp.add(theta * (1 - theta), u.get_function_coefficients()[j]);
-      tmp.add(1 - theta, u.get_derivative_coefficients()[j]);
+      if (j != mesh->get_times().size() - 1) {
+         tmp.add(theta * (1 - theta), u.get_function_coefficients()[j + 1]);
+         tmp.add(1 - theta, u.get_derivative_coefficients()[j + 1]);
+      }
 
       if (j != 0) {
-         tmp.add(theta * theta, u.get_function_coefficients()[j - 1]);
-         tmp.add(theta, u.get_derivative_coefficients()[j - 1]);
+         tmp.add(theta * theta, u.get_function_coefficients()[j]);
+         tmp.add(theta, u.get_derivative_coefficients()[j]);
       }
 
       res.set(j, tmp);

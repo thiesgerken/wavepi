@@ -27,7 +27,7 @@ using namespace dealii;
 template<typename Param, typename Sol>
 class ConjugateGradients: public LinearRegularization<Param, Sol> {
    public:
-      // lambda: regularization parameter
+
       ConjugateGradients() {
          // cg should generate decreasing residuals
          this->abort_discrepancy_doubles = true;
@@ -92,7 +92,7 @@ class ConjugateGradients: public LinearRegularization<Param, Sol> {
                break;
 
             d_k = this->problem->adjoint(r_k);
-            //  deallog << "norm of d_k = " << d_k.norm() << std::endl;
+            // deallog << "norm of d_k = " << d_k.norm() << std::endl;
 
             double norm_dkm1 = norm_dk;
             norm_dk = d_k.norm();

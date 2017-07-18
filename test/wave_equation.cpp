@@ -481,10 +481,12 @@ void run_l2adjoint_test(int fe_order, int quad_order, int refines, int n_steps) 
    deallog << std::scientific << "(Lf, g) = " << dot_solf_g << ", (f, L*g) = " << dot_f_adjg
          << ", rel. error = " << fg_err << std::endl;
 
-   EXPECT_LT(ff_err, 1e-2);
-   EXPECT_LT(gg_err, 1e-2);
-   EXPECT_LT(gf_err, 1e-2);
-   EXPECT_LT(fg_err, 1e-2);
+   double tol = 1e-2;
+
+   EXPECT_LT(ff_err, tol);
+   EXPECT_LT(gg_err, tol);
+   EXPECT_LT(gf_err, tol);
+   EXPECT_LT(fg_err, tol);
 }
 
 // product of sines in space to have dirichlet b.c. in [0,pi], times a sum of sine and cosine in time.
@@ -661,12 +663,9 @@ TEST(WaveEquationTest, L2Adjointness1DFE2) {
 }
 
 TEST(WaveEquationTest, L2Adjointness2DFE1) {
-   run_l2adjoint_test<2>(1, 3, 4, 4);
-   run_l2adjoint_test<2>(1, 3, 4, 16);
    run_l2adjoint_test<2>(1, 3, 4, 64);
    run_l2adjoint_test<2>(1, 3, 4, 256);
    run_l2adjoint_test<2>(1, 3, 4, 512);
-   run_l2adjoint_test<2>(1, 3, 4, 1024);
 }
 
 TEST(WaveEquationTest, L2Adjointness2DFE2) {

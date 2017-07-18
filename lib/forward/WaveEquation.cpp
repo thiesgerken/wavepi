@@ -279,7 +279,7 @@ template<int dim>
 void WaveEquation<dim>::solve_u() {
    LogStream::Prefix p("solve_u");
 
-   SolverControl solver_control(2000, 1e-10 * system_rhs.l2_norm());
+   SolverControl solver_control(2000, this->tolerance * system_rhs.l2_norm());
    SolverCG<> cg(solver_control);
 
    // Fewer (~half) iterations using preconditioner, but at least in 2D this is still not worth the effort
@@ -301,7 +301,7 @@ template<int dim>
 void WaveEquation<dim>::solve_v() {
    LogStream::Prefix p("solve_v");
 
-   SolverControl solver_control(2000, 1e-10 * system_rhs.l2_norm());
+   SolverControl solver_control(2000, this->tolerance * system_rhs.l2_norm());
    SolverCG<> cg(solver_control);
 
    // See the comment in solve_u about preconditioning

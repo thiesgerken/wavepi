@@ -113,6 +113,8 @@ class TestA: public Function<dim> {
       }
 };
 
+
+
 template<int dim>
 class TestQ: public Function<dim> {
    public:
@@ -122,9 +124,15 @@ class TestQ: public Function<dim> {
       double value(const Point<dim> &p, const unsigned int component = 0) const {
          Assert(component == 0, ExcIndexRange(component, 0, 1));
 
-         return p[0] + this->get_time();
+         return p.distance(q_position) < 1.0 ? 10*std::sin(this->get_time()/2 * 2*numbers::PI) : 0.0 ;
       }
+
+      static const Point<dim> q_position;
 };
+
+template<> const Point<1> TestQ<1>::q_position = Point<1>(-1.0);
+template<> const Point<2> TestQ<2>::q_position = Point<2>(-1.0, 0.5);
+template<> const Point<3> TestQ<3>::q_position = Point<3>(-1.0, 0.5, 0.0);
 
 template<int dim>
 class QLinearizedProblem: public LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>> {
@@ -258,7 +266,7 @@ void test() {
    deallog << "Number of active cells: " << triangulation.n_active_cells() << std::endl;
    deallog << "Number of degrees of freedom: " << dof_handler->n_dofs() << std::endl;
 
-   double t_start = 0.0, t_end = 2.0, dt = 1.0 / 256.0;
+   double t_start = 0.0, t_end = 2.0, dt = 1.0 / 128.0;
    std::vector<double> times;
 
    for (size_t i = 0; t_start + i * dt <= t_end; i++)
@@ -268,8 +276,8 @@ void test() {
    WaveEquation<dim> wave_eq(mesh, dof_handler, quad);
 
    wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(std::make_shared<TestF<dim>>()));
-   wave_eq.set_param_a(std::make_shared<TestA<dim>>());
-   wave_eq.set_param_c(std::make_shared<TestC<dim>>());
+   //wave_eq.set_param_a(std::make_shared<TestA<dim>>());
+   //wave_eq.set_param_c(std::make_shared<TestC<dim>>());
 
    TestQ<dim> q;
    auto q_exact = std::make_shared<DiscretizedFunction<dim>>(mesh, dof_handler, q);

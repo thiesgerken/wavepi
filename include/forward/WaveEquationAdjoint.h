@@ -107,6 +107,8 @@ class WaveEquationAdjoint {
 
       double theta;
 
+      double tolerance = 1e-8;
+
       // treat DiscretizedFunctions as params and right hand side differently
       // < 0 -> no (better if much coupling present), > 0 -> yes, = 0 automatically (default)
       int special_assembly_tactic = 0;
