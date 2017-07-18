@@ -665,6 +665,8 @@ TEST(WaveEquationTest, L2Adjointness2DFE1) {
    run_l2adjoint_test<2>(1, 3, 4, 16);
    run_l2adjoint_test<2>(1, 3, 4, 64);
    run_l2adjoint_test<2>(1, 3, 4, 256);
+   run_l2adjoint_test<2>(1, 3, 4, 512);
+   run_l2adjoint_test<2>(1, 3, 4, 1024);
 }
 
 TEST(WaveEquationTest, L2Adjointness2DFE2) {

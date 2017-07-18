@@ -258,7 +258,7 @@ void test() {
    deallog << "Number of active cells: " << triangulation.n_active_cells() << std::endl;
    deallog << "Number of degrees of freedom: " << dof_handler->n_dofs() << std::endl;
 
-   double t_start = 0.0, t_end = 2.0, dt = 1.0 / 64.0;
+   double t_start = 0.0, t_end = 2.0, dt = 1.0 / 256.0;
    std::vector<double> times;
 
    for (size_t i = 0; t_start + i * dt <= t_end; i++)
