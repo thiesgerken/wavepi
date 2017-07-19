@@ -11,6 +11,9 @@
 #include <deal.II/base/utilities.h>
 #include <deal.II/numerics/data_out.h>
 #include <deal.II/numerics/vector_tools.h>
+#include <deal.II/lac/precondition.h>
+#include <deal.II/lac/solver_cg.h>
+#include <deal.II/lac/solver_control.h>
 
 #include <algorithm>
 #include <cmath>
@@ -288,7 +291,7 @@ double DiscretizedFunction<dim>::norm() const {
    switch (norm_type) {
       case L2L2_Vector:
          return l2l2_vec_norm();
-      case L2L2_Mass:
+      case L2L2_Trapezoidal_Mass:
          return l2l2_mass_norm();
    }
 
@@ -298,10 +301,12 @@ double DiscretizedFunction<dim>::norm() const {
 
 template<int dim>
 double DiscretizedFunction<dim>::operator*(const DiscretizedFunction<dim> & V) const {
+   Assert(norm_type == V.norm_type, ExcInternalError());
+
    switch (norm_type) {
       case L2L2_Vector:
          return l2l2_vec_dot(V);
-      case L2L2_Mass:
+      case L2L2_Trapezoidal_Mass:
          return l2l2_mass_dot(V);
    }
 
@@ -318,8 +323,8 @@ template<int dim>
 double DiscretizedFunction<dim>::l2l2_vec_dot(const DiscretizedFunction<dim> & V) const {
    Assert(mesh == V.mesh, ExcInternalError ());
    // remember to sync this implementation with l2_norm and all l2 adjoints!
-   // uses trapezoidal rule in time and vector l2 norm in space
-   // (only approx to L2(0,T, L2) inner product if spatial grid is uniform!
+   // uses vector l2 norm in time and vector l2 norm in space
+   // (only approx to L2(0,T, L2) inner product if spatial and temporal grid is uniform!
 
    double result = 0;
 
@@ -328,36 +333,92 @@ double DiscretizedFunction<dim>::l2l2_vec_dot(const DiscretizedFunction<dim> & V
             ExcDimensionMismatch (function_coefficients[i].size() , V.function_coefficients[i].size()));
 
       double doti = (function_coefficients[i] * V.function_coefficients[i]) / function_coefficients[i].size();
-
-      if (i > 0)
-         result += doti / 2 * (std::abs(mesh->get_times()[i] - mesh->get_times()[i - 1]));
-
-      if (i < mesh->get_times().size() - 1)
-         result += doti / 2 * (std::abs(mesh->get_times()[i + 1] - mesh->get_times()[i]));
+      result += doti;
    }
 
    return result;
 }
 
 template<int dim>
+void DiscretizedFunction<dim>::mult_space_time_mass() {
+   switch (norm_type) {
+      case L2L2_Vector:
+         return l2l2_vec_mult_space_time_mass();
+      case L2L2_Trapezoidal_Mass:
+         return l2l2_mass_mult_space_time_mass();
+   }
+
+   Assert(false, ExcInternalError ());
+}
+
+template<int dim>
+void DiscretizedFunction<dim>::solve_space_time_mass() {
+   switch (norm_type) {
+      case L2L2_Vector:
+         return l2l2_vec_solve_space_time_mass();
+      case L2L2_Trapezoidal_Mass:
+         return l2l2_mass_solve_space_time_mass();
+   }
+
+   Assert(false, ExcInternalError ());
+}
+
+template<int dim>
+void DiscretizedFunction<dim>::l2l2_vec_mult_space_time_mass() {
+   // done
+}
+
+template<int dim>
+void DiscretizedFunction<dim>::l2l2_vec_solve_space_time_mass() {
+   // done
+}
+
+template<int dim>
+void DiscretizedFunction<dim>::l2l2_mass_mult_space_time_mass() {
+//   Assert(false, ExcNotImplemented ());
+   // TODO time factors
+   for (size_t i = 0; i < mesh->get_times().size(); i++) {
+      Vector<double> tmp(function_coefficients[i].size());
+      mesh->get_mass_matrix(i)->vmult(tmp, function_coefficients[i]);
+      function_coefficients[i] = tmp;
+   }
+
+}
+
+template<int dim>
+void DiscretizedFunction<dim>::l2l2_mass_solve_space_time_mass() {
+   //   Assert(false, ExcNotImplemented ());
+   // TODO time factors
+
+   for (size_t i = 0; i < mesh->get_times().size(); i++) {
+      Vector<double> tmp(function_coefficients[i].size());
+
+      SolverControl solver_control(2000, 1e-10 * function_coefficients[i].l2_norm());
+      SolverCG<> cg(solver_control);
+
+      // See the comment in solve_u about preconditioning
+      PreconditionIdentity precondition = PreconditionIdentity();
+
+      cg.solve(*mesh->get_mass_matrix(i), tmp, function_coefficients[i], precondition);
+      function_coefficients[i] = tmp;
+   }
+}
+
+template<int dim>
 double DiscretizedFunction<dim>::l2l2_vec_norm() const {
-   // remember to sync this implementation with l2_dot and all l2 adjoints!
-   // uses trapezoidal rule in time and vector l2 norm in space
-   // (only approx to L2(0,T, L2) norm if spatial grid is uniform!
+   // remember to sync this implementation with l2_norm and all l2 adjoints!
+   // uses vector l2 norm in time and vector l2 norm in space
+   // (only approx to L2(0,T, L2) inner product if spatial and temporal grid is uniform!
    double result = 0;
 
    for (size_t i = 0; i < mesh->get_times().size(); i++) {
       double nrm2 = function_coefficients[i].norm_sqr() / function_coefficients[i].size();
-
-      if (i > 0)
-         result += nrm2 / 2 * (std::abs(mesh->get_times()[i] - mesh->get_times()[i - 1]));
-
-      if (i < mesh->get_times().size() - 1)
-         result += nrm2 / 2 * (std::abs(mesh->get_times()[i + 1] - mesh->get_times()[i]));
+      result += nrm2;
    }
 
    return std::sqrt(result);
 }
+
 template<int dim>
 double DiscretizedFunction<dim>::l2l2_mass_dot(const DiscretizedFunction<dim> & V) const {
    Assert(mesh == V.mesh, ExcInternalError ());

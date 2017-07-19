@@ -245,8 +245,7 @@ void WaveEquation<dim>::assemble_v(double time_step) {
    Vector<double> tmp(solution_u.size());
    system_rhs = 0.0;
 
-   matrix_C_old.vmult(tmp, solution_v_old);
-   system_rhs.add(1.0, tmp);
+   matrix_C_old.vmult_add(system_rhs, solution_v_old);
 
    system_rhs.add(theta * time_step, rhs);
 

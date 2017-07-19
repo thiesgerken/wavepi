@@ -30,7 +30,7 @@ template<int dim>
 class DiscretizedFunction: public Function<dim> {
    public:
       enum Norm {
-         L2L2_Vector, L2L2_Mass
+         L2L2_Vector, L2L2_Trapezoidal_Mass
       };
 
       virtual ~DiscretizedFunction();
@@ -73,11 +73,15 @@ class DiscretizedFunction: public Function<dim> {
       // fast, but only a crude approximation (even in case of uniform grids and P1-elements)
       double l2l2_vec_norm() const;
       double l2l2_vec_dot(const DiscretizedFunction<dim> & V) const;
+      void l2l2_vec_mult_space_time_mass();
+      void l2l2_vec_solve_space_time_mass();
 
       // l2 norm and dot product in time and space
       // through trapezoidal rule in time, mass matrix in space
       double l2l2_mass_norm() const;
       double l2l2_mass_dot(const DiscretizedFunction<dim> & V) const;
+      void l2l2_mass_mult_space_time_mass();
+      void l2l2_mass_solve_space_time_mass();
 
       // depending on the norm setting
       double norm() const;
@@ -85,6 +89,10 @@ class DiscretizedFunction: public Function<dim> {
       // depending on the norm setting
       double operator*(const DiscretizedFunction<dim> & V) const;
       double dot(const DiscretizedFunction<dim> & V) const;
+
+      // depending on the norm setting
+      void mult_space_time_mass();
+      void solve_space_time_mass();
 
       // fill this function with random values
       void rand();
@@ -129,8 +137,7 @@ class DiscretizedFunction: public Function<dim> {
       std::shared_ptr<SpaceTimeMesh<dim> > get_mesh() const;
 
    private:
-      Norm norm_type = L2L2_Mass;
-
+      Norm norm_type = L2L2_Trapezoidal_Mass; // L2L2_Vector
       bool store_derivative = false;
       size_t cur_time_idx = 0;
 

@@ -470,6 +470,7 @@ DiscretizedFunction<dim> WaveEquationAdjoint<dim>::run() {
    return apply_R_transpose(u);
 }
 
+// also applies Mass matrix afterwards
 template<int dim>
 DiscretizedFunction<dim> WaveEquationAdjoint<dim>::apply_R_transpose(
       const DiscretizedFunction<dim>& u) const {
@@ -488,7 +489,11 @@ DiscretizedFunction<dim> WaveEquationAdjoint<dim>::apply_R_transpose(
          tmp.add(theta, u.get_derivative_coefficients()[j]);
       }
 
+      // Vector<double> tmp2(solution_u.size());
+      // mesh->get_mass_matrix(j)->vmult(tmp2, tmp);
+      // res.set(j, tmp2);
       res.set(j, tmp);
+
    }
 
    return res;

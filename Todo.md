@@ -6,7 +6,7 @@
 - [ ] "Abort now" like in old code
 - [ ] Measurements
 - [ ] multiple RHS 
-
+- [ ] **`solve_space_time_mass` and same function for only time** (and `uses_mass` so that waveeqadj can assert this?)
 ## Direct Solver
 
 - [x] adjointness of `WaveEquationAdjoint` is way better, but seems to have an implementation error (complete comments)

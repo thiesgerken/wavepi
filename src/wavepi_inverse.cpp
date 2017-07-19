@@ -176,11 +176,13 @@ class QLinearizedProblem: public LinearProblem<DiscretizedFunction<dim>, Discret
          // L*
          DiscretizedFunction<dim> res = weq_adj.run();
          // DiscretizedFunction<dim> res = weq.run(true);
-         res.throw_away_derivative();
+         // res.throw_away_derivative();
 
          // M*
+         res.mult_space_time_mass();
          res *= -1.0;
          res.pointwise_multiplication(*u);
+         res.solve_space_time_mass();
          // a bit awkward: res has the right nodal values, but it should be a quadratic polynomial by now.
 
          return res;
@@ -271,6 +273,8 @@ void test() {
 
    for (size_t i = 0; t_start + i * dt <= t_end; i++)
       times.push_back(t_start + i * dt);
+
+   deallog << "Number of time steps: " << times.size() << std::endl;
 
    std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, dof_handler, quad);
    WaveEquation<dim> wave_eq(mesh, dof_handler, quad);
