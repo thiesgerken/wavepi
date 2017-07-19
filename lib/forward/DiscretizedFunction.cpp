@@ -85,6 +85,7 @@ DiscretizedFunction<dim>::DiscretizedFunction(DiscretizedFunction&& o)
       : Function<dim>(), norm_type(o.norm_type), store_derivative(o.store_derivative), cur_time_idx(
             o.cur_time_idx), mesh(std::move(o.mesh)), dof_handler(std::move(o.dof_handler)), function_coefficients(
             std::move(o.function_coefficients)), derivative_coefficients(std::move(o.derivative_coefficients)) {
+	o.mesh = std::shared_ptr<SpaceTimeMesh<dim>>();
 }
 
 template<int dim>
@@ -103,6 +104,8 @@ DiscretizedFunction<dim>& DiscretizedFunction<dim>::operator=(DiscretizedFunctio
    dof_handler = std::move(o.dof_handler);
    function_coefficients = std::move(o.function_coefficients);
    derivative_coefficients = std::move(o.derivative_coefficients);
+
+   o.mesh = std::shared_ptr<SpaceTimeMesh<dim>>();
 
    return *this;
 }
@@ -320,6 +323,134 @@ double DiscretizedFunction<dim>::dot(const DiscretizedFunction<dim> & V) const {
 }
 
 template<int dim>
+void DiscretizedFunction<dim>::mult_space_time_mass() {
+   switch (norm_type) {
+      case L2L2_Vector:
+         return;
+      case L2L2_Trapezoidal_Mass:
+         return l2l2_mass_mult_space_time_mass();
+   }
+
+   Assert(false, ExcInternalError ());
+}
+
+template<int dim>
+void DiscretizedFunction<dim>::solve_space_time_mass() {
+   switch (norm_type) {
+      case L2L2_Vector:
+         return;
+      case L2L2_Trapezoidal_Mass:
+         return l2l2_mass_solve_space_time_mass();
+   }
+
+   Assert(false, ExcInternalError ());
+}
+
+template<int dim>
+void DiscretizedFunction<dim>::mult_time_mass() {
+   switch (norm_type) {
+      case L2L2_Vector:
+         return;
+      case L2L2_Trapezoidal_Mass:
+         return l2l2_mass_mult_time_mass();
+   }
+
+   Assert(false, ExcInternalError ());
+}
+
+template<int dim>
+void DiscretizedFunction<dim>::solve_time_mass() {
+   switch (norm_type) {
+      case L2L2_Vector:
+         return;
+      case L2L2_Trapezoidal_Mass:
+         return l2l2_mass_solve_time_mass();
+   }
+
+   Assert(false, ExcInternalError ());
+}
+
+
+template<int dim>
+bool DiscretizedFunction<dim>::norm_uses_mass_matrix() const {
+	   switch (norm_type) {
+	      case L2L2_Vector:
+	         return false;
+	      case L2L2_Trapezoidal_Mass:
+	         return true;
+	   }
+
+	   Assert(false, ExcInternalError ());
+	   return false;
+}
+
+template<int dim>
+void DiscretizedFunction<dim>::l2l2_mass_mult_space_time_mass() {
+	  Assert(!store_derivative, ExcInternalError ());
+
+	  for (size_t i = 0; i < mesh->get_times().size(); i++) {
+      Vector<double> tmp(function_coefficients[i].size());
+      mesh->get_mass_matrix(i)->vmult(tmp, function_coefficients[i]);
+      function_coefficients[i] = tmp;
+   }
+
+   l2l2_mass_mult_time_mass();
+}
+
+template<int dim>
+void DiscretizedFunction<dim>::l2l2_mass_mult_time_mass() {
+	  Assert(!store_derivative, ExcInternalError ());
+
+	  for (size_t i = 0; i < mesh->get_times().size(); i++) {
+	           double factor = 0.0;
+
+	           if (i > 0)
+	    	  factor += std::abs(mesh->get_times()[i] - mesh->get_times()[i - 1]) / 2.0;
+
+	      if (i < mesh->get_times().size() - 1)
+	    	  factor += std::abs(mesh->get_times()[i + 1] - mesh->get_times()[i])/ 2.0;
+
+	      function_coefficients[i] *= factor;
+	   }
+}
+
+template<int dim>
+void DiscretizedFunction<dim>::l2l2_mass_solve_space_time_mass() {
+	  Assert(!store_derivative, ExcInternalError ());
+
+   for (size_t i = 0; i < mesh->get_times().size(); i++) {
+	   Vector<double> tmp(function_coefficients[i].size());
+
+      SolverControl solver_control(2000, 1e-10 * function_coefficients[i].l2_norm());
+      SolverCG<> cg(solver_control);
+      PreconditionIdentity precondition = PreconditionIdentity();
+
+      cg.solve(*mesh->get_mass_matrix(i), tmp, function_coefficients[i], precondition);
+      function_coefficients[i] = tmp;
+   }
+
+   l2l2_mass_solve_time_mass();
+}
+
+template<int dim>
+void DiscretizedFunction<dim>::l2l2_mass_solve_time_mass() {
+	  Assert(!store_derivative, ExcInternalError ());
+
+	  for (size_t i = 0; i < mesh->get_times().size(); i++) {
+	           double factor = 0.0;
+
+	           if (i > 0)
+	    	  factor += std::abs(mesh->get_times()[i] - mesh->get_times()[i - 1]) / 2.0;
+
+	      if (i < mesh->get_times().size() - 1)
+	    	  factor += std::abs(mesh->get_times()[i + 1] - mesh->get_times()[i])/ 2.0;
+
+	      Assert(factor != 0.0, ExcInternalError ());
+	      function_coefficients[i] /= factor;
+	   }
+}
+
+template<int dim>
 double DiscretizedFunction<dim>::l2l2_vec_dot(const DiscretizedFunction<dim> & V) const {
    Assert(mesh == V.mesh, ExcInternalError ());
    // remember to sync this implementation with l2_norm and all l2 adjoints!
@@ -337,71 +468,6 @@ double DiscretizedFunction<dim>::l2l2_vec_dot(const DiscretizedFunction<dim> & V
    }
 
    return result;
-}
-
-template<int dim>
-void DiscretizedFunction<dim>::mult_space_time_mass() {
-   switch (norm_type) {
-      case L2L2_Vector:
-         return l2l2_vec_mult_space_time_mass();
-      case L2L2_Trapezoidal_Mass:
-         return l2l2_mass_mult_space_time_mass();
-   }
-
-   Assert(false, ExcInternalError ());
-}
-
-template<int dim>
-void DiscretizedFunction<dim>::solve_space_time_mass() {
-   switch (norm_type) {
-      case L2L2_Vector:
-         return l2l2_vec_solve_space_time_mass();
-      case L2L2_Trapezoidal_Mass:
-         return l2l2_mass_solve_space_time_mass();
-   }
-
-   Assert(false, ExcInternalError ());
-}
-
-template<int dim>
-void DiscretizedFunction<dim>::l2l2_vec_mult_space_time_mass() {
-   // done
-}
-
-template<int dim>
-void DiscretizedFunction<dim>::l2l2_vec_solve_space_time_mass() {
-   // done
-}
-
-template<int dim>
-void DiscretizedFunction<dim>::l2l2_mass_mult_space_time_mass() {
-//   Assert(false, ExcNotImplemented ());
-   // TODO time factors
-   for (size_t i = 0; i < mesh->get_times().size(); i++) {
-      Vector<double> tmp(function_coefficients[i].size());
-      mesh->get_mass_matrix(i)->vmult(tmp, function_coefficients[i]);
-      function_coefficients[i] = tmp;
-   }
-
-}
-
-template<int dim>
-void DiscretizedFunction<dim>::l2l2_mass_solve_space_time_mass() {
-   //   Assert(false, ExcNotImplemented ());
-   // TODO time factors
-
-   for (size_t i = 0; i < mesh->get_times().size(); i++) {
-      Vector<double> tmp(function_coefficients[i].size());
-
-      SolverControl solver_control(2000, 1e-10 * function_coefficients[i].l2_norm());
-      SolverCG<> cg(solver_control);
-
-      // See the comment in solve_u about preconditioning
-      PreconditionIdentity precondition = PreconditionIdentity();
-
-      cg.solve(*mesh->get_mass_matrix(i), tmp, function_coefficients[i], precondition);
-      function_coefficients[i] = tmp;
-   }
 }
 
 template<int dim>

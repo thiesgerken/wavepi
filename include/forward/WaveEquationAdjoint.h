@@ -30,6 +30,7 @@ namespace forward {
 using namespace dealii;
 
 // parameters and rhs must currently be discretized on the same space-time grid!
+// this is the adjoint equation when using vector norm in time and L2 (using mass matrices) in space
 template<int dim>
 class WaveEquationAdjoint {
    public:

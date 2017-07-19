@@ -69,20 +69,6 @@ class DiscretizedFunction: public Function<dim> {
 
       void pointwise_multiplication(const DiscretizedFunction<dim>& V);
 
-      // vector l2 norm and dot product in time and space
-      // fast, but only a crude approximation (even in case of uniform grids and P1-elements)
-      double l2l2_vec_norm() const;
-      double l2l2_vec_dot(const DiscretizedFunction<dim> & V) const;
-      void l2l2_vec_mult_space_time_mass();
-      void l2l2_vec_solve_space_time_mass();
-
-      // l2 norm and dot product in time and space
-      // through trapezoidal rule in time, mass matrix in space
-      double l2l2_mass_norm() const;
-      double l2l2_mass_dot(const DiscretizedFunction<dim> & V) const;
-      void l2l2_mass_mult_space_time_mass();
-      void l2l2_mass_solve_space_time_mass();
-
       // depending on the norm setting
       double norm() const;
 
@@ -93,6 +79,9 @@ class DiscretizedFunction: public Function<dim> {
       // depending on the norm setting
       void mult_space_time_mass();
       void solve_space_time_mass();
+      void mult_time_mass();
+      void solve_time_mass();
+      bool norm_uses_mass_matrix() const;
 
       // fill this function with random values
       void rand();
@@ -149,6 +138,22 @@ class DiscretizedFunction: public Function<dim> {
 
       void write_vtk(const std::string name, const std::string name_deriv, const std::string filename,
             size_t i) const;
+
+      // vector l2 norm and dot product in time and space
+      // fast, but only a crude approximation (even in case of uniform space-time grids and P1-elements)
+      double l2l2_vec_norm() const;
+      double l2l2_vec_dot(const DiscretizedFunction<dim> & V) const;
+
+      // l2 norm and dot product in time and space
+      // through trapezoidal rule in time, mass matrix in space
+      double l2l2_mass_norm() const;
+      double l2l2_mass_dot(const DiscretizedFunction<dim> & V) const;
+
+      void l2l2_mass_mult_space_time_mass();
+      void l2l2_mass_solve_space_time_mass();
+
+      void l2l2_mass_mult_time_mass();
+        void l2l2_mass_solve_time_mass();
 
 };
 } /* namespace forward */

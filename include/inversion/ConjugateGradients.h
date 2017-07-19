@@ -45,12 +45,12 @@ class ConjugateGradients: public LinearRegularization<Param, Sol> {
          LogStream::Prefix p = LogStream::Prefix("CG");
          Assert(this->problem, ExcInternalError());
 
+
+         Param estimate(this->problem->zero());
          Sol r_k(data);
 
-         Param p_k1 = this->problem->adjoint(r_k);
+         Param p_k1(this->problem->adjoint(r_k));
          Param d_k(p_k1);
-
-         Param estimate = this->problem->zero();
 
          double norm_dk = d_k.norm();
          double discrepancy = r_k.norm();
@@ -66,7 +66,7 @@ class ConjugateGradients: public LinearRegularization<Param, Sol> {
                discrepancy > target_discrepancy
                      && (!this->abort_discrepancy_doubles || discrepancy < 2 * initial_discrepancy)
                      && k <= this->max_iterations; k++) {
-            Sol q_k = this->problem->forward(p_k1);
+            Sol q_k(this->problem->forward(p_k1));
 
             double alpha_k = square(norm_dk / q_k.norm());
             // deallog << "norm(d_k) = " << norm_dk << std::endl;

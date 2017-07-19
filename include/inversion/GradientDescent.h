@@ -41,9 +41,9 @@ class GradientDescent: public LinearRegularization<Param, Sol> {
          LogStream::Prefix p = LogStream::Prefix("Gradient");
          Assert(this->problem, ExcInternalError());
 
-         Param estimate = this->problem->zero();
-
+         Param estimate(this->problem->zero());
          Sol residual(data);
+
          double discrepancy = residual.norm();
          double initial_discrepancy = discrepancy;
          double norm_data = data.norm();
@@ -57,8 +57,9 @@ class GradientDescent: public LinearRegularization<Param, Sol> {
                discrepancy > target_discrepancy
                      && (!this->abort_discrepancy_doubles || discrepancy < 2 * initial_discrepancy)
                      && k <= this->max_iterations; k++) {
-            Param step = this->problem->adjoint(residual);
-            Sol Astep = this->problem->forward(step);
+            Param step(this->problem->adjoint(residual));
+            Sol Astep(this->problem->forward(step));
+
             double omega = square(step.norm() / Astep.norm());
 
             // deallog << "omega = " << omega << std::endl;

@@ -149,6 +149,9 @@ class QLinearizedProblem: public LinearProblem<DiscretizedFunction<dim>, Discret
          this->rhs = std::make_shared<L2ProductRightHandSide<dim>>(this->u, this->u);
          this->rhs_adj = std::make_shared<L2RightHandSide<dim>>(this->u);
 
+         this->weq.set_right_hand_side(rhs);
+         this->weq_adj.set_right_hand_side(rhs_adj);
+
          this->weq.set_initial_values_u(this->weq.zero);
          this->weq.set_initial_values_v(this->weq.zero);
          this->weq.set_boundary_values_u(this->weq.zero);
@@ -160,36 +163,40 @@ class QLinearizedProblem: public LinearProblem<DiscretizedFunction<dim>, Discret
 
       virtual DiscretizedFunction<dim> forward(const DiscretizedFunction<dim>& h) {
          rhs->set_func1(std::make_shared<DiscretizedFunction<dim>>(h));
-         weq.set_right_hand_side(rhs);
 
          DiscretizedFunction<dim> res = weq.run();
-         res.throw_away_derivative();
+         res.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
+           	      res.throw_away_derivative();
 
          return res;
       }
 
       // L2 adjoint
       virtual DiscretizedFunction<dim> adjoint(const DiscretizedFunction<dim>& g) {
-         rhs_adj->set_base_rhs(std::make_shared<DiscretizedFunction<dim>>(g));
-         weq_adj.set_right_hand_side(rhs_adj);
+    	    // L*
+    	  auto tmp = std::make_shared<DiscretizedFunction<dim>>(g);
+    	 tmp->set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
+    	  tmp->mult_time_mass();
 
-         // L*
-         DiscretizedFunction<dim> res = weq_adj.run();
-         // DiscretizedFunction<dim> res = weq.run(true);
-         // res.throw_away_derivative();
+    	  rhs_adj->set_base_rhs(tmp);
+        DiscretizedFunction<dim> res = weq_adj.run();
+        res.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
+          	   res.solve_time_mass();
 
          // M*
          res.mult_space_time_mass();
          res *= -1.0;
          res.pointwise_multiplication(*u);
          res.solve_space_time_mass();
-         // a bit awkward: res has the right nodal values, but it should be a quadratic polynomial by now.
 
          return res;
       }
 
       virtual DiscretizedFunction<dim> zero() {
-         return DiscretizedFunction<dim>(q->get_mesh(), q->get_dof_handler());
+    	  DiscretizedFunction<dim> res(q->get_mesh(), q->get_dof_handler());
+    	  res.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
+
+    	  return res;
       }
 
       bool progress(InversionProgress<DiscretizedFunction<dim>, DiscretizedFunction<dim>> state) {
