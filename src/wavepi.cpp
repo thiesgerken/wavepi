@@ -31,7 +31,7 @@
 #include <inversion/LinearProblem.h>
 #include <inversion/NonlinearLandweber.h>
 #include <inversion/REGINN.h>
-#include <inversion/WaveProblem.h>
+#include <problems/L2QProblem.h>
 
 #include <stddef.h>
 #include <algorithm>
@@ -44,6 +44,7 @@
 using namespace dealii;
 using namespace wavepi::forward;
 using namespace wavepi::inversion;
+using namespace wavepi::problems;
 
 template<int dim>
 class TestF: public Function<dim> {
@@ -71,20 +72,17 @@ double rho(const Point<dim> &p, double t);
 
 template<>
 double rho(const Point<1> &p, double t) {
-// return  p.distance(Point<2>(1.0*std::cos(2*numbers::PI * t / 8.0), 1.0*std::sin(2*numbers::PI * t / 8.0))) < 0.65 ? 20.0 : 1.0;
    return p.distance(Point<1>(t - 3.0)) < 1.2 ? 1.0 / 3.0 : 1.0;
 }
 
 template<>
 double rho(const Point<2> &p, double t) {
-// return  p.distance(Point<2>(1.0*std::cos(2*numbers::PI * t / 8.0), 1.0*std::sin(2*numbers::PI * t / 8.0))) < 0.65 ? 20.0 : 1.0;
    return p.distance(Point<2>(t - 3.0, t - 2.0)) < 1.2 ? 1.0 / 3.0 : 1.0;
 }
 
 template<>
 double rho(const Point<3> &p, double t) {
-// return  p.distance(Point<2>(1.0*std::cos(2*numbers::PI * t / 8.0), 1.0*std::sin(2*numbers::PI * t / 8.0))) < 0.65 ? 20.0 : 1.0;
-   return p.distance(Point<3>(t - 3.0, t - 2.0, 0.0)) < 1.2 ? 1.0 / 3.0 : 1.0;
+  return p.distance(Point<3>(t - 3.0, t - 2.0, 0.0)) < 1.2 ? 1.0 / 3.0 : 1.0;
 }
 
 template<int dim>
@@ -113,8 +111,6 @@ class TestA: public Function<dim> {
       }
 };
 
-
-
 template<int dim>
 class TestQ: public Function<dim> {
    public:
@@ -124,7 +120,7 @@ class TestQ: public Function<dim> {
       double value(const Point<dim> &p, const unsigned int component = 0) const {
          Assert(component == 0, ExcIndexRange(component, 0, 1));
 
-         return p.distance(q_position) < 1.0 ? 10*std::sin(this->get_time()/2 * 2*numbers::PI) : 0.0 ;
+         return p.distance(q_position) < 1.0 ? 10 * std::sin(this->get_time() / 2 * 2 * numbers::PI) : 0.0;
       }
 
       static const Point<dim> q_position;
@@ -134,117 +130,10 @@ template<> const Point<1> TestQ<1>::q_position = Point<1>(-1.0);
 template<> const Point<2> TestQ<2>::q_position = Point<2>(-1.0, 0.5);
 template<> const Point<3> TestQ<3>::q_position = Point<3>(-1.0, 0.5, 0.0);
 
-template<int dim>
-class QLinearizedProblem: public LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>> {
-   public:
-      virtual ~QLinearizedProblem() {
-      }
-
-      QLinearizedProblem(const WaveEquation<dim> &weq, const DiscretizedFunction<dim>& q,
-            const DiscretizedFunction<dim>& u)
-            : weq(weq), weq_adj(weq) {
-         this->q = std::make_shared<DiscretizedFunction<dim>>(q);
-         this->u = std::make_shared<DiscretizedFunction<dim>>(u);
-
-         this->rhs = std::make_shared<L2ProductRightHandSide<dim>>(this->u, this->u);
-         this->rhs_adj = std::make_shared<L2RightHandSide<dim>>(this->u);
-
-         this->weq.set_right_hand_side(rhs);
-         this->weq_adj.set_right_hand_side(rhs_adj);
-
-         this->weq.set_initial_values_u(this->weq.zero);
-         this->weq.set_initial_values_v(this->weq.zero);
-         this->weq.set_boundary_values_u(this->weq.zero);
-         this->weq.set_boundary_values_v(this->weq.zero);
-
-         this->weq.set_param_q(this->q);
-         this->weq_adj.set_param_q(this->q);
-      }
-
-      virtual DiscretizedFunction<dim> forward(const DiscretizedFunction<dim>& h) {
-         rhs->set_func1(std::make_shared<DiscretizedFunction<dim>>(h));
-
-         DiscretizedFunction<dim> res = weq.run();
-         res.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
-           	      res.throw_away_derivative();
-
-         return res;
-      }
-
-      // L2 adjoint
-      virtual DiscretizedFunction<dim> adjoint(const DiscretizedFunction<dim>& g) {
-    	    // L*
-    	  auto tmp = std::make_shared<DiscretizedFunction<dim>>(g);
-    	 tmp->set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
-    	  tmp->mult_time_mass();
-
-    	  rhs_adj->set_base_rhs(tmp);
-        DiscretizedFunction<dim> res = weq_adj.run();
-        res.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
-          	   res.solve_time_mass();
-
-         // M*
-         res.mult_space_time_mass();
-         res *= -1.0;
-         res.pointwise_multiplication(*u);
-         res.solve_space_time_mass();
-
-         return res;
-      }
-
-      virtual DiscretizedFunction<dim> zero() {
-    	  DiscretizedFunction<dim> res(q->get_mesh(), q->get_dof_handler());
-    	  res.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
-
-    	  return res;
-      }
-
-      bool progress(InversionProgress<DiscretizedFunction<dim>, DiscretizedFunction<dim>> state) {
-         deallog << "k=" << state.iteration_number << ": rdisc="
-               << state.current_discrepancy / state.norm_data;
-         deallog << ", norm=" << state.norm_current_estimate;
-         deallog << std::endl;
-         return true;
-      }
-   private:
-      WaveEquation<dim> weq;
-      WaveEquationAdjoint<dim> weq_adj;
-
-      std::shared_ptr<DiscretizedFunction<dim>> q;
-      std::shared_ptr<DiscretizedFunction<dim>> u;
-
-      std::shared_ptr<L2ProductRightHandSide<dim>> rhs;
-      std::shared_ptr<L2RightHandSide<dim>> rhs_adj;
-};
-
-template<int dim>
-class QProblem: public WaveProblem<dim> {
-   public:
-      virtual ~QProblem() {
-      }
-
-      QProblem(WaveEquation<dim>& weq)
-            : WaveProblem<dim>(weq) {
-      }
-
-      virtual std::unique_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>> derivative(
-            const DiscretizedFunction<dim>& q, const DiscretizedFunction<dim>& u) {
-         return std::make_unique<QLinearizedProblem<dim>>(this->wave_equation, q, u);
-      }
-
-      virtual DiscretizedFunction<dim> forward(const DiscretizedFunction<dim>& q) {
-         this->wave_equation.set_param_q(std::make_shared<DiscretizedFunction<dim>>(q));
-
-         DiscretizedFunction<dim> res = this->wave_equation.run();
-         res.throw_away_derivative();
-
-         return res;
-      }
-};
 
 template<int dim>
 void test() {
-   std::ofstream logout("wavepi_inverse.log");
+   std::ofstream logout("wavepi.log");
    deallog.attach(logout);
    deallog.depth_console(2);
    deallog.depth_file(100);
@@ -287,8 +176,8 @@ void test() {
    WaveEquation<dim> wave_eq(mesh, dof_handler, quad);
 
    wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(std::make_shared<TestF<dim>>()));
-   //wave_eq.set_param_a(std::make_shared<TestA<dim>>());
-   //wave_eq.set_param_c(std::make_shared<TestC<dim>>());
+   wave_eq.set_param_a(std::make_shared<TestA<dim>>());
+   wave_eq.set_param_c(std::make_shared<TestC<dim>>());
 
    TestQ<dim> q;
    auto q_exact = std::make_shared<DiscretizedFunction<dim>>(mesh, dof_handler, q);
@@ -298,6 +187,7 @@ void test() {
 
    auto data_exact = wave_eq.run();
    data_exact.throw_away_derivative();
+   data_exact.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
 
    double epsilon = 1e-2;
    auto data = DiscretizedFunction<dim>::noise(data_exact, epsilon * data_exact.norm());
@@ -312,7 +202,7 @@ void test() {
    //   NonlinearLandweber<DiscretizedFunction<dim>, DiscretizedFunction<dim>> lw(std::make_unique<QProblem<dim>>(wave_eq), initialGuess, 5e1);
    //   lw.invert(data, 1.5 * epsilon * data_exact.norm(), &q_exact);
 
-   REGINN<DiscretizedFunction<dim>, DiscretizedFunction<dim>> reginn(std::make_unique<QProblem<dim>>(wave_eq),
+   REGINN<DiscretizedFunction<dim>, DiscretizedFunction<dim>> reginn(std::make_unique<L2QProblem<dim>>(wave_eq),
          std::make_unique<ConjugateGradients<DiscretizedFunction<dim>, DiscretizedFunction<dim>>>(),
          initialGuess);
    reginn.invert(data, 2 * epsilon * data_exact.norm(), q_exact);

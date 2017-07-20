@@ -29,7 +29,7 @@ class ConjugateGradients: public LinearRegularization<Param, Sol> {
    public:
 
       ConjugateGradients() {
-         // cg should generate decreasing residuals
+         // cgls should generate decreasing residuals
          this->abort_discrepancy_doubles = true;
          this->abort_increasing_discrepancy = true;
       }
@@ -42,23 +42,22 @@ class ConjugateGradients: public LinearRegularization<Param, Sol> {
       virtual Param invert(const Sol& data, double target_discrepancy,
             std::shared_ptr<const Param> exact_param,
             std::shared_ptr<InversionProgress<Param, Sol>> status_out) {
-         LogStream::Prefix p = LogStream::Prefix("CG");
+         LogStream::Prefix prefix("CGLS");
          Assert(this->problem, ExcInternalError());
 
+         Param estimate(this->problem->zero()); // f_k
+         Sol residual(data); // r_k
 
-         Param estimate(this->problem->zero());
-         Sol r_k(data);
+         Param p(this->problem->adjoint(residual)); // p_{k+1}
+         Param d(p); // d_k
 
-         Param p_k1(this->problem->adjoint(r_k));
-         Param d_k(p_k1);
-
-         double norm_dk = d_k.norm();
-         double discrepancy = r_k.norm();
+         double norm_d = d.norm();
+         double discrepancy = residual.norm();
          double initial_discrepancy = discrepancy;
          double norm_data = data.norm();
          double norm_exact = exact_param ? exact_param->norm() : -0.0;
 
-         InversionProgress<Param, Sol> status(0, &estimate, estimate.norm(), &r_k, discrepancy, &data,
+         InversionProgress<Param, Sol> status(0, &estimate, estimate.norm(), &residual, discrepancy, &data,
                norm_data, exact_param, norm_exact);
          this->problem->progress(status);
 
@@ -66,41 +65,48 @@ class ConjugateGradients: public LinearRegularization<Param, Sol> {
                discrepancy > target_discrepancy
                      && (!this->abort_discrepancy_doubles || discrepancy < 2 * initial_discrepancy)
                      && k <= this->max_iterations; k++) {
-            Sol q_k(this->problem->forward(p_k1));
+            Sol q(this->problem->forward(p)); // q_k
 
-            double alpha_k = square(norm_dk / q_k.norm());
-            // deallog << "norm(d_k) = " << norm_dk << std::endl;
-            // deallog << "norm(q_k) = " << q_k.norm() << std::endl;
+            double alpha = square(norm_d / q.norm()); // α_k
+            {
+               LogStream::Prefix pp("info");
+               deallog << "α_k = " << alpha << std::endl;
+            }
 
-            estimate.add(alpha_k, p_k1);
-            r_k.add(-1.0 * alpha_k, q_k);
+            if (alpha == 0.0)
+               break;
+
+            estimate.add(alpha, p);
+            residual.add(-1.0 * alpha, q);
 
             double discrepancy_last = discrepancy;
-            discrepancy = r_k.norm();
+            discrepancy = residual.norm();
 
-            status = InversionProgress<Param, Sol>(k, &estimate, estimate.norm(), &r_k, discrepancy, &data,
-                  norm_data, exact_param, norm_exact);
+            status = InversionProgress<Param, Sol>(k, &estimate, estimate.norm(), &residual, discrepancy,
+                  &data, norm_data, exact_param, norm_exact);
 
             if (!this->problem->progress(status))
                break;
 
             if (discrepancy_last < discrepancy && this->abort_increasing_discrepancy)
-               break;
+                           break;
 
             // saves one evaluation of the adjoint if we are finished
             if (discrepancy <= target_discrepancy)
                break;
 
-            d_k = this->problem->adjoint(r_k);
-            // deallog << "norm of d_k = " << d_k.norm() << std::endl;
+            d = this->problem->adjoint(residual);
 
-            double norm_dkm1 = norm_dk;
-            norm_dk = d_k.norm();
+            double norm_d_last = norm_d; // ‖d_{k-1}‖
+            norm_d = d.norm();
 
-            double beta_k = square(norm_dk / norm_dkm1);
-            // deallog << "beta_k = " << beta_k << std::endl;
+            double beta = square(norm_d / norm_d_last); // β_k
+            {
+               LogStream::Prefix pp("info");
+               deallog << "β_k = " << beta << std::endl;
+            }
 
-            p_k1.sadd(beta_k, 1.0, d_k);
+            p.sadd(beta, 1.0, d);
          }
 
          if (status_out)

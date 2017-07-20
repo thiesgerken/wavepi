@@ -1,7 +1,5 @@
-ADD_EXECUTABLE(wavepi_direct wavepi_direct.cpp)
-DEAL_II_SETUP_TARGET(wavepi_direct)
-TARGET_LINK_LIBRARIES(wavepi_direct wavepi_forward)
+ADD_EXECUTABLE(wavepi wavepi.cpp)
+DEAL_II_SETUP_TARGET(wavepi)
+TARGET_LINK_LIBRARIES(wavepi wavepi_forward wavepi_problems)
 
-ADD_EXECUTABLE(wavepi_inverse wavepi_inverse.cpp)
-DEAL_II_SETUP_TARGET(wavepi_inverse)
-TARGET_LINK_LIBRARIES(wavepi_inverse wavepi_forward wavepi_inversion)
+ADD_EXECUTABLE(logfilter logfilter.cpp)

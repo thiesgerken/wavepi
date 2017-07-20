@@ -28,6 +28,8 @@
 #include <forward/WaveEquation.h>
 #include <forward/WaveEquationAdjoint.h>
 
+#include <problems/L2QProblem.h>
+
 #include <bits/std_abs.h>
 #include <stddef.h>
 #include <iostream>
@@ -39,6 +41,7 @@ namespace {
 
 using namespace dealii;
 using namespace wavepi::forward;
+using namespace wavepi::problems;
 
 template<int dim>
 class TestF: public Function<dim> {
@@ -51,6 +54,27 @@ class TestF: public Function<dim> {
             return 0.0;
       }
 };
+
+template<int dim>
+class TestF2: public Function<dim> {
+   public:
+      TestF2()
+            : Function<dim>() {
+      }
+      double value(const Point<dim> &p, const unsigned int component = 0) const {
+         Assert(component == 0, ExcIndexRange(component, 0, 1));
+         if ((this->get_time() <= 0.5) && (p.distance(actor_position) < 0.4))
+            return std::sin(this->get_time() * 2 * numbers::PI);
+         else
+            return 0.0;
+      }
+   private:
+      static const Point<dim> actor_position;
+};
+
+template<> const Point<1> TestF2<1>::actor_position = Point<1>(1.0);
+template<> const Point<2> TestF2<2>::actor_position = Point<2>(1.0, 0.5);
+template<> const Point<3> TestF2<3>::actor_position = Point<3>(1.0, 0.5, 0.0);
 
 template<int dim>
 class TestG: public Function<dim> {
@@ -123,12 +147,21 @@ class TestNu: public Function<dim> {
 template<int dim>
 class TestQ: public Function<dim> {
    public:
+      TestQ()
+            : Function<dim>() {
+      }
       double value(const Point<dim> &p, const unsigned int component = 0) const {
          Assert(component == 0, ExcIndexRange(component, 0, 1));
 
-         return p.norm() < 0.3 ? this->get_time() : 0.0;
+         return p.distance(q_position) < 1.0 ? 10 * std::sin(this->get_time() / 2 * 2 * numbers::PI) : 0.0;
       }
+
+      static const Point<dim> q_position;
 };
+
+template<> const Point<1> TestQ<1>::q_position = Point<1>(-1.0);
+template<> const Point<2> TestQ<2>::q_position = Point<2>(-1.0, 0.5);
+template<> const Point<3> TestQ<3>::q_position = Point<3>(-1.0, 0.5, 0.0);
 
 template<int dim>
 class DiscretizedFunctionDisguise: public Function<dim> {
@@ -156,7 +189,7 @@ void run_discretized_test(int fe_order, int quad_order, int refines) {
    std::ofstream logout("wavepi_test.log", std::ios_base::app);
    deallog.attach(logout);
    deallog.depth_console(0);
-   deallog.depth_file(0);
+   deallog.depth_file(100);
    deallog.precision(3);
    deallog.pop();
 
@@ -302,7 +335,7 @@ void run_l2adjoint_back_test(int fe_order, int quad_order, int refines, int n_st
    std::ofstream logout("wavepi_test.log", std::ios_base::app);
    deallog.attach(logout);
    deallog.depth_console(0);
-   deallog.depth_file(0);
+   deallog.depth_file(100);
    deallog.precision(3);
    deallog.pop();
 
@@ -383,10 +416,10 @@ void run_l2adjoint_back_test(int fe_order, int quad_order, int refines, int n_st
    deallog << std::scientific << "(Lf, g) = " << dot_solf_g << ", (f, L*g) = " << dot_f_adjg
          << ", rel. error = " << fg_err << std::endl;
 
-	// EXPECT_LT(ff_err, 1e-2);
-	// EXPECT_LT(gg_err, 1e-2);
-	// EXPECT_LT(gf_err, 1e-2);
-	// EXPECT_LT(fg_err, 1e-2);
+   // EXPECT_LT(ff_err, 1e-2);
+   // EXPECT_LT(gg_err, 1e-2);
+   // EXPECT_LT(gf_err, 1e-2);
+   // EXPECT_LT(fg_err, 1e-2);
 }
 
 template<int dim>
@@ -394,7 +427,7 @@ void run_l2adjoint_test(int fe_order, int quad_order, int refines, int n_steps) 
    std::ofstream logout("wavepi_test.log", std::ios_base::app);
    deallog.attach(logout);
    deallog.depth_console(0);
-   deallog.depth_file(0);
+   deallog.depth_file(100);
    deallog.precision(3);
    deallog.pop();
 
@@ -440,12 +473,12 @@ void run_l2adjoint_test(int fe_order, int quad_order, int refines, int n_steps) 
 
    auto f_time_mass = std::make_shared<DiscretizedFunction<dim>>(*f);
    f_time_mass->set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
-f_time_mass->mult_time_mass();
+   f_time_mass->mult_time_mass();
    wave_eq_adj.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(f_time_mass));
    DiscretizedFunction<dim> adj_f = wave_eq_adj.run();
    adj_f.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
-  adj_f.solve_time_mass();
-    EXPECT_GT(adj_f.norm(), 0.0);
+   adj_f.solve_time_mass();
+   EXPECT_GT(adj_f.norm(), 0.0);
 
    TestG<dim> g_cont;
    auto g = std::make_shared<DiscretizedFunction<dim>>(mesh, dof_handler, g_cont);
@@ -456,11 +489,11 @@ f_time_mass->mult_time_mass();
 
    auto g_time_mass = std::make_shared<DiscretizedFunction<dim>>(*g);
    g_time_mass->set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
-g_time_mass->mult_time_mass();
-      wave_eq_adj.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(g_time_mass));
+   g_time_mass->mult_time_mass();
+   wave_eq_adj.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(g_time_mass));
    DiscretizedFunction<dim> adj_g = wave_eq_adj.run();
    adj_g.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
-  adj_g.solve_time_mass();
+   adj_g.solve_time_mass();
    EXPECT_GT(adj_g.norm(), 0.0);
 
    double dot_solf_f = sol_f * (*f);
@@ -501,10 +534,10 @@ g_time_mass->mult_time_mass();
    auto u = sol_f;
 
    auto mf = *f;
-  mf.pointwise_multiplication(u);
+   mf.pointwise_multiplication(u);
 
-  auto mg = *g;
- mg.pointwise_multiplication(u);
+   auto mg = *g;
+   mg.pointwise_multiplication(u);
 
    auto madj_f = *f;
    madj_f.mult_space_time_mass();
@@ -550,6 +583,173 @@ g_time_mass->mult_time_mass();
    EXPECT_LT(mfg_err, tol);
 }
 
+template<int dim>
+void run_l2qadjoint_test(int fe_order, int quad_order, int refines, int n_steps) {
+   std::ofstream logout("wavepi_test.log", std::ios_base::app);
+   deallog.attach(logout);
+   deallog.depth_console(0);
+   deallog.depth_file(100);
+   deallog.precision(3);
+   deallog.pop();
+
+   Triangulation<dim> triangulation;
+   GridGenerator::hyper_cube(triangulation, -1, 1);
+   triangulation.refine_global(refines);
+
+   FE_Q<dim> fe(fe_order);
+   Quadrature<dim> quad = QGauss<dim>(quad_order); // exact in poly degree 2n-1 (needed: fe_dim^3)
+
+   auto dof_handler = std::make_shared<DoFHandler<dim>>();
+   dof_handler->initialize(triangulation, fe);
+
+   double t_start = 0.0, t_end = 2.0, dt = t_end / n_steps;
+   std::vector<double> times;
+
+   for (size_t i = 0; t_start + i * dt <= t_end; i++)
+      times.push_back(t_start + i * dt);
+
+   deallog << "n_dofs: " << dof_handler->n_dofs();
+   deallog << ", n_steps: " << times.size() << std::endl;
+
+   std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, dof_handler, quad);
+   WaveEquation<dim> wave_eq(mesh, dof_handler, quad);
+
+   wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(std::make_shared<TestF2<dim>>()));
+   //wave_eq.set_param_a(std::make_shared<TestA<dim>>());
+   //wave_eq.set_param_c(std::make_shared<TestC<dim>>());
+
+   TestQ<dim> q;
+   auto q_exact = std::make_shared<DiscretizedFunction<dim>>(mesh, dof_handler, q);
+   wave_eq.set_param_q(q_exact);
+
+   auto data_exact = wave_eq.run();
+   data_exact.throw_away_derivative();
+
+   double epsilon = 1e-2;
+   auto data = DiscretizedFunction<dim>::noise(data_exact, epsilon * data_exact.norm());
+   data.add(1.0, data_exact);
+
+   DiscretizedFunction<dim> estimate(mesh, dof_handler);
+
+   // simulate what cg does
+
+   L2QProblem<dim> problem(wave_eq);
+
+   auto r(data);
+   auto data_current = problem.forward(estimate);
+   r -= data_current;
+
+   auto A = problem.derivative(estimate, data_current);
+
+   auto A_adj_r(A->adjoint(r));
+   auto A_r(A->forward(r));
+
+   TestG<dim> g_cont;
+   DiscretizedFunction<dim> g(mesh, dof_handler, g_cont);
+   auto A_g(A->forward(g));
+
+   TestF<dim> f_cont;
+   DiscretizedFunction<dim> f(mesh, dof_handler, f_cont);
+   auto A_f(A->forward(f));
+
+   double dot_Aadjr_r = A_adj_r * r;
+   double dot_r_Ar = r * A_r;
+   double rr_err = std::abs(dot_Aadjr_r - dot_r_Ar) / (std::abs(dot_Aadjr_r) + 1e-300);
+
+   deallog << std::scientific << "(A*r, r) = " << dot_Aadjr_r << ", (r, Ar) = " << dot_r_Ar
+         << ", rel. error = " << rr_err << std::endl;
+
+   double dot_Aadjr_f = A_adj_r * f;
+   double dot_r_Af = r * A_f;
+   double rf_err = std::abs(dot_Aadjr_f - dot_r_Af) / (std::abs(dot_Aadjr_f) + 1e-300);
+
+   deallog << std::scientific << "(A*r, f) = " << dot_Aadjr_f << ", (r, Af) = " << dot_r_Af
+         << ", rel. error = " << rf_err << std::endl;
+
+   double dot_Aadjr_g = A_adj_r * g;
+   double dot_r_Ag = r * A_g;
+   double rg_err = std::abs(dot_Aadjr_g - dot_r_Ag) / (std::abs(dot_Aadjr_g) + 1e-300);
+
+   deallog << std::scientific << "(A*r, g) = " << dot_Aadjr_g << ", (r, Ag) = " << dot_r_Ag
+         << ", rel. error = " << rg_err << std::endl;
+
+   double tol = 1e-2;
+
+   EXPECT_LT(rr_err, tol);
+   EXPECT_LT(rf_err, tol);
+   EXPECT_LT(rg_err, tol);
+}
+
+template<int dim>
+void run_l2norm_test(int fe_order, int quad_order, int refines, int n_steps) {
+   std::ofstream logout("wavepi_test.log", std::ios_base::app);
+   deallog.attach(logout);
+   deallog.depth_console(0);
+   deallog.depth_file(100);
+   deallog.precision(3);
+   deallog.pop();
+
+   Triangulation<dim> triangulation;
+   GridGenerator::hyper_cube(triangulation, -1, 1);
+   triangulation.refine_global(refines);
+
+   FE_Q<dim> fe(fe_order);
+   Quadrature<dim> quad = QGauss<dim>(quad_order); // exact in poly degree 2n-1 (needed: fe_dim^3)
+
+   auto dof_handler = std::make_shared<DoFHandler<dim>>();
+   dof_handler->initialize(triangulation, fe);
+
+   double t_start = 0.0, t_end = 2.0, dt = t_end / n_steps;
+   std::vector<double> times;
+
+   for (size_t i = 0; t_start + i * dt <= t_end; i++)
+      times.push_back(t_start + i * dt);
+
+   deallog << "n_dofs: " << dof_handler->n_dofs();
+   deallog << ", n_steps: " << times.size() << std::endl;
+
+   std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, dof_handler, quad);
+
+   TestQ<dim> q_cont;
+   DiscretizedFunction<dim> q(mesh, dof_handler, q_cont);
+   q.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
+
+   double norm_q = q.norm();
+   double sqrt_dot_q_q = std::sqrt(q * q);
+   double q_err = std::abs(norm_q - sqrt_dot_q_q) / (std::abs(norm_q) + 1e-300);
+
+   deallog << std::scientific << "‖q‖ = " << norm_q << ", √(q, q) = " << sqrt_dot_q_q << ", rel. error = "
+         << q_err << std::endl;
+
+   TestG<dim> g_cont;
+   DiscretizedFunction<dim> g(mesh, dof_handler, g_cont);
+   g.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
+
+   double norm_g = g.norm();
+   double sqrt_dot_g_g = std::sqrt(g * g);
+   double g_err = std::abs(norm_g - sqrt_dot_g_g) / (std::abs(norm_g) + 1e-300);
+
+   deallog << std::scientific << "‖g‖ = " << norm_q << ", √(g, g) = " << sqrt_dot_g_g << ", rel. error = "
+         << g_err << std::endl;
+
+   TestF<dim> f_cont;
+   DiscretizedFunction<dim> f(mesh, dof_handler, f_cont);
+   f.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
+
+   double norm_f = f.norm();
+   double sqrt_dot_f_f = std::sqrt(f * f);
+   double f_err = std::abs(norm_f - sqrt_dot_f_f) / (std::abs(norm_f) + 1e-300);
+
+   deallog << std::scientific << "‖f‖ = " << norm_q << ", √(f, f) = " << sqrt_dot_f_f << ", rel. error = "
+         << f_err << std::endl;
+
+   double tol = 1e-14;
+
+   EXPECT_LT(q_err, tol);
+   EXPECT_LT(f_err, tol);
+   EXPECT_LT(g_err, tol);
+}
+
 // product of sines in space to have dirichlet b.c. in [0,pi], times a sum of sine and cosine in time.
 // its time derivative is the same function with C[1] = C[0]*norm(k), C[0] = -C[1]*norm(k)
 template<int dim>
@@ -583,7 +783,7 @@ void run_reference_test(int fe_order, int quad_order, int refines, Point<dim, in
    std::ofstream logout("wavepi_test.log", std::ios_base::app);
    deallog.attach(logout);
    deallog.depth_console(0);
-   deallog.depth_file(0);
+   deallog.depth_file(100);
    deallog.precision(3);
    deallog.pop();
 
@@ -739,6 +939,37 @@ TEST(WaveEquationTest, L2Adjointness3DFE1) {
    run_l2adjoint_test<3>(1, 3, 2, 64);
    run_l2adjoint_test<3>(1, 3, 2, 256);
 }
+
+TEST(WaveEquationTest, L2QAdjointness1DFE1) {
+   run_l2qadjoint_test<1>(1, 3, 5, 128);
+   run_l2qadjoint_test<1>(1, 3, 10, 256);
+}
+
+TEST(WaveEquationTest, L2QAdjointness2DFE1) {
+   run_l2qadjoint_test<2>(1, 3, 4, 32);
+   run_l2qadjoint_test<2>(1, 3, 4, 128);
+   run_l2qadjoint_test<2>(1, 3, 5, 128);
+   run_l2qadjoint_test<2>(1, 3, 5, 256);
+}
+
+TEST(WaveEquationTest, L2Norm1DFE1) {
+   run_l2norm_test<1>(1, 3, 10, 128);
+   run_l2norm_test<1>(1, 4, 10, 256);
+}
+TEST(WaveEquationTest, L2Norm1DFE2) {
+   run_l2norm_test<1>(2, 4, 7, 128);
+   run_l2norm_test<1>(2, 4, 7, 256);
+}
+
+TEST(WaveEquationTest, L2Norm2DFE1) {
+   run_l2norm_test<2>(1, 3, 5, 128);
+   run_l2norm_test<2>(1, 4, 4, 256);
+}
+TEST(WaveEquationTest, L2Norm2DFE2) {
+   run_l2norm_test<2>(2, 4, 4, 128);
+   run_l2norm_test<2>(2, 4, 4, 256);
+}
+
 
 TEST(WaveEquationTest, ReferenceTest1DFE1) {
    for (int steps = 128; steps <= 1024; steps *= 2)

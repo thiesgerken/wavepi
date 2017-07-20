@@ -3,6 +3,7 @@
 ## General 
 
 - [x] `solve_space_time_mass` and same function for only time
+- [x] logfilter
 - [ ] Output of steps (settings?)
 - [ ] "Abort now" like in old code
 - [ ] Measurements
@@ -19,10 +20,10 @@
 ## Inversion
 
 - [x] implement stop criteria in all regularization methods
-- [ ] cg still unstable (visualize cg-directions? improve adjoint?)
+- [ ] cg still unstable, diverges faster for coarse spatial grids (visualize cg-directions? improve adjoint?)
 - [ ] linear Tikhonov (using "Tikhonov-CG"?)
 - [ ] Adjoints for a, nu and q (base problem class for linearizations? `LinearizedWaveProblem`)
-- [ ] ** REGINN: tolerance choice ** (-> abstract class, implement that strategy from Rieder's book/paper) 
+- [ ] ** REGINN: tolerance choice ** (-> abstract class, implement strategy from Rieder's book/paper) 
 - [ ] REGINN: improve tolerance choice (if linear method does not converge increase tolerance and try again)
 - [ ] add Shrinkage step to Landweber
 

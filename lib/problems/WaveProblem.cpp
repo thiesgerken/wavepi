@@ -6,7 +6,7 @@
  */
 
 #include <deal.II/base/logstream.h>
-#include <inversion/WaveProblem.h>
+#include <problems/WaveProblem.h>
 #include <iostream>
 
 namespace wavepi {

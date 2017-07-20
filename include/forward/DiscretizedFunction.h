@@ -153,7 +153,7 @@ class DiscretizedFunction: public Function<dim> {
       void l2l2_mass_solve_space_time_mass();
 
       void l2l2_mass_mult_time_mass();
-        void l2l2_mass_solve_time_mass();
+      void l2l2_mass_solve_time_mass();
 
 };
 } /* namespace forward */

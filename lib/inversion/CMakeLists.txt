@@ -1,6 +1,6 @@
 # file(GLOB LIBSOURCES *.cpp)
 SET(LIBSOURCES
-        WaveProblem.cpp
+        
     )
     
 add_library(wavepi_inversion ${LIBSOURCES})

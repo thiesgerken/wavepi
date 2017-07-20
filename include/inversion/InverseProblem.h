@@ -41,7 +41,8 @@ struct InversionProgress {
             Param tmp(*current_estimate);
             tmp -= *exact_param;
             current_error = tmp.norm();
-         }
+         } else
+            current_error = -0.0;
       }
 
       InversionProgress(int iteration_number, const Param* current_estimate, double norm_current_estimate,

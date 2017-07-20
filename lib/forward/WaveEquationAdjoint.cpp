@@ -231,8 +231,7 @@ void WaveEquationAdjoint<dim>::assemble_u(size_t i) {
       tmp *= time_step_last * theta;
       matrix_B_old.vmult_add(system_rhs, tmp);
 
-      // system_matrix = identity
-      system_matrix = 0.0;
+      system_matrix = IdentityMatrix(solution_u.size());
    } else {
       /*
        * (M_i^2)^t (u_i, v_i)^t = (g_i, 0)^t - (M_{i+1}^1)^t (u_{i+1}, v_{i+1})^t
@@ -292,9 +291,7 @@ void WaveEquationAdjoint<dim>::assemble_v(size_t i) {
        */
 
       system_rhs = 0.0;
-
-      // system_matrix = identity
-      system_matrix = 0.0;
+      system_matrix = IdentityMatrix(solution_u.size());
    } else if (i == 0) {
       /*
        * (u_0, v_0)^t = (g_0, 0)^t - (M_{i+1}^1)^t (u_1, v_1)^t
@@ -325,8 +322,7 @@ void WaveEquationAdjoint<dim>::assemble_v(size_t i) {
       tmp *= time_step_last * theta;
       matrix_B_old.vmult_add(system_rhs, tmp);
 
-      // system_matrix = identity
-      system_matrix = 0.0;
+      system_matrix = IdentityMatrix(solution_u.size());
    } else {
       /*
        * (M_i^2)^t (u_i, v_i)^t = (g_i, 0)^t - (M_{i+1}^1)^t (u_{i+1}, v_{i+1})^t
@@ -372,52 +368,43 @@ template<int dim>
 void WaveEquationAdjoint<dim>::solve_u(size_t i) {
    LogStream::Prefix p("solve_u");
 
-   if (i == 0)
-      solution_u = system_rhs;
-   else {
+   SolverControl solver_control(2000, this->tolerance * system_rhs.l2_norm());
+   SolverCG<> cg(solver_control);
 
-      SolverControl solver_control(2000, this->tolerance * system_rhs.l2_norm());
-      SolverCG<> cg(solver_control);
+   // Fewer (~half) iterations using preconditioner, but at least in 2D this is still not worth the effort
+   // PreconditionSSOR<SparseMatrix<double> > precondition;
+   // precondition.initialize (system_matrix, PreconditionSSOR<SparseMatrix<double> >::AdditionalData(.6));
+   PreconditionIdentity precondition = PreconditionIdentity();
 
-      // Fewer (~half) iterations using preconditioner, but at least in 2D this is still not worth the effort
-      // PreconditionSSOR<SparseMatrix<double> > precondition;
-      // precondition.initialize (system_matrix, PreconditionSSOR<SparseMatrix<double> >::AdditionalData(.6));
-      PreconditionIdentity precondition = PreconditionIdentity();
+   cg.solve(system_matrix, solution_u, system_rhs, precondition);
 
-      cg.solve(system_matrix, solution_u, system_rhs, precondition);
+   std::ios::fmtflags f(deallog.flags(std::ios_base::scientific));
+   deallog << "Steps: " << solver_control.last_step();
+   deallog << ", ‖res‖ = " << solver_control.last_value();
+   deallog << ", ‖rhs‖ = " << system_rhs.l2_norm() << std::endl;
 
-      std::ios::fmtflags f(deallog.flags(std::ios_base::scientific));
-      deallog << "Steps: " << solver_control.last_step();
-      deallog << ", ‖res‖ = " << solver_control.last_value();
-      deallog << ", ‖rhs‖ = " << system_rhs.l2_norm() << std::endl;
-
-      deallog.flags(f);
-   }
+   deallog.flags(f);
 }
 
 template<int dim>
 void WaveEquationAdjoint<dim>::solve_v(size_t i) {
    LogStream::Prefix p("solve_v");
 
-   if (i == 0 || i == mesh->get_times().size() - 1)
-      solution_v = system_rhs;
-   else {
-      SolverControl solver_control(2000, this->tolerance * system_rhs.l2_norm());
-      SolverCG<> cg(solver_control);
+   SolverControl solver_control(2000, this->tolerance * system_rhs.l2_norm());
+   SolverCG<> cg(solver_control);
 
-      // See the comment in solve_u about preconditioning
-      PreconditionIdentity precondition = PreconditionIdentity();
+   // See the comment in solve_u about preconditioning
+   PreconditionIdentity precondition = PreconditionIdentity();
 
-      cg.solve(system_matrix, solution_v, system_rhs, precondition);
+   cg.solve(system_matrix, solution_v, system_rhs, precondition);
 
-      std::ios::fmtflags f(deallog.flags(std::ios_base::scientific));
+   std::ios::fmtflags f(deallog.flags(std::ios_base::scientific));
 
-      deallog << "Steps: " << solver_control.last_step();
-      deallog << ", ‖res‖ = " << solver_control.last_value();
-      deallog << ", ‖rhs‖ = " << system_rhs.l2_norm() << std::endl;
+   deallog << "Steps: " << solver_control.last_step();
+   deallog << ", ‖res‖ = " << solver_control.last_value();
+   deallog << ", ‖rhs‖ = " << system_rhs.l2_norm() << std::endl;
 
-      deallog.flags(f);
-   }
+   deallog.flags(f);
 }
 
 template<int dim>
@@ -489,11 +476,7 @@ DiscretizedFunction<dim> WaveEquationAdjoint<dim>::apply_R_transpose(
          tmp.add(theta, u.get_derivative_coefficients()[j]);
       }
 
-      // Vector<double> tmp2(solution_u.size());
-      // mesh->get_mass_matrix(j)->vmult(tmp2, tmp);
-      // res.set(j, tmp2);
       res.set(j, tmp);
-
    }
 
    return res;
