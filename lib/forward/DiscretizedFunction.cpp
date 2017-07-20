@@ -197,9 +197,9 @@ void DiscretizedFunction<dim>::rand() {
    std::default_random_engine generator;
    std::uniform_real_distribution<double> distribution(0, 1);
 
-   for (auto coeff : function_coefficients)
-      for (size_t i = 0; i < coeff.size(); i++)
-         coeff[i] = distribution(generator);
+   for (size_t i = 0; i < mesh->get_times().size(); i++)
+     for (size_t j = 0; j < function_coefficients[i].size(); j++)
+    	 function_coefficients[i][j] = distribution(generator);
 }
 
 template<int dim>

@@ -496,6 +496,21 @@ void run_l2adjoint_test(int fe_order, int quad_order, int refines, int n_steps) 
    adj_g.solve_time_mass();
    EXPECT_GT(adj_g.norm(), 0.0);
 
+   auto z = std::make_shared<DiscretizedFunction<dim>>(DiscretizedFunction<dim>::noise(*g, 1));
+
+   wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(z));
+   DiscretizedFunction<dim> sol_z = wave_eq.run();
+   EXPECT_GT(sol_z.norm(), 0.0);
+
+   auto z_time_mass = std::make_shared<DiscretizedFunction<dim>>(*z);
+   z_time_mass->set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
+   z_time_mass->mult_time_mass();
+   wave_eq_adj.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(z_time_mass));
+   DiscretizedFunction<dim> adj_z = wave_eq_adj.run();
+   adj_z.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
+   adj_z.solve_time_mass();
+   EXPECT_GT(adj_z.norm(), 0.0);
+
    double dot_solf_f = sol_f * (*f);
    double dot_f_adjf = (*f) * adj_f;
    double ff_err = std::abs(dot_solf_f - dot_f_adjf) / (std::abs(dot_solf_f) + 1e-300);
@@ -524,20 +539,31 @@ void run_l2adjoint_test(int fe_order, int quad_order, int refines, int n_steps) 
    deallog << std::scientific << "(Lf, g) = " << dot_solf_g << ", (f, L*g) = " << dot_f_adjg
          << ", rel. error = " << fg_err << std::endl;
 
+   double dot_solz_z = sol_z * (*z);
+   double dot_z_adjz = (*z) * adj_z;
+   double zz_err = std::abs(dot_solz_z - dot_z_adjz) / (std::abs(dot_solz_z) + 1e-300);
+
+   deallog << std::scientific << "(Lz, z) = " << dot_solz_z << ", (z, L*z) = " << dot_z_adjz
+         << ", rel. error = " << zz_err << std::endl;
+
    double tol = 1e-2;
 
    EXPECT_LT(ff_err, tol);
    EXPECT_LT(gg_err, tol);
    EXPECT_LT(gf_err, tol);
    EXPECT_LT(fg_err, tol);
+   EXPECT_LT(zz_err, tol);
 
-   auto u = sol_f;
+   auto u = sol_z; // sol_f
 
    auto mf = *f;
    mf.pointwise_multiplication(u);
 
    auto mg = *g;
    mg.pointwise_multiplication(u);
+
+   auto mz = *z;
+   mz.pointwise_multiplication(u);
 
    auto madj_f = *f;
    madj_f.mult_space_time_mass();
@@ -548,6 +574,11 @@ void run_l2adjoint_test(int fe_order, int quad_order, int refines, int n_steps) 
    madj_g.mult_space_time_mass();
    madj_g.pointwise_multiplication(u);
    madj_g.solve_space_time_mass();
+
+   auto madj_z = *z;
+   madj_z.mult_space_time_mass();
+   madj_z.pointwise_multiplication(u);
+   madj_z.solve_space_time_mass();
 
    double dot_mulf_f = mf * (*f);
    double dot_f_madjf = (*f) * madj_f;
@@ -577,10 +608,18 @@ void run_l2adjoint_test(int fe_order, int quad_order, int refines, int n_steps) 
    deallog << std::scientific << "(Mf, g) = " << dot_mulf_g << ", (f, M*g) = " << dot_f_madjg
          << ", rel. error = " << mfg_err << std::endl;
 
+   double dot_mulz_z = mz * (*z);
+   double dot_z_madjz = (*z) * madj_z;
+   double mzz_err = std::abs(dot_mulz_z - dot_z_madjz) / (std::abs(dot_mulz_z) + 1e-300);
+
+   deallog << std::scientific << "(Mz, z) = " << dot_mulz_z << ", (f, M*g) = " << dot_z_madjz
+         << ", rel. error = " << mzz_err << std::endl;
+
    EXPECT_LT(mff_err, tol);
    EXPECT_LT(mgg_err, tol);
    EXPECT_LT(mgf_err, tol);
    EXPECT_LT(mfg_err, tol);
+   EXPECT_LT(mzz_err, tol);
 }
 
 template<int dim>
@@ -924,7 +963,11 @@ TEST(WaveEquationTest, L2Adjointness1DFE2) {
 }
 
 TEST(WaveEquationTest, L2Adjointness2DFE1) {
-   run_l2adjoint_test<2>(1, 3, 4, 16);
+	 run_l2adjoint_test<2>(1, 3, 4, 1);
+	 run_l2adjoint_test<2>(1, 3, 4, 2);
+	 run_l2adjoint_test<2>(1, 3, 4, 3);
+	 run_l2adjoint_test<2>(1, 3, 5, 3);
+				    run_l2adjoint_test<2>(1, 3, 4, 16);
    run_l2adjoint_test<2>(1, 3, 4, 64);
    run_l2adjoint_test<2>(1, 3, 4, 256);
    run_l2adjoint_test<2>(1, 3, 4, 512);
