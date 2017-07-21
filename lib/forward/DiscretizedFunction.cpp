@@ -92,7 +92,7 @@ DiscretizedFunction<dim>::DiscretizedFunction(DiscretizedFunction&& o)
 template<int dim>
 DiscretizedFunction<dim>::DiscretizedFunction(const DiscretizedFunction& o)
       : Function<dim>(), norm_type(o.norm_type), store_derivative(o.store_derivative), cur_time_idx(
-            o.cur_time_idx), mesh(o.mesh), dof_handler(std::move(o.dof_handler)), function_coefficients(
+            o.cur_time_idx), mesh(o.mesh), dof_handler(o.dof_handler), function_coefficients(
             o.function_coefficients), derivative_coefficients(o.derivative_coefficients) {
 }
 

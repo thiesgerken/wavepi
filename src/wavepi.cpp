@@ -130,7 +130,6 @@ template<> const Point<1> TestQ<1>::q_position = Point<1>(-1.0);
 template<> const Point<2> TestQ<2>::q_position = Point<2>(-1.0, 0.5);
 template<> const Point<3> TestQ<3>::q_position = Point<3>(-1.0, 0.5, 0.0);
 
-
 template<int dim>
 void test() {
    std::ofstream logout("wavepi.log");
@@ -146,7 +145,7 @@ void test() {
 
    // GridGenerator::cheese(triangulation, std::vector<unsigned int>( { 1, 1 }));
    GridGenerator::hyper_cube(triangulation, -5, 5);
-   triangulation.refine_global(5);
+   triangulation.refine_global(4);
 
    // QGauss<dim>(n) is exact in polynomials of degree <= 2n-1 (needed: fe_order*3)
    // -> fe_order*3 <= 2n-1  ==>  n >= (fe_order*3+1)/2

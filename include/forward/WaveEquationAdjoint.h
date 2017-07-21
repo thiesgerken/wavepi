@@ -97,8 +97,8 @@ class WaveEquationAdjoint {
       void setup_step(double time);
       void assemble_u(size_t i);
       void assemble_v(size_t i);
-      void solve_u(size_t i);
-      void solve_v(size_t i);
+      void solve_u();
+      void solve_v();
 
       void fill_A();
       void fill_B();

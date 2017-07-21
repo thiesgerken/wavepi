@@ -371,7 +371,7 @@ void WaveEquationAdjoint<dim>::assemble_v(size_t i) {
 }
 
 template<int dim>
-void WaveEquationAdjoint<dim>::solve_u(size_t i) {
+void WaveEquationAdjoint<dim>::solve_u() {
    LogStream::Prefix p("solve_u");
 
    SolverControl solver_control(2000, this->tolerance * system_rhs.l2_norm());
@@ -393,7 +393,7 @@ void WaveEquationAdjoint<dim>::solve_u(size_t i) {
 }
 
 template<int dim>
-void WaveEquationAdjoint<dim>::solve_v(size_t i) {
+void WaveEquationAdjoint<dim>::solve_v() {
    LogStream::Prefix p("solve_v");
 
    SolverControl solver_control(2000, this->tolerance * system_rhs.l2_norm());
@@ -440,11 +440,11 @@ DiscretizedFunction<dim> WaveEquationAdjoint<dim>::run() {
 
       // solve for $v^n$
       assemble_v(i);
-      solve_v(i);
+      solve_v();
 
       // solve for $u^n$
       assemble_u(i);
-      solve_u(i);
+      solve_u();
 
       u.set(i, solution_u, solution_v);
 

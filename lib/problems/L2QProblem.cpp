@@ -28,7 +28,7 @@ L2QProblem<dim>::L2QProblem(WaveEquation<dim>& weq)
 template<int dim>
 std::unique_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>> L2QProblem<dim>::derivative(
       const DiscretizedFunction<dim>& q, const DiscretizedFunction<dim>& u) {
-   return std::make_unique<L2QProblem<dim>::Linearization>(this->wave_equation, q, u);
+   return std::make_unique<L2QProblem<dim>::Linearization>(this->wave_equation, WaveProblem<dim>::WaveEquationAdjoint, q, u);
 }
 
 template<int dim>
@@ -48,13 +48,13 @@ L2QProblem<dim>::Linearization::~Linearization() {
 }
 
 template<int dim>
-L2QProblem<dim>::Linearization::Linearization(const WaveEquation<dim> &weq, const DiscretizedFunction<dim>& q,
+L2QProblem<dim>::Linearization::Linearization(const WaveEquation<dim> &weq, typename WaveProblem<dim>::L2AdjointSolver adjoint_solver, const DiscretizedFunction<dim>& q,
       const DiscretizedFunction<dim>& u)
-      : weq(weq), weq_adj(weq) {
+      : weq(weq), weq_adj(weq), adjoint_solver(adjoint_solver) {
    this->q = std::make_shared<DiscretizedFunction<dim>>(q);
    this->u = std::make_shared<DiscretizedFunction<dim>>(u);
 
-   this->rhs = std::make_shared<L2ProductRightHandSide<dim>>(this->u, this->u);
+   this->rhs = std::make_shared<L2RightHandSide<dim>>(this->u);
    this->rhs_adj = std::make_shared<L2RightHandSide<dim>>(this->u);
 
    this->weq.set_right_hand_side(rhs);
@@ -73,7 +73,12 @@ template<int dim>
 DiscretizedFunction<dim> L2QProblem<dim>::Linearization::forward(const DiscretizedFunction<dim>& h) {
    LogStream::Prefix p("eval_linearization");
 
-   rhs->set_func1(std::make_shared<DiscretizedFunction<dim>>(h));
+   auto Mh = std::make_shared<DiscretizedFunction<dim>>(h);
+   *Mh *= -1.0;
+    Mh->pointwise_multiplication(*u);
+
+   rhs->set_base_rhs(Mh);
+   weq.set_right_hand_side(rhs);
 
    DiscretizedFunction<dim> res = weq.run();
    res.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
@@ -90,9 +95,22 @@ DiscretizedFunction<dim> L2QProblem<dim>::Linearization::adjoint(const Discretiz
    auto tmp = std::make_shared<DiscretizedFunction<dim>>(g);
    tmp->set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
    tmp->mult_time_mass();
+     rhs_adj->set_base_rhs(tmp);
 
-   rhs_adj->set_base_rhs(tmp);
-   DiscretizedFunction<dim> res = weq_adj.run();
+   DiscretizedFunction<dim> res(weq.get_mesh(), weq.get_dof_handler());
+
+   if (adjoint_solver == WaveProblem<dim>::WaveEquationBackwards) {
+ Assert((std::dynamic_pointer_cast<ZeroFunction<dim>, Function<dim>>(weq.get_param_nu()) != nullptr), ExcMessage("Wrong adjoint because ν≠0!"));
+
+ weq.set_right_hand_side(rhs_adj);
+     res = weq.run(true);
+     res.throw_away_derivative();
+   }
+   else if (adjoint_solver == WaveProblem<dim>::WaveEquationAdjoint)
+     res = weq_adj.run();
+   else
+	   Assert(false, ExcInternalError());
+
    res.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
    res.solve_time_mass();
 

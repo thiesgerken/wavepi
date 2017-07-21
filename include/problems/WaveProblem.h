@@ -37,6 +37,11 @@ class WaveProblem: public NonlinearProblem<DiscretizedFunction<dim>, Discretized
 
       bool progress(InversionProgress<DiscretizedFunction<dim>, DiscretizedFunction<dim>> state);
 
+      // solvers for adjoint of L : L^2 -> L^2
+      enum L2AdjointSolver {
+         WaveEquationAdjoint, WaveEquationBackwards
+      };
+
    protected:
       WaveEquation<dim> wave_equation;
 

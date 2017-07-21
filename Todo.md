@@ -30,3 +30,5 @@
 ## Documentation and Tests
 
 - [ ] better documentation
+- [ ] restructure tests
+- [ ] tests solve_mass and mul_mass
