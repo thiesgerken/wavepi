@@ -72,17 +72,17 @@ double rho(const Point<dim> &p, double t);
 
 template<>
 double rho(const Point<1> &p, double t) {
-   return p.distance(Point<1>(t - 3.0)) < 1.2 ? 1.0 / 3.0 : 1.0;
+   return p.distance(Point<1>(t - 3.0)) < 1.0 ? 1.5 : 1.0;
 }
 
 template<>
 double rho(const Point<2> &p, double t) {
-   return p.distance(Point<2>(t - 3.0, t - 2.0)) < 1.2 ? 1.0 / 3.0 : 1.0;
+   return p.distance(Point<2>(t - 3.0, t - 2.0)) < 1.2 ? 1.5 : 1.0;
 }
 
 template<>
 double rho(const Point<3> &p, double t) {
-  return p.distance(Point<3>(t - 3.0, t - 2.0, 0.0)) < 1.2 ? 1.0 / 3.0 : 1.0;
+  return p.distance(Point<3>(t - 3.0, t - 2.0, 0.0)) < 1.2 ? 1.5 : 1.0;
 }
 
 template<int dim>
@@ -94,7 +94,7 @@ class TestC: public Function<dim> {
       double value(const Point<dim> &p, const unsigned int component = 0) const {
          Assert(component == 0, ExcIndexRange(component, 0, 1));
 
-         return 1.0 / (rho(p, this->get_time()) * 4.0);
+         return 1.0 / (rho(p, this->get_time()) * 1.0);
       }
 };
 
@@ -146,7 +146,7 @@ void test() {
 
    // GridGenerator::cheese(triangulation, std::vector<unsigned int>( { 1, 1 }));
    GridGenerator::hyper_cube(triangulation, -5, 5);
-   triangulation.refine_global(4);
+   triangulation.refine_global(5);
 
    // QGauss<dim>(n) is exact in polynomials of degree <= 2n-1 (needed: fe_order*3)
    // -> fe_order*3 <= 2n-1  ==>  n >= (fe_order*3+1)/2

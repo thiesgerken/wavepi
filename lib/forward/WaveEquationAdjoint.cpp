@@ -48,8 +48,13 @@ WaveEquationAdjoint<dim>::WaveEquationAdjoint(std::shared_ptr<SpaceTimeMesh<dim>
 
 template<int dim>
 WaveEquationAdjoint<dim>::WaveEquationAdjoint(const WaveEquationAdjoint<dim>& weq)
-      : theta(weq.theta), mesh(weq.mesh), dof_handler(weq.dof_handler), quad(weq.quad), param_c(weq.param_c), param_nu(
-            weq.param_nu), param_a(weq.param_a), param_q(weq.param_q), right_hand_side(weq.right_hand_side) {
+      : theta(weq.theta), mesh(weq.mesh), dof_handler(weq.dof_handler), quad(weq.quad) {
+   set_param_c(weq.get_param_c());
+   set_param_q(weq.get_param_q());
+   set_param_a(weq.get_param_a());
+   set_param_nu(weq.get_param_nu());
+
+   set_right_hand_side(weq.get_right_hand_side());
 }
 
 template<int dim>
@@ -190,14 +195,15 @@ void WaveEquationAdjoint<dim>::assemble_u(size_t i) {
    if (dim == 1)
       VectorTools::interpolate_boundary_values(*dof_handler, 1, ZeroFunction<dim>(1), boundary_values);
 
-   if (i == mesh->get_times().size() - 1) { // i == N
-   /*
-    * (M_N^2)^t (u_N, v_N)^t = (g_N, 0)^t
-    *
-    * g_N = ((M_N^2)^t)_11 u_N + ((M_N^2)^t)_12 v_N
-    *     = [k_N^2 C^N + θ k_N B^N + θ^2 A^N] u_N + (1-θ) A^N v_N
-    *     = [k_N^2 C^N + θ k_N B^N + θ^2 A^N] u_N
-    */
+   if (i == mesh->get_times().size() - 1) {
+      /* i == N
+       *
+       * (M_N^2)^t (u_N, v_N)^t = (g_N, 0)^t
+       *
+       * g_N = ((M_N^2)^t)_11 u_N + ((M_N^2)^t)_12 v_N
+       *     = [k_N^2 C^N + θ k_N B^N + θ^2 A^N] u_N + (1-θ) A^N v_N
+       *     = [k_N^2 C^N + θ k_N B^N + θ^2 A^N] u_N
+       */
 
       double time_step = mesh->get_times()[i] - mesh->get_times()[i - 1];
 
@@ -432,11 +438,11 @@ DiscretizedFunction<dim> WaveEquationAdjoint<dim>::run() {
       setup_step(time);
       setup_timer.stop();
 
-      // solve for $v^{n+1}$
+      // solve for $v^n$
       assemble_v(i);
       solve_v(i);
 
-      // solve for $u^{n+1}$
+      // solve for $u^n$
       assemble_u(i);
       solve_u(i);
 

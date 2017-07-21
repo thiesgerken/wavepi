@@ -153,7 +153,7 @@ class TestQ: public Function<dim> {
       double value(const Point<dim> &p, const unsigned int component = 0) const {
          Assert(component == 0, ExcIndexRange(component, 0, 1));
 
-         return p.distance(q_position) < 1.0 ? 10 * std::sin(this->get_time() / 2 * 2 * numbers::PI) : 0.0;
+         return p.norm() < 0.5 ? std::sin(this->get_time() / 2 * 2 * numbers::PI) : 0.0;
       }
 
       static const Point<dim> q_position;
@@ -355,8 +355,8 @@ void run_l2adjoint_back_test(int fe_order, int quad_order, int refines, int n_st
    for (size_t i = 0; t_start + i * dt <= t_end; i++)
       times.push_back(t_start + i * dt);
 
-   deallog << "n_dofs: " << dof_handler->n_dofs();
-   deallog << ", n_steps: " << times.size() << std::endl;
+   deallog << std::endl << "----------  n_dofs: " << dof_handler->n_dofs();
+   deallog << ", n_steps: " << times.size() << "  ----------" << std::endl;
 
    std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, dof_handler, quad);
    WaveEquation<dim> wave_eq(mesh, dof_handler, quad);
@@ -447,8 +447,8 @@ void run_l2adjoint_test(int fe_order, int quad_order, int refines, int n_steps) 
    for (size_t i = 0; t_start + i * dt <= t_end; i++)
       times.push_back(t_start + i * dt);
 
-   deallog << "n_dofs: " << dof_handler->n_dofs();
-   deallog << ", n_steps: " << times.size() << std::endl;
+   deallog << std::endl << "----------  n_dofs: " << dof_handler->n_dofs();
+   deallog << ", n_steps: " << times.size() << "  ----------" << std::endl;
 
    std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, dof_handler, quad);
 
@@ -479,6 +479,9 @@ void run_l2adjoint_test(int fe_order, int quad_order, int refines, int n_steps) 
    adj_f.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
    adj_f.solve_time_mass();
    EXPECT_GT(adj_f.norm(), 0.0);
+
+   // adj_f.write_pvd("ladj_f", "x");
+   // sol_f.write_pvd("l_f", "x");
 
    TestG<dim> g_cont;
    auto g = std::make_shared<DiscretizedFunction<dim>>(mesh, dof_handler, g_cont);
@@ -544,15 +547,7 @@ void run_l2adjoint_test(int fe_order, int quad_order, int refines, int n_steps) 
    double zz_err = std::abs(dot_solz_z - dot_z_adjz) / (std::abs(dot_solz_z) + 1e-300);
 
    deallog << std::scientific << "(Lz, z) = " << dot_solz_z << ", (z, L*z) = " << dot_z_adjz
-         << ", rel. error = " << zz_err << std::endl;
-
-   double tol = 1e-2;
-
-   EXPECT_LT(ff_err, tol);
-   EXPECT_LT(gg_err, tol);
-   EXPECT_LT(gf_err, tol);
-   EXPECT_LT(fg_err, tol);
-   EXPECT_LT(zz_err, tol);
+         << ", rel. error = " << zz_err << std::endl << std::endl;
 
    auto u = sol_z; // sol_f
 
@@ -612,8 +607,16 @@ void run_l2adjoint_test(int fe_order, int quad_order, int refines, int n_steps) 
    double dot_z_madjz = (*z) * madj_z;
    double mzz_err = std::abs(dot_mulz_z - dot_z_madjz) / (std::abs(dot_mulz_z) + 1e-300);
 
-   deallog << std::scientific << "(Mz, z) = " << dot_mulz_z << ", (f, M*g) = " << dot_z_madjz
+   deallog << std::scientific << "(Mz, z) = " << dot_mulz_z << ", (z, M*z) = " << dot_z_madjz
          << ", rel. error = " << mzz_err << std::endl;
+
+   double tol = 1e-2;
+
+   EXPECT_LT(ff_err, tol);
+   EXPECT_LT(gg_err, tol);
+   EXPECT_LT(gf_err, tol);
+   EXPECT_LT(fg_err, tol);
+   EXPECT_LT(zz_err, tol);
 
    EXPECT_LT(mff_err, tol);
    EXPECT_LT(mgg_err, tol);
@@ -647,8 +650,8 @@ void run_l2qadjoint_test(int fe_order, int quad_order, int refines, int n_steps)
    for (size_t i = 0; t_start + i * dt <= t_end; i++)
       times.push_back(t_start + i * dt);
 
-   deallog << "n_dofs: " << dof_handler->n_dofs();
-   deallog << ", n_steps: " << times.size() << std::endl;
+   deallog << std::endl << "----------  n_dofs: " << dof_handler->n_dofs();
+   deallog << ", n_steps: " << times.size() << "  ----------" << std::endl;
 
    std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, dof_handler, quad);
    WaveEquation<dim> wave_eq(mesh, dof_handler, quad);
@@ -963,11 +966,11 @@ TEST(WaveEquationTest, L2Adjointness1DFE2) {
 }
 
 TEST(WaveEquationTest, L2Adjointness2DFE1) {
-	 run_l2adjoint_test<2>(1, 3, 4, 1);
-	 run_l2adjoint_test<2>(1, 3, 4, 2);
-	 run_l2adjoint_test<2>(1, 3, 4, 3);
-	 run_l2adjoint_test<2>(1, 3, 5, 3);
-				    run_l2adjoint_test<2>(1, 3, 4, 16);
+   run_l2adjoint_test<2>(1, 3, 4, 1);
+   run_l2adjoint_test<2>(1, 3, 4, 2);
+   run_l2adjoint_test<2>(1, 3, 4, 3);
+   run_l2adjoint_test<2>(1, 3, 5, 3);
+   run_l2adjoint_test<2>(1, 3, 4, 16);
    run_l2adjoint_test<2>(1, 3, 4, 64);
    run_l2adjoint_test<2>(1, 3, 4, 256);
    run_l2adjoint_test<2>(1, 3, 4, 512);
@@ -1012,7 +1015,6 @@ TEST(WaveEquationTest, L2Norm2DFE2) {
    run_l2norm_test<2>(2, 4, 4, 128);
    run_l2norm_test<2>(2, 4, 4, 256);
 }
-
 
 TEST(WaveEquationTest, ReferenceTest1DFE1) {
    for (int steps = 128; steps <= 1024; steps *= 2)
