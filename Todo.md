@@ -20,15 +20,15 @@
 ## Inversion
 
 - [x] implement stop criteria in all regularization methods
-- [ ] cg still unstable, diverges faster for coarse spatial grids (visualize cg-directions? improve adjoint?)
+- [x] cg still unstable (solved: L2ProductRightHandSide is evil)
 - [ ] linear Tikhonov (using "Tikhonov-CG"?)
 - [ ] Adjoints for a, nu and q (base problem class for linearizations? `LinearizedWaveProblem`)
 - [ ] ** REGINN: tolerance choice ** (-> abstract class, implement strategy from Rieder's book/paper) 
-- [ ] REGINN: improve tolerance choice (if linear method does not converge increase tolerance and try again)
+- [ ] REGINN: improve tolerance choice (if linear method does not converge because of maximum iter count increase tolerance and try again)
 - [ ] add Shrinkage step to Landweber
 
 ## Documentation and Tests
 
 - [ ] better documentation
-- [ ] restructure tests
+- [ ] restructure and clean up tests
 - [ ] tests solve_mass and mul_mass

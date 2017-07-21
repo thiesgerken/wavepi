@@ -47,6 +47,16 @@ using namespace wavepi::inversion;
 using namespace wavepi::problems;
 
 template<int dim>
+class TestNu: public Function<dim> {
+   public:
+      double value(const Point<dim> &p, const unsigned int component = 0) const {
+         Assert(component == 0, ExcIndexRange(component, 0, 1));
+
+         return p[0] * this->get_time();
+      }
+};
+
+template<int dim>
 class TestF: public Function<dim> {
    public:
       TestF()
@@ -177,6 +187,7 @@ void test() {
    wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(std::make_shared<TestF<dim>>()));
    wave_eq.set_param_a(std::make_shared<TestA<dim>>());
    wave_eq.set_param_c(std::make_shared<TestC<dim>>());
+   wave_eq.set_param_nu(std::make_shared<TestNu<dim>>());
 
    TestQ<dim> q;
    auto q_exact = std::make_shared<DiscretizedFunction<dim>>(mesh, dof_handler, q);
@@ -188,18 +199,15 @@ void test() {
    data_exact.throw_away_derivative();
    data_exact.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
 
-   double epsilon = 1e-2;
+   double epsilon = 1e-3;
    auto data = DiscretizedFunction<dim>::noise(data_exact, epsilon * data_exact.norm());
    data.add(1.0, data_exact);
 
    deallog.pop();
    deallog.pop();
 
-   // currently using same grids for parameters and solution
-   DiscretizedFunction<dim> initialGuess(mesh, dof_handler);
-
-   //   NonlinearLandweber<DiscretizedFunction<dim>, DiscretizedFunction<dim>> lw(std::make_unique<QProblem<dim>>(wave_eq), initialGuess, 5e1);
-   //   lw.invert(data, 1.5 * epsilon * data_exact.norm(), &q_exact);
+   // zero initial guess
+  DiscretizedFunction<dim> initialGuess(mesh, dof_handler);
 
    REGINN<DiscretizedFunction<dim>, DiscretizedFunction<dim>> reginn(std::make_unique<L2QProblem<dim>>(wave_eq),
          std::make_unique<ConjugateGradients<DiscretizedFunction<dim>, DiscretizedFunction<dim>>>(),
