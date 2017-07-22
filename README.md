@@ -2,7 +2,7 @@
 
 [![build status](https://git.thiesgerken.de/thies/wavepi/badges/master/build.svg)](https://git.thiesgerken.de/thies/wavepi/commits/master)
 
-(C) 2017 Thies Gerken (@thies), University of Bremen, `tgerken@math.uni-bremen.de`
+© 2017 Thies Gerken (@thies), University of Bremen, `tgerken@math.uni-bremen.de`
 
 Developed as part of my PhD-Project [*Dynamic Inverse Problems for Wave Equations*](https://git.thiesgerken.de/thies/promotion)
 
