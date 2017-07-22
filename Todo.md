@@ -12,16 +12,16 @@
 ## Direct Solver
 
 - [x] adjointness of `WaveEquationAdjoint` is way better, but seems to have an implementation error (complete comments)
-- [ ] grid adaptivity (decide on a structure, then all those `DoFHandler*`s have to be replaced 
+- [x] `WaveEquationBase` (idea dismissed because it would make code unreadable)
+- [ ] grid adaptivity (decide on a implementation, change code to use transfer functions (add them to `SpaceTimeMesh`)  
 - [ ] Interpolation of time steps (`DiscretizedFunction::at`)
 - [ ] find a better way of treating multiple boundaries
-- [ ] `WaveEquationBase` with getters/setters and so on for Parameters and RHS as well as assembly of matrices A, B and C
+- [ ] Adjointness with ν≠0 is not so good
 
 ## Inversion
 
 - [x] implement stop criteria in all regularization methods
 - [x] cg still unstable (solved: L2ProductRightHandSide is evil)
-- [ ] Adjointness with nu /= 0 is not so good
 - [ ] linear Tikhonov (using "Tikhonov-CG"?)
 - [ ] Adjoints for a, nu and q (base problem class for linearizations? `LinearizedWaveProblem`)
 - [ ] ** REGINN: tolerance choice ** (-> abstract class, implement strategy from Rieder's book/paper) 
