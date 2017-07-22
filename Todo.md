@@ -21,6 +21,7 @@
 
 - [x] implement stop criteria in all regularization methods
 - [x] cg still unstable (solved: L2ProductRightHandSide is evil)
+- [ ] Adjointness with nu /= 0 is not so good
 - [ ] linear Tikhonov (using "Tikhonov-CG"?)
 - [ ] Adjoints for a, nu and q (base problem class for linearizations? `LinearizedWaveProblem`)
 - [ ] ** REGINN: tolerance choice ** (-> abstract class, implement strategy from Rieder's book/paper) 
