@@ -6,7 +6,7 @@
 
 Developed as part of my PhD-Project [*Dynamic Inverse Problems for Wave Equations*](https://git.thiesgerken.de/thies/promotion)
 
-This is a work in progress, cf. [Todo.md](Todo.md).
+This is a work in progress, cf. [issue tracker](https://git.thiesgerken.de/thies/wavepi/issues).
 
 ## Dependencies
 
@@ -29,6 +29,18 @@ Generate Eclipse Project Files: (Do not do this in a child directory)
 ```shell
 cmake -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_ECLIPSE_VERSION=4.7 /path/to/wavepi
 ```
+
+Change Build type to release (no assertions, typically runs 10 times faster):
+
+```shell
+cmake -DCMAKE_BUILD_TYPE=Release ..
+```
+
+Use the same command with `Debug` to go back. There are also `make` targets that switch the build type. 
+
+## Tests
+
+This project uses [Google Test](https://github.com/google/googletest). Run the test suite using the binary `wavepi_test`. You can also list all tests (`--gtest_list_tests`) and only run a subset of them (`--gtest_filter="[filter]"`, wildcards are allowed). Currently, a few of the tests should fail (L2 Adjoint to the wave equation by integrating backwards is not as good as `WaveEquationAdjoint`, and is not even correct if $`\nu\neq 0`$.
 
 ## Remarks on the Code
 
