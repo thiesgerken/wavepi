@@ -22,7 +22,12 @@ L2QProblem<dim>::~L2QProblem() {
 
 template<int dim>
 L2QProblem<dim>::L2QProblem(WaveEquation<dim>& weq)
-      : WaveProblem<dim>(weq) {
+      : WaveProblem<dim>(weq), adjoint_solver(WaveProblem<dim>::WaveEquationAdjoint) {
+}
+
+template<int dim>
+L2QProblem<dim>::L2QProblem(WaveEquation<dim>& weq, typename WaveProblem<dim>::L2AdjointSolver adjoint_solver)
+      : WaveProblem<dim>(weq), adjoint_solver(adjoint_solver) {
 }
 
 template<int dim>

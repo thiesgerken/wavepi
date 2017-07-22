@@ -5,6 +5,8 @@ if (GTEST_FOUND)
     SET(LIBSOURCES
             main.cpp
             wave_equation.cpp
+            discretized_function.cpp
+            adjointness.cpp
         )
 
     ADD_EXECUTABLE(wavepi_test ${LIBSOURCES})

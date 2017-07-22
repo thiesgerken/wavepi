@@ -30,6 +30,6 @@
 
 ## Documentation and Tests
 
+- [x] restructure and clean up tests
+- [x] tests `solve_mass` and `mul_mass`
 - [ ] better documentation
-- [ ] restructure and clean up tests
-- [ ] tests solve_mass and mul_mass
