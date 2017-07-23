@@ -6,7 +6,8 @@ SET(LIBSOURCES
         L2ProductRightHandSide.cpp  
         SpaceTimeMesh.cpp
         DiscretizedFunction.cpp        
-        L2RightHandSide.cpp         
+        L2RightHandSide.cpp     
+        WaveEquationBase.cpp    
         WaveEquation.cpp       
         WaveEquationAdjoint.cpp
         DistributionRightHandSide.cpp  

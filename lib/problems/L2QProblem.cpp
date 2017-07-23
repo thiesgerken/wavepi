@@ -41,6 +41,7 @@ DiscretizedFunction<dim> L2QProblem<dim>::forward(const DiscretizedFunction<dim>
    LogStream::Prefix p("eval_forward");
 
    this->wave_equation.set_param_q(std::make_shared<DiscretizedFunction<dim>>(q));
+   this->wave_equation.set_run_direction(WaveEquation<dim>::Forward);
 
    DiscretizedFunction<dim> res = this->wave_equation.run();
    res.throw_away_derivative();
@@ -84,6 +85,7 @@ DiscretizedFunction<dim> L2QProblem<dim>::Linearization::forward(const Discretiz
 
    rhs->set_base_rhs(Mh);
    weq.set_right_hand_side(rhs);
+   weq.set_run_direction(WaveEquation<dim>::Forward);
 
    DiscretizedFunction<dim> res = weq.run();
    res.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
@@ -109,7 +111,8 @@ DiscretizedFunction<dim> L2QProblem<dim>::Linearization::adjoint(const Discretiz
             ExcMessage("Wrong adjoint because ν≠0!"));
 
       weq.set_right_hand_side(rhs_adj);
-      res = weq.run(true);
+      weq.set_run_direction(WaveEquation<dim>::Backward);
+      res = weq.run();
       res.throw_away_derivative();
    } else if (adjoint_solver == WaveProblem<dim>::WaveEquationAdjoint)
       res = weq_adj.run();

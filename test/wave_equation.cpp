@@ -384,6 +384,7 @@ void run_reference_test(int fe_order, int quad_order, int refines, Point<dim, in
    wave_eq.set_initial_values_u(u);
    wave_eq.set_initial_values_v(v);
 
+   wave_eq.set_run_direction(WaveEquation<dim>::Forward);
    DiscretizedFunction<dim> solu = wave_eq.run();
    DiscretizedFunction<dim> solv = solu.derivative();
    solu.throw_away_derivative();
@@ -406,7 +407,8 @@ void run_reference_test(int fe_order, int quad_order, int refines, Point<dim, in
 
    deallog << std::scientific << "forward : rerr(u) = " << err_u << ", rerr(v) = " << err_v << std::endl;
 
-   solu = wave_eq.run(true);
+   wave_eq.set_run_direction(WaveEquation<dim>::Backward);
+   solu = wave_eq.run();
    solv = solu.derivative();
    solu.throw_away_derivative();
 

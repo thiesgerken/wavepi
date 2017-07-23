@@ -17,13 +17,13 @@
 #include <deal.II/base/utilities.h>
 #include <deal.II/dofs/dof_tools.h>
 #include <deal.II/lac/dynamic_sparsity_pattern.h>
+#include <deal.II/lac/identity_matrix.h>
 #include <deal.II/lac/precondition.h>
 #include <deal.II/lac/solver_cg.h>
 #include <deal.II/lac/solver_control.h>
 #include <deal.II/numerics/matrix_tools.h>
 #include <deal.II/numerics/vector_tools.h>
 
-#include <forward/MatrixCreator.h>
 #include <forward/WaveEquationAdjoint.h>
 
 #include <stddef.h>
@@ -40,52 +40,56 @@ WaveEquationAdjoint<dim>::~WaveEquationAdjoint() {
 }
 
 template<int dim>
-WaveEquationAdjoint<dim>::WaveEquationAdjoint(std::shared_ptr<SpaceTimeMesh<dim>> mesh,
-      std::shared_ptr<DoFHandler<dim>> dof_handler, const Quadrature<dim> quad)
-      : theta(0.5), mesh(mesh), dof_handler(dof_handler), quad(quad), param_c(one), param_nu(zero), param_a(
-            one), param_q(zero), right_hand_side(zero_rhs) {
+WaveEquationAdjoint<dim>::WaveEquationAdjoint(std::shared_ptr<SpaceTimeMesh<dim>> mesh, std::shared_ptr<DoFHandler<dim>> dof_handler,
+      const Quadrature<dim> quad)
+      : WaveEquationBase<dim>(mesh, dof_handler, quad) {
 }
 
 template<int dim>
 WaveEquationAdjoint<dim>::WaveEquationAdjoint(const WaveEquationAdjoint<dim>& weq)
-      : theta(weq.theta), mesh(weq.mesh), dof_handler(weq.dof_handler), quad(weq.quad) {
-   set_param_c(weq.get_param_c());
-   set_param_q(weq.get_param_q());
-   set_param_a(weq.get_param_a());
-   set_param_nu(weq.get_param_nu());
+      : WaveEquationBase<dim>(weq.get_mesh(), weq.get_dof_handler(), weq.get_quad()) {
+   this->set_theta(weq.get_theta());
 
-   set_right_hand_side(weq.get_right_hand_side());
+   this->set_param_c(weq.get_param_c());
+   this->set_param_q(weq.get_param_q());
+   this->set_param_a(weq.get_param_a());
+   this->set_param_nu(weq.get_param_nu());
+
+   this->set_right_hand_side(weq.get_right_hand_side());
 }
 
 template<int dim>
-WaveEquationAdjoint<dim>::WaveEquationAdjoint(const WaveEquation<dim>& weq)
-      : theta(weq.get_theta()), mesh(weq.get_mesh()), dof_handler(weq.get_dof_handler()), quad(weq.get_quad()) {
-   set_param_c(weq.get_param_c());
-   set_param_q(weq.get_param_q());
-   set_param_a(weq.get_param_a());
-   set_param_nu(weq.get_param_nu());
+WaveEquationAdjoint<dim>::WaveEquationAdjoint(const WaveEquationBase<dim>& weq)
+      : WaveEquationBase<dim>(weq.get_mesh(), weq.get_dof_handler(), weq.get_quad()) {
+   this->set_theta(weq.get_theta());
 
-   set_right_hand_side(weq.get_right_hand_side());
+   this->set_param_c(weq.get_param_c());
+   this->set_param_q(weq.get_param_q());
+   this->set_param_a(weq.get_param_a());
+   this->set_param_nu(weq.get_param_nu());
+
+   this->set_right_hand_side(weq.get_right_hand_side());
 }
 
 template<int dim>
 WaveEquationAdjoint<dim>& WaveEquationAdjoint<dim>::operator=(const WaveEquationAdjoint<dim>& weq) {
-   theta = weq.theta;
-   mesh = weq.mesh;
-   dof_handler = weq.dof_handler;
-   quad = weq.quad;
-   param_c = weq.param_c;
-   param_nu = weq.param_nu;
-   param_a = weq.param_a;
-   param_q = weq.param_q;
-   right_hand_side = weq.right_hand_side;
+   this->set_mesh(weq.get_mesh());
+   this->set_dof_handler(weq.get_dof_handler());
+   this->set_quad(weq.get_quad());
+   this->set_theta(weq.get_theta());
 
+   this->set_param_c(weq.get_param_c());
+   this->set_param_q(weq.get_param_q());
+   this->set_param_a(weq.get_param_a());
+   this->set_param_nu(weq.get_param_nu());
+
+   this->set_right_hand_side(weq.get_right_hand_side());
    return *this;
 }
 
 template<int dim>
 void WaveEquationAdjoint<dim>::init_system() {
-   DynamicSparsityPattern dsp(dof_handler->n_dofs(), dof_handler->n_dofs());
+   DynamicSparsityPattern dsp(this->dof_handler->n_dofs(), this->dof_handler->n_dofs());
    DoFTools::make_sparsity_pattern(*dof_handler, dsp);
    sparsity_pattern.copy_from(dsp);
 
@@ -128,11 +132,11 @@ void WaveEquationAdjoint<dim>::setup_step(double time) {
    solution_v_old = solution_v;
 
    // setup matrices and right hand side for current time step
-   param_a->set_time(time);
-   param_nu->set_time(time);
-   param_q->set_time(time);
-   param_c->set_time(time);
-   right_hand_side->set_time(time);
+   this->param_a->set_time(time);
+   this->param_nu->set_time(time);
+   this->param_q->set_time(time);
+   this->param_c->set_time(time);
+   this->right_hand_side->set_time(time);
 
    matrix_A = 0;
    matrix_B = 0;
@@ -142,48 +146,11 @@ void WaveEquationAdjoint<dim>::setup_step(double time) {
    // this helps only a bit because each of the operations is already parallelized
    // tests show about 20%-30% (depending on dim) speedup on my Intel i5 4690
    Threads::TaskGroup<void> task_group;
-   task_group += Threads::new_task(&WaveEquationAdjoint<dim>::fill_A, *this);
-   task_group += Threads::new_task(&WaveEquationAdjoint<dim>::fill_B, *this);
-   task_group += Threads::new_task(&WaveEquationAdjoint<dim>::fill_C, *this);
-   task_group += Threads::new_task(&RightHandSide<dim>::create_right_hand_side, *right_hand_side,
-         *dof_handler, quad, rhs);
+   task_group += Threads::new_task(&WaveEquationAdjoint<dim>::fill_A, *this, matrix_A);
+   task_group += Threads::new_task(&WaveEquationAdjoint<dim>::fill_B, *this, matrix_B);
+   task_group += Threads::new_task(&WaveEquationAdjoint<dim>::fill_C, *this, matrix_C);
+   task_group += Threads::new_task(&RightHandSide<dim>::create_right_hand_side, *right_hand_side, *dof_handler, quad, rhs);
    task_group.join_all();
-}
-
-template<int dim>
-void WaveEquationAdjoint<dim>::fill_A() {
-   if ((!param_a_disc && !param_q_disc) || !using_special_assembly())
-      MatrixCreator::create_laplace_mass_matrix(*dof_handler, quad, matrix_A, param_a, param_q);
-   else if (param_a_disc && !param_q_disc)
-      MatrixCreator::create_laplace_mass_matrix(*dof_handler, quad, matrix_A,
-            param_a_disc->get_function_coefficients()[param_a_disc->get_time_index()], param_q);
-   else if (!param_a_disc && param_q_disc)
-      MatrixCreator::create_laplace_mass_matrix(*dof_handler, quad, matrix_A, param_a,
-            param_q_disc->get_function_coefficients()[param_q_disc->get_time_index()]);
-   else
-      // (param_a_disc && param_q_disc)
-      MatrixCreator::create_laplace_mass_matrix(*dof_handler, quad, matrix_A,
-            param_a_disc->get_function_coefficients()[param_a_disc->get_time_index()],
-            param_q_disc->get_function_coefficients()[param_q_disc->get_time_index()]);
-
-}
-
-template<int dim>
-void WaveEquationAdjoint<dim>::fill_B() {
-   if (param_nu_disc && using_special_assembly())
-      MatrixCreator::create_mass_matrix(*dof_handler, quad, matrix_B,
-            param_nu_disc->get_function_coefficients()[param_nu_disc->get_time_index()]);
-   else
-      dealii::MatrixCreator::create_mass_matrix(*dof_handler, quad, matrix_B, param_nu.get());
-}
-
-template<int dim>
-void WaveEquationAdjoint<dim>::fill_C() {
-   if (param_c_disc && using_special_assembly())
-      MatrixCreator::create_mass_matrix(*dof_handler, quad, matrix_C,
-            param_c_disc->get_function_coefficients()[param_c_disc->get_time_index()]);
-   else
-      dealii::MatrixCreator::create_mass_matrix(*dof_handler, quad, matrix_C, param_c.get());
 }
 
 template<int dim>
@@ -456,8 +423,7 @@ DiscretizedFunction<dim> WaveEquationAdjoint<dim>::run() {
 
    timer.stop();
    std::ios::fmtflags f(deallog.flags(std::ios_base::fixed));
-   deallog << "solved adjoint pde in " << timer.wall_time() << "s (setup " << setup_timer.wall_time() << "s)"
-         << std::endl;
+   deallog << "solved adjoint pde in " << timer.wall_time() << "s (setup " << setup_timer.wall_time() << "s)" << std::endl;
    deallog.flags(f);
 
    return apply_R_transpose(u);
@@ -465,8 +431,7 @@ DiscretizedFunction<dim> WaveEquationAdjoint<dim>::run() {
 
 // also applies Mass matrix afterwards
 template<int dim>
-DiscretizedFunction<dim> WaveEquationAdjoint<dim>::apply_R_transpose(
-      const DiscretizedFunction<dim>& u) const {
+DiscretizedFunction<dim> WaveEquationAdjoint<dim>::apply_R_transpose(const DiscretizedFunction<dim>& u) const {
    DiscretizedFunction<dim> res(mesh, dof_handler, false);
 
    for (size_t j = 0; j < mesh->get_times().size(); j++) {
@@ -486,112 +451,6 @@ DiscretizedFunction<dim> WaveEquationAdjoint<dim>::apply_R_transpose(
    }
 
    return res;
-}
-
-template<int dim>
-inline std::shared_ptr<Function<dim>> WaveEquationAdjoint<dim>::get_param_a() const {
-   return param_a;
-}
-
-template<int dim>
-inline void WaveEquationAdjoint<dim>::set_param_a(std::shared_ptr<Function<dim>> param_a) {
-   this->param_a = param_a;
-   this->param_a_disc = std::dynamic_pointer_cast<DiscretizedFunction<dim>, Function<dim>>(param_a);
-}
-
-template<int dim>
-inline std::shared_ptr<Function<dim>> WaveEquationAdjoint<dim>::get_param_c() const {
-   return param_c;
-}
-
-template<int dim>
-inline void WaveEquationAdjoint<dim>::set_param_c(std::shared_ptr<Function<dim>> param_c) {
-   this->param_c = param_c;
-   this->param_c_disc = std::dynamic_pointer_cast<DiscretizedFunction<dim>, Function<dim>>(param_c);
-}
-
-template<int dim>
-inline std::shared_ptr<Function<dim>> WaveEquationAdjoint<dim>::get_param_nu() const {
-   return param_nu;
-}
-
-template<int dim>
-inline void WaveEquationAdjoint<dim>::set_param_nu(std::shared_ptr<Function<dim>> param_nu) {
-   this->param_nu = param_nu;
-   this->param_nu_disc = std::dynamic_pointer_cast<DiscretizedFunction<dim>, Function<dim>>(param_nu);
-}
-
-template<int dim>
-inline std::shared_ptr<Function<dim>> WaveEquationAdjoint<dim>::get_param_q() const {
-   return param_q;
-}
-
-template<int dim>
-inline void WaveEquationAdjoint<dim>::set_param_q(std::shared_ptr<Function<dim>> param_q) {
-   this->param_q = param_q;
-   this->param_q_disc = std::dynamic_pointer_cast<DiscretizedFunction<dim>, Function<dim>>(param_q);
-}
-
-template<int dim>
-inline std::shared_ptr<RightHandSide<dim>> WaveEquationAdjoint<dim>::get_right_hand_side() const {
-   return right_hand_side;
-}
-
-template<int dim>
-inline void WaveEquationAdjoint<dim>::set_right_hand_side(
-      std::shared_ptr<RightHandSide<dim> > right_hand_side) {
-   this->right_hand_side = right_hand_side;
-}
-
-template<int dim> double WaveEquationAdjoint<dim>::get_theta() const {
-   return theta;
-}
-
-template<int dim> void WaveEquationAdjoint<dim>::set_theta(double theta) {
-   this->theta = theta;
-}
-
-template<int dim>
-const Quadrature<dim> WaveEquationAdjoint<dim>::get_quad() const {
-   return quad;
-}
-
-template<int dim>
-void WaveEquationAdjoint<dim>::set_quad(const Quadrature<dim> quad) {
-   this->quad = quad;
-}
-
-template<int dim>
-inline const std::shared_ptr<DoFHandler<dim> > WaveEquationAdjoint<dim>::get_dof_handler() const {
-   return dof_handler;
-}
-
-template<int dim>
-inline void WaveEquationAdjoint<dim>::set_dof_handler(const std::shared_ptr<DoFHandler<dim> > dof_handler) {
-   this->dof_handler = dof_handler;
-}
-
-template<int dim>
-inline const std::shared_ptr<SpaceTimeMesh<dim> > WaveEquationAdjoint<dim>::get_mesh() const {
-   return mesh;
-}
-
-template<int dim>
-inline void WaveEquationAdjoint<dim>::set_mesh(const std::shared_ptr<SpaceTimeMesh<dim> > mesh) {
-   this->mesh = mesh;
-}
-
-template<int dim> int WaveEquationAdjoint<dim>::get_special_assembly_tactic() const {
-   return special_assembly_tactic;
-}
-
-template<int dim> void WaveEquationAdjoint<dim>::set_special_assembly_tactic(int special_assembly_tactic) {
-   if (special_assembly_tactic > 0)
-      this->special_assembly_tactic = 1;
-   else if (special_assembly_tactic < 0)
-      this->special_assembly_tactic = -1;
-   else
-      this->special_assembly_tactic = 0;
 }
 
 template class WaveEquationAdjoint<1> ;

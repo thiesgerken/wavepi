@@ -23,7 +23,6 @@
 #include <deal.II/numerics/matrix_tools.h>
 #include <deal.II/numerics/vector_tools.h>
 
-#include <forward/MatrixCreator.h>
 #include <forward/WaveEquation.h>
 
 #include <stddef.h>
@@ -40,45 +39,44 @@ WaveEquation<dim>::~WaveEquation() {
 }
 
 template<int dim>
-WaveEquation<dim>::WaveEquation(std::shared_ptr<SpaceTimeMesh<dim>> mesh,
-      std::shared_ptr<DoFHandler<dim>> dof_handler, const Quadrature<dim> quad)
-      : theta(0.5), mesh(mesh), dof_handler(dof_handler), quad(quad), initial_values_u(zero), initial_values_v(
-            zero), boundary_values_u(zero), boundary_values_v(zero), param_c(one), param_nu(zero), param_a(
-            one), param_q(zero), right_hand_side(zero_rhs) {
+WaveEquation<dim>::WaveEquation(std::shared_ptr<SpaceTimeMesh<dim>> mesh, std::shared_ptr<DoFHandler<dim>> dof_handler,
+      const Quadrature<dim> quad)
+      : WaveEquationBase<dim>(mesh, dof_handler, quad), initial_values_u(this->zero), initial_values_v(this->zero), boundary_values_u(
+            this->zero), boundary_values_v(this->zero) {
 }
 
 template<int dim>
 WaveEquation<dim>::WaveEquation(const WaveEquation<dim>& weq)
-      : theta(weq.theta), mesh(weq.mesh), dof_handler(weq.dof_handler), quad(weq.quad), initial_values_u(
-            weq.initial_values_u), initial_values_v(weq.initial_values_v), boundary_values_u(
-            weq.boundary_values_u), boundary_values_v(weq.boundary_values_v), param_c(weq.param_c), param_nu(
-            weq.param_nu), param_a(weq.param_a), param_q(weq.param_q), param_c_disc(
-            weq.param_c_disc), param_nu_disc(weq.param_nu_disc), param_a_disc(weq.param_a_disc), param_q_disc(
-            weq.param_q_disc) , right_hand_side(weq.right_hand_side){
+      : WaveEquationBase<dim>(weq.get_mesh(), weq.get_dof_handler(), weq.get_quad()), initial_values_u(weq.initial_values_u), initial_values_v(
+            weq.initial_values_v), boundary_values_u(weq.boundary_values_u), boundary_values_v(weq.boundary_values_v) {
+   this->set_theta(weq.get_theta());
+
+   this->set_param_c(weq.get_param_c());
+   this->set_param_q(weq.get_param_q());
+   this->set_param_a(weq.get_param_a());
+   this->set_param_nu(weq.get_param_nu());
+
+   this->set_right_hand_side(weq.get_right_hand_side());
 }
 
 template<int dim>
 WaveEquation<dim>& WaveEquation<dim>::operator=(const WaveEquation<dim>& weq) {
-   theta = weq.theta;
-   mesh = weq.mesh;
-   dof_handler = weq.dof_handler;
-   quad = weq.quad;
+   this->set_mesh(weq.get_mesh());
+   this->set_dof_handler(weq.get_dof_handler());
+   this->set_quad(weq.get_quad());
+   this->set_theta(weq.get_theta());
+
+   this->set_param_c(weq.get_param_c());
+   this->set_param_q(weq.get_param_q());
+   this->set_param_a(weq.get_param_a());
+   this->set_param_nu(weq.get_param_nu());
+
+   this->set_right_hand_side(weq.get_right_hand_side());
+
    initial_values_u = weq.initial_values_u;
    initial_values_v = weq.initial_values_v;
    boundary_values_u = weq.boundary_values_u;
    boundary_values_v = weq.boundary_values_v;
-
-   param_c = weq.param_c;
-   param_nu = weq.param_nu;
-   param_a = weq.param_a;
-   param_q = weq.param_q;
-
-   param_c_disc = weq.param_c_disc;
-   param_nu_disc = weq.param_nu_disc;
-   param_a_disc = weq.param_a_disc;
-   param_q_disc = weq.param_q_disc;
-
-   right_hand_side = weq.right_hand_side;
 
    return *this;
 }
@@ -138,10 +136,10 @@ void WaveEquation<dim>::setup_step(double time) {
    solution_v_old = solution_v;
 
    // setup matrices and right hand side for current time step
-   param_a->set_time(time);
-   param_nu->set_time(time);
-   param_q->set_time(time);
-   param_c->set_time(time);
+   this->param_a->set_time(time);
+   this->param_nu->set_time(time);
+   this->param_q->set_time(time);
+   this->param_c->set_time(time);
    boundary_values_u->set_time(time);
    boundary_values_v->set_time(time);
    right_hand_side->set_time(time);
@@ -154,48 +152,11 @@ void WaveEquation<dim>::setup_step(double time) {
    // this helps only a bit because each of the operations is already parallelized
    // tests show about 20%-30% (depending on dim) speedup on my Intel i5 4690
    Threads::TaskGroup<void> task_group;
-   task_group += Threads::new_task(&WaveEquation<dim>::fill_A, *this);
-   task_group += Threads::new_task(&WaveEquation<dim>::fill_B, *this);
-   task_group += Threads::new_task(&WaveEquation<dim>::fill_C, *this);
-   task_group += Threads::new_task(&RightHandSide<dim>::create_right_hand_side, *right_hand_side,
-         *dof_handler, quad, rhs);
+   task_group += Threads::new_task(&WaveEquation<dim>::fill_A, *this, matrix_A);
+   task_group += Threads::new_task(&WaveEquation<dim>::fill_B, *this, matrix_B);
+   task_group += Threads::new_task(&WaveEquation<dim>::fill_C, *this, matrix_C);
+   task_group += Threads::new_task(&RightHandSide<dim>::create_right_hand_side, *right_hand_side, *dof_handler, quad, rhs);
    task_group.join_all();
-}
-
-template<int dim>
-void WaveEquation<dim>::fill_A() {
-   if ((!param_a_disc && !param_q_disc) || !using_special_assembly())
-      MatrixCreator::create_laplace_mass_matrix(*dof_handler, quad, matrix_A, param_a, param_q);
-   else if (param_a_disc && !param_q_disc)
-      MatrixCreator::create_laplace_mass_matrix(*dof_handler, quad, matrix_A,
-            param_a_disc->get_function_coefficients()[param_a_disc->get_time_index()], param_q);
-   else if (!param_a_disc && param_q_disc)
-      MatrixCreator::create_laplace_mass_matrix(*dof_handler, quad, matrix_A, param_a,
-            param_q_disc->get_function_coefficients()[param_q_disc->get_time_index()]);
-   else
-      // (param_a_disc && param_q_disc)
-      MatrixCreator::create_laplace_mass_matrix(*dof_handler, quad, matrix_A,
-            param_a_disc->get_function_coefficients()[param_a_disc->get_time_index()],
-            param_q_disc->get_function_coefficients()[param_q_disc->get_time_index()]);
-
-}
-
-template<int dim>
-void WaveEquation<dim>::fill_B() {
-   if (param_nu_disc && using_special_assembly())
-      MatrixCreator::create_mass_matrix(*dof_handler, quad, matrix_B,
-            param_nu_disc->get_function_coefficients()[param_nu_disc->get_time_index()]);
-   else
-      dealii::MatrixCreator::create_mass_matrix(*dof_handler, quad, matrix_B, param_nu.get());
-}
-
-template<int dim>
-void WaveEquation<dim>::fill_C() {
-   if (param_c_disc && using_special_assembly())
-      MatrixCreator::create_mass_matrix(*dof_handler, quad, matrix_C,
-            param_c_disc->get_function_coefficients()[param_c_disc->get_time_index()]);
-   else
-      dealii::MatrixCreator::create_mass_matrix(*dof_handler, quad, matrix_C, param_c.get());
 }
 
 template<int dim>
@@ -318,7 +279,7 @@ void WaveEquation<dim>::solve_v() {
 }
 
 template<int dim>
-DiscretizedFunction<dim> WaveEquation<dim>::run(bool backwards) {
+DiscretizedFunction<dim> WaveEquation<dim>::run() {
    LogStream::Prefix p("WaveEq");
    Assert(mesh->get_times().size() >= 2, ExcInternalError());
    Assert(mesh->get_times().size() < 10000, ExcNotImplemented());
@@ -329,6 +290,7 @@ DiscretizedFunction<dim> WaveEquation<dim>::run(bool backwards) {
    // this is going to be the result
    DiscretizedFunction<dim> u(mesh, dof_handler, true);
 
+   bool backwards = run_direction == Backward;
    int first_idx = backwards ? mesh->get_times().size() - 1 : 0;
 
    // initialize everything and project/interpolate initial values
@@ -371,8 +333,7 @@ DiscretizedFunction<dim> WaveEquation<dim>::run(bool backwards) {
 
    timer.stop();
    std::ios::fmtflags f(deallog.flags(std::ios_base::fixed));
-   deallog << "solved pde in " << timer.wall_time() << "s (setup " << setup_timer.wall_time() << "s)"
-         << std::endl;
+   deallog << "solved pde in " << timer.wall_time() << "s (setup " << setup_timer.wall_time() << "s)" << std::endl;
    deallog.flags(f);
 
    return u;
@@ -419,108 +380,13 @@ inline void WaveEquation<dim>::set_initial_values_v(std::shared_ptr<Function<dim
 }
 
 template<int dim>
-inline std::shared_ptr<Function<dim>> WaveEquation<dim>::get_param_a() const {
-   return param_a;
+inline typename WaveEquation<dim>::Direction WaveEquation<dim>::get_run_direction() const {
+   return run_direction;
 }
 
 template<int dim>
-inline void WaveEquation<dim>::set_param_a(std::shared_ptr<Function<dim>> param_a) {
-   this->param_a = param_a;
-   this->param_a_disc = std::dynamic_pointer_cast<DiscretizedFunction<dim>, Function<dim>>(param_a);
-}
-
-template<int dim>
-inline std::shared_ptr<Function<dim>> WaveEquation<dim>::get_param_c() const {
-   return param_c;
-}
-
-template<int dim>
-inline void WaveEquation<dim>::set_param_c(std::shared_ptr<Function<dim>> param_c) {
-   this->param_c = param_c;
-   this->param_c_disc = std::dynamic_pointer_cast<DiscretizedFunction<dim>, Function<dim>>(param_c);
-}
-
-template<int dim>
-inline std::shared_ptr<Function<dim>> WaveEquation<dim>::get_param_nu() const {
-   return param_nu;
-}
-
-template<int dim>
-inline void WaveEquation<dim>::set_param_nu(std::shared_ptr<Function<dim>> param_nu) {
-   this->param_nu = param_nu;
-   this->param_nu_disc = std::dynamic_pointer_cast<DiscretizedFunction<dim>, Function<dim>>(param_nu);
-}
-
-template<int dim>
-inline std::shared_ptr<Function<dim>> WaveEquation<dim>::get_param_q() const {
-   return param_q;
-}
-
-template<int dim>
-inline void WaveEquation<dim>::set_param_q(std::shared_ptr<Function<dim>> param_q) {
-   this->param_q = param_q;
-   this->param_q_disc = std::dynamic_pointer_cast<DiscretizedFunction<dim>, Function<dim>>(param_q);
-}
-
-template<int dim>
-inline std::shared_ptr<RightHandSide<dim>> WaveEquation<dim>::get_right_hand_side() const {
-   return right_hand_side;
-}
-
-template<int dim>
-inline void WaveEquation<dim>::set_right_hand_side(std::shared_ptr<RightHandSide<dim> > right_hand_side) {
-   this->right_hand_side = right_hand_side;
-}
-
-template<int dim> double WaveEquation<dim>::get_theta() const {
-   return theta;
-}
-
-template<int dim> void WaveEquation<dim>::set_theta(double theta) {
-   this->theta = theta;
-}
-
-template<int dim>
-const Quadrature<dim> WaveEquation<dim>::get_quad() const {
-   return quad;
-}
-
-template<int dim>
-void WaveEquation<dim>::set_quad(const Quadrature<dim> quad) {
-   this->quad = quad;
-}
-
-template<int dim>
-inline const std::shared_ptr<DoFHandler<dim> > WaveEquation<dim>::get_dof_handler() const {
-   return dof_handler;
-}
-
-template<int dim>
-inline void WaveEquation<dim>::set_dof_handler(const std::shared_ptr<DoFHandler<dim> > dof_handler) {
-   this->dof_handler = dof_handler;
-}
-
-template<int dim>
-inline const std::shared_ptr<SpaceTimeMesh<dim> > WaveEquation<dim>::get_mesh() const {
-   return mesh;
-}
-
-template<int dim>
-inline void WaveEquation<dim>::set_mesh(const std::shared_ptr<SpaceTimeMesh<dim> > mesh) {
-   this->mesh = mesh;
-}
-
-template<int dim> int WaveEquation<dim>::get_special_assembly_tactic() const {
-   return special_assembly_tactic;
-}
-
-template<int dim> void WaveEquation<dim>::set_special_assembly_tactic(int special_assembly_tactic) {
-   if (special_assembly_tactic > 0)
-      this->special_assembly_tactic = 1;
-   else if (special_assembly_tactic < 0)
-      this->special_assembly_tactic = -1;
-   else
-      this->special_assembly_tactic = 0;
+inline void WaveEquation<dim>::set_run_direction(typename WaveEquation<dim>::Direction run_direction) {
+   this->run_direction = run_direction;
 }
 
 template class WaveEquation<1> ;

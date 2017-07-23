@@ -206,7 +206,8 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
    TestF<dim> f_cont;
    auto f = std::make_shared<DiscretizedFunction<dim>>(mesh, dof_handler, f_cont);
 
-   wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(f));
+   wave_eq.set_run_direction(WaveEquation<dim>::Forward);
+    wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(f));
    DiscretizedFunction<dim> sol_f = wave_eq.run();
    EXPECT_GT(sol_f.norm(), 0.0);
 
@@ -220,7 +221,8 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
       adj_f = wave_eq_adj.run();
    } else {
       wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(f_time_mass));
-      adj_f = wave_eq.run(true);
+      wave_eq.set_run_direction(WaveEquation<dim>::Backward);
+             adj_f = wave_eq.run();
    }
 
    adj_f.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
@@ -230,7 +232,8 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
    TestG<dim> g_cont;
    auto g = std::make_shared<DiscretizedFunction<dim>>(mesh, dof_handler, g_cont);
 
-   wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(g));
+   wave_eq.set_run_direction(WaveEquation<dim>::Forward);
+          wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(g));
    DiscretizedFunction<dim> sol_g = wave_eq.run();
    EXPECT_GT(sol_g.norm(), 0.0);
 
@@ -244,7 +247,8 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
       adj_g = wave_eq_adj.run();
    } else {
       wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(g_time_mass));
-      adj_g = wave_eq.run(true);
+      wave_eq.set_run_direction(WaveEquation<dim>::Backward);
+           adj_g = wave_eq.run();
    }
 
    adj_g.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
@@ -253,7 +257,8 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
 
    auto z = std::make_shared<DiscretizedFunction<dim>>(DiscretizedFunction<dim>::noise(*g, 1));
 
-   wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(z));
+   wave_eq.set_run_direction(WaveEquation<dim>::Forward);
+     wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(z));
    DiscretizedFunction<dim> sol_z = wave_eq.run();
    EXPECT_GT(sol_z.norm(), 0.0);
 
@@ -267,7 +272,8 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
       adj_z = wave_eq_adj.run();
    } else {
       wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(z_time_mass));
-      adj_z = wave_eq.run(true);
+      wave_eq.set_run_direction(WaveEquation<dim>::Backward);
+             adj_z = wave_eq.run();
    }
 
    adj_z.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
@@ -320,16 +326,19 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
    madj_f.mult_space_time_mass();
    madj_f.pointwise_multiplication(u);
    madj_f.solve_space_time_mass();
+   EXPECT_GT(madj_f.norm(), 0.0);
 
    DiscretizedFunction<dim> madj_g(*g);
    madj_g.mult_space_time_mass();
    madj_g.pointwise_multiplication(u);
    madj_g.solve_space_time_mass();
+   EXPECT_GT(madj_g.norm(), 0.0);
 
    DiscretizedFunction<dim> madj_z(*z);
    madj_z.mult_space_time_mass();
    madj_z.pointwise_multiplication(u);
    madj_z.solve_space_time_mass();
+   EXPECT_GT(madj_z.norm(), 0.0);
 
    double dot_mulf_f = mf * (*f);
    double dot_f_madjf = (*f) * madj_f;
@@ -370,12 +379,18 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
 
    auto Af(A->forward(*f));
    auto Aadjf(A->adjoint(*f));
+   EXPECT_GT(Af.norm(), 0.0);
+   EXPECT_GT(Aadjf.norm(), 0.0);
 
    auto Ag(A->forward(*g));
    auto Aadjg(A->adjoint(*g));
+   EXPECT_GT(Ag.norm(), 0.0);
+   EXPECT_GT(Aadjg.norm(), 0.0);
 
    auto Az(A->forward(*z));
    auto Aadjz(A->adjoint(*z));
+   EXPECT_GT(Az.norm(), 0.0);
+   EXPECT_GT(Aadjz.norm(), 0.0);
 
    double dot_Af_f = Af * (*f);
    double dot_f_Aadjf = (*f) * Aadjf;

@@ -8,7 +8,6 @@
 #ifndef FORWARD_WAVEEQUATIONADJOINT_H_
 #define FORWARD_WAVEEQUATIONADJOINT_H_
 
-#include <deal.II/base/function.h>
 #include <deal.II/base/quadrature.h>
 #include <deal.II/dofs/dof_handler.h>
 #include <deal.II/lac/constraint_matrix.h>
@@ -17,12 +16,10 @@
 #include <deal.II/lac/vector.h>
 
 #include <forward/DiscretizedFunction.h>
-#include <forward/L2RightHandSide.h>
-#include <forward/RightHandSide.h>
 #include <forward/SpaceTimeMesh.h>
-#include <forward/WaveEquation.h>
+#include <forward/WaveEquationBase.h>
 
-#include <cmath>
+#include <stddef.h>
 #include <memory>
 
 namespace wavepi {
@@ -32,12 +29,12 @@ using namespace dealii;
 // parameters and rhs must currently be discretized on the same space-time grid!
 // this is the adjoint equation when using vector norm in time and L2 (using mass matrices) in space
 template<int dim>
-class WaveEquationAdjoint {
+class WaveEquationAdjoint : public WaveEquationBase<dim> {
    public:
       WaveEquationAdjoint(std::shared_ptr<SpaceTimeMesh<dim>> mesh,
             std::shared_ptr<DoFHandler<dim>> dof_handler, const Quadrature<dim> quad);
       WaveEquationAdjoint(const WaveEquationAdjoint<dim>& weq);
-      WaveEquationAdjoint(const WaveEquation<dim>& weq);
+      WaveEquationAdjoint(const WaveEquationBase<dim>& weq);
 
       ~WaveEquationAdjoint();
 
@@ -45,54 +42,13 @@ class WaveEquationAdjoint {
 
       DiscretizedFunction<dim> run();
 
-      std::shared_ptr<Function<dim>> zero = std::make_shared<ZeroFunction<dim>>(1);
-      std::shared_ptr<Function<dim>> one = std::make_shared<ConstantFunction<dim>>(1.0, 1);
-
-      std::shared_ptr<RightHandSide<dim>> zero_rhs = std::make_shared<L2RightHandSide<dim>>(zero);
-
-      double get_theta() const;
-      void set_theta(double theta);
-
-      std::shared_ptr<Function<dim>> get_param_a() const;
-      void set_param_a(std::shared_ptr<Function<dim>> param_a);
-
-      std::shared_ptr<Function<dim>> get_param_c() const;
-      void set_param_c(std::shared_ptr<Function<dim>> param_c);
-
-      std::shared_ptr<Function<dim>> get_param_nu() const;
-      void set_param_nu(std::shared_ptr<Function<dim>> param_nu);
-
-      std::shared_ptr<Function<dim>> get_param_q() const;
-      void set_param_q(std::shared_ptr<Function<dim>> param_q);
-
-      std::shared_ptr<RightHandSide<dim> > get_right_hand_side() const;
-      void set_right_hand_side(std::shared_ptr<RightHandSide<dim>> right_hand_side);
-
-      int get_special_assembly_tactic() const;
-      void set_special_assembly_tactic(int special_assembly_tactic);
-
-      // uses special functions for matrix assembly when discretized parameters are passed, which is a lot better for P1 elements.
-      // For P2 elements and 3 dimensions it actually turns out to be worse
-      // (too much coupling going on, evaluating the polynomial is actually cheaper)
-      // in that case, you should turn of the specialization.
-      inline bool is_special_assembly_recommended() const {
-         return !(quad.size() >= std::pow(2, dim) && dim >= 3);
-      }
-
-      inline bool using_special_assembly() {
-         return
-               special_assembly_tactic == 0 ?
-                     is_special_assembly_recommended() : (special_assembly_tactic > 0);
-      }
-
-      const Quadrature<dim> get_quad() const;
-      void set_quad(const Quadrature<dim> quad);
-      const std::shared_ptr<DoFHandler<dim> > get_dof_handler() const;
-      void set_dof_handler(const std::shared_ptr<DoFHandler<dim> > dof_handler);
-      const std::shared_ptr<SpaceTimeMesh<dim> > get_mesh() const;
-      void set_mesh(const std::shared_ptr<SpaceTimeMesh<dim> > mesh);
-
    private:
+      using WaveEquationBase<dim>::dof_handler;
+      using WaveEquationBase<dim>::mesh;
+      using WaveEquationBase<dim>::quad;
+      using WaveEquationBase<dim>::theta;
+      using WaveEquationBase<dim>::right_hand_side;
+
       void init_system();
       void setup_step(double time);
       void assemble_u(size_t i);
@@ -100,30 +56,7 @@ class WaveEquationAdjoint {
       void solve_u();
       void solve_v();
 
-      void fill_A();
-      void fill_B();
-      void fill_C();
-
       DiscretizedFunction<dim> apply_R_transpose(const DiscretizedFunction<dim>& u) const;
-
-      double theta;
-
-      double tolerance = 1e-8;
-
-      // treat DiscretizedFunctions as params and right hand side differently
-      // < 0 -> no (better if much coupling present), > 0 -> yes, = 0 automatically (default)
-      int special_assembly_tactic = 0;
-
-      std::shared_ptr<SpaceTimeMesh<dim>> mesh;
-      std::shared_ptr<DoFHandler<dim>> dof_handler;
-      Quadrature<dim> quad;
-
-      std::shared_ptr<Function<dim>> param_c, param_nu, param_a, param_q;
-
-      std::shared_ptr<DiscretizedFunction<dim>> param_c_disc = nullptr, param_nu_disc = nullptr;
-      std::shared_ptr<DiscretizedFunction<dim>> param_a_disc = nullptr, param_q_disc = nullptr;
-
-      std::shared_ptr<RightHandSide<dim>> right_hand_side;
 
       ConstraintMatrix constraints;
       SparsityPattern sparsity_pattern;
@@ -146,6 +79,7 @@ class WaveEquationAdjoint {
       SparseMatrix<double> system_matrix;
       Vector<double> system_rhs;
 };
+
 } /* namespace forward */
 } /* namespace wavepi */
 
