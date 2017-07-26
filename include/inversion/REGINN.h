@@ -11,9 +11,14 @@
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/logstream.h>
 
+#include <inversion/InverseProblem.h>
 #include <inversion/LinearRegularization.h>
 #include <inversion/NewtonRegularization.h>
+#include <inversion/NonlinearProblem.h>
+#include <inversion/Regularization.h>
+#include <inversion/ToleranceChoice.h>
 
+#include <iostream>
 #include <memory>
 
 namespace wavepi {
@@ -24,13 +29,10 @@ template<typename Param, typename Sol>
 class REGINN: public NewtonRegularization<Param, Sol> {
    public:
       REGINN(std::shared_ptr<NonlinearProblem<Param, Sol>> problem,
-            std::shared_ptr<LinearRegularization<Param, Sol>> linear_solver, const Param& initial_guess)
+            std::shared_ptr<LinearRegularization<Param, Sol>> linear_solver,
+            std::shared_ptr<ToleranceChoice> tol_choice, const Param& initial_guess)
             : NewtonRegularization<Param, Sol>(problem), initial_guess(initial_guess), linear_solver(
-                  linear_solver) {
-      }
-
-      REGINN(std::shared_ptr<LinearRegularization<Param, Sol>> linear_solver, const Param& initial_guess)
-            : initial_guess(initial_guess), linear_solver(linear_solver) {
+                  linear_solver), tol_choice(tol_choice) {
       }
 
       virtual ~REGINN() {
@@ -44,10 +46,12 @@ class REGINN: public NewtonRegularization<Param, Sol> {
          LogStream::Prefix p = LogStream::Prefix("REGINN");
          deallog.push("init");
 
-         AssertThrow(this->problem, ExcInternalError());
+         AssertThrow(problem, ExcInternalError());
          AssertThrow(linear_solver, ExcInternalError());
+         AssertThrow(tol_choice, ExcInternalError());
 
          Param estimate(initial_guess);
+         tol_choice->reset(target_discrepancy);
 
          Sol residual(data);
          Sol data_current = this->problem->forward(estimate);
@@ -68,9 +72,9 @@ class REGINN: public NewtonRegularization<Param, Sol> {
                      && (!this->abort_discrepancy_doubles || discrepancy < 2 * initial_discrepancy)
                      && i <= this->max_iterations; i++) {
 
-            // TODO
-            double theta_n = 0.7;
-            double linear_target_discrepancy = discrepancy * theta_n;
+            double theta = tol_choice->get_tolerance();
+            double linear_target_discrepancy = discrepancy * theta;
+            deallog << "solving linear problem using rtol=" << theta << std::endl;
 
             auto linear_status = std::make_shared<InversionProgress<Param, Sol>>(status);
             linear_solver->set_problem(this->problem->derivative(estimate, data_current));
@@ -100,6 +104,8 @@ class REGINN: public NewtonRegularization<Param, Sol> {
 
             if (discrepancy_last < discrepancy && this->abort_increasing_discrepancy)
                break;
+
+            tol_choice->add_iteration(discrepancy, linear_status->iteration_number);
          }
 
          if (status_out)
@@ -109,8 +115,11 @@ class REGINN: public NewtonRegularization<Param, Sol> {
       }
 
    private:
+      using NewtonRegularization<Param, Sol>::problem;
+
       const Param initial_guess;
       std::shared_ptr<LinearRegularization<Param, Sol>> linear_solver;
+      std::shared_ptr<ToleranceChoice> tol_choice;
 };
 
 } /* namespace inversion */

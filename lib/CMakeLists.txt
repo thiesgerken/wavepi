@@ -1,3 +1,3 @@
 add_subdirectory(forward)
-# add_subdirectory(inversion) (currently only headers)
+add_subdirectory(inversion)
 add_subdirectory(problems)

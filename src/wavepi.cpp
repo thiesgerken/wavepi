@@ -31,6 +31,10 @@
 #include <inversion/LinearProblem.h>
 #include <inversion/NonlinearLandweber.h>
 #include <inversion/REGINN.h>
+#include <inversion/ToleranceChoice.h>
+#include <inversion/RiederToleranceChoice.h>
+#include <inversion/ConstantToleranceChoice.h>
+
 #include <problems/L2QProblem.h>
 
 #include <stddef.h>
@@ -209,9 +213,13 @@ void test() {
    // zero initial guess
    DiscretizedFunction<dim> initialGuess(mesh, dof_handler);
 
-   REGINN<DiscretizedFunction<dim>, DiscretizedFunction<dim>> reginn(
-         std::make_unique<L2QProblem<dim>>(wave_eq),
-         std::make_unique<ConjugateGradients<DiscretizedFunction<dim>, DiscretizedFunction<dim>>>(),
+   auto linear_solver = std::make_shared<
+         ConjugateGradients<DiscretizedFunction<dim>, DiscretizedFunction<dim>>>();
+   auto problem = std::make_shared<L2QProblem<dim>>(wave_eq);
+//   auto tol_choice = std::make_shared<RiederToleranceChoice>(0.7, 0.95, 0.9);
+   auto tol_choice = std::make_shared<ConstantToleranceChoice>(0.7);
+
+   REGINN<DiscretizedFunction<dim>, DiscretizedFunction<dim>> reginn(problem, linear_solver, tol_choice,
          initialGuess);
    reginn.invert(data, 2 * epsilon * data_exact.norm(), q_exact);
 
