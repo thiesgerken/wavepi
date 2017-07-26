@@ -167,7 +167,8 @@ template<> const Point<3> TestQ<3>::q_position = Point<3>(-1.0, 0.5, 0.0);
 template<int dim>
 void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_steps,
       typename WaveProblem<dim>::L2AdjointSolver adjoint_solver, bool set_nu, double tol) {
-   Assert(adjoint_solver == WaveProblem<dim>::WaveEquationAdjoint && adjoint_solver == WaveProblem<dim>::WaveEquationBackwards,
+   Assert(
+         adjoint_solver == WaveProblem<dim>::WaveEquationAdjoint && adjoint_solver == WaveProblem<dim>::WaveEquationBackwards,
          ExcInternalError());
 
    Triangulation<dim> triangulation;
@@ -207,7 +208,7 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
    auto f = std::make_shared<DiscretizedFunction<dim>>(mesh, dof_handler, f_cont);
 
    wave_eq.set_run_direction(WaveEquation<dim>::Forward);
-    wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(f));
+   wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(f));
    DiscretizedFunction<dim> sol_f = wave_eq.run();
    EXPECT_GT(sol_f.norm(), 0.0);
 
@@ -222,7 +223,7 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
    } else {
       wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(f_time_mass));
       wave_eq.set_run_direction(WaveEquation<dim>::Backward);
-             adj_f = wave_eq.run();
+      adj_f = wave_eq.run();
    }
 
    adj_f.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
@@ -233,7 +234,7 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
    auto g = std::make_shared<DiscretizedFunction<dim>>(mesh, dof_handler, g_cont);
 
    wave_eq.set_run_direction(WaveEquation<dim>::Forward);
-          wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(g));
+   wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(g));
    DiscretizedFunction<dim> sol_g = wave_eq.run();
    EXPECT_GT(sol_g.norm(), 0.0);
 
@@ -248,7 +249,7 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
    } else {
       wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(g_time_mass));
       wave_eq.set_run_direction(WaveEquation<dim>::Backward);
-           adj_g = wave_eq.run();
+      adj_g = wave_eq.run();
    }
 
    adj_g.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
@@ -258,7 +259,7 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
    auto z = std::make_shared<DiscretizedFunction<dim>>(DiscretizedFunction<dim>::noise(*g, 1));
 
    wave_eq.set_run_direction(WaveEquation<dim>::Forward);
-     wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(z));
+   wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(z));
    DiscretizedFunction<dim> sol_z = wave_eq.run();
    EXPECT_GT(sol_z.norm(), 0.0);
 
@@ -273,7 +274,7 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
    } else {
       wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(z_time_mass));
       wave_eq.set_run_direction(WaveEquation<dim>::Backward);
-             adj_z = wave_eq.run();
+      adj_z = wave_eq.run();
    }
 
    adj_z.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
@@ -284,32 +285,36 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
    double dot_f_adjf = (*f) * adj_f;
    double ff_err = std::abs(dot_solf_f - dot_f_adjf) / (std::abs(dot_solf_f) + 1e-300);
 
-   deallog << std::scientific << "(Lf, f) = " << dot_solf_f << ", (f, L*f) = " << dot_f_adjf << ", rel. error = " << ff_err << std::endl;
+   deallog << std::scientific << "(Lf, f) = " << dot_solf_f << ", (f, L*f) = " << dot_f_adjf
+         << ", rel. error = " << ff_err << std::endl;
 
    double dot_solg_g = sol_g * (*g);
    double dot_g_adjg = (*g) * adj_g;
    double gg_err = std::abs(dot_solg_g - dot_g_adjg) / (std::abs(dot_solg_g) + 1e-300);
 
-   deallog << std::scientific << "(Lg, g) = " << dot_solg_g << ", (g, L*g) = " << dot_g_adjg << ", rel. error = " << gg_err << std::endl;
+   deallog << std::scientific << "(Lg, g) = " << dot_solg_g << ", (g, L*g) = " << dot_g_adjg
+         << ", rel. error = " << gg_err << std::endl;
 
    double dot_solg_f = sol_g * (*f);
    double dot_g_adjf = (*g) * adj_f;
    double gf_err = std::abs(dot_solg_f - dot_g_adjf) / (std::abs(dot_solg_f) + 1e-300);
 
-   deallog << std::scientific << "(Lg, f) = " << dot_solg_f << ", (g, L*f) = " << dot_g_adjf << ", rel. error = " << gf_err << std::endl;
+   deallog << std::scientific << "(Lg, f) = " << dot_solg_f << ", (g, L*f) = " << dot_g_adjf
+         << ", rel. error = " << gf_err << std::endl;
 
    double dot_solf_g = sol_f * (*g);
    double dot_f_adjg = (*f) * adj_g;
    double fg_err = std::abs(dot_solf_g - dot_f_adjg) / (std::abs(dot_solf_g) + 1e-300);
 
-   deallog << std::scientific << "(Lf, g) = " << dot_solf_g << ", (f, L*g) = " << dot_f_adjg << ", rel. error = " << fg_err << std::endl;
+   deallog << std::scientific << "(Lf, g) = " << dot_solf_g << ", (f, L*g) = " << dot_f_adjg
+         << ", rel. error = " << fg_err << std::endl;
 
    double dot_solz_z = sol_z * (*z);
    double dot_z_adjz = (*z) * adj_z;
    double zz_err = std::abs(dot_solz_z - dot_z_adjz) / (std::abs(dot_solz_z) + 1e-300);
 
-   deallog << std::scientific << "(Lz, z) = " << dot_solz_z << ", (z, L*z) = " << dot_z_adjz << ", rel. error = " << zz_err << std::endl
-         << std::endl;
+   deallog << std::scientific << "(Lz, z) = " << dot_solz_z << ", (z, L*z) = " << dot_z_adjz
+         << ", rel. error = " << zz_err << std::endl << std::endl;
 
    DiscretizedFunction<dim> u(sol_z); // sol_f
 
@@ -344,32 +349,36 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
    double dot_f_madjf = (*f) * madj_f;
    double mff_err = std::abs(dot_mulf_f - dot_f_madjf) / (std::abs(dot_mulf_f) + 1e-300);
 
-   deallog << std::scientific << "(Mf, f) = " << dot_mulf_f << ", (f, M*f) = " << dot_f_madjf << ", rel. error = " << mff_err << std::endl;
+   deallog << std::scientific << "(Mf, f) = " << dot_mulf_f << ", (f, M*f) = " << dot_f_madjf
+         << ", rel. error = " << mff_err << std::endl;
 
    double dot_mulg_g = mg * (*g);
    double dot_g_madjg = (*g) * madj_g;
    double mgg_err = std::abs(dot_mulg_g - dot_g_madjg) / (std::abs(dot_mulg_g) + 1e-300);
 
-   deallog << std::scientific << "(Mg, g) = " << dot_mulg_g << ", (g, M*g) = " << dot_g_madjg << ", rel. error = " << mgg_err << std::endl;
+   deallog << std::scientific << "(Mg, g) = " << dot_mulg_g << ", (g, M*g) = " << dot_g_madjg
+         << ", rel. error = " << mgg_err << std::endl;
 
    double dot_mulg_f = mg * (*f);
    double dot_g_madjf = (*g) * madj_f;
    double mgf_err = std::abs(dot_mulg_f - dot_g_madjf) / (std::abs(dot_mulg_f) + 1e-300);
 
-   deallog << std::scientific << "(Mg, f) = " << dot_mulg_f << ", (g, M*f) = " << dot_g_madjf << ", rel. error = " << mgf_err << std::endl;
+   deallog << std::scientific << "(Mg, f) = " << dot_mulg_f << ", (g, M*f) = " << dot_g_madjf
+         << ", rel. error = " << mgf_err << std::endl;
 
    double dot_mulf_g = mf * (*g);
    double dot_f_madjg = (*f) * madj_g;
    double mfg_err = std::abs(dot_mulf_g - dot_f_madjg) / (std::abs(dot_mulf_g) + 1e-300);
 
-   deallog << std::scientific << "(Mf, g) = " << dot_mulf_g << ", (f, M*g) = " << dot_f_madjg << ", rel. error = " << mfg_err << std::endl;
+   deallog << std::scientific << "(Mf, g) = " << dot_mulf_g << ", (f, M*g) = " << dot_f_madjg
+         << ", rel. error = " << mfg_err << std::endl;
 
    double dot_mulz_z = mz * (*z);
    double dot_z_madjz = (*z) * madj_z;
    double mzz_err = std::abs(dot_mulz_z - dot_z_madjz) / (std::abs(dot_mulz_z) + 1e-300);
 
-   deallog << std::scientific << "(Mz, z) = " << dot_mulz_z << ", (z, M*z) = " << dot_z_madjz << ", rel. error = " << mzz_err << std::endl
-         << std::endl;
+   deallog << std::scientific << "(Mz, z) = " << dot_mulz_z << ", (z, M*z) = " << dot_z_madjz
+         << ", rel. error = " << mzz_err << std::endl << std::endl;
 
    // test concatenation of both (if they are implemented as above)
    DiscretizedFunction<dim> estimate(mesh, dof_handler);
@@ -396,31 +405,36 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
    double dot_f_Aadjf = (*f) * Aadjf;
    double Aff_err = std::abs(dot_Af_f - dot_f_Aadjf) / (std::abs(dot_Af_f) + 1e-300);
 
-   deallog << std::scientific << "(Af, f) = " << dot_Af_f << ", (f, A*f) = " << dot_f_Aadjf << ", rel. error = " << Aff_err << std::endl;
+   deallog << std::scientific << "(Af, f) = " << dot_Af_f << ", (f, A*f) = " << dot_f_Aadjf
+         << ", rel. error = " << Aff_err << std::endl;
 
    double dot_Ag_g = Ag * (*g);
    double dot_g_Aadjg = (*g) * Aadjg;
    double Agg_err = std::abs(dot_Ag_g - dot_g_Aadjg) / (std::abs(dot_Ag_g) + 1e-300);
 
-   deallog << std::scientific << "(Ag, g) = " << dot_Ag_g << ", (g, A*g) = " << dot_g_Aadjg << ", rel. error = " << Agg_err << std::endl;
+   deallog << std::scientific << "(Ag, g) = " << dot_Ag_g << ", (g, A*g) = " << dot_g_Aadjg
+         << ", rel. error = " << Agg_err << std::endl;
 
    double dot_Ag_f = Ag * (*f);
    double dot_g_Aadjf = (*g) * Aadjf;
    double Agf_err = std::abs(dot_Ag_f - dot_g_Aadjf) / (std::abs(dot_Ag_f) + 1e-300);
 
-   deallog << std::scientific << "(Ag, f) = " << dot_Ag_f << ", (g, A*f) = " << dot_g_Aadjf << ", rel. error = " << Agf_err << std::endl;
+   deallog << std::scientific << "(Ag, f) = " << dot_Ag_f << ", (g, A*f) = " << dot_g_Aadjf
+         << ", rel. error = " << Agf_err << std::endl;
 
    double dot_Af_g = Af * (*g);
    double dot_f_Aadjg = (*f) * Aadjg;
    double Afg_err = std::abs(dot_Af_g - dot_f_Aadjg) / (std::abs(dot_Af_g) + 1e-300);
 
-   deallog << std::scientific << "(Af, g) = " << dot_Af_g << ", (f, A*g) = " << dot_f_Aadjg << ", rel. error = " << Afg_err << std::endl;
+   deallog << std::scientific << "(Af, g) = " << dot_Af_g << ", (f, A*g) = " << dot_f_Aadjg
+         << ", rel. error = " << Afg_err << std::endl;
 
    double dot_Az_z = Az * (*z);
    double dot_z_Aadjz = (*z) * Aadjz;
    double Azz_err = std::abs(dot_Az_z - dot_z_Aadjz) / (std::abs(dot_Az_z) + 1e-300);
 
-   deallog << std::scientific << "(Az, z) = " << dot_Az_z << ", (z, A*z) = " << dot_z_Aadjz << ", rel. error = " << Azz_err << std::endl;
+   deallog << std::scientific << "(Az, z) = " << dot_Az_z << ", (z, A*z) = " << dot_z_Aadjz
+         << ", rel. error = " << Azz_err << std::endl;
 
    EXPECT_LT(ff_err, tol);
    EXPECT_LT(gg_err, tol);
@@ -460,14 +474,14 @@ TEST(L2AdjointnessTest, Backwards1DFE2) {
    const int dim = 1;
 
    for (int i = 4; i < 9; i += 2)
-      run_l2_q_adjoint_test<dim>(2,6, 4, 1 << i, WaveProblem<dim>::WaveEquationBackwards, false, 1e-4);
+      run_l2_q_adjoint_test<dim>(2, 6, 4, 1 << i, WaveProblem<dim>::WaveEquationBackwards, false, 1e-4);
 }
 
 TEST(L2AdjointnessTest, Adjoint1DFE2) {
    const int dim = 1;
 
    for (int i = 4; i < 9; i += 2)
-      run_l2_q_adjoint_test<dim>(2,6, 4, 1 << i, WaveProblem<dim>::WaveEquationAdjoint, false, 1e-4);
+      run_l2_q_adjoint_test<dim>(2, 6, 4, 1 << i, WaveProblem<dim>::WaveEquationAdjoint, false, 1e-4);
 }
 
 TEST(L2AdjointnessTest, Backwards2DFE1) {

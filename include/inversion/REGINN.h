@@ -44,8 +44,8 @@ class REGINN: public NewtonRegularization<Param, Sol> {
          LogStream::Prefix p = LogStream::Prefix("REGINN");
          deallog.push("init");
 
-         Assert(this->problem, ExcInternalError());
-         Assert(linear_solver, ExcInternalError());
+         AssertThrow(this->problem, ExcInternalError());
+         AssertThrow(linear_solver, ExcInternalError());
 
          Param estimate(initial_guess);
 
@@ -74,8 +74,7 @@ class REGINN: public NewtonRegularization<Param, Sol> {
 
             auto linear_status = std::make_shared<InversionProgress<Param, Sol>>(status);
             linear_solver->set_problem(this->problem->derivative(estimate, data_current));
-            Param step = linear_solver->invert(residual, linear_target_discrepancy, nullptr,
-                  linear_status);
+            Param step = linear_solver->invert(residual, linear_target_discrepancy, nullptr, linear_status);
 
             if (linear_status->current_discrepancy > linear_target_discrepancy) {
                deallog << "error: linear solver did not converge to desired discrepancy!" << std::endl;
@@ -93,8 +92,8 @@ class REGINN: public NewtonRegularization<Param, Sol> {
             discrepancy = residual.norm();
 
             deallog.pop();
-            status = InversionProgress<Param, Sol>(i, &estimate, estimate.norm(), &residual, discrepancy, &data,
-                  norm_data, exact_param, norm_exact);
+            status = InversionProgress<Param, Sol>(i, &estimate, estimate.norm(), &residual, discrepancy,
+                  &data, norm_data, exact_param, norm_exact);
 
             if (!this->problem->progress(status))
                break;

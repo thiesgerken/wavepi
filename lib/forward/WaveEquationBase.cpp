@@ -61,7 +61,6 @@ void WaveEquationBase<dim>::fill_C(SparseMatrix<double>& destination) {
       dealii::MatrixCreator::create_mass_matrix(*dof_handler, quad, destination, param_c.get());
 }
 
-
 template class WaveEquationBase<1> ;
 template class WaveEquationBase<2> ;
 template class WaveEquationBase<3> ;

@@ -29,7 +29,7 @@ using namespace dealii;
 // parameters and rhs must currently be discretized on the same space-time grid!
 // this is the adjoint equation when using vector norm in time and L2 (using mass matrices) in space
 template<int dim>
-class WaveEquationAdjoint : public WaveEquationBase<dim> {
+class WaveEquationAdjoint: public WaveEquationBase<dim> {
    public:
       WaveEquationAdjoint(std::shared_ptr<SpaceTimeMesh<dim>> mesh,
             std::shared_ptr<DoFHandler<dim>> dof_handler, const Quadrature<dim> quad);

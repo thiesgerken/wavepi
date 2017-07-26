@@ -38,7 +38,8 @@ L2ProductRightHandSide<dim>::AssemblyScratchData::AssemblyScratchData(const Asse
 }
 
 template<int dim>
-void L2ProductRightHandSide<dim>::copy_local_to_global(Vector<double> &result, const AssemblyCopyData &copy_data) {
+void L2ProductRightHandSide<dim>::copy_local_to_global(Vector<double> &result,
+      const AssemblyCopyData &copy_data) {
    for (unsigned int i = 0; i < copy_data.local_dof_indices.size(); ++i)
       result(copy_data.local_dof_indices[i]) += copy_data.cell_rhs(i);
 }
@@ -62,13 +63,13 @@ void L2ProductRightHandSide<dim>::local_assemble(const Vector<double> &f1, const
             for (unsigned int k2 = 0; k2 < dofs_per_cell; ++k2)
                copy_data.cell_rhs(i) -= f1[copy_data.local_dof_indices[k1]]
                      * scratch_data.fe_values.shape_value(k1, q_point) * f2[copy_data.local_dof_indices[k2]]
-                     * scratch_data.fe_values.shape_value(k2, q_point) * scratch_data.fe_values.shape_value(i, q_point)
-                     * scratch_data.fe_values.JxW(q_point);
+                     * scratch_data.fe_values.shape_value(k2, q_point)
+                     * scratch_data.fe_values.shape_value(i, q_point) * scratch_data.fe_values.JxW(q_point);
 }
 
 template<int dim>
-void L2ProductRightHandSide<dim>::create_right_hand_side(const DoFHandler<dim> &dof, const Quadrature<dim> &quad,
-      Vector<double> &rhs) const {
+void L2ProductRightHandSide<dim>::create_right_hand_side(const DoFHandler<dim> &dof,
+      const Quadrature<dim> &quad, Vector<double> &rhs) const {
    func1->set_time(this->get_time());
    func2->set_time(this->get_time());
 
@@ -81,8 +82,8 @@ void L2ProductRightHandSide<dim>::create_right_hand_side(const DoFHandler<dim> &
    WorkStream::run(dof.begin_active(), dof.end(),
          std::bind(&L2ProductRightHandSide<dim>::local_assemble, *this, std::ref(coeffs1), std::ref(coeffs2),
                std::placeholders::_1, std::placeholders::_2, std::placeholders::_3),
-         std::bind(&L2ProductRightHandSide<dim>::copy_local_to_global, *this, std::ref(rhs), std::placeholders::_1),
-         AssemblyScratchData(dof.get_fe(), quad), AssemblyCopyData());
+         std::bind(&L2ProductRightHandSide<dim>::copy_local_to_global, *this, std::ref(rhs),
+               std::placeholders::_1), AssemblyScratchData(dof.get_fe(), quad), AssemblyCopyData());
 }
 
 template<int dim>

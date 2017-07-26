@@ -24,9 +24,12 @@ class Regularization {
       virtual ~Regularization() {
       }
 
-      virtual Param invert(const Sol& data, double target_discrepancy, std::shared_ptr<const Param> exact_param, std::shared_ptr<InversionProgress<Param, Sol>> status_out) = 0;
+      virtual Param invert(const Sol& data, double target_discrepancy,
+            std::shared_ptr<const Param> exact_param,
+            std::shared_ptr<InversionProgress<Param, Sol>> status_out) = 0;
 
-      virtual Param invert(const Sol& data, double target_discrepancy, std::shared_ptr<const Param> exact_param) {
+      virtual Param invert(const Sol& data, double target_discrepancy,
+            std::shared_ptr<const Param> exact_param) {
          return invert(data, target_discrepancy, exact_param, nullptr);
       }
 

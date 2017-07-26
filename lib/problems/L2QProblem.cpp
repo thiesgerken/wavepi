@@ -33,7 +33,8 @@ L2QProblem<dim>::L2QProblem(WaveEquation<dim>& weq, typename WaveProblem<dim>::L
 template<int dim>
 std::unique_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>> L2QProblem<dim>::derivative(
       const DiscretizedFunction<dim>& q, const DiscretizedFunction<dim>& u) {
-   return std::make_unique<L2QProblem<dim>::Linearization>(this->wave_equation, WaveProblem<dim>::WaveEquationAdjoint, q, u);
+   return std::make_unique<L2QProblem<dim>::Linearization>(this->wave_equation,
+         WaveProblem<dim>::WaveEquationAdjoint, q, u);
 }
 
 template<int dim>
@@ -54,8 +55,9 @@ L2QProblem<dim>::Linearization::~Linearization() {
 }
 
 template<int dim>
-L2QProblem<dim>::Linearization::Linearization(const WaveEquation<dim> &weq, typename WaveProblem<dim>::L2AdjointSolver adjoint_solver,
-      const DiscretizedFunction<dim>& q, const DiscretizedFunction<dim>& u)
+L2QProblem<dim>::Linearization::Linearization(const WaveEquation<dim> &weq,
+      typename WaveProblem<dim>::L2AdjointSolver adjoint_solver, const DiscretizedFunction<dim>& q,
+      const DiscretizedFunction<dim>& u)
       : weq(weq), weq_adj(weq), adjoint_solver(adjoint_solver) {
    this->q = std::make_shared<DiscretizedFunction<dim>>(q);
    this->u = std::make_shared<DiscretizedFunction<dim>>(u);
@@ -107,17 +109,17 @@ DiscretizedFunction<dim> L2QProblem<dim>::Linearization::adjoint(const Discretiz
    DiscretizedFunction<dim> res(weq.get_mesh(), weq.get_dof_handler());
 
    if (adjoint_solver == WaveProblem<dim>::WaveEquationBackwards) {
-      Assert((std::dynamic_pointer_cast<ZeroFunction<dim>, Function<dim>>(weq.get_param_nu()) != nullptr),
-            ExcMessage("Wrong adjoint because ν≠0!"));
+      AssertThrow((std::dynamic_pointer_cast<ZeroFunction<dim>, Function<dim>>(weq.get_param_nu()) != nullptr),
+      ExcMessage("Wrong adjoint because ν≠0!"));
 
       weq.set_right_hand_side(rhs_adj);
       weq.set_run_direction(WaveEquation<dim>::Backward);
       res = weq.run();
       res.throw_away_derivative();
    } else if (adjoint_solver == WaveProblem<dim>::WaveEquationAdjoint)
-      res = weq_adj.run();
+   res = weq_adj.run();
    else
-      Assert(false, ExcInternalError());
+   Assert(false, ExcInternalError());
 
    res.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
    res.solve_time_mass();
@@ -140,7 +142,8 @@ DiscretizedFunction<dim> L2QProblem<dim>::Linearization::zero() {
 }
 
 template<int dim>
-bool L2QProblem<dim>::Linearization::progress(InversionProgress<DiscretizedFunction<dim>, DiscretizedFunction<dim>> state) {
+bool L2QProblem<dim>::Linearization::progress(
+      InversionProgress<DiscretizedFunction<dim>, DiscretizedFunction<dim>> state) {
    deallog << "k=" << state.iteration_number << ": rdisc=" << state.current_discrepancy / state.norm_data;
    deallog << ", norm=" << state.norm_current_estimate;
    deallog << std::endl;

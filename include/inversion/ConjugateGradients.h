@@ -43,7 +43,7 @@ class ConjugateGradients: public LinearRegularization<Param, Sol> {
             std::shared_ptr<const Param> exact_param,
             std::shared_ptr<InversionProgress<Param, Sol>> status_out) {
          LogStream::Prefix prefix("CGLS");
-         Assert(this->problem, ExcInternalError());
+         AssertThrow(this->problem, ExcInternalError());
 
          Param estimate(this->problem->zero()); // f_k
          Sol residual(data); // r_k
@@ -89,7 +89,7 @@ class ConjugateGradients: public LinearRegularization<Param, Sol> {
                break;
 
             if (discrepancy_last < discrepancy && this->abort_increasing_discrepancy)
-                           break;
+               break;
 
             // saves one evaluation of the adjoint if we are finished
             if (discrepancy <= target_discrepancy)

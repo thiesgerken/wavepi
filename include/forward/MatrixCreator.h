@@ -26,32 +26,32 @@ using namespace dealii;
  * a and q must be valid function handles.
  */
 template<int dim>
-void create_laplace_mass_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
-      std::shared_ptr<Function<dim>> a,  std::shared_ptr<Function<dim>> q);
+void create_laplace_mass_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad,
+      SparseMatrix<double> &matrix, std::shared_ptr<Function<dim>> a, std::shared_ptr<Function<dim>> q);
 
 /**
  * like dealii::MatrixCreator::create_laplace_matrix, but with a zero order coefficient q as well.
  * a must be a valid function handle and q a discretized function on the same mesh.
  */
 template<int dim>
-void create_laplace_mass_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
-      std::shared_ptr<Function<dim>> a, const Vector<double>& q);
+void create_laplace_mass_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad,
+      SparseMatrix<double> &matrix, std::shared_ptr<Function<dim>> a, const Vector<double>& q);
 
 /**
  * like dealii::MatrixCreator::create_laplace_matrix, but with a zero order coefficient q as well.
  * q must be a valid function handle and a a discretized function on the same mesh.
  */
 template<int dim>
-void create_laplace_mass_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
-      const Vector<double>& a,  std::shared_ptr<Function<dim>> q);
+void create_laplace_mass_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad,
+      SparseMatrix<double> &matrix, const Vector<double>& a, std::shared_ptr<Function<dim>> q);
 
 /**
  * like dealii::MatrixCreator::create_laplace_matrix, but with a zero order coefficient q as well.
  * a and q are supplied as discretized FE functions  (living on the same mesh).
  */
 template<int dim>
-void create_laplace_mass_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
-      const Vector<double>& a, const Vector<double>& q);
+void create_laplace_mass_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad,
+      SparseMatrix<double> &matrix, const Vector<double>& a, const Vector<double>& q);
 
 /**
  * like dealii::MatrixCreator::create_mass_matrix, but with a discretized coefficient c (living on the same mesh)

@@ -34,7 +34,8 @@ class WaveEquation: public WaveEquationBase<dim> {
          Forward, Backward
       };
 
-      WaveEquation(std::shared_ptr<SpaceTimeMesh<dim>> mesh, std::shared_ptr<DoFHandler<dim>> dof_handler, const Quadrature<dim> quad);
+      WaveEquation(std::shared_ptr<SpaceTimeMesh<dim>> mesh, std::shared_ptr<DoFHandler<dim>> dof_handler,
+            const Quadrature<dim> quad);
       WaveEquation(const WaveEquation<dim>& weq);
       ~WaveEquation();
 

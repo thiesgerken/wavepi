@@ -267,7 +267,8 @@ void run_discretized_test(int fe_order, int quad_order, int refines) {
    timer.restart();
    DiscretizedFunction<dim> sol_disc_except_q = wave_eq.run();
    timer.stop();
-   deallog << "all discretized, q disguised: " << std::fixed << timer.wall_time() << " s of wall time" << std::endl;
+   deallog << "all discretized, q disguised: " << std::fixed << timer.wall_time() << " s of wall time"
+         << std::endl;
    EXPECT_GT(sol_disc_except_q.norm(), 0.0);
 
    /* discretized, a disguised */
@@ -278,7 +279,8 @@ void run_discretized_test(int fe_order, int quad_order, int refines) {
    timer.restart();
    DiscretizedFunction<dim> sol_disc_except_a = wave_eq.run();
    timer.stop();
-   deallog << "all discretized, a disguised: " << std::fixed << timer.wall_time() << " s of wall time" << std::endl;
+   deallog << "all discretized, a disguised: " << std::fixed << timer.wall_time() << " s of wall time"
+         << std::endl;
    EXPECT_GT(sol_disc_except_a.norm(), 0.0);
 
    /* disguised */
@@ -292,8 +294,8 @@ void run_discretized_test(int fe_order, int quad_order, int refines) {
    timer.restart();
    DiscretizedFunction<dim> sol_disguised = wave_eq.run();
    timer.stop();
-   deallog << "all discretized and disguised as continuous: " << std::fixed << timer.wall_time() << " s of wall time" << std::endl
-         << std::endl;
+   deallog << "all discretized and disguised as continuous: " << std::fixed << timer.wall_time()
+         << " s of wall time" << std::endl << std::endl;
    EXPECT_GT(sol_disguised.norm(), 0.0);
 
    /* results */
@@ -301,24 +303,24 @@ void run_discretized_test(int fe_order, int quad_order, int refines) {
    tmp -= sol_disguised;
    double err_disguised_vs_disc_except_q = tmp.norm() / sol_disguised.norm();
 
-   deallog << "rel. error between disguised discrete and discrete (q disguised): " << std::scientific << err_disguised_vs_disc_except_q
-         << std::endl;
+   deallog << "rel. error between disguised discrete and discrete (q disguised): " << std::scientific
+         << err_disguised_vs_disc_except_q << std::endl;
    EXPECT_LT(err_disguised_vs_disc_except_q, 1e-7);
 
    tmp = sol_disc_except_a;
    tmp -= sol_disguised;
    double err_disguised_vs_disc_except_a = tmp.norm() / sol_disguised.norm();
 
-   deallog << "rel. error between disguised discrete and discrete (a disguised): " << std::scientific << err_disguised_vs_disc_except_a
-         << std::endl;
+   deallog << "rel. error between disguised discrete and discrete (a disguised): " << std::scientific
+         << err_disguised_vs_disc_except_a << std::endl;
    EXPECT_LT(err_disguised_vs_disc_except_a, 1e-7);
 
    tmp = sol_disc;
    tmp -= sol_disguised;
    double err_disguised_vs_disc = tmp.norm() / sol_disguised.norm();
 
-   deallog << "rel. error between disguised discrete and full discrete: " << std::scientific << err_disguised_vs_disc << std::endl
-         << std::endl;
+   deallog << "rel. error between disguised discrete and full discrete: " << std::scientific
+         << err_disguised_vs_disc << std::endl << std::endl;
    EXPECT_LT(err_disguised_vs_disc, 1e-7);
 }
 
@@ -350,8 +352,8 @@ class SeparationAnsatz: public Function<dim> {
 };
 
 template<int dim>
-void run_reference_test(int fe_order, int quad_order, int refines, Point<dim, int> k, Point<2> constants, double t_end, int steps,
-      bool expect = true) {
+void run_reference_test(int fe_order, int quad_order, int refines, Point<dim, int> k, Point<2> constants,
+      double t_end, int steps, bool expect = true) {
    Triangulation<dim> triangulation;
    GridGenerator::hyper_cube(triangulation, 0, numbers::PI);
    triangulation.refine_global(refines);
@@ -428,7 +430,8 @@ void run_reference_test(int fe_order, int quad_order, int refines, Point<dim, in
       EXPECT_LT(err_v, 1e-1);
    }
 
-   deallog << std::scientific << "backward: rerr(u) = " << err_u << ", rerr(v) = " << err_v << std::endl << std::endl;
+   deallog << std::scientific << "backward: rerr(u) = " << err_u << ", rerr(v) = " << err_v << std::endl
+         << std::endl;
 }
 }
 
@@ -454,7 +457,8 @@ TEST(WaveEquationTest, DiscretizedParameters3DFE1) {
 
 TEST(WaveEquationTest, ReferenceTest1DFE1) {
    for (int steps = 128; steps <= 1024; steps *= 2)
-      run_reference_test<1>(1, 3, 10, Point<1, int>(2), Point<2>(1.0, 1.5), 2 * numbers::PI, steps, steps >= 64);
+      run_reference_test<1>(1, 3, 10, Point<1, int>(2), Point<2>(1.0, 1.5), 2 * numbers::PI, steps,
+            steps >= 64);
 
    for (int refine = 9; refine >= 1; refine--)
       run_reference_test<1>(1, 3, refine, Point<1, int>(2), Point<2>(1.0, 1.5), 2 * numbers::PI, 1024, false);
@@ -462,7 +466,8 @@ TEST(WaveEquationTest, ReferenceTest1DFE1) {
 
 TEST(WaveEquationTest, ReferenceTest1DFE2) {
    for (int steps = 16; steps <= 128; steps *= 2)
-      run_reference_test<1>(2, 4, 7, Point<1, int>(2), Point<2>(1.0, 1.5), 2 * numbers::PI, steps, steps >= 64);
+      run_reference_test<1>(2, 4, 7, Point<1, int>(2), Point<2>(1.0, 1.5), 2 * numbers::PI, steps,
+            steps >= 64);
 
    for (int refine = 6; refine >= 1; refine--)
       run_reference_test<1>(2, 4, refine, Point<1, int>(2), Point<2>(1.0, 1.5), 2 * numbers::PI, 128, false);
@@ -470,16 +475,20 @@ TEST(WaveEquationTest, ReferenceTest1DFE2) {
 
 TEST(WaveEquationTest, ReferenceTest2DFE1) {
    for (int steps = 16; steps <= 256; steps *= 2)
-      run_reference_test<2>(1, 3, 6, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, steps, steps >= 64);
+      run_reference_test<2>(1, 3, 6, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, steps,
+            steps >= 64);
 
    for (int refine = 5; refine >= 1; refine--)
-      run_reference_test<2>(1, 3, refine, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, 256, false);
+      run_reference_test<2>(1, 3, refine, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, 256,
+            false);
 }
 
 TEST(WaveEquationTest, ReferenceTest3DFE1) {
    for (int steps = 8; steps <= 32; steps *= 2)
-      run_reference_test<3>(1, 3, 3, Point<3, int>(1, 2, 3), Point<2>(0.7, 1.2), 2 * numbers::PI, steps, steps >= 32);
+      run_reference_test<3>(1, 3, 3, Point<3, int>(1, 2, 3), Point<2>(0.7, 1.2), 2 * numbers::PI, steps,
+            steps >= 32);
 
    for (int refine = 2; refine >= 0; refine--)
-      run_reference_test<3>(1, 3, refine, Point<3, int>(1, 2, 3), Point<2>(0.7, 1.2), 2 * numbers::PI, 32, false);
+      run_reference_test<3>(1, 3, refine, Point<3, int>(1, 2, 3), Point<2>(0.7, 1.2), 2 * numbers::PI, 32,
+            false);
 }

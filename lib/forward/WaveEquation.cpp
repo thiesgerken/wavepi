@@ -39,16 +39,17 @@ WaveEquation<dim>::~WaveEquation() {
 }
 
 template<int dim>
-WaveEquation<dim>::WaveEquation(std::shared_ptr<SpaceTimeMesh<dim>> mesh, std::shared_ptr<DoFHandler<dim>> dof_handler,
-      const Quadrature<dim> quad)
-      : WaveEquationBase<dim>(mesh, dof_handler, quad), initial_values_u(this->zero), initial_values_v(this->zero), boundary_values_u(
-            this->zero), boundary_values_v(this->zero) {
+WaveEquation<dim>::WaveEquation(std::shared_ptr<SpaceTimeMesh<dim>> mesh,
+      std::shared_ptr<DoFHandler<dim>> dof_handler, const Quadrature<dim> quad)
+      : WaveEquationBase<dim>(mesh, dof_handler, quad), initial_values_u(this->zero), initial_values_v(
+            this->zero), boundary_values_u(this->zero), boundary_values_v(this->zero) {
 }
 
 template<int dim>
 WaveEquation<dim>::WaveEquation(const WaveEquation<dim>& weq)
-      : WaveEquationBase<dim>(weq.get_mesh(), weq.get_dof_handler(), weq.get_quad()), initial_values_u(weq.initial_values_u), initial_values_v(
-            weq.initial_values_v), boundary_values_u(weq.boundary_values_u), boundary_values_v(weq.boundary_values_v) {
+      : WaveEquationBase<dim>(weq.get_mesh(), weq.get_dof_handler(), weq.get_quad()), initial_values_u(
+            weq.initial_values_u), initial_values_v(weq.initial_values_v), boundary_values_u(
+            weq.boundary_values_u), boundary_values_v(weq.boundary_values_v) {
    this->set_theta(weq.get_theta());
 
    this->set_param_c(weq.get_param_c());
@@ -155,7 +156,8 @@ void WaveEquation<dim>::setup_step(double time) {
    task_group += Threads::new_task(&WaveEquation<dim>::fill_A, *this, matrix_A);
    task_group += Threads::new_task(&WaveEquation<dim>::fill_B, *this, matrix_B);
    task_group += Threads::new_task(&WaveEquation<dim>::fill_C, *this, matrix_C);
-   task_group += Threads::new_task(&RightHandSide<dim>::create_right_hand_side, *right_hand_side, *dof_handler, quad, rhs);
+   task_group += Threads::new_task(&RightHandSide<dim>::create_right_hand_side, *right_hand_side,
+         *dof_handler, quad, rhs);
    task_group.join_all();
 }
 
@@ -333,7 +335,8 @@ DiscretizedFunction<dim> WaveEquation<dim>::run() {
 
    timer.stop();
    std::ios::fmtflags f(deallog.flags(std::ios_base::fixed));
-   deallog << "solved pde in " << timer.wall_time() << "s (setup " << setup_timer.wall_time() << "s)" << std::endl;
+   deallog << "solved pde in " << timer.wall_time() << "s (setup " << setup_timer.wall_time() << "s)"
+         << std::endl;
    deallog.flags(f);
 
    return u;

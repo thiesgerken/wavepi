@@ -78,8 +78,8 @@ void local_assemble_dd(const Vector<double> &a, const Vector<double> &u,
             for (unsigned int ku = 0; ku < dofs_per_cell; ++ku)
                copy_data.cell_rhs(i) -= a[copy_data.local_dof_indices[ka]]
                      * scratch_data.fe_values.shape_value(ka, q_point) * u[copy_data.local_dof_indices[ku]]
-                     * scratch_data.fe_values.shape_grad(ku, q_point) * scratch_data.fe_values.shape_grad(i, q_point)
-                     * scratch_data.fe_values.JxW(q_point);
+                     * scratch_data.fe_values.shape_grad(ku, q_point)
+                     * scratch_data.fe_values.shape_grad(i, q_point) * scratch_data.fe_values.JxW(q_point);
 }
 
 template<int dim>
@@ -108,8 +108,8 @@ void local_assemble_cc(const Function<dim> * const a, const Function<dim> * cons
 template<int dim>
 void DivRightHandSide<dim>::create_right_hand_side(const DoFHandler<dim> &dof, const Quadrature<dim> &quad,
       Vector<double> &rhs) const {
-   Assert(a != nullptr, ExcZero());
-   Assert(u != nullptr, ExcZero());
+   AssertThrow(a != nullptr, ExcZero());
+   AssertThrow(u != nullptr, ExcZero());
 
    a->set_time(this->get_time());
    u->set_time(this->get_time());
@@ -125,13 +125,15 @@ void DivRightHandSide<dim>::create_right_hand_side(const DoFHandler<dim> &dof, c
       Assert(cu.size() == dof.n_dofs(), ExcDimensionMismatch (cu.size() , dof.n_dofs()));
 
       WorkStream::run(dof.begin_active(), dof.end(),
-            std::bind(&local_assemble_dd<dim>, std::ref(ca), std::ref(cu), std::placeholders::_1, std::placeholders::_2,
-                  std::placeholders::_3), std::bind(&copy_local_to_global, std::ref(rhs), std::placeholders::_1),
+            std::bind(&local_assemble_dd<dim>, std::ref(ca), std::ref(cu), std::placeholders::_1,
+                  std::placeholders::_2, std::placeholders::_3),
+            std::bind(&copy_local_to_global, std::ref(rhs), std::placeholders::_1),
             AssemblyScratchData<dim>(dof.get_fe(), quad), AssemblyCopyData());
    } else
       WorkStream::run(dof.begin_active(), dof.end(),
             std::bind(&local_assemble_cc<dim>, a, u, std::placeholders::_1, std::placeholders::_2,
-                  std::placeholders::_3), std::bind(&copy_local_to_global, std::ref(rhs), std::placeholders::_1),
+                  std::placeholders::_3),
+            std::bind(&copy_local_to_global, std::ref(rhs), std::placeholders::_1),
             AssemblyScratchData<dim>(dof.get_fe(), quad), AssemblyCopyData());
 }
 

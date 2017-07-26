@@ -166,7 +166,8 @@ template<> const Point<3> TestQ<3>::q_position = Point<3>(-1.0, 0.5, 0.0);
 
 // tests whether norm and dot product are consistent
 template<int dim>
-void run_dot_norm_test(int fe_order, int quad_order, int refines, int n_steps, typename DiscretizedFunction<dim>::Norm norm) {
+void run_dot_norm_test(int fe_order, int quad_order, int refines, int n_steps,
+      typename DiscretizedFunction<dim>::Norm norm) {
    Triangulation<dim> triangulation;
    GridGenerator::hyper_cube(triangulation, -1, 1);
    triangulation.refine_global(refines);
@@ -196,7 +197,8 @@ void run_dot_norm_test(int fe_order, int quad_order, int refines, int n_steps, t
    double sqrt_dot_q_q = std::sqrt(q * q);
    double q_err = std::abs(norm_q - sqrt_dot_q_q) / (std::abs(norm_q) + 1e-300);
 
-   deallog << std::scientific << "‖q‖ = " << norm_q << ", √(q, q) = " << sqrt_dot_q_q << ", rel. error = " << q_err << std::endl;
+   deallog << std::scientific << "‖q‖ = " << norm_q << ", √(q, q) = " << sqrt_dot_q_q << ", rel. error = "
+         << q_err << std::endl;
 
    TestG<dim> g_cont;
    DiscretizedFunction<dim> g(mesh, dof_handler, g_cont);
@@ -206,7 +208,8 @@ void run_dot_norm_test(int fe_order, int quad_order, int refines, int n_steps, t
    double sqrt_dot_g_g = std::sqrt(g * g);
    double g_err = std::abs(norm_g - sqrt_dot_g_g) / (std::abs(norm_g) + 1e-300);
 
-   deallog << std::scientific << "‖g‖ = " << norm_q << ", √(g, g) = " << sqrt_dot_g_g << ", rel. error = " << g_err << std::endl;
+   deallog << std::scientific << "‖g‖ = " << norm_q << ", √(g, g) = " << sqrt_dot_g_g << ", rel. error = "
+         << g_err << std::endl;
 
    TestF<dim> f_cont;
    DiscretizedFunction<dim> f(mesh, dof_handler, f_cont);
@@ -216,7 +219,8 @@ void run_dot_norm_test(int fe_order, int quad_order, int refines, int n_steps, t
    double sqrt_dot_f_f = std::sqrt(f * f);
    double f_err = std::abs(norm_f - sqrt_dot_f_f) / (std::abs(norm_f) + 1e-300);
 
-   deallog << std::scientific << "‖f‖ = " << norm_q << ", √(f, f) = " << sqrt_dot_f_f << ", rel. error = " << f_err << std::endl;
+   deallog << std::scientific << "‖f‖ = " << norm_q << ", √(f, f) = " << sqrt_dot_f_f << ", rel. error = "
+         << f_err << std::endl;
 
    double tol = 1e-14;
 
@@ -229,7 +233,8 @@ void run_dot_norm_test(int fe_order, int quad_order, int refines, int n_steps, t
 
 // tests whether mass matrix operations are inverse to each other
 template<int dim>
-void run_space_time_mass_test(int fe_order, int quad_order, int refines, int n_steps, typename DiscretizedFunction<dim>::Norm norm) {
+void run_space_time_mass_test(int fe_order, int quad_order, int refines, int n_steps,
+      typename DiscretizedFunction<dim>::Norm norm) {
    Triangulation<dim> triangulation;
    GridGenerator::hyper_cube(triangulation, -1, 1);
    triangulation.refine_global(refines);

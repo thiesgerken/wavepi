@@ -198,8 +198,8 @@ void DiscretizedFunction<dim>::rand() {
    std::uniform_real_distribution<double> distribution(0, 1);
 
    for (size_t i = 0; i < mesh->get_times().size(); i++)
-     for (size_t j = 0; j < function_coefficients[i].size(); j++)
-    	 function_coefficients[i][j] = distribution(generator);
+      for (size_t j = 0; j < function_coefficients[i].size(); j++)
+         function_coefficients[i][j] = distribution(generator);
 }
 
 template<int dim>
@@ -215,7 +215,7 @@ DiscretizedFunction<dim> DiscretizedFunction<dim>::noise(const DiscretizedFuncti
 
 template<int dim>
 DiscretizedFunction<dim>& DiscretizedFunction<dim>::operator/=(const double factor) {
-   return this->operator*= (1.0 / factor);
+   return this->operator*=(1.0 / factor);
 }
 
 template<int dim>
@@ -613,6 +613,7 @@ void DiscretizedFunction<dim>::write_pvd(std::string path, std::string name, std
    task_group.join_all();
 
    std::ofstream pvd_output(path + ".pvd");
+   AssertThrow(pvd_output, ExcInternalError());
    deallog << "Writing " << path + ".pvd" << std::endl;
    DataOutBase::write_pvd_record(pvd_output, times_and_names);
 }
@@ -632,6 +633,7 @@ void DiscretizedFunction<dim>::write_vtk(const std::string name, const std::stri
 
    deallog << "Writing " << filename << std::endl;
    std::ofstream output(filename.c_str());
+   AssertThrow(output, ExcInternalError());
    data_out.write_vtu(output);
 }
 

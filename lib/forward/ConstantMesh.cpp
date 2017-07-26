@@ -17,7 +17,8 @@ namespace forward {
 using namespace dealii;
 
 template<int dim>
-ConstantMesh<dim>::ConstantMesh(std::vector<double> times, std::shared_ptr<DoFHandler<dim>> dof_handler, Quadrature<dim> quad)
+ConstantMesh<dim>::ConstantMesh(std::vector<double> times, std::shared_ptr<DoFHandler<dim>> dof_handler,
+      Quadrature<dim> quad)
       : SpaceTimeMesh<dim>(times), dof_handler(dof_handler) {
 
    DynamicSparsityPattern dsp(dof_handler->n_dofs(), dof_handler->n_dofs());

@@ -31,12 +31,12 @@ class WaveEquationBase {
       std::shared_ptr<Function<dim>> one = std::make_shared<ConstantFunction<dim>>(1.0, 1);
       std::shared_ptr<RightHandSide<dim>> zero_rhs = std::make_shared<L2RightHandSide<dim>>(zero);
 
-      WaveEquationBase(std::shared_ptr<SpaceTimeMesh<dim>> mesh,
-            std::shared_ptr<DoFHandler<dim>> dof_handler, const Quadrature<dim> quad);
+      WaveEquationBase(std::shared_ptr<SpaceTimeMesh<dim>> mesh, std::shared_ptr<DoFHandler<dim>> dof_handler,
+            const Quadrature<dim> quad);
 
       virtual ~WaveEquationBase();
 
-    virtual   DiscretizedFunction<dim> run() = 0;
+      virtual DiscretizedFunction<dim> run() = 0;
 
       // uses special functions for matrix assembly when discretized parameters are passed, which is a lot better for P1 elements.
       // For P2 elements and 3 dimensions it actually turns out to be worse
@@ -52,93 +52,100 @@ class WaveEquationBase {
                      is_special_assembly_recommended() : (special_assembly_tactic > 0);
       }
 
-      inline  std::shared_ptr<DoFHandler<dim> > get_dof_handler() const {return this->dof_handler;}
-      inline  void set_dof_handler( std::shared_ptr<DoFHandler<dim> > dof_handler) {this->dof_handler = dof_handler;}
+      inline std::shared_ptr<DoFHandler<dim> > get_dof_handler() const {
+         return this->dof_handler;
+      }
+      inline void set_dof_handler(std::shared_ptr<DoFHandler<dim> > dof_handler) {
+         this->dof_handler = dof_handler;
+      }
 
-      inline std::shared_ptr<SpaceTimeMesh<dim> > get_mesh() const {return this->mesh;}
-      inline void set_mesh(std::shared_ptr<SpaceTimeMesh<dim> > mesh) {this->mesh = mesh;}
+      inline std::shared_ptr<SpaceTimeMesh<dim> > get_mesh() const {
+         return this->mesh;
+      }
+      inline void set_mesh(std::shared_ptr<SpaceTimeMesh<dim> > mesh) {
+         this->mesh = mesh;
+      }
 
-    inline  double get_tolerance() const {
+      inline double get_tolerance() const {
          return tolerance;
       }
 
-    inline  void set_tolerance(double tolerance) {
+      inline void set_tolerance(double tolerance) {
          this->tolerance = tolerance;
       }
 
-    inline std::shared_ptr<Function<dim>> get_param_a() const {
-       return param_a;
-    }
+      inline std::shared_ptr<Function<dim>> get_param_a() const {
+         return param_a;
+      }
 
-    inline void set_param_a(std::shared_ptr<Function<dim>> param_a) {
-       this->param_a = param_a;
-       this->param_a_disc = std::dynamic_pointer_cast<DiscretizedFunction<dim>, Function<dim>>(param_a);
-    }
+      inline void set_param_a(std::shared_ptr<Function<dim>> param_a) {
+         this->param_a = param_a;
+         this->param_a_disc = std::dynamic_pointer_cast<DiscretizedFunction<dim>, Function<dim>>(param_a);
+      }
 
-    inline std::shared_ptr<Function<dim>> get_param_c() const {
-       return param_c;
-    }
+      inline std::shared_ptr<Function<dim>> get_param_c() const {
+         return param_c;
+      }
 
-    inline void set_param_c(std::shared_ptr<Function<dim>> param_c) {
-       this->param_c = param_c;
-       this->param_c_disc = std::dynamic_pointer_cast<DiscretizedFunction<dim>, Function<dim>>(param_c);
-    }
+      inline void set_param_c(std::shared_ptr<Function<dim>> param_c) {
+         this->param_c = param_c;
+         this->param_c_disc = std::dynamic_pointer_cast<DiscretizedFunction<dim>, Function<dim>>(param_c);
+      }
 
-    inline std::shared_ptr<Function<dim>> get_param_nu() const {
-       return param_nu;
-    }
+      inline std::shared_ptr<Function<dim>> get_param_nu() const {
+         return param_nu;
+      }
 
-    inline void set_param_nu(std::shared_ptr<Function<dim>> param_nu) {
-       this->param_nu = param_nu;
-       this->param_nu_disc = std::dynamic_pointer_cast<DiscretizedFunction<dim>, Function<dim>>(param_nu);
-    }
+      inline void set_param_nu(std::shared_ptr<Function<dim>> param_nu) {
+         this->param_nu = param_nu;
+         this->param_nu_disc = std::dynamic_pointer_cast<DiscretizedFunction<dim>, Function<dim>>(param_nu);
+      }
 
-    inline std::shared_ptr<Function<dim>> get_param_q() const {
-       return param_q;
-    }
+      inline std::shared_ptr<Function<dim>> get_param_q() const {
+         return param_q;
+      }
 
-    inline void set_param_q(std::shared_ptr<Function<dim>> param_q) {
-       this->param_q = param_q;
-       this->param_q_disc = std::dynamic_pointer_cast<DiscretizedFunction<dim>, Function<dim>>(param_q);
-    }
+      inline void set_param_q(std::shared_ptr<Function<dim>> param_q) {
+         this->param_q = param_q;
+         this->param_q_disc = std::dynamic_pointer_cast<DiscretizedFunction<dim>, Function<dim>>(param_q);
+      }
 
-    inline std::shared_ptr<RightHandSide<dim>> get_right_hand_side() const {
-       return right_hand_side;
-    }
+      inline std::shared_ptr<RightHandSide<dim>> get_right_hand_side() const {
+         return right_hand_side;
+      }
 
-    inline void set_right_hand_side(
-          std::shared_ptr<RightHandSide<dim> > right_hand_side) {
-       this->right_hand_side = right_hand_side;
-    }
+      inline void set_right_hand_side(std::shared_ptr<RightHandSide<dim> > right_hand_side) {
+         this->right_hand_side = right_hand_side;
+      }
 
-    inline  double get_theta() const {
-       return theta;
-    }
+      inline double get_theta() const {
+         return theta;
+      }
 
-    inline   void set_theta(double theta) {
-       this->theta = theta;
-    }
+      inline void set_theta(double theta) {
+         this->theta = theta;
+      }
 
-    inline Quadrature<dim> get_quad() const {
-       return quad;
-    }
+      inline Quadrature<dim> get_quad() const {
+         return quad;
+      }
 
-    inline   void set_quad(const Quadrature<dim> quad) {
-       this->quad = quad;
-    }
+      inline void set_quad(const Quadrature<dim> quad) {
+         this->quad = quad;
+      }
 
-    inline int get_special_assembly_tactic() const {
-       return special_assembly_tactic;
-    }
+      inline int get_special_assembly_tactic() const {
+         return special_assembly_tactic;
+      }
 
-    inline  void set_special_assembly_tactic(int special_assembly_tactic) {
-       if (special_assembly_tactic > 0)
-          this->special_assembly_tactic = 1;
-       else if (special_assembly_tactic < 0)
-          this->special_assembly_tactic = -1;
-       else
-          this->special_assembly_tactic = 0;
-    }
+      inline void set_special_assembly_tactic(int special_assembly_tactic) {
+         if (special_assembly_tactic > 0)
+            this->special_assembly_tactic = 1;
+         else if (special_assembly_tactic < 0)
+            this->special_assembly_tactic = -1;
+         else
+            this->special_assembly_tactic = 0;
+      }
 
    protected:
       void fill_A(SparseMatrix<double>& destination);

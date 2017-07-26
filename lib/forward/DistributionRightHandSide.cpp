@@ -108,9 +108,11 @@ void local_assemble_dd(const Vector<double> &f1, const Vector<double> &f2,
       for (unsigned int i = 0; i < dofs_per_cell; ++i)
          for (unsigned int k = 0; k < dofs_per_cell; ++k)
             copy_data.cell_rhs(i) += (f1[copy_data.local_dof_indices[k]]
-                  * scratch_data.fe_values.shape_value(k, q_point) * scratch_data.fe_values.shape_value(i, q_point)
+                  * scratch_data.fe_values.shape_value(k, q_point)
+                  * scratch_data.fe_values.shape_value(i, q_point)
                   + f2[copy_data.local_dof_indices[k]] * scratch_data.fe_values.shape_value(k, q_point)
-                        * scratch_data.fe_values.shape_grad(i, q_point)) * scratch_data.fe_values.JxW(q_point);
+                        * scratch_data.fe_values.shape_grad(i, q_point))
+                  * scratch_data.fe_values.JxW(q_point);
 }
 
 template<int dim>
@@ -137,7 +139,8 @@ void local_assemble_cd(const Function<dim> * const f1, const Vector<double> &f2,
 
       for (unsigned int i = 0; i < dofs_per_cell; ++i) {
          for (unsigned int k = 0; k < dofs_per_cell; ++k)
-            copy_data.cell_rhs(i) += f2[copy_data.local_dof_indices[k]] * scratch_data.fe_values.shape_value(k, q_point)
+            copy_data.cell_rhs(i) += f2[copy_data.local_dof_indices[k]]
+                  * scratch_data.fe_values.shape_value(k, q_point)
                   * scratch_data.fe_values.shape_grad(i, q_point) * scratch_data.fe_values.JxW(q_point);
       }
    }
@@ -159,7 +162,8 @@ void local_assemble_dc(const Vector<double> &f1, const Function<dim> * const f2,
    for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
       for (unsigned int i = 0; i < dofs_per_cell; ++i) {
          for (unsigned int k = 0; k < dofs_per_cell; ++k)
-            copy_data.cell_rhs(i) += f1[copy_data.local_dof_indices[k]] * scratch_data.fe_values.shape_value(k, q_point)
+            copy_data.cell_rhs(i) += f1[copy_data.local_dof_indices[k]]
+                  * scratch_data.fe_values.shape_value(k, q_point)
                   * scratch_data.fe_values.shape_value(i, q_point) * scratch_data.fe_values.JxW(q_point);
 
          if (f2 != nullptr) {
@@ -174,8 +178,8 @@ void local_assemble_dc(const Vector<double> &f1, const Function<dim> * const f2,
 }
 
 template<int dim>
-void DistributionRightHandSide<dim>::create_right_hand_side(const DoFHandler<dim> &dof, const Quadrature<dim> &quad,
-      Vector<double> &rhs) const {
+void DistributionRightHandSide<dim>::create_right_hand_side(const DoFHandler<dim> &dof,
+      const Quadrature<dim> &quad, Vector<double> &rhs) const {
    f1->set_time(this->get_time());
    f2->set_time(this->get_time());
 
@@ -192,27 +196,31 @@ void DistributionRightHandSide<dim>::create_right_hand_side(const DoFHandler<dim
 
    if (f1_d != nullptr && f2_d != nullptr)
       WorkStream::run(dof.begin_active(), dof.end(),
-            std::bind(&local_assemble_cc<dim>, std::ref(f1_d->get_function_coefficients()[f1_d->get_time_index()]),
+            std::bind(&local_assemble_cc<dim>,
+                  std::ref(f1_d->get_function_coefficients()[f1_d->get_time_index()]),
                   std::ref(f2_d->get_function_coefficients()[f2_d->get_time_index()]), std::placeholders::_1,
                   std::placeholders::_2, std::placeholders::_3),
             std::bind(&copy_local_to_global, std::ref(rhs), std::placeholders::_1),
             AssemblyScratchData<dim>(dof.get_fe(), quad), AssemblyCopyData());
    else if (f1_d == nullptr && f2_d != nullptr)
       WorkStream::run(dof.begin_active(), dof.end(),
-            std::bind(&local_assemble_cd<dim>, f1, std::ref(f2_d->get_function_coefficients()[f2_d->get_time_index()]),
-                  std::placeholders::_1, std::placeholders::_2, std::placeholders::_3),
+            std::bind(&local_assemble_cd<dim>, f1,
+                  std::ref(f2_d->get_function_coefficients()[f2_d->get_time_index()]), std::placeholders::_1,
+                  std::placeholders::_2, std::placeholders::_3),
             std::bind(&copy_local_to_global, std::ref(rhs), std::placeholders::_1),
             AssemblyScratchData<dim>(dof.get_fe(), quad), AssemblyCopyData());
    else if (f1_d != nullptr && f2_d == nullptr)
       WorkStream::run(dof.begin_active(), dof.end(),
-            std::bind(&local_assemble_dc<dim>, std::ref(f1_d->get_function_coefficients()[f1_d->get_time_index()]), f2,
+            std::bind(&local_assemble_dc<dim>,
+                  std::ref(f1_d->get_function_coefficients()[f1_d->get_time_index()]), f2,
                   std::placeholders::_1, std::placeholders::_2, std::placeholders::_3),
             std::bind(&copy_local_to_global, std::ref(rhs), std::placeholders::_1),
             AssemblyScratchData<dim>(dof.get_fe(), quad), AssemblyCopyData());
    else
       WorkStream::run(dof.begin_active(), dof.end(),
             std::bind(&local_assemble_cc<dim>, f1, f2, std::placeholders::_1, std::placeholders::_2,
-                  std::placeholders::_3), std::bind(&copy_local_to_global, std::ref(rhs), std::placeholders::_1),
+                  std::placeholders::_3),
+            std::bind(&copy_local_to_global, std::ref(rhs), std::placeholders::_1),
             AssemblyScratchData<dim>(dof.get_fe(), quad), AssemblyCopyData());
 
 }

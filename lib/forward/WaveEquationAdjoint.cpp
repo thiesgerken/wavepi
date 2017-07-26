@@ -40,8 +40,8 @@ WaveEquationAdjoint<dim>::~WaveEquationAdjoint() {
 }
 
 template<int dim>
-WaveEquationAdjoint<dim>::WaveEquationAdjoint(std::shared_ptr<SpaceTimeMesh<dim>> mesh, std::shared_ptr<DoFHandler<dim>> dof_handler,
-      const Quadrature<dim> quad)
+WaveEquationAdjoint<dim>::WaveEquationAdjoint(std::shared_ptr<SpaceTimeMesh<dim>> mesh,
+      std::shared_ptr<DoFHandler<dim>> dof_handler, const Quadrature<dim> quad)
       : WaveEquationBase<dim>(mesh, dof_handler, quad) {
 }
 
@@ -149,7 +149,8 @@ void WaveEquationAdjoint<dim>::setup_step(double time) {
    task_group += Threads::new_task(&WaveEquationAdjoint<dim>::fill_A, *this, matrix_A);
    task_group += Threads::new_task(&WaveEquationAdjoint<dim>::fill_B, *this, matrix_B);
    task_group += Threads::new_task(&WaveEquationAdjoint<dim>::fill_C, *this, matrix_C);
-   task_group += Threads::new_task(&RightHandSide<dim>::create_right_hand_side, *right_hand_side, *dof_handler, quad, rhs);
+   task_group += Threads::new_task(&RightHandSide<dim>::create_right_hand_side, *right_hand_side,
+         *dof_handler, quad, rhs);
    task_group.join_all();
 }
 
@@ -423,7 +424,8 @@ DiscretizedFunction<dim> WaveEquationAdjoint<dim>::run() {
 
    timer.stop();
    std::ios::fmtflags f(deallog.flags(std::ios_base::fixed));
-   deallog << "solved adjoint pde in " << timer.wall_time() << "s (setup " << setup_timer.wall_time() << "s)" << std::endl;
+   deallog << "solved adjoint pde in " << timer.wall_time() << "s (setup " << setup_timer.wall_time() << "s)"
+         << std::endl;
    deallog.flags(f);
 
    return apply_R_transpose(u);
@@ -431,7 +433,8 @@ DiscretizedFunction<dim> WaveEquationAdjoint<dim>::run() {
 
 // also applies Mass matrix afterwards
 template<int dim>
-DiscretizedFunction<dim> WaveEquationAdjoint<dim>::apply_R_transpose(const DiscretizedFunction<dim>& u) const {
+DiscretizedFunction<dim> WaveEquationAdjoint<dim>::apply_R_transpose(
+      const DiscretizedFunction<dim>& u) const {
    DiscretizedFunction<dim> res(mesh, dof_handler, false);
 
    for (size_t j = 0; j < mesh->get_times().size(); j++) {

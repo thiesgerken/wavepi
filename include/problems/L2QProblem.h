@@ -34,7 +34,7 @@ class L2QProblem: public WaveProblem<dim> {
       virtual ~L2QProblem();
 
       L2QProblem(WaveEquation<dim>& weq);
-          L2QProblem(WaveEquation<dim>& weq, typename WaveProblem<dim>::L2AdjointSolver adjoint_solver);
+      L2QProblem(WaveEquation<dim>& weq, typename WaveProblem<dim>::L2AdjointSolver adjoint_solver);
 
       virtual std::unique_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>> derivative(
             const DiscretizedFunction<dim>& q, const DiscretizedFunction<dim>& u);
@@ -42,14 +42,15 @@ class L2QProblem: public WaveProblem<dim> {
       virtual DiscretizedFunction<dim> forward(const DiscretizedFunction<dim>& q);
 
    private:
-      typename   WaveProblem<dim>::L2AdjointSolver adjoint_solver;
+      typename WaveProblem<dim>::L2AdjointSolver adjoint_solver;
 
       class Linearization: public LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>> {
          public:
             virtual ~Linearization();
 
-            Linearization(const WaveEquation<dim> &weq, typename WaveProblem<dim>::L2AdjointSolver adjoint_solver, const DiscretizedFunction<dim>& q,
-                  const DiscretizedFunction<dim>& u);
+            Linearization(const WaveEquation<dim> &weq,
+                  typename WaveProblem<dim>::L2AdjointSolver adjoint_solver,
+                  const DiscretizedFunction<dim>& q, const DiscretizedFunction<dim>& u);
 
             virtual DiscretizedFunction<dim> forward(const DiscretizedFunction<dim>& h);
 
@@ -64,7 +65,7 @@ class L2QProblem: public WaveProblem<dim> {
             WaveEquation<dim> weq;
             WaveEquationAdjoint<dim> weq_adj;
 
-         typename   WaveProblem<dim>::L2AdjointSolver adjoint_solver;
+            typename WaveProblem<dim>::L2AdjointSolver adjoint_solver;
 
             std::shared_ptr<DiscretizedFunction<dim>> q;
             std::shared_ptr<DiscretizedFunction<dim>> u;

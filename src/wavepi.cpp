@@ -92,7 +92,7 @@ double rho(const Point<2> &p, double t) {
 
 template<>
 double rho(const Point<3> &p, double t) {
-  return p.distance(Point<3>(t - 3.0, t - 2.0, 0.0)) < 1.2 ? 1.5 : 1.0;
+   return p.distance(Point<3>(t - 3.0, t - 2.0, 0.0)) < 1.2 ? 1.5 : 1.0;
 }
 
 template<int dim>
@@ -207,9 +207,10 @@ void test() {
    deallog.pop();
 
    // zero initial guess
-  DiscretizedFunction<dim> initialGuess(mesh, dof_handler);
+   DiscretizedFunction<dim> initialGuess(mesh, dof_handler);
 
-   REGINN<DiscretizedFunction<dim>, DiscretizedFunction<dim>> reginn(std::make_unique<L2QProblem<dim>>(wave_eq),
+   REGINN<DiscretizedFunction<dim>, DiscretizedFunction<dim>> reginn(
+         std::make_unique<L2QProblem<dim>>(wave_eq),
          std::make_unique<ConjugateGradients<DiscretizedFunction<dim>, DiscretizedFunction<dim>>>(),
          initialGuess);
    reginn.invert(data, 2 * epsilon * data_exact.norm(), q_exact);
