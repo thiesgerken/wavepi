@@ -7,15 +7,21 @@
 
 #include <deal.II/base/exceptions.h>
 #include <forward/SpaceTimeMesh.h>
-#include <iostream>
 #include <cmath>
+#include <iostream>
+#include <iterator>
 
 namespace wavepi {
 namespace forward {
 
 template<int dim>
+SpaceTimeMesh<dim>::SpaceTimeMesh(std::vector<double> times, std::vector<types::boundary_id> boundary_ids)
+      : times(times), boundary_ids(boundary_ids) {
+}
+
+template<int dim>
 SpaceTimeMesh<dim>::SpaceTimeMesh(std::vector<double> times)
-      : times(times) {
+      : times(times), boundary_ids(1,0) {
 }
 
 template<int dim>

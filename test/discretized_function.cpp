@@ -189,6 +189,9 @@ void run_dot_norm_test(int fe_order, int quad_order, int refines, int n_steps,
 
    std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, dof_handler, quad);
 
+   if (dim == 1)
+      mesh->set_boundary_ids(std::vector<types::boundary_id> { 0, 1 });
+
    TestQ<dim> q_cont;
    DiscretizedFunction<dim> q(mesh, dof_handler, q_cont);
    q.set_norm(norm);
@@ -255,6 +258,9 @@ void run_space_time_mass_test(int fe_order, int quad_order, int refines, int n_s
    deallog << ", n_steps: " << times.size() << std::endl;
 
    std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, dof_handler, quad);
+
+   if (dim == 1)
+      mesh->set_boundary_ids(std::vector<types::boundary_id> { 0, 1 });
 
    TestQ<dim> q_cont;
    DiscretizedFunction<dim> q(mesh, dof_handler, q_cont);

@@ -189,17 +189,16 @@ void WaveEquation<dim>::assemble_u(double time_step) {
    matrix_B.vmult(tmp, tmp2);
    system_rhs.add(theta * time_step, tmp);
 
-   std::map<types::global_dof_index, double> boundary_values;
-   VectorTools::interpolate_boundary_values(*dof_handler, 0, *boundary_values_u, boundary_values);
-
-   // kind of ugly, but hypercube has 2 boundaries in 1 dimension
-   if (dim == 1)
-      VectorTools::interpolate_boundary_values(*dof_handler, 1, *boundary_values_u, boundary_values);
-
    system_matrix.copy_from(matrix_C);
    system_matrix.add(theta * time_step, matrix_B);
    system_matrix.add(theta * theta * time_step * time_step, matrix_A);
 
+   std::map<types::boundary_id, const Function<dim> *> boundary_map;
+   for (auto id : mesh->get_boundary_ids())
+      boundary_map[id] = boundary_values_u.get();
+
+   std::map<types::global_dof_index, double> boundary_values;
+   VectorTools::interpolate_boundary_values(*dof_handler, boundary_map, boundary_values);
    MatrixTools::apply_boundary_values(boundary_values, system_matrix, solution_u, system_rhs);
 }
 
@@ -223,17 +222,16 @@ void WaveEquation<dim>::assemble_v(double time_step) {
    matrix_A_old.vmult(tmp, solution_u_old);
    system_rhs.add(-1.0 * (1.0 - theta) * time_step, tmp);
 
-   std::map<types::global_dof_index, double> boundary_values;
-   VectorTools::interpolate_boundary_values(*dof_handler, 0, *boundary_values_v, boundary_values);
-
-   // kind of ugly, but hypercube has 2 boundaries in 1 dimension
-   if (dim == 1)
-      VectorTools::interpolate_boundary_values(*dof_handler, 1, *boundary_values_v, boundary_values);
-
    system_matrix = 0.0;
    system_matrix.add(1.0, matrix_C);
    system_matrix.add(theta * time_step, matrix_B);
 
+   std::map<types::boundary_id, const Function<dim> *> boundary_map;
+   for (auto id : mesh->get_boundary_ids())
+      boundary_map[id] = boundary_values_v.get();
+
+   std::map<types::global_dof_index, double> boundary_values;
+   VectorTools::interpolate_boundary_values(*dof_handler, boundary_map, boundary_values);
    MatrixTools::apply_boundary_values(boundary_values, system_matrix, solution_v, system_rhs);
 }
 

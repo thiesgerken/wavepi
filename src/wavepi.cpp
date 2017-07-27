@@ -186,6 +186,10 @@ void test() {
    deallog << "Number of time steps: " << times.size() << std::endl;
 
    std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, dof_handler, quad);
+
+   if (dim == 1)
+      mesh->set_boundary_ids( std::vector<types::boundary_id> { 0, 1});
+
    WaveEquation<dim> wave_eq(mesh, dof_handler, quad);
 
    wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(std::make_shared<TestF<dim>>()));
@@ -193,8 +197,11 @@ void test() {
    wave_eq.set_param_c(std::make_shared<TestC<dim>>());
    wave_eq.set_param_nu(std::make_shared<TestNu<dim>>());
 
+   using Param = DiscretizedFunction<dim>;
+   using Sol = DiscretizedFunction<dim>;
+
    TestQ<dim> q;
-   auto q_exact = std::make_shared<DiscretizedFunction<dim>>(mesh, dof_handler, q);
+   auto q_exact = std::make_shared<Param>(mesh, dof_handler, q);
    wave_eq.set_param_q(q_exact);
 
    deallog.push("generate_data");
@@ -211,16 +218,13 @@ void test() {
    deallog.pop();
 
    // zero initial guess
-   DiscretizedFunction<dim> initialGuess(mesh, dof_handler);
+   Param initialGuess(mesh, dof_handler);
 
-   auto linear_solver = std::make_shared<
-         ConjugateGradients<DiscretizedFunction<dim>, DiscretizedFunction<dim>>>();
+   auto linear_solver = std::make_shared<ConjugateGradients<Param, Sol>>();
    auto problem = std::make_shared<L2QProblem<dim>>(wave_eq);
    auto tol_choice = std::make_shared<RiederToleranceChoice>(0.7, 0.95, 0.9, 1.0);
-//   auto tol_choice = std::make_shared<ConstantToleranceChoice>(0.7);
 
-   REGINN<DiscretizedFunction<dim>, DiscretizedFunction<dim>> reginn(problem, linear_solver, tol_choice,
-         initialGuess);
+   REGINN<Param, Sol> reginn(problem, linear_solver, tol_choice, initialGuess);
    reginn.invert(data, 2 * epsilon * data_exact.norm(), q_exact);
 
    deallog.timestamp();

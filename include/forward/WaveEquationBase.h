@@ -170,7 +170,6 @@ class WaveEquationBase {
       std::shared_ptr<DiscretizedFunction<dim>> param_a_disc = nullptr, param_q_disc = nullptr;
 
       std::shared_ptr<RightHandSide<dim>> right_hand_side;
-
 };
 
 } /* namespace forward */

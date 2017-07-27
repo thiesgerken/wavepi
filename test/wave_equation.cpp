@@ -209,6 +209,10 @@ void run_discretized_test(int fe_order, int quad_order, int refines) {
    deallog << ", n_steps: " << times.size() << std::endl;
 
    std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, dof_handler, quad);
+
+   if (dim == 1)
+      mesh->set_boundary_ids(std::vector<types::boundary_id> { 0, 1 });
+
    WaveEquation<dim> wave_eq(mesh, dof_handler, quad);
 
    /* continuous */
@@ -374,6 +378,10 @@ void run_reference_test(int fe_order, int quad_order, int refines, Point<dim, in
    deallog << ", n_steps: " << times.size() << std::endl;
 
    std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, dof_handler, quad);
+
+   if (dim == 1)
+      mesh->set_boundary_ids(std::vector<types::boundary_id> { 0, 1 });
+
    WaveEquation<dim> wave_eq(mesh, dof_handler, quad);
 
    Point<2> derivative_constants;

@@ -192,6 +192,9 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
 
    std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, dof_handler, quad);
 
+   if (dim == 1)
+      mesh->set_boundary_ids(std::vector<types::boundary_id> { 0, 1 });
+
    WaveEquation<dim> wave_eq(mesh, dof_handler, quad);
    wave_eq.set_param_a(std::make_shared<TestA<dim>>());
    wave_eq.set_param_c(std::make_shared<TestC<dim>>());
