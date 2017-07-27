@@ -113,9 +113,9 @@ DiscretizedFunction<dim> L2CProblem<dim>::Linearization::adjoint(const Discretiz
       res = weq.run();
       res.throw_away_derivative();
    } else if (adjoint_solver == WaveProblem<dim>::WaveEquationAdjoint)
-   res = weq_adj.run();
+      res = weq_adj.run();
    else
-   Assert(false, ExcInternalError());
+      Assert(false, ExcInternalError());
 
    res.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
    res.solve_time_mass();
