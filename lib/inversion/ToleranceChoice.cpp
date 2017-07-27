@@ -17,16 +17,17 @@ using namespace dealii;
 ToleranceChoice::~ToleranceChoice() {
 }
 
-void ToleranceChoice::reset(double target_discrepancy) {
+void ToleranceChoice::reset(double target_discrepancy, double initial_discrepancy) {
    previous_tolerances.clear();
    required_steps.clear();
-   residuals.clear();
+   discrepancies.clear();
 
    this->target_discrepancy = target_discrepancy;
+   this->initial_discrepancy = initial_discrepancy;
 }
 
 double ToleranceChoice::get_tolerance() {
-   AssertThrow(residuals.size() == previous_tolerances.size(), ExcInternalError());
+   AssertThrow(discrepancies.size() == previous_tolerances.size(), ExcInternalError());
 
    double tol = calculate_tolerance();
 
@@ -34,19 +35,11 @@ double ToleranceChoice::get_tolerance() {
    return tol;
 }
 
-void ToleranceChoice::add_iteration(double new_residual, int steps) {
-   AssertThrow(residuals.size() == previous_tolerances.size() - 1, ExcInternalError());
+void ToleranceChoice::add_iteration(double new_discrepancy, int steps) {
+   AssertThrow(discrepancies.size() == previous_tolerances.size() - 1, ExcInternalError());
 
-   residuals.push_back(new_residual);
+   discrepancies.push_back(new_discrepancy);
    required_steps.push_back(steps);
-}
-
-double ToleranceChoice::get_target_discrepancy() const {
-   return target_discrepancy;
-}
-
-void ToleranceChoice::set_target_discrepancy(double target_discrepancy) {
-   this->target_discrepancy = target_discrepancy;
 }
 
 } /* namespace problems */

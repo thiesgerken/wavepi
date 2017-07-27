@@ -159,7 +159,7 @@ void test() {
 
    // GridGenerator::cheese(triangulation, std::vector<unsigned int>( { 1, 1 }));
    GridGenerator::hyper_cube(triangulation, -5, 5);
-   triangulation.refine_global(4);
+   triangulation.refine_global(5);
 
    // QGauss<dim>(n) is exact in polynomials of degree <= 2n-1 (needed: fe_order*3)
    // -> fe_order*3 <= 2n-1  ==>  n >= (fe_order*3+1)/2
@@ -216,8 +216,8 @@ void test() {
    auto linear_solver = std::make_shared<
          ConjugateGradients<DiscretizedFunction<dim>, DiscretizedFunction<dim>>>();
    auto problem = std::make_shared<L2QProblem<dim>>(wave_eq);
-//   auto tol_choice = std::make_shared<RiederToleranceChoice>(0.7, 0.95, 0.9);
-   auto tol_choice = std::make_shared<ConstantToleranceChoice>(0.7);
+   auto tol_choice = std::make_shared<RiederToleranceChoice>(0.7, 0.95, 0.9, 1.0);
+//   auto tol_choice = std::make_shared<ConstantToleranceChoice>(0.7);
 
    REGINN<DiscretizedFunction<dim>, DiscretizedFunction<dim>> reginn(problem, linear_solver, tol_choice,
          initialGuess);

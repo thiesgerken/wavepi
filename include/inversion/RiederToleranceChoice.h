@@ -15,20 +15,10 @@ namespace inversion {
 
 class RiederToleranceChoice: public ToleranceChoice {
    public:
-      RiederToleranceChoice(double tol_start, double tol_max, double zeta);
-
-      double get_tol_max() const;
-      void set_tol_max(double tol_max);
-
-      double get_tol_start() const;
-      void set_tol_start(double tol_start);
-
-      double get_zeta() const;
-      void set_zeta(double zeta);
-
+      RiederToleranceChoice(double tol_start, double tol_max, double zeta, double beta);
    protected:
       using ToleranceChoice::previous_tolerances;
-      using ToleranceChoice::residuals;
+      using ToleranceChoice::discrepancies;
       using ToleranceChoice::required_steps;
       using ToleranceChoice::target_discrepancy;
 
@@ -38,6 +28,7 @@ class RiederToleranceChoice: public ToleranceChoice {
       double tol_start;
       double tol_max;
       double zeta;
+      double beta;
 };
 
 } /* namespace problems */

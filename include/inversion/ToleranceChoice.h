@@ -18,7 +18,7 @@ class ToleranceChoice {
       virtual ~ToleranceChoice();
 
       // reset iteration history
-      void reset(double target_discrepancy);
+      void reset(double target_discrepancy, double initial_discrepancy);
 
       // calculate a tolerance from the history (and add it to the tolerance history)
       double get_tolerance();
@@ -26,16 +26,14 @@ class ToleranceChoice {
       // add a new iteration to the history
       void add_iteration(double new_residual, int steps);
 
-      double get_target_discrepancy() const;
-      void set_target_discrepancy(double target_discrepancy);
-
    protected:
       // previous values. Note that they will have the same size when calculate_tolerance is called.
       std::vector<double> previous_tolerances;
       std::vector<int> required_steps;
-      std::vector<double> residuals;
+      std::vector<double> discrepancies;
 
       double target_discrepancy;
+      double initial_discrepancy;
 
       // calculate a new tolerance (possibly using the vectors above)
       virtual double calculate_tolerance() const = 0;

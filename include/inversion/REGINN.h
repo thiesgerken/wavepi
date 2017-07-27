@@ -51,7 +51,6 @@ class REGINN: public NewtonRegularization<Param, Sol> {
          AssertThrow(tol_choice, ExcInternalError());
 
          Param estimate(initial_guess);
-         tol_choice->reset(target_discrepancy);
 
          Sol residual(data);
          Sol data_current = this->problem->forward(estimate);
@@ -61,6 +60,8 @@ class REGINN: public NewtonRegularization<Param, Sol> {
          double initial_discrepancy = discrepancy;
          double norm_data = data.norm();
          double norm_exact = exact_param ? exact_param->norm() : -0.0;
+
+         tol_choice->reset(target_discrepancy, discrepancy);
 
          deallog.pop();
          InversionProgress<Param, Sol> status(0, &estimate, estimate.norm(), &residual, discrepancy, &data,
