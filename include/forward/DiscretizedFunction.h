@@ -60,7 +60,7 @@ class DiscretizedFunction: public Function<dim> {
       DiscretizedFunction<dim>& operator*=(const double factor);
       DiscretizedFunction<dim>& operator/=(const double factor);
 
-      DiscretizedFunction<dim> derivative();
+      DiscretizedFunction<dim> derivative() const;
 
       void add(const double a, const DiscretizedFunction<dim>& V);
 
@@ -122,6 +122,17 @@ class DiscretizedFunction: public Function<dim> {
       // get / set what `norm()` and `*` do.
       Norm get_norm() const;
       void set_norm(Norm norm);
+
+      // relative error (using this object's norm settings)
+      // if this->norm() == 0 it returns the absolute error.
+      double relative_error(const DiscretizedFunction<dim>& other) const;
+
+      // calculate the first time derivative using finite differences (one-sided at begin/end and central everywhere else)
+      DiscretizedFunction<dim> calculate_derivative() const;
+
+      // calculate the adjoint (w.r.t. vector norms / dot products!) of what calculate_derivative does
+      // for constant time step size this is equivalent to g -> -g' in inner nodes (-> partial integration)
+      DiscretizedFunction<dim> calculate_derivative_transpose() const;
 
       std::shared_ptr<SpaceTimeMesh<dim> > get_mesh() const;
 

@@ -125,11 +125,77 @@ DiscretizedFunction<dim>& DiscretizedFunction<dim>::operator=(const DiscretizedF
 }
 
 template<int dim>
-DiscretizedFunction<dim> DiscretizedFunction<dim>::derivative() {
+DiscretizedFunction<dim> DiscretizedFunction<dim>::derivative() const {
    Assert(store_derivative, ExcInternalError());
 
    DiscretizedFunction<dim> result(mesh, dof_handler, false);
    result.function_coefficients = this->derivative_coefficients;
+
+   return result;
+}
+
+template<int dim>
+DiscretizedFunction<dim> DiscretizedFunction<dim>::calculate_derivative() const {
+   // why would you want to calculate it in this case?
+   Assert(!store_derivative, ExcInternalError());
+   Assert(mesh->get_times().size() > 1, ExcInternalError());
+
+   DiscretizedFunction<dim> result(mesh, dof_handler, false);
+
+   for (size_t i = 0; i < mesh->get_times().size(); i++) {
+      if (i == 0) {
+         result.function_coefficients[i] = function_coefficients[i + 1];
+         result.function_coefficients[i] -= function_coefficients[i];
+         result.function_coefficients[i] /= mesh->get_times()[i + 1] - mesh->get_times()[i];
+      } else if (i == mesh->get_times().size() - 1) {
+         result.function_coefficients[i] = function_coefficients[i];
+         result.function_coefficients[i] -= function_coefficients[i - 1];
+         result.function_coefficients[i] /= mesh->get_times()[i] - mesh->get_times()[i - 1];
+      } else {
+         result.function_coefficients[i] = function_coefficients[i + 1];
+         result.function_coefficients[i] -= function_coefficients[i - 1];
+         result.function_coefficients[i] /= mesh->get_times()[i + 1] - mesh->get_times()[i - 1];
+      }
+   }
+
+   return result;
+}
+
+template<int dim>
+DiscretizedFunction<dim> DiscretizedFunction<dim>::calculate_derivative_transpose() const {
+   // why would you want to calculate it in this case?
+   Assert(!store_derivative, ExcInternalError());
+
+   // because of the special cases ( one could make this smarter, I guess, but why bother?
+   Assert(mesh->get_times().size() > 3, ExcInternalError());
+
+   DiscretizedFunction<dim> result(mesh, dof_handler, false);
+
+   for (size_t i = 0; i < mesh->get_times().size(); i++) {
+      auto dest = &result.function_coefficients[i];
+
+      if (i == 0) {
+         *dest = function_coefficients[i + 1];
+         dest->sadd(-1.0 / (mesh->get_times()[i + 2] - mesh->get_times()[i]),
+               -1.0 / (mesh->get_times()[i + 1] - mesh->get_times()[i]), function_coefficients[i]);
+      } else if (i == 1) {
+         *dest = function_coefficients[i + 1];
+         dest->sadd(-1.0 / (mesh->get_times()[i + 2] - mesh->get_times()[i]),
+               1.0 / (mesh->get_times()[i] - mesh->get_times()[i - 1]), function_coefficients[i - 1]);
+      } else if (i == mesh->get_times().size() - 1) {
+         *dest = function_coefficients[i];
+         dest->sadd(1.0 / (mesh->get_times()[i] - mesh->get_times()[i - 1]),
+               1.0 / (mesh->get_times()[i] - mesh->get_times()[i - 2]), function_coefficients[i - 1]);
+      } else if (i == mesh->get_times().size() - 2) {
+         *dest = function_coefficients[i + 1];
+         dest->sadd(-1.0 / (mesh->get_times()[i + 1] - mesh->get_times()[i]),
+               1.0 / (mesh->get_times()[i] - mesh->get_times()[i - 2]), function_coefficients[i - 1]);
+      } else {
+         *dest = function_coefficients[i + 1];
+         dest->sadd(-1.0 / (mesh->get_times()[i + 2] - mesh->get_times()[i]),
+               1.0 / (mesh->get_times()[i] - mesh->get_times()[i - 2]), function_coefficients[i - 1]);
+      }
+   }
 
    return result;
 }
@@ -153,10 +219,10 @@ void DiscretizedFunction<dim>::set(size_t i, const Vector<double>& u) {
 
 template<int dim>
 DiscretizedFunction<dim>& DiscretizedFunction<dim>::operator=(double x) {
-   Assert(x == 0, ExcNotImplemented());
+   Assert(x == 0 || x == 1.0, ExcNotImplemented());
 
    for (size_t i = 0; i < mesh->get_times().size(); i++) {
-      function_coefficients[i] = 0.0;
+      function_coefficients[i] = x;
 
       if (store_derivative)
          derivative_coefficients[i] = 0.0;
@@ -680,6 +746,15 @@ void DiscretizedFunction<dim>::set_time(const double new_time) {
 template<int dim>
 std::shared_ptr<SpaceTimeMesh<dim> > DiscretizedFunction<dim>::get_mesh() const {
    return mesh;
+}
+
+template<int dim>
+double DiscretizedFunction<dim>::relative_error(const DiscretizedFunction<dim>& other) const {
+   DiscretizedFunction<dim> tmp(*this);
+   tmp -= other;
+
+   double denom = this->norm();
+   return tmp.norm() / (denom == 0.0 ? 1.0 : denom);
 }
 
 } /* namespace forward */

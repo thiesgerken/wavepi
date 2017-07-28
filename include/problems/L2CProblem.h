@@ -37,13 +37,18 @@ class L2CProblem: public WaveProblem<dim> {
       L2CProblem(WaveEquation<dim>& weq);
       L2CProblem(WaveEquation<dim>& weq, typename WaveProblem<dim>::L2AdjointSolver adjoint_solver);
 
+      // has to be called for the same parameter as the last forward problem!
       virtual std::unique_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>> derivative(
-            const DiscretizedFunction<dim>& c, const DiscretizedFunction<dim>& u);
+            const DiscretizedFunction<dim>& c, const DiscretizedFunction<dim>& data);
 
       virtual DiscretizedFunction<dim> forward(const DiscretizedFunction<dim>& c);
 
    private:
       typename WaveProblem<dim>::L2AdjointSolver adjoint_solver;
+
+      // solution (with derivative!) and parameter from the last forward problem
+      std::shared_ptr<DiscretizedFunction<dim>> c;
+               std::shared_ptr<DiscretizedFunction<dim>> u;
 
       class Linearization: public LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>> {
          public:
@@ -51,7 +56,7 @@ class L2CProblem: public WaveProblem<dim> {
 
             Linearization(const WaveEquation<dim> &weq,
                   typename WaveProblem<dim>::L2AdjointSolver adjoint_solver,
-                  const DiscretizedFunction<dim>& q, const DiscretizedFunction<dim>& u);
+                  std::shared_ptr<DiscretizedFunction<dim>> q, std::shared_ptr<DiscretizedFunction<dim>> u);
 
             virtual DiscretizedFunction<dim> forward(const DiscretizedFunction<dim>& h);
 

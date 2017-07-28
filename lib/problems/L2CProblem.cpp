@@ -28,21 +28,29 @@ L2CProblem<dim>::L2CProblem(WaveEquation<dim>& weq, typename WaveProblem<dim>::L
 
 template<int dim>
 std::unique_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>> L2CProblem<dim>::derivative(
-      const DiscretizedFunction<dim>& c, const DiscretizedFunction<dim>& u) {
+      const DiscretizedFunction<dim>& c, const DiscretizedFunction<dim>& data __attribute((unused))) {
+
+   Assert(this->c->relative_error(c) < 1e-10, ExcInternalError());
+
    return std::make_unique<L2CProblem<dim>::Linearization>(this->wave_equation,
-         WaveProblem<dim>::WaveEquationAdjoint, c, u);
+         WaveProblem<dim>::WaveEquationAdjoint, this->c, this->u);
 }
 
 template<int dim>
 DiscretizedFunction<dim> L2CProblem<dim>::forward(const DiscretizedFunction<dim>& c) {
    LogStream::Prefix p("eval_forward");
 
-   this->wave_equation.set_param_c(std::make_shared<DiscretizedFunction<dim>>(c));
+   // save a copy of c
+   this->c = std::make_shared<DiscretizedFunction<dim>>(c);
+
+   this->wave_equation.set_param_c(this->c);
    this->wave_equation.set_run_direction(WaveEquation<dim>::Forward);
-
    DiscretizedFunction<dim> res = this->wave_equation.run();
-   res.throw_away_derivative();
 
+   // save a copy of res
+   this->u = std::make_shared<DiscretizedFunction<dim>>(res);
+
+   res.throw_away_derivative();
    return res;
 }
 
@@ -52,11 +60,13 @@ L2CProblem<dim>::Linearization::~Linearization() {
 
 template<int dim>
 L2CProblem<dim>::Linearization::Linearization(const WaveEquation<dim> &weq,
-      typename WaveProblem<dim>::L2AdjointSolver adjoint_solver, const DiscretizedFunction<dim>& c,
-      const DiscretizedFunction<dim>& u)
+      typename WaveProblem<dim>::L2AdjointSolver adjoint_solver, std::shared_ptr<DiscretizedFunction<dim>> c,
+      std::shared_ptr<DiscretizedFunction<dim>> u)
       : weq(weq), weq_adj(weq), adjoint_solver(adjoint_solver) {
-   this->c = std::make_shared<DiscretizedFunction<dim>>(c);
-   this->u = std::make_shared<DiscretizedFunction<dim>>(u);
+   this->c = c;
+   this->u = u;
+
+   Assert(u->has_derivative(), ExcInternalError());
 
    this->rhs = std::make_shared<L2RightHandSide<dim>>(this->u);
    this->rhs_adj = std::make_shared<L2RightHandSide<dim>>(this->u);
@@ -79,7 +89,8 @@ DiscretizedFunction<dim> L2CProblem<dim>::Linearization::forward(const Discretiz
 
    auto Mh = std::make_shared<DiscretizedFunction<dim>>(h);
    *Mh *= -1.0;
-   Mh->pointwise_multiplication(*u);
+   Mh->pointwise_multiplication(u->derivative());
+   *Mh = Mh->calculate_derivative();
 
    rhs->set_base_rhs(Mh);
    weq.set_right_hand_side(rhs);
@@ -93,7 +104,8 @@ DiscretizedFunction<dim> L2CProblem<dim>::Linearization::forward(const Discretiz
 }
 
 template<int dim>
-DiscretizedFunction<dim> L2CProblem<dim>::Linearization::adjoint(const DiscretizedFunction<dim>& g) {
+DiscretizedFunction<dim> L2CProblem<dim>::Linearization::adjoint(
+      const DiscretizedFunction<dim>& g) {
    LogStream::Prefix p("eval_adjoint");
 
    // L*
@@ -113,17 +125,21 @@ DiscretizedFunction<dim> L2CProblem<dim>::Linearization::adjoint(const Discretiz
       res = weq.run();
       res.throw_away_derivative();
    } else if (adjoint_solver == WaveProblem<dim>::WaveEquationAdjoint)
-      res = weq_adj.run();
+   res = weq_adj.run();
    else
-      Assert(false, ExcInternalError());
+   Assert(false, ExcInternalError());
 
    res.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
    res.solve_time_mass();
 
    // M*
    res.mult_space_time_mass();
-   res *= -1.0;
-   res.pointwise_multiplication(*u);
+
+   res.throw_away_derivative();
+   res = res.calculate_derivative_transpose();
+   res *= -1;
+   res.pointwise_multiplication(u->derivative());
+
    res.solve_space_time_mass();
 
    return res;
