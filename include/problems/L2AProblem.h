@@ -9,7 +9,7 @@
 #define INCLUDE_PROBLEMS_L2APROBLEM_H_
 
 #include <forward/DiscretizedFunction.h>
-#include <forward/L2ProductRightHandSide.h>
+#include <forward/DivRightHandSide.h>
 #include <forward/L2RightHandSide.h>
 #include <forward/WaveEquation.h>
 #include <forward/WaveEquationAdjoint.h>
@@ -71,7 +71,7 @@ class L2AProblem: public WaveProblem<dim> {
             std::shared_ptr<DiscretizedFunction<dim>> a;
             std::shared_ptr<DiscretizedFunction<dim>> u;
 
-            std::shared_ptr<L2RightHandSide<dim>> rhs;
+            std::shared_ptr<DivRightHandSide<dim>> rhs;
             std::shared_ptr<L2RightHandSide<dim>> rhs_adj;
       };
 

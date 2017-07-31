@@ -9,7 +9,6 @@
 #define INCLUDE_PROBLEMS_L2CPROBLEM_H_
 
 #include <forward/DiscretizedFunction.h>
-#include <forward/L2ProductRightHandSide.h>
 #include <forward/L2RightHandSide.h>
 #include <forward/WaveEquation.h>
 #include <forward/WaveEquationAdjoint.h>

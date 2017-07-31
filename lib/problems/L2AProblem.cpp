@@ -58,7 +58,7 @@ L2AProblem<dim>::Linearization::Linearization(const WaveEquation<dim> &weq,
    this->a = std::make_shared<DiscretizedFunction<dim>>(a);
    this->u = std::make_shared<DiscretizedFunction<dim>>(u);
 
-   this->rhs = std::make_shared<L2RightHandSide<dim>>(this->u);
+   this->rhs = std::make_shared<DivRightHandSide<dim>>(this->a, this->u);
    this->rhs_adj = std::make_shared<L2RightHandSide<dim>>(this->u);
 
    this->weq.set_right_hand_side(rhs);
@@ -77,11 +77,7 @@ template<int dim>
 DiscretizedFunction<dim> L2AProblem<dim>::Linearization::forward(const DiscretizedFunction<dim>& h) {
    LogStream::Prefix p("eval_linearization");
 
-   auto Mh = std::make_shared<DiscretizedFunction<dim>>(h);
-   *Mh *= -1.0;
-   Mh->pointwise_multiplication(*u);
-
-   rhs->set_base_rhs(Mh);
+   rhs->set_a(std::make_shared<DiscretizedFunction<dim>>(h));
    weq.set_right_hand_side(rhs);
    weq.set_run_direction(WaveEquation<dim>::Forward);
 
@@ -122,8 +118,11 @@ DiscretizedFunction<dim> L2AProblem<dim>::Linearization::adjoint(const Discretiz
 
    // M*
    res.mult_space_time_mass();
-   res *= -1.0;
-   res.pointwise_multiplication(*u);
+
+   // TODO: make this work
+   // should be - nabla(res)*nabla(u) -> piecewise constant function -> fe spaces do not fit
+   AssertThrow(false, ExcNotImplemented());
+
    res.solve_space_time_mass();
 
    return res;
