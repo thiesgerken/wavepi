@@ -1,12 +1,12 @@
 /*
- * L2QProblem.h
+ * L2CProblem.h
  *
- *  Created on: 20.07.2017
+ *  Created on: 27.07.2017
  *      Author: thies
  */
 
-#ifndef PROBLEMS_L2QPROBLEM_H_
-#define PROBLEMS_L2QPROBLEM_H_
+#ifndef INCLUDE_PROBLEMS_L2CPROBLEM_H_
+#define INCLUDE_PROBLEMS_L2CPROBLEM_H_
 
 #include <forward/DiscretizedFunction.h>
 #include <forward/L2RightHandSide.h>
@@ -28,21 +28,26 @@ using namespace wavepi::forward;
 using namespace wavepi::inversion;
 
 template<int dim>
-class L2QProblem: public WaveProblem<dim> {
+class L2CProblem: public WaveProblem<dim> {
    public:
-      virtual ~L2QProblem() {
+      virtual ~L2CProblem() {
       }
 
-      L2QProblem(WaveEquation<dim>& weq);
-      L2QProblem(WaveEquation<dim>& weq, typename WaveProblem<dim>::L2AdjointSolver adjoint_solver);
+      L2CProblem(WaveEquation<dim>& weq);
+      L2CProblem(WaveEquation<dim>& weq, typename WaveProblem<dim>::L2AdjointSolver adjoint_solver);
 
+      // has to be called for the same parameter as the last forward problem!
       virtual std::unique_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>> derivative(
-            const DiscretizedFunction<dim>& q, const DiscretizedFunction<dim>& u);
+            const DiscretizedFunction<dim>& c, const DiscretizedFunction<dim>& data);
 
-      virtual DiscretizedFunction<dim> forward(const DiscretizedFunction<dim>& q);
+      virtual DiscretizedFunction<dim> forward(const DiscretizedFunction<dim>& c);
 
    private:
       typename WaveProblem<dim>::L2AdjointSolver adjoint_solver;
+
+      // solution (with derivative!) and parameter from the last forward problem
+      std::shared_ptr<DiscretizedFunction<dim>> c;
+      std::shared_ptr<DiscretizedFunction<dim>> u;
 
       class Linearization: public LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>> {
          public:
@@ -50,7 +55,7 @@ class L2QProblem: public WaveProblem<dim> {
 
             Linearization(const WaveEquation<dim> &weq,
                   typename WaveProblem<dim>::L2AdjointSolver adjoint_solver,
-                  const DiscretizedFunction<dim>& q, const DiscretizedFunction<dim>& u);
+                  std::shared_ptr<DiscretizedFunction<dim>> q, std::shared_ptr<DiscretizedFunction<dim>> u);
 
             virtual DiscretizedFunction<dim> forward(const DiscretizedFunction<dim>& h);
 
@@ -67,7 +72,7 @@ class L2QProblem: public WaveProblem<dim> {
 
             typename WaveProblem<dim>::L2AdjointSolver adjoint_solver;
 
-            std::shared_ptr<DiscretizedFunction<dim>> q;
+            std::shared_ptr<DiscretizedFunction<dim>> c;
             std::shared_ptr<DiscretizedFunction<dim>> u;
 
             std::shared_ptr<L2RightHandSide<dim>> rhs;
@@ -79,4 +84,4 @@ class L2QProblem: public WaveProblem<dim> {
 } /* namespace problems */
 } /* namespace wavepi */
 
-#endif /* LIB_PROBLEMS_L2QPROBLEM_H_ */
+#endif /* INCLUDE_PROBLEMS_L2CPROBLEM_H_ */

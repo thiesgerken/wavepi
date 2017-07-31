@@ -1,12 +1,12 @@
 /*
- * L2QProblem.cpp
+ * L2NuProblem.cpp
  *
- *  Created on: 20.07.2017
+ *  Created on: 27.07.2017
  *      Author: thies
  */
 
 #include <deal.II/base/logstream.h>
-#include <problems/L2QProblem.h>
+#include <problems/L2NuProblem.h>
 #include <iostream>
 
 namespace wavepi {
@@ -17,46 +17,56 @@ using namespace wavepi::forward;
 using namespace wavepi::inversion;
 
 template<int dim>
-L2QProblem<dim>::L2QProblem(WaveEquation<dim>& weq)
+L2NuProblem<dim>::L2NuProblem(WaveEquation<dim>& weq)
       : WaveProblem<dim>(weq), adjoint_solver(WaveProblem<dim>::WaveEquationAdjoint) {
 }
 
 template<int dim>
-L2QProblem<dim>::L2QProblem(WaveEquation<dim>& weq, typename WaveProblem<dim>::L2AdjointSolver adjoint_solver)
+L2NuProblem<dim>::L2NuProblem(WaveEquation<dim>& weq, typename WaveProblem<dim>::L2AdjointSolver adjoint_solver)
       : WaveProblem<dim>(weq), adjoint_solver(adjoint_solver) {
 }
 
 template<int dim>
-std::unique_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>> L2QProblem<dim>::derivative(
-      const DiscretizedFunction<dim>& q, const DiscretizedFunction<dim>& u) {
-   return std::make_unique<L2QProblem<dim>::Linearization>(this->wave_equation,
-         WaveProblem<dim>::WaveEquationAdjoint, q, u);
+std::unique_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>> L2NuProblem<dim>::derivative(
+      const DiscretizedFunction<dim>& nu, const DiscretizedFunction<dim>& data __attribute((unused))) {
+   Assert(this->nu->relative_error(nu) < 1e-10, ExcInternalError());
+
+   return std::make_unique<L2NuProblem<dim>::Linearization>(this->wave_equation,
+         WaveProblem<dim>::WaveEquationAdjoint, this->nu, this->u);
 }
 
 template<int dim>
-DiscretizedFunction<dim> L2QProblem<dim>::forward(const DiscretizedFunction<dim>& q) {
+DiscretizedFunction<dim> L2NuProblem<dim>::forward(const DiscretizedFunction<dim>& nu) {
    LogStream::Prefix p("eval_forward");
 
-   this->wave_equation.set_param_q(std::make_shared<DiscretizedFunction<dim>>(q));
+   // save a copy of nu
+   this->nu = std::make_shared<DiscretizedFunction<dim>>(nu);
+
+   this->wave_equation.set_param_nu(this->nu);
    this->wave_equation.set_run_direction(WaveEquation<dim>::Forward);
 
    DiscretizedFunction<dim> res = this->wave_equation.run();
-   res.throw_away_derivative();
 
+   // save a copy of res
+   this->u = std::make_shared<DiscretizedFunction<dim>>(res);
+
+   res.throw_away_derivative();
    return res;
 }
 
 template<int dim>
-L2QProblem<dim>::Linearization::~Linearization() {
+L2NuProblem<dim>::Linearization::~Linearization() {
 }
 
 template<int dim>
-L2QProblem<dim>::Linearization::Linearization(const WaveEquation<dim> &weq,
-      typename WaveProblem<dim>::L2AdjointSolver adjoint_solver, const DiscretizedFunction<dim>& q,
-      const DiscretizedFunction<dim>& u)
+L2NuProblem<dim>::Linearization::Linearization(const WaveEquation<dim> &weq,
+      typename WaveProblem<dim>::L2AdjointSolver adjoint_solver, std::shared_ptr<DiscretizedFunction<dim>> nu,
+      std::shared_ptr<DiscretizedFunction<dim>> u)
       : weq(weq), weq_adj(weq), adjoint_solver(adjoint_solver) {
-   this->q = std::make_shared<DiscretizedFunction<dim>>(q);
-   this->u = std::make_shared<DiscretizedFunction<dim>>(u);
+   this->nu = nu;
+   this->u = u;
+
+   Assert(u->has_derivative(), ExcInternalError());
 
    this->rhs = std::make_shared<L2RightHandSide<dim>>(this->u);
    this->rhs_adj = std::make_shared<L2RightHandSide<dim>>(this->u);
@@ -69,17 +79,17 @@ L2QProblem<dim>::Linearization::Linearization(const WaveEquation<dim> &weq,
    this->weq.set_boundary_values_u(this->weq.zero);
    this->weq.set_boundary_values_v(this->weq.zero);
 
-   this->weq.set_param_q(this->q);
-   this->weq_adj.set_param_q(this->q);
+   this->weq.set_param_nu(this->nu);
+   this->weq_adj.set_param_nu(this->nu);
 }
 
 template<int dim>
-DiscretizedFunction<dim> L2QProblem<dim>::Linearization::forward(const DiscretizedFunction<dim>& h) {
+DiscretizedFunction<dim> L2NuProblem<dim>::Linearization::forward(const DiscretizedFunction<dim>& h) {
    LogStream::Prefix p("eval_linearization");
 
    auto Mh = std::make_shared<DiscretizedFunction<dim>>(h);
    *Mh *= -1.0;
-   Mh->pointwise_multiplication(*u);
+   Mh->pointwise_multiplication(u->derivative());
 
    rhs->set_base_rhs(Mh);
    weq.set_right_hand_side(rhs);
@@ -93,7 +103,7 @@ DiscretizedFunction<dim> L2QProblem<dim>::Linearization::forward(const Discretiz
 }
 
 template<int dim>
-DiscretizedFunction<dim> L2QProblem<dim>::Linearization::adjoint(const DiscretizedFunction<dim>& g) {
+DiscretizedFunction<dim> L2NuProblem<dim>::Linearization::adjoint(const DiscretizedFunction<dim>& g) {
    LogStream::Prefix p("eval_adjoint");
 
    // L*
@@ -113,9 +123,9 @@ DiscretizedFunction<dim> L2QProblem<dim>::Linearization::adjoint(const Discretiz
       res = weq.run();
       res.throw_away_derivative();
    } else if (adjoint_solver == WaveProblem<dim>::WaveEquationAdjoint)
-   res = weq_adj.run();
+      res = weq_adj.run();
    else
-   Assert(false, ExcInternalError());
+      Assert(false, ExcInternalError());
 
    res.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
    res.solve_time_mass();
@@ -123,22 +133,22 @@ DiscretizedFunction<dim> L2QProblem<dim>::Linearization::adjoint(const Discretiz
    // M*
    res.mult_space_time_mass();
    res *= -1.0;
-   res.pointwise_multiplication(*u);
+   res.pointwise_multiplication(u->derivative());
    res.solve_space_time_mass();
 
    return res;
 }
 
 template<int dim>
-DiscretizedFunction<dim> L2QProblem<dim>::Linearization::zero() {
-   DiscretizedFunction<dim> res(q->get_mesh(), q->get_dof_handler());
+DiscretizedFunction<dim> L2NuProblem<dim>::Linearization::zero() {
+   DiscretizedFunction<dim> res(nu->get_mesh(), nu->get_dof_handler());
    res.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
 
    return res;
 }
 
 template<int dim>
-bool L2QProblem<dim>::Linearization::progress(
+bool L2NuProblem<dim>::Linearization::progress(
       InversionProgress<DiscretizedFunction<dim>, DiscretizedFunction<dim>> state) {
    deallog << "k=" << state.iteration_number << ": rdisc=" << state.current_discrepancy / state.norm_data;
    deallog << ", norm=" << state.norm_current_estimate;
@@ -146,9 +156,9 @@ bool L2QProblem<dim>::Linearization::progress(
    return true;
 }
 
-template class L2QProblem<1> ;
-template class L2QProblem<2> ;
-template class L2QProblem<3> ;
+template class L2NuProblem<1> ;
+template class L2NuProblem<2> ;
+template class L2NuProblem<3> ;
 
 } /* namespace problems */
 } /* namespace wavepi */

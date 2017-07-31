@@ -1,6 +1,9 @@
 # file(GLOB LIBSOURCES *.cpp)
 SET(LIBSOURCES
     L2QProblem.cpp
+    L2CProblem.cpp
+    L2AProblem.cpp
+    L2NuProblem.cpp
     WaveProblem.cpp    
     )
     

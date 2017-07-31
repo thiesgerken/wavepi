@@ -27,15 +27,32 @@ class DivRightHandSide: public RightHandSide<dim> {
 
       // optimization is used only when a _and_ u are discretized
       // if u is continuous, then u has to have an implementation of gradient
-      DivRightHandSide(Function<dim>* a, Function<dim>* u);
+      DivRightHandSide(std::shared_ptr<Function<dim>> a, std::shared_ptr<Function<dim>> u);
+
       virtual ~DivRightHandSide();
 
       virtual void create_right_hand_side(const DoFHandler<dim> &dof_handler, const Quadrature<dim> &q,
             Vector<double> &rhs) const;
 
+      inline std::shared_ptr<Function<dim> > get_a() const {
+         return a;
+      }
+
+      inline void set_a(std::shared_ptr<Function<dim> > a) {
+         this->a = a;
+      }
+
+      inline std::shared_ptr<Function<dim> > get_u() const {
+         return u;
+      }
+
+      inline void set_u(std::shared_ptr<Function<dim> > u) {
+         this->u = u;
+      }
+
    private:
-      Function<dim> *a;
-      Function<dim> *u;
+      std::shared_ptr<Function<dim>> a;
+      std::shared_ptr<Function<dim>> u;
 };
 
 } /* namespace forward */

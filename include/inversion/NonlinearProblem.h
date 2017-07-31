@@ -22,7 +22,8 @@ class NonlinearProblem: public InverseProblem<Param, Sol> {
       virtual ~NonlinearProblem() {
       }
 
-      virtual std::unique_ptr<LinearProblem<Param, Sol>> derivative(const Param& h, const Sol& u) = 0;
+      // returns the derivative (as linear operator) at h. Also is supplied the current forward data u = Sp.
+      virtual std::unique_ptr<LinearProblem<Param, Sol>> derivative(const Param& p, const Sol& u) = 0;
 
 };
 

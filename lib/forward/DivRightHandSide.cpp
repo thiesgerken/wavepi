@@ -23,7 +23,7 @@ namespace forward {
 using namespace dealii;
 
 template<int dim>
-DivRightHandSide<dim>::DivRightHandSide(Function<dim>* a, Function<dim>* u)
+DivRightHandSide<dim>::DivRightHandSide(std::shared_ptr<Function<dim>> a, std::shared_ptr<Function<dim>> u)
       : a(a), u(u) {
 }
 
@@ -114,8 +114,8 @@ void DivRightHandSide<dim>::create_right_hand_side(const DoFHandler<dim> &dof, c
    a->set_time(this->get_time());
    u->set_time(this->get_time());
 
-   auto a_d = dynamic_cast<DiscretizedFunction<dim>*>(a);
-   auto u_d = dynamic_cast<DiscretizedFunction<dim>*>(u);
+   auto a_d = dynamic_cast<DiscretizedFunction<dim>*>(a.get());
+   auto u_d = dynamic_cast<DiscretizedFunction<dim>*>(u.get());
 
    if (a_d != nullptr && u_d != nullptr) {
       Vector<double> ca = a_d->get_function_coefficients()[a_d->get_time_index()];
@@ -131,7 +131,7 @@ void DivRightHandSide<dim>::create_right_hand_side(const DoFHandler<dim> &dof, c
             AssemblyScratchData<dim>(dof.get_fe(), quad), AssemblyCopyData());
    } else
       WorkStream::run(dof.begin_active(), dof.end(),
-            std::bind(&local_assemble_cc<dim>, a, u, std::placeholders::_1, std::placeholders::_2,
+            std::bind(&local_assemble_cc<dim>, a.get(), u.get(), std::placeholders::_1, std::placeholders::_2,
                   std::placeholders::_3),
             std::bind(&copy_local_to_global, std::ref(rhs), std::placeholders::_1),
             AssemblyScratchData<dim>(dof.get_fe(), quad), AssemblyCopyData());
