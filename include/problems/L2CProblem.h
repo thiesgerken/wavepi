@@ -48,7 +48,7 @@ class L2CProblem: public WaveProblem<dim> {
 
       // solution (with derivative!) and parameter from the last forward problem
       std::shared_ptr<DiscretizedFunction<dim>> c;
-               std::shared_ptr<DiscretizedFunction<dim>> u;
+      std::shared_ptr<DiscretizedFunction<dim>> u;
 
       class Linearization: public LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>> {
          public:

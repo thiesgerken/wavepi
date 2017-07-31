@@ -37,6 +37,7 @@
 
 #include <problems/L2QProblem.h>
 #include <problems/L2CProblem.h>
+#include <problems/L2NuProblem.h>
 
 #include <stddef.h>
 #include <algorithm>
@@ -195,18 +196,22 @@ void test() {
 
    wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(std::make_shared<TestF<dim>>()));
    wave_eq.set_param_a(std::make_shared<TestA<dim>>());
-//   wave_eq.set_param_c(std::make_shared<TestC<dim>>());
+   wave_eq.set_param_c(std::make_shared<TestC<dim>>());
    wave_eq.set_param_q(std::make_shared<TestQ<dim>>());
-   wave_eq.set_param_nu(std::make_shared<TestNu<dim>>());
+//   wave_eq.set_param_nu(std::make_shared<TestNu<dim>>());
 
    using Param = DiscretizedFunction<dim>;
    using Sol = DiscretizedFunction<dim>;
 
 //   TestQ<dim> param;
-   TestC<dim> param;
+//   TestC<dim> param;
+   TestNu<dim> param;
+
    auto param_exact = std::make_shared<Param>(mesh, dof_handler, param);
+
 //   wave_eq.set_param_q(param_exact);
-   wave_eq.set_param_c(param_exact);
+//   wave_eq.set_param_c(param_exact);
+   wave_eq.set_param_nu(param_exact);
 
    deallog.push("generate_data");
 
@@ -227,9 +232,11 @@ void test() {
    // initial guess = 1 everywhere
    initialGuess = 1;
 
-   auto linear_solver = std::make_shared<ConjugateGradients<Param, Sol>>();
 //   auto problem = std::make_shared<L2QProblem<dim>>(wave_eq);
-   auto problem = std::make_shared<L2CProblem<dim>>(wave_eq);
+//   auto problem = std::make_shared<L2CProblem<dim>>(wave_eq);
+   auto problem = std::make_shared<L2NuProblem<dim>>(wave_eq);
+
+   auto linear_solver = std::make_shared<ConjugateGradients<Param, Sol>>();
    auto tol_choice = std::make_shared<RiederToleranceChoice>(0.7, 0.95, 0.9, 1.0);
 
    REGINN<Param, Sol> reginn(problem, linear_solver, tol_choice, initialGuess);

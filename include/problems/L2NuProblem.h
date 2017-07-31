@@ -45,13 +45,17 @@ class L2NuProblem: public WaveProblem<dim> {
    private:
       typename WaveProblem<dim>::L2AdjointSolver adjoint_solver;
 
+      // solution (with derivative!) and parameter from the last forward problem
+      std::shared_ptr<DiscretizedFunction<dim>> nu;
+      std::shared_ptr<DiscretizedFunction<dim>> u;
+
       class Linearization: public LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>> {
          public:
             virtual ~Linearization();
 
             Linearization(const WaveEquation<dim> &weq,
                   typename WaveProblem<dim>::L2AdjointSolver adjoint_solver,
-                  const DiscretizedFunction<dim>& nu, const DiscretizedFunction<dim>& u);
+                  std::shared_ptr<DiscretizedFunction<dim>> nu, std::shared_ptr<DiscretizedFunction<dim>> u);
 
             virtual DiscretizedFunction<dim> forward(const DiscretizedFunction<dim>& h);
 

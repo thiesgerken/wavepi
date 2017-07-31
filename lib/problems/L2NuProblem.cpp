@@ -28,21 +28,29 @@ L2NuProblem<dim>::L2NuProblem(WaveEquation<dim>& weq, typename WaveProblem<dim>:
 
 template<int dim>
 std::unique_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>> L2NuProblem<dim>::derivative(
-      const DiscretizedFunction<dim>& nu, const DiscretizedFunction<dim>& u) {
+      const DiscretizedFunction<dim>& nu, const DiscretizedFunction<dim>& data __attribute((unused))) {
+   Assert(this->nu->relative_error(nu) < 1e-10, ExcInternalError());
+
    return std::make_unique<L2NuProblem<dim>::Linearization>(this->wave_equation,
-         WaveProblem<dim>::WaveEquationAdjoint, nu, u);
+         WaveProblem<dim>::WaveEquationAdjoint, this->nu, this->u);
 }
 
 template<int dim>
 DiscretizedFunction<dim> L2NuProblem<dim>::forward(const DiscretizedFunction<dim>& nu) {
    LogStream::Prefix p("eval_forward");
 
-   this->wave_equation.set_param_nu(std::make_shared<DiscretizedFunction<dim>>(nu));
+   // save a copy of nu
+   this->nu = std::make_shared<DiscretizedFunction<dim>>(nu);
+
+   this->wave_equation.set_param_nu(this->nu);
    this->wave_equation.set_run_direction(WaveEquation<dim>::Forward);
 
    DiscretizedFunction<dim> res = this->wave_equation.run();
-   res.throw_away_derivative();
 
+   // save a copy of res
+   this->u = std::make_shared<DiscretizedFunction<dim>>(res);
+
+   res.throw_away_derivative();
    return res;
 }
 
@@ -52,11 +60,13 @@ L2NuProblem<dim>::Linearization::~Linearization() {
 
 template<int dim>
 L2NuProblem<dim>::Linearization::Linearization(const WaveEquation<dim> &weq,
-      typename WaveProblem<dim>::L2AdjointSolver adjoint_solver, const DiscretizedFunction<dim>& nu,
-      const DiscretizedFunction<dim>& u)
+      typename WaveProblem<dim>::L2AdjointSolver adjoint_solver, std::shared_ptr<DiscretizedFunction<dim>> nu,
+      std::shared_ptr<DiscretizedFunction<dim>> u)
       : weq(weq), weq_adj(weq), adjoint_solver(adjoint_solver) {
-   this->nu = std::make_shared<DiscretizedFunction<dim>>(nu);
-   this->u = std::make_shared<DiscretizedFunction<dim>>(u);
+   this->nu = nu;
+   this->u = u;
+
+   Assert(u->has_derivative(), ExcInternalError());
 
    this->rhs = std::make_shared<L2RightHandSide<dim>>(this->u);
    this->rhs_adj = std::make_shared<L2RightHandSide<dim>>(this->u);
@@ -79,7 +89,7 @@ DiscretizedFunction<dim> L2NuProblem<dim>::Linearization::forward(const Discreti
 
    auto Mh = std::make_shared<DiscretizedFunction<dim>>(h);
    *Mh *= -1.0;
-   Mh->pointwise_multiplication(*u);
+   Mh->pointwise_multiplication(u->derivative());
 
    rhs->set_base_rhs(Mh);
    weq.set_right_hand_side(rhs);
@@ -123,7 +133,7 @@ DiscretizedFunction<dim> L2NuProblem<dim>::Linearization::adjoint(const Discreti
    // M*
    res.mult_space_time_mass();
    res *= -1.0;
-   res.pointwise_multiplication(*u);
+   res.pointwise_multiplication(u->derivative());
    res.solve_space_time_mass();
 
    return res;
