@@ -60,6 +60,7 @@ L2AProblem<dim>::Linearization::Linearization(const WaveEquation<dim> &weq,
 
    this->rhs = std::make_shared<DivRightHandSide<dim>>(this->a, this->u);
    this->rhs_adj = std::make_shared<L2RightHandSide<dim>>(this->u);
+   this->m_adj = std::make_shared<DivRightHandSideAdjoint<dim>>(this->a, this->u);
 
    this->weq.set_right_hand_side(rhs);
    this->weq_adj.set_right_hand_side(rhs_adj);
@@ -109,20 +110,19 @@ DiscretizedFunction<dim> L2AProblem<dim>::Linearization::adjoint(const Discretiz
       res = weq.run();
       res.throw_away_derivative();
    } else if (adjoint_solver == WaveProblem<dim>::WaveEquationAdjoint)
-      res = weq_adj.run();
+   res = weq_adj.run();
    else
-      Assert(false, ExcInternalError());
+   Assert(false, ExcInternalError());
 
    res.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
-   res.solve_time_mass();
+   // res.solve_time_mass();
 
    // M*
-   res.mult_space_time_mass();
-
-   // TODO: make this work
    // should be - nabla(res)*nabla(u) -> piecewise constant function -> fe spaces do not fit
-   AssertThrow(false, ExcNotImplemented());
-
+   // res.mult_time_mass();
+   m_adj->set_a(std::make_shared<DiscretizedFunction<dim>>(res));
+   res = m_adj->run_adjoint(res.get_mesh(), res.get_dof_handler(), weq.get_quad());
+   res.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
    res.solve_space_time_mass();
 
    return res;

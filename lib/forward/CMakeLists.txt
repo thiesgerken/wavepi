@@ -1,6 +1,7 @@
 # file(GLOB LIBSOURCES *.cpp)
 SET(LIBSOURCES
         DivRightHandSide.cpp
+        DivRightHandSideAdjoint.cpp
         RightHandSide.cpp
         ConstantMesh.cpp               
         L2ProductRightHandSide.cpp  

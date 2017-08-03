@@ -38,6 +38,7 @@
 #include <problems/L2QProblem.h>
 #include <problems/L2CProblem.h>
 #include <problems/L2NuProblem.h>
+#include <problems/L2AProblem.h>
 
 #include <stddef.h>
 #include <algorithm>
@@ -198,20 +199,43 @@ void test() {
    wave_eq.set_param_a(std::make_shared<TestA<dim>>());
    wave_eq.set_param_c(std::make_shared<TestC<dim>>());
    wave_eq.set_param_q(std::make_shared<TestQ<dim>>());
-//   wave_eq.set_param_nu(std::make_shared<TestNu<dim>>());
+   wave_eq.set_param_nu(std::make_shared<TestNu<dim>>());
 
    using Param = DiscretizedFunction<dim>;
    using Sol = DiscretizedFunction<dim>;
 
-//   TestQ<dim> param;
-//   TestC<dim> param;
-   TestNu<dim> param;
+   std::shared_ptr<WaveProblem<dim>> problem;
+   std::shared_ptr<Function<dim>> param_exact_cont;
+   std::shared_ptr<Param> param_exact;
+   Param initialGuess(mesh, dof_handler);
 
-   auto param_exact = std::make_shared<Param>(mesh, dof_handler, param);
-
+   /* Reconstruct TestQ */
+//   param_exact_cont = std::make_shared<TestQ<dim>>();
+//   param_exact = std::make_shared<Param>(mesh, dof_handler, *param_exact_cont.get());
 //   wave_eq.set_param_q(param_exact);
+//   problem = std::make_shared<L2QProblem<dim>>(wave_eq);
+//   initialGuess = 0;
+
+   /* Reconstruct TestC */
+//   param_exact_cont = std::make_shared<TestC<dim>>();
+//   param_exact = std::make_shared<Param>(mesh, dof_handler, *param_exact_cont.get());
 //   wave_eq.set_param_c(param_exact);
-   wave_eq.set_param_nu(param_exact);
+//   problem = std::make_shared<L2CProblem<dim>>(wave_eq);
+//   initialGuess = 1;
+
+   /* Reconstruct TestNu */
+//   param_exact_cont = std::make_shared<TestNu<dim>>();
+//   param_exact = std::make_shared<Param>(mesh, dof_handler, *param_exact_cont.get());
+//   wave_eq.set_param_nu(param_exact);
+//   problem = std::make_shared<L2NuProblem<dim>>(wave_eq);
+//   initialGuess = 0;
+
+   /* Reconstruct TestA */
+   param_exact_cont = std::make_shared<TestA<dim>>();
+   param_exact = std::make_shared<Param>(mesh, dof_handler, *param_exact_cont.get());
+   wave_eq.set_param_a(param_exact);
+   problem = std::make_shared<L2AProblem<dim>>(wave_eq);
+   initialGuess = 1;
 
    deallog.push("generate_data");
 
@@ -225,16 +249,6 @@ void test() {
 
    deallog.pop();
    deallog.pop();
-
-   // zero initial guess
-   Param initialGuess(mesh, dof_handler);
-
-   // initial guess = 1 everywhere
-   initialGuess = 1;
-
-//   auto problem = std::make_shared<L2QProblem<dim>>(wave_eq);
-//   auto problem = std::make_shared<L2CProblem<dim>>(wave_eq);
-   auto problem = std::make_shared<L2NuProblem<dim>>(wave_eq);
 
    auto linear_solver = std::make_shared<ConjugateGradients<Param, Sol>>();
    auto tol_choice = std::make_shared<RiederToleranceChoice>(0.7, 0.95, 0.9, 1.0);

@@ -1,12 +1,12 @@
 /*
- * DivRightHandSide.h
+ * DivRightHandSideAdjoint.h
  *
- *  Created on: 29.06.2017
+ *  Created on: 03.08.2017
  *      Author: thies
  */
 
-#ifndef FORWARD_DIVRIGHTHANDSIDE_H_
-#define FORWARD_DIVRIGHTHANDSIDE_H_
+#ifndef FORWARD_DIVRIGHTHANDSIDEADJOINT_H_
+#define FORWARD_DIVRIGHTHANDSIDEADJOINT_H_
 
 #include <deal.II/base/function.h>
 #include <deal.II/base/quadrature.h>
@@ -25,20 +25,21 @@ namespace wavepi {
 namespace forward {
 using namespace dealii;
 
-// implements the H^{-1} function f=div(a \nabla u) as a possible right hand side,
-// this means <f,v> = (-a\nabla u, \nabla v) [note the sign!]
+// implements a ↦ (-(∇u⋅∇a, φ_i))_i as a possible right hand side
 template<int dim>
-class DivRightHandSide: public RightHandSide<dim> {
+class DivRightHandSideAdjoint: public RightHandSide<dim> {
    public:
 
       // optimization is used only when a _and_ u are discretized
       // if u is continuous, then u has to have an implementation of gradient
-      DivRightHandSide(std::shared_ptr<Function<dim>> a, std::shared_ptr<Function<dim>> u);
+      DivRightHandSideAdjoint(std::shared_ptr<Function<dim>> a, std::shared_ptr<Function<dim>> u);
 
-      virtual ~DivRightHandSide();
+      virtual ~DivRightHandSideAdjoint();
 
       virtual void create_right_hand_side(const DoFHandler<dim> &dof_handler, const Quadrature<dim> &q,
             Vector<double> &rhs) const;
+
+      DiscretizedFunction<dim> run_adjoint(std::shared_ptr<SpaceTimeMesh<dim>> mesh, std::shared_ptr<DoFHandler<dim>> dof, const Quadrature<dim> &quad) ;
 
       inline std::shared_ptr<Function<dim> > get_a() const {
          return a;
