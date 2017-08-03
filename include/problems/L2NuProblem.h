@@ -15,8 +15,7 @@
 
 #include <inversion/InverseProblem.h>
 #include <inversion/LinearProblem.h>
-
-#include <problems/WaveProblem.h>
+#include <inversion/NonlinearProblem.h>
 
 #include <memory>
 
@@ -28,13 +27,13 @@ using namespace wavepi::forward;
 using namespace wavepi::inversion;
 
 template<int dim>
-class L2NuProblem: public WaveProblem<dim> {
+class L2NuProblem: public NonlinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>> {
    public:
       virtual ~L2NuProblem() {
       }
 
       L2NuProblem(WaveEquation<dim>& weq);
-      L2NuProblem(WaveEquation<dim>& weq, typename WaveProblem<dim>::L2AdjointSolver adjoint_solver);
+      L2NuProblem(WaveEquation<dim>& weq, typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver);
 
       virtual std::unique_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>> derivative(
             const DiscretizedFunction<dim>& nu, const DiscretizedFunction<dim>& u);
@@ -42,7 +41,8 @@ class L2NuProblem: public WaveProblem<dim> {
       virtual DiscretizedFunction<dim> forward(const DiscretizedFunction<dim>& nu);
 
    private:
-      typename WaveProblem<dim>::L2AdjointSolver adjoint_solver;
+      WaveEquation<dim> wave_equation;
+      typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver;
 
       // solution (with derivative!) and parameter from the last forward problem
       std::shared_ptr<DiscretizedFunction<dim>> nu;
@@ -53,7 +53,7 @@ class L2NuProblem: public WaveProblem<dim> {
             virtual ~Linearization();
 
             Linearization(const WaveEquation<dim> &weq,
-                  typename WaveProblem<dim>::L2AdjointSolver adjoint_solver,
+                  typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver,
                   std::shared_ptr<DiscretizedFunction<dim>> nu, std::shared_ptr<DiscretizedFunction<dim>> u);
 
             virtual DiscretizedFunction<dim> forward(const DiscretizedFunction<dim>& h);
@@ -63,13 +63,11 @@ class L2NuProblem: public WaveProblem<dim> {
 
             virtual DiscretizedFunction<dim> zero();
 
-            bool progress(InversionProgress<DiscretizedFunction<dim>, DiscretizedFunction<dim>> state);
-
          private:
             WaveEquation<dim> weq;
             WaveEquationAdjoint<dim> weq_adj;
 
-            typename WaveProblem<dim>::L2AdjointSolver adjoint_solver;
+            typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver;
 
             std::shared_ptr<DiscretizedFunction<dim>> nu;
             std::shared_ptr<DiscretizedFunction<dim>> u;

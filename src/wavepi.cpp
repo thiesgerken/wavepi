@@ -204,7 +204,7 @@ void test() {
    using Param = DiscretizedFunction<dim>;
    using Sol = DiscretizedFunction<dim>;
 
-   std::shared_ptr<WaveProblem<dim>> problem;
+   std::shared_ptr<NonlinearProblem<Param, Sol>> problem;
    std::shared_ptr<Function<dim>> param_exact_cont;
    std::shared_ptr<Param> param_exact;
    Param initialGuess(mesh, dof_handler);
@@ -215,21 +215,18 @@ void test() {
 //   wave_eq.set_param_q(param_exact);
 //   problem = std::make_shared<L2QProblem<dim>>(wave_eq);
 //   initialGuess = 0;
-
    /* Reconstruct TestC */
 //   param_exact_cont = std::make_shared<TestC<dim>>();
 //   param_exact = std::make_shared<Param>(mesh, dof_handler, *param_exact_cont.get());
 //   wave_eq.set_param_c(param_exact);
 //   problem = std::make_shared<L2CProblem<dim>>(wave_eq);
 //   initialGuess = 1;
-
    /* Reconstruct TestNu */
 //   param_exact_cont = std::make_shared<TestNu<dim>>();
 //   param_exact = std::make_shared<Param>(mesh, dof_handler, *param_exact_cont.get());
 //   wave_eq.set_param_nu(param_exact);
 //   problem = std::make_shared<L2NuProblem<dim>>(wave_eq);
 //   initialGuess = 0;
-
    /* Reconstruct TestA */
    param_exact_cont = std::make_shared<TestA<dim>>();
    param_exact = std::make_shared<Param>(mesh, dof_handler, *param_exact_cont.get());
@@ -251,9 +248,13 @@ void test() {
    deallog.pop();
 
    auto linear_solver = std::make_shared<ConjugateGradients<Param, Sol>>();
+   linear_solver->add_listener(std::make_shared<GenericInversionProgressListener<Param, Sol>>("k"));
+
    auto tol_choice = std::make_shared<RiederToleranceChoice>(0.7, 0.95, 0.9, 1.0);
 
    REGINN<Param, Sol> reginn(problem, linear_solver, tol_choice, initialGuess);
+   reginn.add_listener(std::make_shared<GenericInversionProgressListener<Param, Sol>>("i"));
+
    reginn.invert(data, 2 * epsilon * data_exact.norm(), param_exact);
 
    deallog.timestamp();

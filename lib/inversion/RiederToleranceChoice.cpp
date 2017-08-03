@@ -26,7 +26,9 @@ double RiederToleranceChoice::calculate_tolerance() const {
    if (k < 2)
       tol_tilde = tol_start;
    else if (required_steps[k - 1] >= required_steps[k - 2])
-      tol_tilde = 1 - std::pow((double) required_steps[k - 2] / required_steps[k - 1], beta) * (1 - previous_tolerances[k - 1]);
+      tol_tilde = 1
+            - std::pow((double) required_steps[k - 2] / required_steps[k - 1], beta)
+                  * (1 - previous_tolerances[k - 1]);
    else
       tol_tilde = zeta * previous_tolerances[k - 1];
 

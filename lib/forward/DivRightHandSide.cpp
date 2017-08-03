@@ -32,7 +32,8 @@ DivRightHandSide<dim>::~DivRightHandSide() {
 }
 
 template<int dim>
-DivRightHandSide<dim>::AssemblyScratchData::AssemblyScratchData(const FiniteElement<dim> &fe, const Quadrature<dim> &quad)
+DivRightHandSide<dim>::AssemblyScratchData::AssemblyScratchData(const FiniteElement<dim> &fe,
+      const Quadrature<dim> &quad)
       : fe_values(fe, quad, update_values | update_gradients | update_quadrature_points | update_JxW_values) {
 }
 
@@ -114,16 +115,16 @@ void DivRightHandSide<dim>::create_right_hand_side(const DoFHandler<dim> &dof, c
       Assert(cu.size() == dof.n_dofs(), ExcDimensionMismatch (cu.size() , dof.n_dofs()));
 
       WorkStream::run(dof.begin_active(), dof.end(),
-            std::bind(&DivRightHandSide<dim>::local_assemble_dd, *this, std::ref(ca), std::ref(cu), std::placeholders::_1,
-                  std::placeholders::_2, std::placeholders::_3),
-            std::bind(&DivRightHandSide<dim>::copy_local_to_global, *this, std::ref(rhs), std::placeholders::_1),
-            AssemblyScratchData(dof.get_fe(), quad), AssemblyCopyData());
+            std::bind(&DivRightHandSide<dim>::local_assemble_dd, *this, std::ref(ca), std::ref(cu),
+                  std::placeholders::_1, std::placeholders::_2, std::placeholders::_3),
+            std::bind(&DivRightHandSide<dim>::copy_local_to_global, *this, std::ref(rhs),
+                  std::placeholders::_1), AssemblyScratchData(dof.get_fe(), quad), AssemblyCopyData());
    } else
       WorkStream::run(dof.begin_active(), dof.end(),
-            std::bind(&DivRightHandSide<dim>::local_assemble_cc, *this, a.get(), u.get(), std::placeholders::_1, std::placeholders::_2,
-                  std::placeholders::_3),
-            std::bind(&DivRightHandSide<dim>::copy_local_to_global, *this, std::ref(rhs), std::placeholders::_1),
-            AssemblyScratchData(dof.get_fe(), quad), AssemblyCopyData());
+            std::bind(&DivRightHandSide<dim>::local_assemble_cc, *this, a.get(), u.get(),
+                  std::placeholders::_1, std::placeholders::_2, std::placeholders::_3),
+            std::bind(&DivRightHandSide<dim>::copy_local_to_global, *this, std::ref(rhs),
+                  std::placeholders::_1), AssemblyScratchData(dof.get_fe(), quad), AssemblyCopyData());
 }
 
 template class DivRightHandSide<1> ;

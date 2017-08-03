@@ -75,11 +75,11 @@ class DivRightHandSide: public RightHandSide<dim> {
 
       void local_assemble_dd(const Vector<double> &a, const Vector<double> &u,
             const typename DoFHandler<dim>::active_cell_iterator &cell, AssemblyScratchData &scratch_data,
-            AssemblyCopyData &copy_data)   ;
+            AssemblyCopyData &copy_data);
 
       void local_assemble_cc(const Function<dim> * const a, const Function<dim> * const u,
             const typename DoFHandler<dim>::active_cell_iterator &cell, AssemblyScratchData &scratch_data,
-            AssemblyCopyData &copy_data) ;
+            AssemblyCopyData &copy_data);
 };
 
 } /* namespace forward */

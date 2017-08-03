@@ -3,8 +3,7 @@ SET(LIBSOURCES
     L2QProblem.cpp
     L2CProblem.cpp
     L2AProblem.cpp
-    L2NuProblem.cpp
-    WaveProblem.cpp    
+    L2NuProblem.cpp  
     )
     
 add_library(wavepi_problems ${LIBSOURCES})

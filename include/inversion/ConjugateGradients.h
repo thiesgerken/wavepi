@@ -59,7 +59,7 @@ class ConjugateGradients: public LinearRegularization<Param, Sol> {
 
          InversionProgress<Param, Sol> status(0, &estimate, estimate.norm(), &residual, discrepancy, &data,
                norm_data, exact_param, norm_exact);
-         this->problem->progress(status);
+         this->progress(status);
 
          for (int k = 1;
                discrepancy > target_discrepancy
@@ -68,6 +68,7 @@ class ConjugateGradients: public LinearRegularization<Param, Sol> {
             Sol q(this->problem->forward(p)); // q_k
 
             double alpha = square(norm_d / q.norm()); // α_k
+
             {
                LogStream::Prefix pp("info");
                deallog << "α_k = " << alpha << std::endl;
@@ -85,7 +86,7 @@ class ConjugateGradients: public LinearRegularization<Param, Sol> {
             status = InversionProgress<Param, Sol>(k, &estimate, estimate.norm(), &residual, discrepancy,
                   &data, norm_data, exact_param, norm_exact);
 
-            if (!this->problem->progress(status))
+            if (!this->progress(status))
                break;
 
             if (discrepancy_last < discrepancy && this->abort_increasing_discrepancy)
@@ -101,6 +102,7 @@ class ConjugateGradients: public LinearRegularization<Param, Sol> {
             norm_d = d.norm();
 
             double beta = square(norm_d / norm_d_last); // β_k
+
             {
                LogStream::Prefix pp("info");
                deallog << "β_k = " << beta << std::endl;

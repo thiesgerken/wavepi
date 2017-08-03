@@ -8,10 +8,11 @@
 #ifndef INVERSION_REGULARIZATION_H_
 #define INVERSION_REGULARIZATION_H_
 
-#include <memory>
-#include <climits>
+#include <inversion/InversionProgress.h>
 
-#include <inversion/InverseProblem.h>
+#include <climits>
+#include <list>
+#include <memory>
 
 namespace wavepi {
 namespace inversion {
@@ -24,12 +25,13 @@ class Regularization {
       virtual ~Regularization() {
       }
 
+      // status_out: output for the last status
+      // should call `progress` throughout the iteration (if the method is iterative)
       virtual Param invert(const Sol& data, double target_discrepancy,
             std::shared_ptr<const Param> exact_param,
             std::shared_ptr<InversionProgress<Param, Sol>> status_out) = 0;
 
-      virtual Param invert(const Sol& data, double target_discrepancy,
-            std::shared_ptr<const Param> exact_param) {
+      Param invert(const Sol& data, double target_discrepancy, std::shared_ptr<const Param> exact_param) {
          return invert(data, target_discrepancy, exact_param, nullptr);
       }
 
@@ -57,10 +59,31 @@ class Regularization {
          this->abort_increasing_discrepancy = abort_increasing_discrepancy;
       }
 
+      void remove_listener(std::shared_ptr<InversionProgressListener<Param, Sol>> listener) {
+         progress_listeners.remove(listener);
+      }
+
+      void add_listener(std::shared_ptr<InversionProgressListener<Param, Sol>> listener) {
+         progress_listeners.push_back(listener);
+      }
+
    protected:
       int max_iterations = INT_MAX;
       bool abort_increasing_discrepancy = false; // abort if the discrepancy is not decreasing anymore?
       bool abort_discrepancy_doubles = false; // abort if the discrepancy is higher than twice the start discrepancy?
+
+      bool progress(InversionProgress<Param, Sol> state) {
+         bool continue_iteration = true;
+
+         for (auto listener : progress_listeners)
+            continue_iteration &= listener->progress(state);
+
+         return continue_iteration;
+      }
+
+   private:
+      std::list<std::shared_ptr<InversionProgressListener<Param, Sol>>> progress_listeners;
+
 };
 
 } /* namespace inversion */

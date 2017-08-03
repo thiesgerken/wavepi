@@ -66,7 +66,7 @@ class REGINN: public NewtonRegularization<Param, Sol> {
          deallog.pop();
          InversionProgress<Param, Sol> status(0, &estimate, estimate.norm(), &residual, discrepancy, &data,
                norm_data, exact_param, norm_exact);
-         this->problem->progress(status);
+         this->progress(status);
 
          for (int i = 1;
                discrepancy > target_discrepancy
@@ -100,7 +100,7 @@ class REGINN: public NewtonRegularization<Param, Sol> {
             status = InversionProgress<Param, Sol>(i, &estimate, estimate.norm(), &residual, discrepancy,
                   &data, norm_data, exact_param, norm_exact);
 
-            if (!this->problem->progress(status))
+            if (!this->progress(status))
                break;
 
             if (discrepancy_last < discrepancy && this->abort_increasing_discrepancy)

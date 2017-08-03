@@ -21,7 +21,7 @@ SpaceTimeMesh<dim>::SpaceTimeMesh(std::vector<double> times, std::vector<types::
 
 template<int dim>
 SpaceTimeMesh<dim>::SpaceTimeMesh(std::vector<double> times)
-      : times(times), boundary_ids(1,0) {
+      : times(times), boundary_ids(1, 0) {
 }
 
 template<int dim>

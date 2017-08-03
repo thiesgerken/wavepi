@@ -39,7 +39,8 @@ class DivRightHandSideAdjoint: public RightHandSide<dim> {
       virtual void create_right_hand_side(const DoFHandler<dim> &dof_handler, const Quadrature<dim> &q,
             Vector<double> &rhs) const;
 
-      DiscretizedFunction<dim> run_adjoint(std::shared_ptr<SpaceTimeMesh<dim>> mesh, std::shared_ptr<DoFHandler<dim>> dof, const Quadrature<dim> &quad) ;
+      DiscretizedFunction<dim> run_adjoint(std::shared_ptr<SpaceTimeMesh<dim>> mesh,
+            std::shared_ptr<DoFHandler<dim>> dof, const Quadrature<dim> &quad);
 
       inline std::shared_ptr<Function<dim> > get_a() const {
          return a;
@@ -76,11 +77,11 @@ class DivRightHandSideAdjoint: public RightHandSide<dim> {
 
       void local_assemble_dd(const Vector<double> &a, const Vector<double> &u,
             const typename DoFHandler<dim>::active_cell_iterator &cell, AssemblyScratchData &scratch_data,
-            AssemblyCopyData &copy_data)   ;
+            AssemblyCopyData &copy_data);
 
       void local_assemble_cc(const Function<dim> * const a, const Function<dim> * const u,
             const typename DoFHandler<dim>::active_cell_iterator &cell, AssemblyScratchData &scratch_data,
-            AssemblyCopyData &copy_data) ;
+            AssemblyCopyData &copy_data);
 };
 
 } /* namespace forward */

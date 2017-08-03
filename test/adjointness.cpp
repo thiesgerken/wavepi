@@ -166,9 +166,9 @@ template<> const Point<3> TestQ<3>::q_position = Point<3>(-1.0, 0.5, 0.0);
 
 template<int dim>
 void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_steps,
-      typename WaveProblem<dim>::L2AdjointSolver adjoint_solver, bool set_nu, double tol) {
+      typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver, bool set_nu, double tol) {
    Assert(
-         adjoint_solver == WaveProblem<dim>::WaveEquationAdjoint && adjoint_solver == WaveProblem<dim>::WaveEquationBackwards,
+         adjoint_solver == WaveEquationBase<dim>::WaveEquationAdjoint && adjoint_solver == WaveEquationBase<dim>::WaveEquationBackwards,
          ExcInternalError());
 
    Triangulation<dim> triangulation;
@@ -205,7 +205,7 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
 
    WaveEquationAdjoint<dim> wave_eq_adj(wave_eq);
 
-   bool use_adj = adjoint_solver == WaveProblem<dim>::WaveEquationAdjoint;
+   bool use_adj = adjoint_solver == WaveEquationBase<dim>::WaveEquationAdjoint;
 
    TestF<dim> f_cont;
    auto f = std::make_shared<DiscretizedFunction<dim>>(mesh, dof_handler, f_cont);
@@ -463,69 +463,69 @@ TEST(L2AdjointnessTest, Backwards1DFE1) {
    const int dim = 1;
 
    for (int i = 4; i < 9; i += 2)
-      run_l2_q_adjoint_test<dim>(1, 3, 6, 1 << i, WaveProblem<dim>::WaveEquationBackwards, false, 1e-4);
+      run_l2_q_adjoint_test<dim>(1, 3, 6, 1 << i, WaveEquationBase<dim>::WaveEquationBackwards, false, 1e-4);
 }
 
 TEST(L2AdjointnessTest, Adjoint1DFE1) {
    const int dim = 1;
 
    for (int i = 4; i < 9; i += 2)
-      run_l2_q_adjoint_test<dim>(1, 3, 6, 1 << i, WaveProblem<dim>::WaveEquationAdjoint, false, 1e-4);
+      run_l2_q_adjoint_test<dim>(1, 3, 6, 1 << i, WaveEquationBase<dim>::WaveEquationAdjoint, false, 1e-4);
 }
 
 TEST(L2AdjointnessTest, Backwards1DFE2) {
    const int dim = 1;
 
    for (int i = 4; i < 9; i += 2)
-      run_l2_q_adjoint_test<dim>(2, 6, 4, 1 << i, WaveProblem<dim>::WaveEquationBackwards, false, 1e-4);
+      run_l2_q_adjoint_test<dim>(2, 6, 4, 1 << i, WaveEquationBase<dim>::WaveEquationBackwards, false, 1e-4);
 }
 
 TEST(L2AdjointnessTest, Adjoint1DFE2) {
    const int dim = 1;
 
    for (int i = 4; i < 9; i += 2)
-      run_l2_q_adjoint_test<dim>(2, 6, 4, 1 << i, WaveProblem<dim>::WaveEquationAdjoint, false, 1e-4);
+      run_l2_q_adjoint_test<dim>(2, 6, 4, 1 << i, WaveEquationBase<dim>::WaveEquationAdjoint, false, 1e-4);
 }
 
 TEST(L2AdjointnessTest, Backwards2DFE1) {
    const int dim = 2;
 
    for (int i = 4; i < 9; i += 2)
-      run_l2_q_adjoint_test<dim>(1, 3, 4, 1 << i, WaveProblem<dim>::WaveEquationBackwards, false, 1e-4);
+      run_l2_q_adjoint_test<dim>(1, 3, 4, 1 << i, WaveEquationBase<dim>::WaveEquationBackwards, false, 1e-4);
 }
 
 TEST(L2AdjointnessTest, BackwardsNu2DFE1) {
    const int dim = 2;
 
    for (int i = 6; i < 9; i += 2)
-      run_l2_q_adjoint_test<dim>(1, 3, 4, 1 << i, WaveProblem<dim>::WaveEquationBackwards, true, 1e-1);
+      run_l2_q_adjoint_test<dim>(1, 3, 4, 1 << i, WaveEquationBase<dim>::WaveEquationBackwards, true, 1e-1);
 }
 
 TEST(L2AdjointnessTest, Adjoint2DFE1) {
    const int dim = 2;
 
    for (int i = 4; i < 9; i += 2)
-      run_l2_q_adjoint_test<dim>(1, 3, 4, 1 << i, WaveProblem<dim>::WaveEquationAdjoint, false, 1e-4);
+      run_l2_q_adjoint_test<dim>(1, 3, 4, 1 << i, WaveEquationBase<dim>::WaveEquationAdjoint, false, 1e-4);
 }
 
 TEST(L2AdjointnessTest, AdjointNu2DFE1) {
    const int dim = 2;
 
    for (int i = 6; i < 9; i += 2)
-      run_l2_q_adjoint_test<dim>(1, 3, 4, 1 << i, WaveProblem<dim>::WaveEquationAdjoint, true, 1e-1);
+      run_l2_q_adjoint_test<dim>(1, 3, 4, 1 << i, WaveEquationBase<dim>::WaveEquationAdjoint, true, 1e-1);
 }
 
 TEST(L2AdjointnessTest, Adjoint3DFE1) {
    const int dim = 3;
 
    for (int i = 4; i < 9; i += 2)
-      run_l2_q_adjoint_test<dim>(1, 3, 2, 1 << i, WaveProblem<dim>::WaveEquationAdjoint, false, 1e-4);
+      run_l2_q_adjoint_test<dim>(1, 3, 2, 1 << i, WaveEquationBase<dim>::WaveEquationAdjoint, false, 1e-4);
 }
 
 TEST(L2AdjointnessTest, Backwards3DFE1) {
    const int dim = 3;
 
    for (int i = 4; i < 9; i += 2)
-      run_l2_q_adjoint_test<dim>(1, 3, 2, 1 << i, WaveProblem<dim>::WaveEquationBackwards, false, 1e-4);
+      run_l2_q_adjoint_test<dim>(1, 3, 2, 1 << i, WaveEquationBase<dim>::WaveEquationBackwards, false, 1e-4);
 }
 
