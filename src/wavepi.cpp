@@ -147,8 +147,13 @@ template<> const Point<1> TestQ<1>::q_position = Point<1>(-1.0);
 template<> const Point<2> TestQ<2>::q_position = Point<2>(-1.0, 0.5);
 template<> const Point<3> TestQ<3>::q_position = Point<3>(-1.0, 0.5, 0.0);
 
+// possible problems
+enum class ProblemType {
+   L2Q = 1, L2A = 2, L2C = 3, L2Nu = 4
+};
+
 template<int dim>
-void test() {
+void test(ProblemType problem_type) {
    std::ofstream logout("wavepi.log");
    deallog.attach(logout);
    deallog.depth_console(2);
@@ -209,30 +214,42 @@ void test() {
    std::shared_ptr<Param> param_exact;
    Param initialGuess(mesh, dof_handler);
 
-   /* Reconstruct TestQ */
-//   param_exact_cont = std::make_shared<TestQ<dim>>();
-//   param_exact = std::make_shared<Param>(mesh, dof_handler, *param_exact_cont.get());
-//   wave_eq.set_param_q(param_exact);
-//   problem = std::make_shared<L2QProblem<dim>>(wave_eq);
-//   initialGuess = 0;
-   /* Reconstruct TestC */
-//   param_exact_cont = std::make_shared<TestC<dim>>();
-//   param_exact = std::make_shared<Param>(mesh, dof_handler, *param_exact_cont.get());
-//   wave_eq.set_param_c(param_exact);
-//   problem = std::make_shared<L2CProblem<dim>>(wave_eq);
-//   initialGuess = 1;
-   /* Reconstruct TestNu */
-//   param_exact_cont = std::make_shared<TestNu<dim>>();
-//   param_exact = std::make_shared<Param>(mesh, dof_handler, *param_exact_cont.get());
-//   wave_eq.set_param_nu(param_exact);
-//   problem = std::make_shared<L2NuProblem<dim>>(wave_eq);
-//   initialGuess = 0;
-   /* Reconstruct TestA */
-   param_exact_cont = std::make_shared<TestA<dim>>();
-   param_exact = std::make_shared<Param>(mesh, dof_handler, *param_exact_cont.get());
-   wave_eq.set_param_a(param_exact);
-   problem = std::make_shared<L2AProblem<dim>>(wave_eq);
-   initialGuess = 1;
+   switch (problem_type) {
+      case ProblemType::L2Q:
+         /* Reconstruct TestQ */
+         param_exact_cont = std::make_shared<TestQ<dim>>();
+         param_exact = std::make_shared<Param>(mesh, dof_handler, *param_exact_cont.get());
+         wave_eq.set_param_q(param_exact);
+         problem = std::make_shared<L2QProblem<dim>>(wave_eq);
+         initialGuess = 0;
+         break;
+      case ProblemType::L2C:
+         /* Reconstruct TestC */
+         param_exact_cont = std::make_shared<TestC<dim>>();
+         param_exact = std::make_shared<Param>(mesh, dof_handler, *param_exact_cont.get());
+         wave_eq.set_param_c(param_exact);
+         problem = std::make_shared<L2CProblem<dim>>(wave_eq);
+         initialGuess = 1;
+         break;
+      case ProblemType::L2Nu:
+         /* Reconstruct TestNu */
+         param_exact_cont = std::make_shared<TestNu<dim>>();
+         param_exact = std::make_shared<Param>(mesh, dof_handler, *param_exact_cont.get());
+         wave_eq.set_param_nu(param_exact);
+         problem = std::make_shared<L2NuProblem<dim>>(wave_eq);
+         initialGuess = 0;
+         break;
+      case ProblemType::L2A:
+         /* Reconstruct TestA */
+         param_exact_cont = std::make_shared<TestA<dim>>();
+         param_exact = std::make_shared<Param>(mesh, dof_handler, *param_exact_cont.get());
+         wave_eq.set_param_a(param_exact);
+         problem = std::make_shared<L2AProblem<dim>>(wave_eq);
+         initialGuess = 1;
+         break;
+      default:
+         AssertThrow(false, ExcInternalError())
+   }
 
    deallog.push("generate_data");
 
@@ -251,18 +268,16 @@ void test() {
    linear_solver->add_listener(std::make_shared<GenericInversionProgressListener<Param, Sol>>("k"));
 
    auto tol_choice = std::make_shared<RiederToleranceChoice>(0.7, 0.95, 0.9, 1.0);
-
    REGINN<Param, Sol> reginn(problem, linear_solver, tol_choice, initialGuess);
    reginn.add_listener(std::make_shared<GenericInversionProgressListener<Param, Sol>>("i"));
 
    reginn.invert(data, 2 * epsilon * data_exact.norm(), param_exact);
-
    deallog.timestamp();
 }
 
 int main() {
    try {
-      test<2>();
+      test<2>(ProblemType::L2A);
    } catch (std::exception &exc) {
       std::cerr << std::endl << std::endl;
       std::cerr << "----------------------------------------------------" << std::endl;
