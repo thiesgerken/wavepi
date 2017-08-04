@@ -210,7 +210,6 @@ class OutputProgressListener: public InversionProgressListener<DiscretizedFuncti
       }
 
       virtual bool progress(InversionProgress<DiscretizedFunction<dim>, DiscretizedFunction<dim>> state) {
-         LogStream::Prefix p = LogStream::Prefix("Output");
          std::map<std::string, std::string> subs;
          subs["i"] = Utilities::int_to_string(state.iteration_number, 4);
 
@@ -220,6 +219,8 @@ class OutputProgressListener: public InversionProgressListener<DiscretizedFuncti
             std::string filename = dest + replace(filename_exact, subs);
 
             boost::filesystem::create_directories(dest);
+            deallog << "Saving exact parameter in " << dest << std::endl;
+            LogStream::Prefix p = LogStream::Prefix("Output");
             state.exact_param->write_pvd(filename, "exact_param");
          }
 
@@ -228,6 +229,8 @@ class OutputProgressListener: public InversionProgressListener<DiscretizedFuncti
                std::string filename = dest + replace(filename_residual, subs);
 
                boost::filesystem::create_directories(dest);
+               deallog << "Saving current residual in " << dest << std::endl;
+               LogStream::Prefix p = LogStream::Prefix("Output");
                state.current_residual->write_pvd(filename, "exact_param");
             }
 
@@ -235,6 +238,8 @@ class OutputProgressListener: public InversionProgressListener<DiscretizedFuncti
                std::string filename = dest + replace(filename_estimate, subs);
 
                boost::filesystem::create_directories(dest);
+               deallog << "Saving current estimate in " << dest << std::endl;
+               LogStream::Prefix p = LogStream::Prefix("Output");
                state.current_estimate->write_pvd(filename, "estimate");
             }
          }

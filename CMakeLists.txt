@@ -49,8 +49,10 @@ PROJECT(wavePI)
 include_directories("include")
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -Wno-unused-parameter")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -s -Wall -Wno-unused-parameter")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -DGIT_DATE='${GIT_DATE}' -DGIT_SHA1='${GIT_SHA1}'")
+
+set(BUILD_SHARED_LIBS ON)
 
 add_subdirectory(lib)
 add_subdirectory(src)
