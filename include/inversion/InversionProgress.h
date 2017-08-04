@@ -8,19 +8,23 @@
 #ifndef INCLUDE_INVERSION_INVERSIONPROGRESS_H_
 #define INCLUDE_INVERSION_INVERSIONPROGRESS_H_
 
-#include <deal.II/base/logstream.h>
+#include <boost/filesystem/operations.hpp>
 
-#include <iostream>
-#include <memory>
-#include <string>
-#include <signal.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
+#include <deal.II/base/exceptions.h>
+#include <deal.II/base/logstream.h>
+#include <deal.II/base/utilities.h>
 
 #include <forward/DiscretizedFunction.h>
 
-#include <boost/filesystem.hpp>
+#include <signal.h>
+#include <stddef.h>
+#include <cstdio>
+#include <cstring>
+#include <iterator>
+#include <map>
+#include <memory>
+#include <sstream>
+#include <string>
 
 namespace wavepi {
 namespace inversion {
@@ -216,31 +220,40 @@ class OutputProgressListener: public InversionProgressListener<DiscretizedFuncti
          std::string dest = replace(destination_prefix, subs);
 
          if (save_exact && state.iteration_number == 0 && state.exact_param) {
-            std::string filename = dest + replace(filename_exact, subs);
+            std::string filename = replace(filename_exact, subs);
 
             boost::filesystem::create_directories(dest);
             deallog << "Saving exact parameter in " << dest << std::endl;
             LogStream::Prefix p = LogStream::Prefix("Output");
-            state.exact_param->write_pvd(filename, "exact_param");
+            state.exact_param->write_pvd(dest, filename, "param");
+         }
+
+         if (save_data && state.iteration_number == 0) {
+            std::string filename = replace(filename_data, subs);
+
+            boost::filesystem::create_directories(dest);
+            deallog << "Saving data in " << dest << std::endl;
+            LogStream::Prefix p = LogStream::Prefix("Output");
+            state.data->write_pvd(dest, filename, "data");
          }
 
          if ((interval > 0 && state.iteration_number % interval == 0) || (save_last && state.finished)) {
             if (save_residual) {
-               std::string filename = dest + replace(filename_residual, subs);
+               std::string filename = replace(filename_residual, subs);
 
                boost::filesystem::create_directories(dest);
                deallog << "Saving current residual in " << dest << std::endl;
                LogStream::Prefix p = LogStream::Prefix("Output");
-               state.current_residual->write_pvd(filename, "exact_param");
+               state.current_residual->write_pvd(dest, filename, "residual");
             }
 
             if (save_estimate) {
-               std::string filename = dest + replace(filename_estimate, subs);
+               std::string filename = replace(filename_estimate, subs);
 
                boost::filesystem::create_directories(dest);
                deallog << "Saving current estimate in " << dest << std::endl;
                LogStream::Prefix p = LogStream::Prefix("Output");
-               state.current_estimate->write_pvd(filename, "estimate");
+               state.current_estimate->write_pvd(dest, filename, "estimate");
             }
          }
 
@@ -319,6 +332,14 @@ class OutputProgressListener: public InversionProgressListener<DiscretizedFuncti
          this->save_residual = save_residual;
       }
 
+      bool is_save_data() const {
+         return save_data;
+      }
+
+      void set_save_data(bool save_data = true) {
+         this->save_data = save_data;
+      }
+
    private:
 
       // all of these have support for expansion of {{i}} for the iteration index.
@@ -327,11 +348,13 @@ class OutputProgressListener: public InversionProgressListener<DiscretizedFuncti
       std::string filename_estimate = "estimate";
       std::string filename_residual = "residual";
       std::string filename_exact = "param";
+      std::string filename_data = "data";
       std::string destination_prefix = "./step-{{i}}/";
 
       bool save_estimate = true;
       bool save_residual = true;
       bool save_exact = true; // (once)
+      bool save_data = true; // (once)
 
       // save the last one
       bool save_last = true;

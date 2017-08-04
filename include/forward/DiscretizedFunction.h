@@ -104,8 +104,8 @@ class DiscretizedFunction: public Function<dim> {
 
       static DiscretizedFunction<dim> noise(const DiscretizedFunction<dim>& like, double norm);
 
-      void write_pvd(std::string path, std::string name, std::string name_deriv) const;
-      void write_pvd(std::string path, std::string name) const;
+      void write_pvd(std::string path, std::string filename, std::string name, std::string name_deriv) const;
+      void write_pvd(std::string path, std::string filename, std::string name) const;
 
       double value(const Point<dim> &p, const unsigned int component = 0) const;
       Tensor<1, dim, double> gradient(const Point<dim> &p, const unsigned int component) const;

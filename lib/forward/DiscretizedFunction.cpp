@@ -655,14 +655,14 @@ double DiscretizedFunction<dim>::l2l2_mass_norm() const {
 }
 
 template<int dim>
-void DiscretizedFunction<dim>::write_pvd(std::string path, std::string name) const {
-   write_pvd(path, name, name + "_prime");
+void DiscretizedFunction<dim>::write_pvd(std::string path, std::string filename, std::string name) const {
+   write_pvd(path, filename, name, name + "_prime");
 }
 
 template<int dim>
-void DiscretizedFunction<dim>::write_pvd(std::string path, std::string name, std::string name_deriv) const {
+void DiscretizedFunction<dim>::write_pvd(std::string path, std::string filename, std::string name, std::string name_deriv) const {
    LogStream::Prefix p("write_pvd");
-   deallog << "Writing " << path + ".pvd" << std::endl;
+   deallog << "Writing " << path << filename << ".pvd" << std::endl;
 
    Assert(mesh->get_times().size() < 10000, ExcNotImplemented()); // 4 digits are ok
    std::vector<std::pair<double, std::string>> times_and_names;
@@ -672,17 +672,17 @@ void DiscretizedFunction<dim>::write_pvd(std::string path, std::string name, std
       LogStream::Prefix pp("write_vtu");
 
       for (size_t i = 0; i < mesh->get_times().size(); i++) {
-         const std::string filename = path + "-" + Utilities::int_to_string(i, 4) + ".vtu";
-         times_and_names.push_back(std::pair<double, std::string>(mesh->get_times()[i], filename));
+         const std::string vtuname = filename + "-" + Utilities::int_to_string(i, 4) + ".vtu";
+         times_and_names.push_back(std::pair<double, std::string>(mesh->get_times()[i], vtuname));
 
          task_group += Threads::new_task(&DiscretizedFunction<dim>::write_vtk, *this, name, name_deriv,
-               filename, i);
+               path + vtuname, i);
       }
 
       task_group.join_all();
    }
 
-   std::ofstream pvd_output(path + ".pvd");
+   std::ofstream pvd_output(path + filename + ".pvd");
    AssertThrow(pvd_output, ExcInternalError());
    DataOutBase::write_pvd_record(pvd_output, times_and_names);
 }

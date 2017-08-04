@@ -229,7 +229,7 @@ void test(ProblemType problem_type) {
          param_exact = std::make_shared<Param>(mesh, dof_handler, *param_exact_cont.get());
          wave_eq.set_param_c(param_exact);
          problem = std::make_shared<L2CProblem<dim>>(wave_eq);
-         initialGuess = 1;
+         initialGuess = 2;
          break;
       case ProblemType::L2Nu:
          /* Reconstruct TestNu */
@@ -245,7 +245,7 @@ void test(ProblemType problem_type) {
          param_exact = std::make_shared<Param>(mesh, dof_handler, *param_exact_cont.get());
          wave_eq.set_param_a(param_exact);
          problem = std::make_shared<L2AProblem<dim>>(wave_eq);
-         initialGuess = 1;
+         initialGuess = 2;
          break;
       default:
          AssertThrow(false, ExcInternalError())
@@ -266,13 +266,15 @@ void test(ProblemType problem_type) {
 
    auto linear_solver = std::make_shared<ConjugateGradients<Param, Sol>>();
    linear_solver->add_listener(std::make_shared<GenericInversionProgressListener<Param, Sol>>("k"));
-   linear_solver->add_listener( std::make_shared<CtrlCProgressListener<DiscretizedFunction<dim>, DiscretizedFunction<dim>>>());
+   linear_solver->add_listener(
+         std::make_shared<CtrlCProgressListener<DiscretizedFunction<dim>, DiscretizedFunction<dim>>>());
 
    auto tol_choice = std::make_shared<RiederToleranceChoice>(0.7, 0.95, 0.9, 1.0);
    REGINN<Param, Sol> reginn(problem, linear_solver, tol_choice, initialGuess);
    reginn.add_listener(std::make_shared<GenericInversionProgressListener<Param, Sol>>("i"));
    reginn.add_listener(std::make_shared<OutputProgressListener<dim>>(10));
-   reginn.add_listener( std::make_shared<CtrlCProgressListener<DiscretizedFunction<dim>, DiscretizedFunction<dim>>>());
+   reginn.add_listener(
+         std::make_shared<CtrlCProgressListener<DiscretizedFunction<dim>, DiscretizedFunction<dim>>>());
 
    reginn.invert(data, 2 * epsilon * data_exact.norm(), param_exact);
    deallog.timestamp();
