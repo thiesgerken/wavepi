@@ -661,26 +661,29 @@ void DiscretizedFunction<dim>::write_pvd(std::string path, std::string name) con
 
 template<int dim>
 void DiscretizedFunction<dim>::write_pvd(std::string path, std::string name, std::string name_deriv) const {
-   LogStream::Prefix p("DiscFunc");
+   LogStream::Prefix p("write_pvd");
+   deallog << "Writing " << path + ".pvd" << std::endl;
 
    Assert(mesh->get_times().size() < 10000, ExcNotImplemented()); // 4 digits are ok
    std::vector<std::pair<double, std::string>> times_and_names;
 
    Threads::TaskGroup<void> task_group;
+   {
+      LogStream::Prefix pp("write_vtu");
 
-   for (size_t i = 0; i < mesh->get_times().size(); i++) {
-      const std::string filename = path + "-" + Utilities::int_to_string(i, 4) + ".vtu";
-      times_and_names.push_back(std::pair<double, std::string>(mesh->get_times()[i], filename));
+      for (size_t i = 0; i < mesh->get_times().size(); i++) {
+         const std::string filename = path + "-" + Utilities::int_to_string(i, 4) + ".vtu";
+         times_and_names.push_back(std::pair<double, std::string>(mesh->get_times()[i], filename));
 
-      task_group += Threads::new_task(&DiscretizedFunction<dim>::write_vtk, *this, name, name_deriv, filename,
-            i);
+         task_group += Threads::new_task(&DiscretizedFunction<dim>::write_vtk, *this, name, name_deriv,
+               filename, i);
+      }
+
+      task_group.join_all();
    }
-
-   task_group.join_all();
 
    std::ofstream pvd_output(path + ".pvd");
    AssertThrow(pvd_output, ExcInternalError());
-   deallog << "Writing " << path + ".pvd" << std::endl;
    DataOutBase::write_pvd_record(pvd_output, times_and_names);
 }
 

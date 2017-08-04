@@ -50,9 +50,9 @@ class Landweber: public LinearRegularization<Param, Sol> {
          double norm_data = data.norm();
          double norm_exact = exact_param ? exact_param->norm() : -0.0;
 
-         InversionProgress<Param, Sol> status(0, &estimate, estimate.norm(), &residual, discrepancy, &data,
-               norm_data, exact_param, norm_exact);
-         this->problem->progress(status);
+         InversionProgress<Param, Sol> status(0, &estimate, estimate.norm(), &residual, discrepancy, target_discrepancy, &data,
+               norm_data, exact_param, norm_exact, false);
+         this->progress(status);
 
          for (int k = 1;
                discrepancy > target_discrepancy
@@ -70,15 +70,18 @@ class Landweber: public LinearRegularization<Param, Sol> {
             double discrepancy_last = discrepancy;
             discrepancy = residual.norm();
 
-            status = InversionProgress<Param, Sol>(k, &estimate, estimate.norm(), &residual, discrepancy,
-                  &data, norm_data, exact_param, norm_exact);
+            status = InversionProgress<Param, Sol>(k, &estimate, estimate.norm(), &residual, discrepancy, target_discrepancy,
+                  &data, norm_data, exact_param, norm_exact, false);
 
-            if (!this->problem->progress(status))
+            if (!this->progress(status))
                break;
 
             if (discrepancy_last < discrepancy && this->abort_increasing_discrepancy)
                break;
          }
+
+         status.finished = true;
+         this->progress(status);
 
          if (status_out)
             *status_out = status;

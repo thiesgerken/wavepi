@@ -64,8 +64,8 @@ class REGINN: public NewtonRegularization<Param, Sol> {
          tol_choice->reset(target_discrepancy, discrepancy);
 
          deallog.pop();
-         InversionProgress<Param, Sol> status(0, &estimate, estimate.norm(), &residual, discrepancy, &data,
-               norm_data, exact_param, norm_exact);
+         InversionProgress<Param, Sol> status(0, &estimate, estimate.norm(), &residual, discrepancy,
+               target_discrepancy, &data, norm_data, exact_param, norm_exact, false);
          this->progress(status);
 
          for (int i = 1;
@@ -75,14 +75,14 @@ class REGINN: public NewtonRegularization<Param, Sol> {
 
             double theta = tol_choice->get_tolerance();
             double linear_target_discrepancy = discrepancy * theta;
-            deallog << "solving linear problem using rtol=" << theta << std::endl;
+            deallog << "Solving linear problem using rtol=" << theta << std::endl;
 
             auto linear_status = std::make_shared<InversionProgress<Param, Sol>>(status);
             linear_solver->set_problem(this->problem->derivative(estimate, data_current));
             Param step = linear_solver->invert(residual, linear_target_discrepancy, nullptr, linear_status);
 
             if (linear_status->current_discrepancy > linear_target_discrepancy) {
-               deallog << "error: linear solver did not converge to desired discrepancy!" << std::endl;
+               deallog << "Linear solver did not converge to desired discrepancy!" << std::endl;
                break;
             }
 
@@ -98,7 +98,7 @@ class REGINN: public NewtonRegularization<Param, Sol> {
 
             deallog.pop();
             status = InversionProgress<Param, Sol>(i, &estimate, estimate.norm(), &residual, discrepancy,
-                  &data, norm_data, exact_param, norm_exact);
+                  target_discrepancy, &data, norm_data, exact_param, norm_exact, false);
 
             if (!this->progress(status))
                break;
@@ -108,6 +108,9 @@ class REGINN: public NewtonRegularization<Param, Sol> {
 
             tol_choice->add_iteration(discrepancy, linear_status->iteration_number);
          }
+
+         status.finished = true;
+         this->progress(status);
 
          if (status_out)
             *status_out = status;

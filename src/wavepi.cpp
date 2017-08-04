@@ -266,10 +266,13 @@ void test(ProblemType problem_type) {
 
    auto linear_solver = std::make_shared<ConjugateGradients<Param, Sol>>();
    linear_solver->add_listener(std::make_shared<GenericInversionProgressListener<Param, Sol>>("k"));
+   linear_solver->add_listener( std::make_shared<CtrlCProgressListener<DiscretizedFunction<dim>, DiscretizedFunction<dim>>>());
 
    auto tol_choice = std::make_shared<RiederToleranceChoice>(0.7, 0.95, 0.9, 1.0);
    REGINN<Param, Sol> reginn(problem, linear_solver, tol_choice, initialGuess);
    reginn.add_listener(std::make_shared<GenericInversionProgressListener<Param, Sol>>("i"));
+   reginn.add_listener(std::make_shared<OutputProgressListener<dim>>(10));
+   reginn.add_listener( std::make_shared<CtrlCProgressListener<DiscretizedFunction<dim>, DiscretizedFunction<dim>>>());
 
    reginn.invert(data, 2 * epsilon * data_exact.norm(), param_exact);
    deallog.timestamp();
