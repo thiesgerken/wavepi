@@ -164,9 +164,28 @@ template<int dim>
 class WavePI {
    public:
       static void declare_parameters(ParameterHandler &prm) {
+         prm.declare_entry(KEY_FE_DEGREE, "1", Patterns::Integer(1, 4), "Degree of Finite Elements");
+         prm.declare_entry(KEY_QUAD_ORDER, "3", Patterns::Integer(1, 20),
+               "Order of Quadrature (QGauss, exact in polynomials of degree <= 2n-1) ");
+         prm.declare_entry(KEY_PROBLEM_TYPE, "L2A", Patterns::Selection("L2A|L2Q|L2Nu|L2C"),
+               "Parameter that is reconstructed, and which spaces are used");
       }
 
-      void get_parameters(ParameterHandler &prm) {
+      WavePI(ParameterHandler &prm)
+            : fe(prm.get_integer(KEY_FE_DEGREE)), quad(prm.get_integer(KEY_QUAD_ORDER)) {
+
+         std::string problem = prm.get(KEY_PROBLEM_TYPE);
+
+         if (problem == "L2A")
+            problem_type = ProblemType::L2A;
+         else if (problem == "L2Q")
+            problem_type = ProblemType::L2Q;
+         else if (problem == "L2Nu")
+            problem_type = ProblemType::L2Nu;
+         else if (problem == "L2C")
+            problem_type = ProblemType::L2C;
+         else
+            AssertThrow(false, ExcInternalError());
       }
 
       void run() {
@@ -178,18 +197,8 @@ class WavePI {
          GridGenerator::hyper_cube(triangulation, -5, 5);
          triangulation.refine_global(4);
 
-         // QGauss<dim>(n) is exact in polynomials of degree <= 2n-1 (needed: fe_order*3)
-         // -> fe_order*3 <= 2n-1  ==>  n >= (fe_order*3+1)/2
-         const int fe_order = 1;
-         const int quad_order = std::max((int) std::ceil((fe_order * 3 + 1.0) / 2.0), 3);
-         FE_Q<dim> fe(fe_order);
-         Quadrature<dim> quad = QGauss<dim>(quad_order);
-
          auto dof_handler = std::make_shared<DoFHandler<dim>>();
          dof_handler->initialize(triangulation, fe);
-
-         deallog << "fe_order = " << fe_order << std::endl;
-         deallog << "quad_order = " << quad_order << std::endl;
 
          deallog << "Number of active cells: " << triangulation.n_active_cells() << std::endl;
          deallog << "Number of degrees of freedom: " << dof_handler->n_dofs() << std::endl;
@@ -290,8 +299,18 @@ class WavePI {
       }
 
    private:
-      ProblemType problem_type = ProblemType::L2A;
+      static const std::string KEY_FE_DEGREE;
+      static const std::string KEY_QUAD_ORDER;
+      static const std::string KEY_PROBLEM_TYPE;
+
+      FE_Q<dim> fe;
+      Quadrature<dim> quad;
+      ProblemType problem_type;
 };
+
+template<int dim> const std::string WavePI<dim>::KEY_FE_DEGREE = "Finite Element Degree";
+template<int dim> const std::string WavePI<dim>::KEY_QUAD_ORDER = "Quadrature Order";
+template<int dim> const std::string WavePI<dim>::KEY_PROBLEM_TYPE = "Problem";
 
 int main(int argc, char * argv[]) {
    try {
@@ -338,6 +357,9 @@ int main(int argc, char * argv[]) {
 
       if (vm.count("config"))
          prm.parse_input(vm["config"].as<std::string>());
+      else
+         AssertThrow(vm.count("make-config"),
+               ExcMessage("No config file specified. Use `wavepi --make-config` to create one."));
 
       if (vm.count("make-config")) {
          prm.print_parameters(std::cout, ParameterHandler::Text);
@@ -356,32 +378,22 @@ int main(int argc, char * argv[]) {
       int dim = prm.get_integer("Dimension");
 
       if (dim == 1) {
-         WavePI<1> wavepi;
-         wavepi.get_parameters(prm);
+         WavePI<1> wavepi(prm);
          wavepi.run();
       } else if (dim == 2) {
-         WavePI<2> wavepi;
-         wavepi.get_parameters(prm);
+         WavePI<2> wavepi(prm);
          wavepi.run();
       } else {
-         WavePI<3> wavepi;
-         wavepi.get_parameters(prm);
+         WavePI<3> wavepi(prm);
          wavepi.run();
       }
 
       // deallog.timestamp();
    } catch (std::exception &exc) {
-      std::cerr << std::endl << std::endl;
-      std::cerr << "----------------------------------------------------" << std::endl;
-      std::cerr << "Exception on processing: " << std::endl << exc.what() << std::endl;
-      std::cerr << "----------------------------------------------------" << std::endl;
-
+      std::cerr << "Exception on processing: " << exc.what();
       return 1;
    } catch (...) {
-      std::cerr << std::endl << std::endl;
-      std::cerr << "----------------------------------------------------" << std::endl;
       std::cerr << "Unknown exception!" << std::endl;
-      std::cerr << "----------------------------------------------------" << std::endl;
       return 1;
    }
 
