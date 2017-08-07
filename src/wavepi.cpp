@@ -12,6 +12,7 @@
 #include <deal.II/base/point.h>
 #include <deal.II/base/quadrature.h>
 #include <deal.II/base/quadrature_lib.h>
+#include <deal.II/base/parameter_handler.h>
 #include <deal.II/dofs/dof_handler.h>
 #include <deal.II/fe/fe_q.h>
 #include <deal.II/grid/grid_generator.h>
@@ -160,168 +161,215 @@ enum class ProblemType {
 };
 
 template<int dim>
-void test(ProblemType problem_type) {
+class WavePI {
+   public:
+      static void declare_parameters(ParameterHandler &prm) {
+      }
 
-   Triangulation<dim> triangulation;
+      void get_parameters(ParameterHandler &prm) {
+      }
 
-   // GridGenerator::cheese(triangulation, std::vector<unsigned int>( { 1, 1 }));
-   GridGenerator::hyper_cube(triangulation, -5, 5);
-   triangulation.refine_global(4);
+      void run() {
+         deallog.push("init");
 
-   // QGauss<dim>(n) is exact in polynomials of degree <= 2n-1 (needed: fe_order*3)
-   // -> fe_order*3 <= 2n-1  ==>  n >= (fe_order*3+1)/2
-   const int fe_order = 1;
-   const int quad_order = std::max((int) std::ceil((fe_order * 3 + 1.0) / 2.0), 3);
-   FE_Q<dim> fe(fe_order);
-   Quadrature<dim> quad = QGauss<dim>(quad_order);
+         Triangulation<dim> triangulation;
 
-   auto dof_handler = std::make_shared<DoFHandler<dim>>();
-   dof_handler->initialize(triangulation, fe);
+         // GridGenerator::cheese(triangulation, std::vector<unsigned int>( { 1, 1 }));
+         GridGenerator::hyper_cube(triangulation, -5, 5);
+         triangulation.refine_global(4);
 
-   deallog << "fe_order = " << fe_order << std::endl;
-   deallog << "quad_order = " << quad_order << std::endl;
+         // QGauss<dim>(n) is exact in polynomials of degree <= 2n-1 (needed: fe_order*3)
+         // -> fe_order*3 <= 2n-1  ==>  n >= (fe_order*3+1)/2
+         const int fe_order = 1;
+         const int quad_order = std::max((int) std::ceil((fe_order * 3 + 1.0) / 2.0), 3);
+         FE_Q<dim> fe(fe_order);
+         Quadrature<dim> quad = QGauss<dim>(quad_order);
 
-   deallog << "Number of active cells: " << triangulation.n_active_cells() << std::endl;
-   deallog << "Number of degrees of freedom: " << dof_handler->n_dofs() << std::endl;
+         auto dof_handler = std::make_shared<DoFHandler<dim>>();
+         dof_handler->initialize(triangulation, fe);
 
-   double t_start = 0.0, t_end = 2.0, dt = 1.0 / 128.0;
-   std::vector<double> times;
+         deallog << "fe_order = " << fe_order << std::endl;
+         deallog << "quad_order = " << quad_order << std::endl;
 
-   for (size_t i = 0; t_start + i * dt <= t_end; i++)
-      times.push_back(t_start + i * dt);
+         deallog << "Number of active cells: " << triangulation.n_active_cells() << std::endl;
+         deallog << "Number of degrees of freedom: " << dof_handler->n_dofs() << std::endl;
 
-   deallog << "Number of time steps: " << times.size() << std::endl;
+         double t_start = 0.0, t_end = 2.0, dt = 1.0 / 128.0;
+         std::vector<double> times;
 
-   std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, dof_handler, quad);
+         for (size_t i = 0; t_start + i * dt <= t_end; i++)
+            times.push_back(t_start + i * dt);
 
-   if (dim == 1)
-      mesh->set_boundary_ids(std::vector<types::boundary_id> { 0, 1 });
+         deallog << "Number of time steps: " << times.size() << std::endl;
 
-   WaveEquation<dim> wave_eq(mesh, dof_handler, quad);
+         std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, dof_handler,
+               quad);
 
-   wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(std::make_shared<TestF<dim>>()));
-   wave_eq.set_param_a(std::make_shared<TestA<dim>>());
-   wave_eq.set_param_c(std::make_shared<TestC<dim>>());
-   wave_eq.set_param_q(std::make_shared<TestQ<dim>>());
-   wave_eq.set_param_nu(std::make_shared<TestNu<dim>>());
+         if (dim == 1)
+            mesh->set_boundary_ids(std::vector<types::boundary_id> { 0, 1 });
 
-   using Param = DiscretizedFunction<dim>;
-   using Sol = DiscretizedFunction<dim>;
+         WaveEquation<dim> wave_eq(mesh, dof_handler, quad);
 
-   std::shared_ptr<NonlinearProblem<Param, Sol>> problem;
-   std::shared_ptr<Function<dim>> param_exact_cont;
-   std::shared_ptr<Param> param_exact;
-   Param initialGuess(mesh, dof_handler);
+         wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(std::make_shared<TestF<dim>>()));
+         wave_eq.set_param_a(std::make_shared<TestA<dim>>());
+         wave_eq.set_param_c(std::make_shared<TestC<dim>>());
+         wave_eq.set_param_q(std::make_shared<TestQ<dim>>());
+         wave_eq.set_param_nu(std::make_shared<TestNu<dim>>());
 
-   switch (problem_type) {
-      case ProblemType::L2Q:
-         /* Reconstruct TestQ */
-         param_exact_cont = std::make_shared<TestQ<dim>>();
-         param_exact = std::make_shared<Param>(mesh, dof_handler, *param_exact_cont.get());
-         wave_eq.set_param_q(param_exact);
-         problem = std::make_shared<L2QProblem<dim>>(wave_eq);
-         initialGuess = 0;
-         break;
-      case ProblemType::L2C:
-         /* Reconstruct TestC */
-         param_exact_cont = std::make_shared<TestC<dim>>();
-         param_exact = std::make_shared<Param>(mesh, dof_handler, *param_exact_cont.get());
-         wave_eq.set_param_c(param_exact);
-         problem = std::make_shared<L2CProblem<dim>>(wave_eq);
-         initialGuess = 2;
-         break;
-      case ProblemType::L2Nu:
-         /* Reconstruct TestNu */
-         param_exact_cont = std::make_shared<TestNu<dim>>();
-         param_exact = std::make_shared<Param>(mesh, dof_handler, *param_exact_cont.get());
-         wave_eq.set_param_nu(param_exact);
-         problem = std::make_shared<L2NuProblem<dim>>(wave_eq);
-         initialGuess = 0;
-         break;
-      case ProblemType::L2A:
-         /* Reconstruct TestA */
-         param_exact_cont = std::make_shared<TestA<dim>>();
-         param_exact = std::make_shared<Param>(mesh, dof_handler, *param_exact_cont.get());
-         wave_eq.set_param_a(param_exact);
-         problem = std::make_shared<L2AProblem<dim>>(wave_eq);
-         initialGuess = 2;
-         break;
-      default:
-         AssertThrow(false, ExcInternalError())
-   }
+         using Param = DiscretizedFunction<dim>;
+         using Sol = DiscretizedFunction<dim>;
 
-   deallog.push("generate_data");
+         std::shared_ptr<NonlinearProblem<Param, Sol>> problem;
+         std::shared_ptr<Function<dim>> param_exact_cont;
+         std::shared_ptr<Param> param_exact;
+         Param initialGuess(mesh, dof_handler);
 
-   auto data_exact = wave_eq.run();
-   data_exact.throw_away_derivative();
-   data_exact.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
+         switch (problem_type) {
+            case ProblemType::L2Q:
+               /* Reconstruct TestQ */
+               param_exact_cont = std::make_shared<TestQ<dim>>();
+               param_exact = std::make_shared<Param>(mesh, dof_handler, *param_exact_cont.get());
+               wave_eq.set_param_q(param_exact);
+               problem = std::make_shared<L2QProblem<dim>>(wave_eq);
+               initialGuess = 0;
+               break;
+            case ProblemType::L2C:
+               /* Reconstruct TestC */
+               param_exact_cont = std::make_shared<TestC<dim>>();
+               param_exact = std::make_shared<Param>(mesh, dof_handler, *param_exact_cont.get());
+               wave_eq.set_param_c(param_exact);
+               problem = std::make_shared<L2CProblem<dim>>(wave_eq);
+               initialGuess = 2;
+               break;
+            case ProblemType::L2Nu:
+               /* Reconstruct TestNu */
+               param_exact_cont = std::make_shared<TestNu<dim>>();
+               param_exact = std::make_shared<Param>(mesh, dof_handler, *param_exact_cont.get());
+               wave_eq.set_param_nu(param_exact);
+               problem = std::make_shared<L2NuProblem<dim>>(wave_eq);
+               initialGuess = 0;
+               break;
+            case ProblemType::L2A:
+               /* Reconstruct TestA */
+               param_exact_cont = std::make_shared<TestA<dim>>();
+               param_exact = std::make_shared<Param>(mesh, dof_handler, *param_exact_cont.get());
+               wave_eq.set_param_a(param_exact);
+               problem = std::make_shared<L2AProblem<dim>>(wave_eq);
+               initialGuess = 2;
+               break;
+            default:
+               AssertThrow(false, ExcInternalError())
+         }
 
-   double epsilon = 1e-3;
-   auto data = DiscretizedFunction<dim>::noise(data_exact, epsilon * data_exact.norm());
-   data.add(1.0, data_exact);
+         deallog.push("generate_data");
 
-   deallog.pop();
-   deallog.pop();
+         auto data_exact = wave_eq.run();
+         data_exact.throw_away_derivative();
+         data_exact.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
 
-   auto linear_solver = std::make_shared<ConjugateGradients<Param, Sol>>();
-   linear_solver->add_listener(std::make_shared<GenericInversionProgressListener<Param, Sol>>("k"));
-   linear_solver->add_listener(
-         std::make_shared<CtrlCProgressListener<DiscretizedFunction<dim>, DiscretizedFunction<dim>>>());
+         double epsilon = 1e-3;
+         auto data = DiscretizedFunction<dim>::noise(data_exact, epsilon * data_exact.norm());
+         data.add(1.0, data_exact);
 
-   auto tol_choice = std::make_shared<RiederToleranceChoice>(0.7, 0.95, 0.9, 1.0);
-   REGINN<Param, Sol> reginn(problem, linear_solver, tol_choice, initialGuess);
-   reginn.add_listener(std::make_shared<GenericInversionProgressListener<Param, Sol>>("i"));
-   reginn.add_listener(std::make_shared<OutputProgressListener<dim>>(10));
-   reginn.add_listener(
-         std::make_shared<CtrlCProgressListener<DiscretizedFunction<dim>, DiscretizedFunction<dim>>>());
+         deallog.pop();
+         deallog.pop();
 
-   reginn.invert(data, 2 * epsilon * data_exact.norm(), param_exact);
-}
+         auto linear_solver = std::make_shared<ConjugateGradients<Param, Sol>>();
+         linear_solver->add_listener(std::make_shared<GenericInversionProgressListener<Param, Sol>>("k"));
+         linear_solver->add_listener(
+               std::make_shared<CtrlCProgressListener<DiscretizedFunction<dim>, DiscretizedFunction<dim>>>());
+
+         auto tol_choice = std::make_shared<RiederToleranceChoice>(0.7, 0.95, 0.9, 1.0);
+         REGINN<Param, Sol> reginn(problem, linear_solver, tol_choice, initialGuess);
+         reginn.add_listener(std::make_shared<GenericInversionProgressListener<Param, Sol>>("i"));
+         reginn.add_listener(std::make_shared<OutputProgressListener<dim>>(10));
+         reginn.add_listener(
+               std::make_shared<CtrlCProgressListener<DiscretizedFunction<dim>, DiscretizedFunction<dim>>>());
+
+         reginn.invert(data, 2 * epsilon * data_exact.norm(), param_exact);
+      }
+
+   private:
+      ProblemType problem_type = ProblemType::L2A;
+};
 
 int main(int argc, char * argv[]) {
    try {
-      // Declare the supported options.
-      po::options_description desc("Allowed options");
-      desc.add_options()
-          ("help", "produce help message")
-          ("version", "print version information")
-          ("compression", po::value<int>(), "set compression level")
-      ;
+      int log_file_depth;
+      int log_console_depth;
+
+      po::options_description desc(Version::get_identification() + "\nsupported options");
+
+      desc.add_options()("help", "produce help message and exit");
+      desc.add_options()("version", "print version information and exit");
+      desc.add_options()("make-config",
+            "generate config file with default values (unless [config] is specified) and exit");
+      desc.add_options()("config", po::value<std::string>(), "read config from this file");
+      desc.add_options()("log-file", po::value<std::string>(), "external log file");
+      desc.add_options()("log-file-depth", po::value<int>(&log_file_depth)->default_value(100),
+            "log depth that goes to [log-file]");
+      desc.add_options()("log-console-depth", po::value<int>(&log_console_depth)->default_value(2),
+            "log depth that goes to stdout");
 
       po::variables_map vm;
       po::store(po::parse_command_line(argc, argv, desc), vm);
       po::notify(vm);
 
       if (vm.count("help")) {
-          std::cout << desc << "\n";
-          return 1;
-      }
-
-      if (vm.count("version")) {
-         std::cout << Version::get_infos() << std::endl;
-
+         std::cout << desc << "\n";
          return 1;
       }
 
-      if (vm.count("compression")) {
-          std::cout << "Compression level was set to "
-       << vm["compression"].as<int>() << ".\n";
-      } else {
-          std::cout << "Compression level was not set.\n";
+      if (vm.count("version")) {
+         std::cout << Version::get_identification() << std::endl;
+         std::cout << Version::get_infos() << std::endl;
+         return 1;
       }
 
-      std::ofstream logout("wavepi.log");
-      deallog.attach(logout);
-      deallog.depth_console(2);
-      deallog.depth_file(100);
+      if (vm.count("log-file")) {
+         std::ofstream logout(vm["log-file"].as<std::string>());
+         deallog.attach(logout);
+         deallog.depth_file(log_file_depth);
+      }
+
+      ParameterHandler prm;
+      prm.declare_entry("Dimension", "2", Patterns::Integer(1, 3), "Problem dimension");
+      WavePI<2>::declare_parameters(prm);
+
+      if (vm.count("config"))
+         prm.parse_input(vm["config"].as<std::string>());
+
+      if (vm.count("make-config")) {
+         prm.print_parameters(std::cout, ParameterHandler::Text);
+         return 1;
+      }
+
+      deallog.depth_console(log_console_depth);
       deallog.precision(3);
       deallog.pop();
-      deallog.push("init");
+      deallog << Version::get_identification() << std::endl;
+      // deallog << Version::get_infos() << std::endl;
       // deallog.log_execution_time(true);
 
-//      test<2>(ProblemType::L2A);
+      prm.log_parameters(deallog);
 
-      deallog.timestamp();
+      int dim = prm.get_integer("Dimension");
+
+      if (dim == 1) {
+         WavePI<1> wavepi;
+         wavepi.get_parameters(prm);
+         wavepi.run();
+      } else if (dim == 2) {
+         WavePI<2> wavepi;
+         wavepi.get_parameters(prm);
+         wavepi.run();
+      } else {
+         WavePI<3> wavepi;
+         wavepi.get_parameters(prm);
+         wavepi.run();
+      }
+
+      // deallog.timestamp();
    } catch (std::exception &exc) {
       std::cerr << std::endl << std::endl;
       std::cerr << "----------------------------------------------------" << std::endl;

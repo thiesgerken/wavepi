@@ -58,13 +58,13 @@ configure_file(
   ${CMAKE_BINARY_DIR}/lib/util/Version.cpp
 )
 
-add_custom_target(delversioncpp
+add_custom_target(touch_version_cpp
     COMMAND touch ${CMAKE_SOURCE_DIR}/lib/util/Version.cpp.in
 )
 
 list(APPEND LIBSOURCES "${CMAKE_CURRENT_BINARY_DIR}/Version.cpp")
     
 add_library(wavepi_util ${LIBSOURCES})
-add_dependencies(wavepi_util delversioncpp)
+add_dependencies(wavepi_util touch_version_cpp)
 DEAL_II_SETUP_TARGET(wavepi_util)
 # TARGET_LINK_LIBRARIES(wavepi_util )

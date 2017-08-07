@@ -17,6 +17,7 @@ namespace util {
 struct Version {
    public:
       static bool is_git_available();
+      static bool is_git_working_dir_dirty();
       static std::string get_git_sha1_long();
       static std::string get_git_sha1();
       static std::string get_git_commit_subject();
@@ -25,9 +26,8 @@ struct Version {
       static std::list<std::string> get_untracked_files();
       static std::list<std::string> get_modified_files();
 
-      static bool is_git_working_dir_dirty();
-
       static std::string get_build_date();
+      static std::string get_build_type();
 
       static std::string get_infos();
       static std::string get_identification();
@@ -38,7 +38,9 @@ struct Version {
       static const std::string GIT_COMMIT_DATE;
       static const std::string GIT_BRANCH;
       static const std::string GIT_STATUS;
+
       static const std::string BUILD_DATE;
+      static const std::string BUILD_TYPE;
 };
 
 } /* namespace util */

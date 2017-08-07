@@ -19,8 +19,8 @@ const std::string Version::GIT_COMMIT_DATE = "@GIT_COMMIT_DATE@";
 const std::string Version::GIT_COMMIT_SUBJECT = "@GIT_COMMIT_SUBJECT@";
 const std::string Version::GIT_BRANCH = "@GIT_BRANCH@";
 const std::string Version::GIT_STATUS = "@GIT_STATUS@";
-
 const std::string Version::BUILD_DATE = "@BUILD_DATE@";
+const std::string Version::BUILD_TYPE = "@CMAKE_BUILD_TYPE@";
 
 bool Version::is_git_available() {
    return GIT_BRANCH.length() > 0;
@@ -110,14 +110,15 @@ std::string Version::get_build_date() {
    return BUILD_DATE;
 }
 
+std::string Version::get_build_type() {
+   return BUILD_TYPE;
+}
+
 std::string Version::get_infos() {
    std::stringstream ss;
 
-   ss << get_identification() << std::endl;
-   ss << std::endl;
-
    if (is_git_available()) {
-      ss << "built on " << get_build_date() << std::endl;
+      ss << get_build_type() << "-Build, compiled on " << get_build_date() << std::endl;
       ss << "from git commit " << get_git_sha1_long() << " on branch " << get_git_branch();
 
       if (is_git_working_dir_dirty()) {
@@ -136,7 +137,7 @@ std::string Version::get_infos() {
          }
       }
    } else
-      ss << "built without version control information";
+      ss << get_build_type() << "-Build, compiled without version control information";
 
    return ss.str();
 }
