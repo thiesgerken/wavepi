@@ -5,16 +5,8 @@ find_program(GIT_SCM git DOC "Git version control")
 mark_as_advanced(GIT_SCM)
 find_file(GITDIR NAMES .git PATHS ${CMAKE_SOURCE_DIR} NO_DEFAULT_PATH)
 if (GIT_SCM AND GITDIR)
-    # Create gitrevision.hh
-    # that depends on the Git HEAD log
-   
-    #add_custom_command(OUTPUT ${SRCDIR}/gitrevision.hh
-   #     COMMAND ${CMAKE_COMMAND} -E echo_append "#define GITREVISION " > ${SRCDIR}/gitrevision.hh
-    #    COMMAND ${GIT_SCM} log -1 "--pretty=format:%h %ai" >> ${SRCDIR}/gitrevision.hh
-   #     DEPENDS ${GITDIR}/logs/HEAD
-   #     VERBATIM
-    #)
-    
+    message(STATUS "Updating git commit information")
+
     # the commit's SHA1, and whether the building workspace was dirty or not
     execute_process(COMMAND
       git describe --match=NeVeRmAtCh --always --abbrev=40 --dirty
