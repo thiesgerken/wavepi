@@ -118,10 +118,10 @@ std::string Version::get_infos() {
 
    if (is_git_available()) {
       ss << "built on " << get_build_date() << std::endl;
-      ss << "from git commit " << get_git_sha1_long() << " on branch " << get_git_branch() << std::endl;
+      ss << "from git commit " << get_git_sha1_long() << " on branch " << get_git_branch();
 
       if (is_git_working_dir_dirty()) {
-         ss << "working dir was dirty;";
+         ss << std::endl << "working dir was dirty";
 
          if (get_modified_files().size() > 0) {
             ss << std::endl << "   modified: ";
@@ -150,7 +150,7 @@ std::string Version::get_identification() {
       if (is_git_working_dir_dirty())
          ss << "-dirty";
    } else
-      ss << "wavepi" << get_build_date();
+      ss << "wavepi " << get_build_date();
 
    return ss.str();
 }
