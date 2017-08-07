@@ -1,0 +1,159 @@
+/*
+ * Version.cpp
+ *
+ *  Created on: 07.08.2017
+ *      Author: thies
+ */
+
+#include <deal.II/base/exceptions.h>
+#include <util/Version.h>
+#include <sstream>
+
+namespace wavepi {
+namespace util {
+
+using namespace dealii;
+
+const std::string Version::GIT_COMMIT_DESCRIPTION = "@GIT_COMMIT_DESCRIPTION@";
+const std::string Version::GIT_COMMIT_DATE = "@GIT_COMMIT_DATE@";
+const std::string Version::GIT_COMMIT_SUBJECT = "@GIT_COMMIT_SUBJECT@";
+const std::string Version::GIT_BRANCH = "@GIT_BRANCH@";
+const std::string Version::GIT_STATUS = "@GIT_STATUS@";
+
+const std::string Version::BUILD_DATE = "@BUILD_DATE@";
+
+bool Version::is_git_available() {
+   return GIT_BRANCH.length() > 0;
+}
+
+std::string Version::get_git_sha1_long() {
+   AssertThrow(is_git_available(), ExcMessage("No git info available"));
+
+   return GIT_COMMIT_DESCRIPTION.substr(0, 40);
+}
+
+std::string Version::get_git_sha1() {
+   AssertThrow(is_git_available(), ExcMessage("No git info available"));
+
+   return GIT_COMMIT_DESCRIPTION.substr(0, 8);
+}
+
+std::string Version::get_git_commit_subject() {
+   AssertThrow(is_git_available(), ExcMessage("No git info available"));
+
+   return GIT_COMMIT_SUBJECT;
+}
+
+std::string Version::get_git_branch() {
+   AssertThrow(is_git_available(), ExcMessage("No git info available"));
+
+   return GIT_BRANCH;
+}
+
+bool Version::is_git_working_dir_dirty() {
+   AssertThrow(is_git_available(), ExcMessage("No git info available"));
+
+   return GIT_COMMIT_DESCRIPTION.length() > 40;
+}
+
+std::list<std::string> Version::get_git_status() {
+   AssertThrow(is_git_available(), ExcMessage("No git info available"));
+
+   std::stringstream iss(GIT_STATUS);
+   std::list < std::string > res;
+
+   while (iss.good()) {
+      std::string line;
+      getline(iss, line, '\n');
+
+      res.push_back(line);
+   }
+
+   return res;
+}
+
+std::list<std::string> Version::get_modified_files() {
+   AssertThrow(is_git_available(), ExcMessage("No git info available"));
+
+   std::stringstream iss(GIT_STATUS);
+   std::list < std::string > res;
+
+   while (iss.good()) {
+      std::string line;
+      getline(iss, line, '\n');
+
+      if (line.length() > 3 && line[1] == 'M')
+         res.push_back(line.substr(3, line.length()));
+   }
+
+   return res;
+}
+
+std::list<std::string> Version::get_untracked_files() {
+   AssertThrow(is_git_available(), ExcMessage("No git info available"));
+
+   std::stringstream iss(GIT_STATUS);
+   std::list < std::string > res;
+
+   while (iss.good()) {
+      std::string line;
+      getline(iss, line, '\n');
+
+      if (line.length() > 3 && line[0] == '?')
+         res.push_back(line.substr(3, line.length()));
+   }
+
+   return res;
+}
+
+std::string Version::get_build_date() {
+   return BUILD_DATE;
+}
+
+std::string Version::get_infos() {
+   std::stringstream ss;
+
+   ss << get_identification() << std::endl;
+   ss << std::endl;
+
+   if (is_git_available()) {
+      ss << "built on " << get_build_date() << std::endl;
+      ss << "from git commit " << get_git_sha1_long() << " on branch " << get_git_branch() << std::endl;
+
+      if (is_git_working_dir_dirty()) {
+         ss << "working dir was dirty;";
+
+         if (get_modified_files().size() > 0) {
+            ss << std::endl << "   modified: ";
+            for (auto s : get_modified_files())
+               ss << s << " ";
+         }
+
+         if (get_untracked_files().size() > 0) {
+            ss << std::endl << "   untracked: ";
+            for (auto s : get_untracked_files())
+               ss << s << " ";
+         }
+      }
+   } else
+      ss << "built without version control information";
+
+   return ss.str();
+}
+
+std::string Version::get_identification() {
+   std::stringstream ss;
+
+   if (is_git_available()) {
+      ss << "wavepi " << get_git_sha1();
+
+      if (is_git_working_dir_dirty())
+         ss << "-dirty";
+   } else
+      ss << "wavepi" << get_build_date();
+
+   return ss.str();
+}
+
+} /* namespace util */
+} /* namespace wavepi */

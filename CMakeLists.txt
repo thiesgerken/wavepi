@@ -21,36 +21,12 @@ FIND_PACKAGE(deal.II 8.5.0 REQUIRED QUIET
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
 
-# cmake -G "Eclipse CDT4 - Unix Makefiles" -D_ECLIPSE_VERSION=4.7 ~/Promotion/WavePI/
-# set(CMAKE_ECLIPSE_VERSION "4.7.0")
-
-# the commit's SHA1, and whether the building workspace was dirty or not
-execute_process(COMMAND
-  git describe --match=NeVeRmAtCh --always --abbrev=40 --dirty
-  WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-  OUTPUT_VARIABLE GIT_SHA1
-  ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-# the date of the commit
-execute_process(COMMAND
-  git log -1 --format=%ad --date=local
-  WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-  OUTPUT_VARIABLE GIT_DATE
-  ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-# the subject of the commit
-execute_process(COMMAND
-  git log -1 --format=%s
-  WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-  OUTPUT_VARIABLE GIT_COMMIT_SUBJECT
-  ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
-
 PROJECT(wavePI)
 include_directories("include")
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -s -Wall -Wno-unused-parameter")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -DGIT_DATE='${GIT_DATE}' -DGIT_SHA1='${GIT_SHA1}'")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
 set(CMAKE_CXX_STANDARD 14)
 
 set(BUILD_SHARED_LIBS ON)

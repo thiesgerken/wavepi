@@ -40,6 +40,8 @@
 #include <problems/L2NuProblem.h>
 #include <problems/L2AProblem.h>
 
+#include <util/Version.h>
+
 #include <stddef.h>
 #include <algorithm>
 #include <cmath>
@@ -48,10 +50,15 @@
 #include <memory>
 #include <vector>
 
+#include <boost/program_options.hpp>
+
 using namespace dealii;
 using namespace wavepi::forward;
 using namespace wavepi::inversion;
 using namespace wavepi::problems;
+using namespace wavepi::util;
+
+namespace po = boost::program_options;
 
 template<int dim>
 class TestNu: public Function<dim> {
@@ -154,14 +161,6 @@ enum class ProblemType {
 
 template<int dim>
 void test(ProblemType problem_type) {
-   std::ofstream logout("wavepi.log");
-   deallog.attach(logout);
-   deallog.depth_console(2);
-   deallog.depth_file(100);
-   deallog.precision(3);
-   deallog.pop();
-   deallog.push("init");
-   // deallog.log_execution_time(true);
 
    Triangulation<dim> triangulation;
 
@@ -277,24 +276,63 @@ void test(ProblemType problem_type) {
          std::make_shared<CtrlCProgressListener<DiscretizedFunction<dim>, DiscretizedFunction<dim>>>());
 
    reginn.invert(data, 2 * epsilon * data_exact.norm(), param_exact);
-   deallog.timestamp();
 }
 
-int main() {
+int main(int argc, char * argv[]) {
    try {
-      test<2>(ProblemType::L2A);
+      // Declare the supported options.
+      po::options_description desc("Allowed options");
+      desc.add_options()
+          ("help", "produce help message")
+          ("version", "print version information")
+          ("compression", po::value<int>(), "set compression level")
+      ;
+
+      po::variables_map vm;
+      po::store(po::parse_command_line(argc, argv, desc), vm);
+      po::notify(vm);
+
+      if (vm.count("help")) {
+          std::cout << desc << "\n";
+          return 1;
+      }
+
+      if (vm.count("version")) {
+         std::cout << Version::get_infos() << std::endl;
+
+         return 1;
+      }
+
+      if (vm.count("compression")) {
+          std::cout << "Compression level was set to "
+       << vm["compression"].as<int>() << ".\n";
+      } else {
+          std::cout << "Compression level was not set.\n";
+      }
+
+      std::ofstream logout("wavepi.log");
+      deallog.attach(logout);
+      deallog.depth_console(2);
+      deallog.depth_file(100);
+      deallog.precision(3);
+      deallog.pop();
+      deallog.push("init");
+      // deallog.log_execution_time(true);
+
+//      test<2>(ProblemType::L2A);
+
+      deallog.timestamp();
    } catch (std::exception &exc) {
       std::cerr << std::endl << std::endl;
       std::cerr << "----------------------------------------------------" << std::endl;
-      std::cerr << "Exception on processing: " << std::endl << exc.what() << std::endl << "Aborting!"
-            << std::endl;
+      std::cerr << "Exception on processing: " << std::endl << exc.what() << std::endl;
       std::cerr << "----------------------------------------------------" << std::endl;
 
       return 1;
    } catch (...) {
       std::cerr << std::endl << std::endl;
       std::cerr << "----------------------------------------------------" << std::endl;
-      std::cerr << "Unknown exception!" << std::endl << "Aborting!" << std::endl;
+      std::cerr << "Unknown exception!" << std::endl;
       std::cerr << "----------------------------------------------------" << std::endl;
       return 1;
    }
