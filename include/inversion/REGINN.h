@@ -30,7 +30,7 @@ class REGINN: public NewtonRegularization<Param, Sol> {
    public:
       REGINN(std::shared_ptr<NonlinearProblem<Param, Sol>> problem,
             std::shared_ptr<LinearRegularization<Param, Sol>> linear_solver,
-            std::shared_ptr<ToleranceChoice> tol_choice, const Param& initial_guess)
+            std::shared_ptr<ToleranceChoice> tol_choice, std::shared_ptr<Param> initial_guess)
             : NewtonRegularization<Param, Sol>(problem), initial_guess(initial_guess), linear_solver(
                   linear_solver), tol_choice(tol_choice) {
       }
@@ -50,7 +50,7 @@ class REGINN: public NewtonRegularization<Param, Sol> {
          AssertThrow(linear_solver, ExcInternalError());
          AssertThrow(tol_choice, ExcInternalError());
 
-         Param estimate(initial_guess);
+         Param estimate(*initial_guess);
 
          Sol residual(data);
          Sol data_current = this->problem->forward(estimate);
@@ -121,7 +121,7 @@ class REGINN: public NewtonRegularization<Param, Sol> {
    private:
       using NewtonRegularization<Param, Sol>::problem;
 
-      const Param initial_guess;
+      std::shared_ptr<Param> initial_guess;
       std::shared_ptr<LinearRegularization<Param, Sol>> linear_solver;
       std::shared_ptr<ToleranceChoice> tol_choice;
 };

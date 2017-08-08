@@ -1,5 +1,5 @@
 # file(GLOB LIBSOURCES *.cpp)
-SET(LIBSOURCES  )
+SET(LIBSOURCES WavePI.cpp)
         
 find_program(GIT_SCM git DOC "Git version control")
 mark_as_advanced(GIT_SCM)
