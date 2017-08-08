@@ -79,6 +79,7 @@ class TestF: public Function<dim> {
       }
       double value(const Point<dim> &p, const unsigned int component = 0) const {
          Assert(component == 0, ExcIndexRange(component, 0, 1));
+
          if ((this->get_time() <= 0.5) && (p.distance(actor_position) < 0.4))
             return std::sin(this->get_time() * 2 * numbers::PI);
          else
@@ -162,18 +163,50 @@ enum class ProblemType {
 
 template<int dim>
 class WavePI {
+   private:
+      static const std::string KEY_FE_DEGREE;
+      static const std::string KEY_QUAD_ORDER;
+      static const std::string KEY_PROBLEM_TYPE;
+      static const std::string KEY_END_TIME;
+      static const std::string KEY_EPSILON;
+      static const std::string KEY_TAU;
+      static const std::string KEY_INITIAL_REFINES;
+      static const std::string KEY_INITIAL_TIME_STEPS;
+
+      FE_Q<dim> fe;
+      Quadrature<dim> quad;
+      ProblemType problem_type;
+
+      double end_time;
+      double epsilon;
+      double tau;
+      int initial_refines;
+      int initial_time_steps;
+
+      Triangulation<dim> triangulation;
+      std::shared_ptr<DoFHandler<dim>> dof_handler;
+      std::shared_ptr<SpaceTimeMesh<dim>> mesh;
+
    public:
       static void declare_parameters(ParameterHandler &prm) {
-         prm.declare_entry(KEY_FE_DEGREE, "1", Patterns::Integer(1, 4), "Degree of Finite Elements");
+         prm.declare_entry(KEY_FE_DEGREE, "1", Patterns::Integer(1, 4),
+               "polynomial degree of finite elements");
          prm.declare_entry(KEY_QUAD_ORDER, "3", Patterns::Integer(1, 20),
-               "Order of Quadrature (QGauss, exact in polynomials of degree <= 2n-1) ");
+               "order of quadrature (QGauss, exact in polynomials of degree ≤ 2n-1) ");
          prm.declare_entry(KEY_PROBLEM_TYPE, "L2A", Patterns::Selection("L2A|L2Q|L2Nu|L2C"),
-               "Parameter that is reconstructed, and which spaces are used");
+               "parameter that is reconstructed, and which spaces are used");
+         prm.declare_entry(KEY_END_TIME, "2", Patterns::Double(0), "time horizon T");
+         prm.declare_entry(KEY_EPSILON, "1e-2", Patterns::Double(0, 1), "relative noise level ε");
+         prm.declare_entry(KEY_TAU, "2", Patterns::Double(0), "parameter τ for discrepancy principle");
+         prm.declare_entry(KEY_INITIAL_REFINES, "3", Patterns::Integer(0),
+               "refines of the (initial) spatial grid");
+         prm.declare_entry(KEY_INITIAL_TIME_STEPS, "64", Patterns::Integer(2),
+               "(initial) number of time steps");
+
       }
 
       WavePI(ParameterHandler &prm)
             : fe(prm.get_integer(KEY_FE_DEGREE)), quad(prm.get_integer(KEY_QUAD_ORDER)) {
-
          std::string problem = prm.get(KEY_PROBLEM_TYPE);
 
          if (problem == "L2A")
@@ -186,36 +219,46 @@ class WavePI {
             problem_type = ProblemType::L2C;
          else
             AssertThrow(false, ExcInternalError());
+
+         end_time = prm.get_double(KEY_END_TIME);
+         epsilon = prm.get_double(KEY_EPSILON);
+         tau = prm.get_double(KEY_TAU);
+         initial_refines = prm.get_integer(KEY_INITIAL_REFINES);
+         initial_time_steps = prm.get_integer(KEY_INITIAL_TIME_STEPS);
       }
 
-      void run() {
-         deallog.push("init");
+      void initialize_mesh() {
+         LogStream::Prefix p("initial_mesh");
 
-         Triangulation<dim> triangulation;
+         double dt = end_time / (initial_time_steps-1);
+         std::vector<double> times;
+
+         for (size_t i = 0; i * dt <= end_time; i++)
+            times.push_back(i * dt);
 
          // GridGenerator::cheese(triangulation, std::vector<unsigned int>( { 1, 1 }));
          GridGenerator::hyper_cube(triangulation, -5, 5);
-         triangulation.refine_global(4);
+         triangulation.refine_global(initial_refines);
 
-         auto dof_handler = std::make_shared<DoFHandler<dim>>();
+         dof_handler = std::make_shared<DoFHandler<dim>>();
          dof_handler->initialize(triangulation, fe);
 
          deallog << "Number of active cells: " << triangulation.n_active_cells() << std::endl;
          deallog << "Number of degrees of freedom: " << dof_handler->n_dofs() << std::endl;
+         deallog << "Average cell diameter: " << 10.0 * sqrt(dim) / pow(triangulation.n_active_cells(), 1.0 / dim)
+               << std::endl;
+         deallog << "dt: " << dt << std::endl;
 
-         double t_start = 0.0, t_end = 2.0, dt = 1.0 / 128.0;
-         std::vector<double> times;
-
-         for (size_t i = 0; t_start + i * dt <= t_end; i++)
-            times.push_back(t_start + i * dt);
-
-         deallog << "Number of time steps: " << times.size() << std::endl;
-
-         std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, dof_handler,
-               quad);
+         mesh = std::make_shared<ConstantMesh<dim>>(times, dof_handler, quad);
 
          if (dim == 1)
             mesh->set_boundary_ids(std::vector<types::boundary_id> { 0, 1 });
+      }
+
+      void run() {
+         initialize_mesh();
+
+         deallog.push("init");
 
          WaveEquation<dim> wave_eq(mesh, dof_handler, quad);
 
@@ -275,9 +318,12 @@ class WavePI {
          auto data_exact = wave_eq.run();
          data_exact.throw_away_derivative();
          data_exact.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
+         double data_exact_norm = data_exact.norm();
 
-         double epsilon = 1e-3;
-         auto data = DiscretizedFunction<dim>::noise(data_exact, epsilon * data_exact.norm());
+         // in itself not wrong, but makes relative errors and noise levels meaningless.
+         AssertThrow(data_exact_norm > 0, ExcMessage("Exact Data is zero"));
+
+         auto data = DiscretizedFunction<dim>::noise(data_exact, epsilon * data_exact_norm);
          data.add(1.0, data_exact);
 
          deallog.pop();
@@ -295,22 +341,18 @@ class WavePI {
          reginn.add_listener(
                std::make_shared<CtrlCProgressListener<DiscretizedFunction<dim>, DiscretizedFunction<dim>>>());
 
-         reginn.invert(data, 2 * epsilon * data_exact.norm(), param_exact);
+         reginn.invert(data, tau * epsilon * data_exact_norm, param_exact);
       }
-
-   private:
-      static const std::string KEY_FE_DEGREE;
-      static const std::string KEY_QUAD_ORDER;
-      static const std::string KEY_PROBLEM_TYPE;
-
-      FE_Q<dim> fe;
-      Quadrature<dim> quad;
-      ProblemType problem_type;
 };
 
-template<int dim> const std::string WavePI<dim>::KEY_FE_DEGREE = "Finite Element Degree";
-template<int dim> const std::string WavePI<dim>::KEY_QUAD_ORDER = "Quadrature Order";
-template<int dim> const std::string WavePI<dim>::KEY_PROBLEM_TYPE = "Problem";
+template<int dim> const std::string WavePI<dim>::KEY_FE_DEGREE = "finite element degree";
+template<int dim> const std::string WavePI<dim>::KEY_QUAD_ORDER = "quadrature order";
+template<int dim> const std::string WavePI<dim>::KEY_PROBLEM_TYPE = "problem";
+template<int dim> const std::string WavePI<dim>::KEY_EPSILON = "epsilon";
+template<int dim> const std::string WavePI<dim>::KEY_END_TIME = "end time";
+template<int dim> const std::string WavePI<dim>::KEY_TAU = "tau";
+template<int dim> const std::string WavePI<dim>::KEY_INITIAL_REFINES = "initial refines";
+template<int dim> const std::string WavePI<dim>::KEY_INITIAL_TIME_STEPS = "initial time steps";
 
 int main(int argc, char * argv[]) {
    try {
@@ -319,14 +361,14 @@ int main(int argc, char * argv[]) {
 
       po::options_description desc(Version::get_identification() + "\nsupported options");
 
-      desc.add_options()("help", "produce help message and exit");
+      desc.add_options()("help,h", "produce help message and exit");
       desc.add_options()("version", "print version information and exit");
       desc.add_options()("make-config",
             "generate config file with default values (unless [config] is specified) and exit");
-      desc.add_options()("config", po::value<std::string>(), "read config from this file");
-      desc.add_options()("log-file", po::value<std::string>(), "external log file");
+      desc.add_options()("config,c", po::value<std::string>(), "read config from this file");
+      desc.add_options()("log,l", po::value<std::string>(), "external log file");
       desc.add_options()("log-file-depth", po::value<int>(&log_file_depth)->default_value(100),
-            "log depth that goes to [log-file]");
+            "log depth that goes to [log]");
       desc.add_options()("log-console-depth", po::value<int>(&log_console_depth)->default_value(2),
             "log depth that goes to stdout");
 
@@ -345,14 +387,15 @@ int main(int argc, char * argv[]) {
          return 1;
       }
 
+      std::ofstream logout;
       if (vm.count("log-file")) {
-         std::ofstream logout(vm["log-file"].as<std::string>());
+         logout = std::ofstream(vm["log-file"].as<std::string>());
          deallog.attach(logout);
          deallog.depth_file(log_file_depth);
       }
 
       ParameterHandler prm;
-      prm.declare_entry("Dimension", "2", Patterns::Integer(1, 3), "Problem dimension");
+      prm.declare_entry("dimension", "2", Patterns::Integer(1, 3), "problem dimension");
       WavePI<2>::declare_parameters(prm);
 
       if (vm.count("config"))
@@ -375,7 +418,7 @@ int main(int argc, char * argv[]) {
 
       prm.log_parameters(deallog);
 
-      int dim = prm.get_integer("Dimension");
+      int dim = prm.get_integer("dimension");
 
       if (dim == 1) {
          WavePI<1> wavepi(prm);
