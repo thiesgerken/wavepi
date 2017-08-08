@@ -10,6 +10,7 @@
 
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/logstream.h>
+#include <deal.II/base/parameter_handler.h>
 
 #include <inversion/LinearProblem.h>
 #include <inversion/LinearRegularization.h>
@@ -31,6 +32,30 @@ class Landweber: public LinearRegularization<Param, Sol> {
          this->abort_increasing_discrepancy = true;
       }
 
+      Landweber(ParameterHandler &prm) {
+         get_parameters(prm);
+
+         // should generate decreasing residuals
+         this->abort_discrepancy_doubles = true;
+         this->abort_increasing_discrepancy = true;
+      }
+
+      static void declare_parameters(ParameterHandler &prm) {
+         prm.enter_subsection("Landweber");
+         {
+            prm.declare_entry("omega", "1", Patterns::Double(0), "relaxation factor ω");
+         }
+         prm.leave_subsection();
+      }
+
+      void get_parameters(ParameterHandler &prm) {
+         prm.enter_subsection("Landweber");
+         {
+            omega = prm.get_double("omega");
+         }
+         prm.leave_subsection();
+      }
+
       virtual ~Landweber() {
       }
 
@@ -50,8 +75,8 @@ class Landweber: public LinearRegularization<Param, Sol> {
          double norm_data = data.norm();
          double norm_exact = exact_param ? exact_param->norm() : -0.0;
 
-         InversionProgress<Param, Sol> status(0, &estimate, estimate.norm(), &residual, discrepancy, target_discrepancy, &data,
-               norm_data, exact_param, norm_exact, false);
+         InversionProgress<Param, Sol> status(0, &estimate, estimate.norm(), &residual, discrepancy,
+               target_discrepancy, &data, norm_data, exact_param, norm_exact, false);
          this->progress(status);
 
          for (int k = 1;
@@ -70,8 +95,8 @@ class Landweber: public LinearRegularization<Param, Sol> {
             double discrepancy_last = discrepancy;
             discrepancy = residual.norm();
 
-            status = InversionProgress<Param, Sol>(k, &estimate, estimate.norm(), &residual, discrepancy, target_discrepancy,
-                  &data, norm_data, exact_param, norm_exact, false);
+            status = InversionProgress<Param, Sol>(k, &estimate, estimate.norm(), &residual, discrepancy,
+                  target_discrepancy, &data, norm_data, exact_param, norm_exact, false);
 
             if (!this->progress(status))
                break;

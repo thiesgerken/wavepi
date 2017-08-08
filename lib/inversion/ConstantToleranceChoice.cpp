@@ -14,12 +14,24 @@ ConstantToleranceChoice::ConstantToleranceChoice(double tol)
       : tol(tol) {
 }
 
-double ConstantToleranceChoice::get_tol() const {
-   return tol;
+ConstantToleranceChoice::ConstantToleranceChoice(ParameterHandler &prm) {
+   get_parameters(prm);
 }
 
-void ConstantToleranceChoice::set_tol(double tol) {
-   this->tol = tol;
+void ConstantToleranceChoice::declare_parameters(ParameterHandler &prm) {
+   prm.enter_subsection("ConstantToleranceChoice");
+   {
+      prm.declare_entry("tol", "0.7", Patterns::Double(0, 1), "rel. tolerance");
+   }
+   prm.leave_subsection();
+}
+
+void ConstantToleranceChoice::get_parameters(ParameterHandler &prm) {
+   prm.enter_subsection("ConstantToleranceChoice");
+   {
+      tol = prm.get_double("tol");
+   }
+   prm.leave_subsection();
 }
 
 double ConstantToleranceChoice::calculate_tolerance() const {

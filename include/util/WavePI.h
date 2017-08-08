@@ -134,7 +134,7 @@ class WavePI {
    public:
       static void declare_parameters(ParameterHandler &prm);
 
-      WavePI(ParameterHandler &prm);
+      WavePI(std::shared_ptr<ParameterHandler> prm);
 
       void run();
 
@@ -145,27 +145,39 @@ class WavePI {
    private:
       static const std::string KEY_FE_DEGREE;
       static const std::string KEY_QUAD_ORDER;
-      static const std::string KEY_PROBLEM_TYPE;
       static const std::string KEY_END_TIME;
-      static const std::string KEY_EPSILON;
-      static const std::string KEY_TAU;
       static const std::string KEY_INITIAL_REFINES;
       static const std::string KEY_INITIAL_TIME_STEPS;
+
+      static const std::string KEY_INVERSION;
+      static const std::string KEY_INVERSION_PROBLEM_TYPE;
+      static const std::string KEY_INVERSION_EPSILON;
+      static const std::string KEY_INVERSION_METHOD;
+      static const std::string KEY_INVERSION_TAU;
 
       // possible problems
       enum class ProblemType {
          L2Q = 1, L2A = 2, L2C = 3, L2Nu = 4
       };
 
+      // possible nonlinear methods
+      enum class NonlinearMethod {
+         REGINN = 1, NonlinearLandweber = 2
+      };
+
+      std::shared_ptr<ParameterHandler> prm;
+
       FE_Q<dim> fe;
       QGauss<dim> quad;
-      ProblemType problem_type;
 
       double end_time;
-      double epsilon;
-      double tau;
       int initial_refines;
       int initial_time_steps;
+
+      double epsilon;
+      double tau;
+      ProblemType problem_type;
+      NonlinearMethod method;
 
       Triangulation<dim> triangulation;
       std::shared_ptr<DoFHandler<dim>> dof_handler;

@@ -8,17 +8,21 @@
 #ifndef INCLUDE_INVERSION_CONSTANTTOLERANCECHOICE_H_
 #define INCLUDE_INVERSION_CONSTANTTOLERANCECHOICE_H_
 
+#include <deal.II/base/parameter_handler.h>
+
 #include <inversion/ToleranceChoice.h>
 
 namespace wavepi {
 namespace inversion {
+using namespace dealii;
 
 class ConstantToleranceChoice: public ToleranceChoice {
    public:
       ConstantToleranceChoice(double tol);
+      ConstantToleranceChoice(ParameterHandler &prm);
 
-      double get_tol() const;
-      void set_tol(double tol);
+      static void declare_parameters(ParameterHandler &prm);
+      void get_parameters(ParameterHandler &prm);
 
    protected:
       virtual double calculate_tolerance() const;

@@ -12,14 +12,10 @@
 #include <forward/ConstantMesh.h>
 #include <forward/L2RightHandSide.h>
 
-#include <inversion/ConjugateGradients.h>
-#include <inversion/ConstantToleranceChoice.h>
-#include <inversion/GradientDescent.h>
 #include <inversion/InversionProgress.h>
-#include <inversion/Landweber.h>
 #include <inversion/NonlinearLandweber.h>
+#include <inversion/Regularization.h>
 #include <inversion/REGINN.h>
-#include <inversion/RiederToleranceChoice.h>
 
 #include <problems/L2AProblem.h>
 #include <problems/L2CProblem.h>
@@ -29,7 +25,6 @@
 #include <util/WavePI.h>
 
 #include <stddef.h>
-
 #include <cmath>
 #include <iostream>
 #include <vector>
@@ -44,47 +39,76 @@ using namespace wavepi::problems;
 
 template<int dim> const std::string WavePI<dim>::KEY_FE_DEGREE = "finite element degree";
 template<int dim> const std::string WavePI<dim>::KEY_QUAD_ORDER = "quadrature order";
-template<int dim> const std::string WavePI<dim>::KEY_PROBLEM_TYPE = "problem";
-template<int dim> const std::string WavePI<dim>::KEY_EPSILON = "epsilon";
 template<int dim> const std::string WavePI<dim>::KEY_END_TIME = "end time";
-template<int dim> const std::string WavePI<dim>::KEY_TAU = "tau";
 template<int dim> const std::string WavePI<dim>::KEY_INITIAL_REFINES = "initial refines";
 template<int dim> const std::string WavePI<dim>::KEY_INITIAL_TIME_STEPS = "initial time steps";
+
+template<int dim> const std::string WavePI<dim>::KEY_INVERSION = "inversion";
+template<int dim> const std::string WavePI<dim>::KEY_INVERSION_PROBLEM_TYPE = "problem";
+template<int dim> const std::string WavePI<dim>::KEY_INVERSION_EPSILON = "epsilon";
+template<int dim> const std::string WavePI<dim>::KEY_INVERSION_TAU = "tau";
+template<int dim> const std::string WavePI<dim>::KEY_INVERSION_METHOD = "method";
 
 template<int dim> void WavePI<dim>::declare_parameters(ParameterHandler &prm) {
    prm.declare_entry(KEY_FE_DEGREE, "1", Patterns::Integer(1, 4), "polynomial degree of finite elements");
    prm.declare_entry(KEY_QUAD_ORDER, "3", Patterns::Integer(1, 20),
          "order of quadrature (QGauss, exact in polynomials of degree ≤ 2n-1) ");
-   prm.declare_entry(KEY_PROBLEM_TYPE, "L2A", Patterns::Selection("L2A|L2Q|L2Nu|L2C"),
-         "parameter that is reconstructed, and which spaces are used");
    prm.declare_entry(KEY_END_TIME, "2", Patterns::Double(0), "time horizon T");
-   prm.declare_entry(KEY_EPSILON, "1e-2", Patterns::Double(0, 1), "relative noise level ε");
-   prm.declare_entry(KEY_TAU, "2", Patterns::Double(0), "parameter τ for discrepancy principle");
    prm.declare_entry(KEY_INITIAL_REFINES, "3", Patterns::Integer(0), "refines of the (initial) spatial grid");
    prm.declare_entry(KEY_INITIAL_TIME_STEPS, "64", Patterns::Integer(2), "(initial) number of time steps");
 
+   prm.enter_subsection(KEY_INVERSION);
+   {
+      prm.declare_entry(KEY_INVERSION_METHOD, "REGINN", Patterns::Selection("REGINN|NonlinearLandweber"),
+            "solver for the inverse problem");
+      prm.declare_entry(KEY_INVERSION_PROBLEM_TYPE, "L2A", Patterns::Selection("L2A|L2Q|L2Nu|L2C"),
+            "parameter that is reconstructed, and which spaces are used");
+      prm.declare_entry(KEY_INVERSION_EPSILON, "1e-2", Patterns::Double(0, 1), "relative noise level ε");
+      prm.declare_entry(KEY_INVERSION_TAU, "2", Patterns::Double(0), "parameter τ for discrepancy principle");
+
+      REGINN<DiscretizedFunction<dim>, DiscretizedFunction<dim>>::declare_parameters(prm);
+      NonlinearLandweber<DiscretizedFunction<dim>, DiscretizedFunction<dim>>::declare_parameters(prm);
+   }
+   prm.leave_subsection();
+
 }
 
-template<int dim> WavePI<dim>::WavePI(ParameterHandler &prm)
-      : fe(prm.get_integer(KEY_FE_DEGREE)), quad(prm.get_integer(KEY_QUAD_ORDER)) {
-   std::string problem = prm.get(KEY_PROBLEM_TYPE);
+template<int dim> WavePI<dim>::WavePI(std::shared_ptr<ParameterHandler> prm)
+      : prm(prm), fe(prm->get_integer(KEY_FE_DEGREE)), quad(prm->get_integer(KEY_QUAD_ORDER)) {
 
-   if (problem == "L2A")
-      problem_type = ProblemType::L2A;
-   else if (problem == "L2Q")
-      problem_type = ProblemType::L2Q;
-   else if (problem == "L2Nu")
-      problem_type = ProblemType::L2Nu;
-   else if (problem == "L2C")
-      problem_type = ProblemType::L2C;
-   else
-      AssertThrow(false, ExcInternalError());
+   end_time = prm->get_double(KEY_END_TIME);
+   initial_refines = prm->get_integer(KEY_INITIAL_REFINES);
+   initial_time_steps = prm->get_integer(KEY_INITIAL_TIME_STEPS);
 
-   end_time = prm.get_double(KEY_END_TIME);
-   epsilon = prm.get_double(KEY_EPSILON);
-   tau = prm.get_double(KEY_TAU);
-   initial_refines = prm.get_integer(KEY_INITIAL_REFINES);
-   initial_time_steps = prm.get_integer(KEY_INITIAL_TIME_STEPS);
+   prm->enter_subsection(KEY_INVERSION);
+   {
+      epsilon = prm->get_double(KEY_INVERSION_EPSILON);
+      tau = prm->get_double(KEY_INVERSION_TAU);
+
+      std::string problem = prm->get(KEY_INVERSION_PROBLEM_TYPE);
+
+      if (problem == "L2A")
+         problem_type = ProblemType::L2A;
+      else if (problem == "L2Q")
+         problem_type = ProblemType::L2Q;
+      else if (problem == "L2Nu")
+         problem_type = ProblemType::L2Nu;
+      else if (problem == "L2C")
+         problem_type = ProblemType::L2C;
+      else
+         AssertThrow(false, ExcInternalError());
+
+      std::string smethod = prm->get(KEY_INVERSION_METHOD);
+
+      if (smethod == "REGINN")
+         method = NonlinearMethod::REGINN;
+      else if (smethod == "NonlinearLandweber")
+         method = NonlinearMethod::NonlinearLandweber;
+      else
+         AssertThrow(false, ExcInternalError());
+
+   }
+   prm->leave_subsection();
 }
 
 template<int dim> void WavePI<dim>::initialize_mesh() {
@@ -185,19 +209,23 @@ template<int dim> void WavePI<dim>::run() {
    initialize_problem();
    generate_data();
 
-   auto linear_solver = std::make_shared<ConjugateGradients<Param, Sol>>();
-   linear_solver->add_listener(std::make_shared<GenericInversionProgressListener<Param, Sol>>("k"));
-   linear_solver->add_listener(
+   std::shared_ptr<Regularization<Param, Sol>> regularization;
+
+   prm->enter_subsection(KEY_INVERSION);
+   if (method == NonlinearMethod::REGINN)
+      regularization = std::make_shared<REGINN<Param, Sol> >(problem, initialGuess, *prm);
+   else if (method == NonlinearMethod::NonlinearLandweber)
+      regularization = std::make_shared<NonlinearLandweber<Param, Sol> >(problem, initialGuess, *prm);
+   else
+      AssertThrow(false, ExcInternalError());
+   prm->leave_subsection();
+
+   regularization->add_listener(std::make_shared<GenericInversionProgressListener<Param, Sol>>("i"));
+   regularization->add_listener(std::make_shared<OutputProgressListener<dim>>(10));
+   regularization->add_listener(
          std::make_shared<CtrlCProgressListener<DiscretizedFunction<dim>, DiscretizedFunction<dim>>>());
 
-   auto tol_choice = std::make_shared<RiederToleranceChoice>(0.7, 0.95, 0.9, 1.0);
-   REGINN<Param, Sol> reginn(problem, linear_solver, tol_choice, initialGuess);
-   reginn.add_listener(std::make_shared<GenericInversionProgressListener<Param, Sol>>("i"));
-   reginn.add_listener(std::make_shared<OutputProgressListener<dim>>(10));
-   reginn.add_listener(
-         std::make_shared<CtrlCProgressListener<DiscretizedFunction<dim>, DiscretizedFunction<dim>>>());
-
-   reginn.invert(*data, tau * epsilon * data->norm(), param_exact);
+   regularization->invert(*data, tau * epsilon * data->norm(), param_exact);
 }
 
 template class WavePI<1> ;

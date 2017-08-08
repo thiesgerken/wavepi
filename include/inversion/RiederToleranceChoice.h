@@ -8,14 +8,22 @@
 #ifndef INCLUDE_INVERSION_RIEDERTOLERANCECHOICE_H_
 #define INCLUDE_INVERSION_RIEDERTOLERANCECHOICE_H_
 
+#include <deal.II/base/parameter_handler.h>
+
 #include <inversion/ToleranceChoice.h>
 
 namespace wavepi {
 namespace inversion {
+using namespace dealii;
 
 class RiederToleranceChoice: public ToleranceChoice {
    public:
       RiederToleranceChoice(double tol_start, double tol_max, double zeta, double beta);
+      RiederToleranceChoice(ParameterHandler &prm);
+
+      static void declare_parameters(ParameterHandler &prm);
+      void get_parameters(ParameterHandler &prm);
+
    protected:
       using ToleranceChoice::previous_tolerances;
       using ToleranceChoice::discrepancies;

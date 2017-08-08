@@ -10,16 +10,25 @@
 
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/logstream.h>
+#include <deal.II/base/parameter_handler.h>
 
-#include <inversion/InverseProblem.h>
+#include <forward/DiscretizedFunction.h>
+
+#include <inversion/ConjugateGradients.h>
+#include <inversion/ConstantToleranceChoice.h>
+#include <inversion/GradientDescent.h>
+#include <inversion/InversionProgress.h>
+#include <inversion/Landweber.h>
 #include <inversion/LinearRegularization.h>
 #include <inversion/NewtonRegularization.h>
 #include <inversion/NonlinearProblem.h>
 #include <inversion/Regularization.h>
+#include <inversion/RiederToleranceChoice.h>
 #include <inversion/ToleranceChoice.h>
 
 #include <iostream>
 #include <memory>
+#include <string>
 
 namespace wavepi {
 namespace inversion {
@@ -28,11 +37,63 @@ using namespace dealii;
 template<typename Param, typename Sol>
 class REGINN: public NewtonRegularization<Param, Sol> {
    public:
-      REGINN(std::shared_ptr<NonlinearProblem<Param, Sol>> problem,
+      REGINN(std::shared_ptr<NonlinearProblem<Param, Sol>> problem, std::shared_ptr<Param> initial_guess,
             std::shared_ptr<LinearRegularization<Param, Sol>> linear_solver,
-            std::shared_ptr<ToleranceChoice> tol_choice, std::shared_ptr<Param> initial_guess)
+            std::shared_ptr<ToleranceChoice> tol_choice)
             : NewtonRegularization<Param, Sol>(problem), initial_guess(initial_guess), linear_solver(
                   linear_solver), tol_choice(tol_choice) {
+      }
+
+      REGINN(std::shared_ptr<NonlinearProblem<Param, Sol>> problem, std::shared_ptr<Param> initial_guess,
+            ParameterHandler &prm)
+            : NewtonRegularization<Param, Sol>(problem), initial_guess(initial_guess) {
+
+         get_parameters(prm);
+      }
+
+      static void declare_parameters(ParameterHandler &prm) {
+         prm.enter_subsection("REGINN");
+         {
+            prm.declare_entry("linear solver", "ConjugateGradients",
+                  Patterns::Selection("ConjugateGradients|GradientDescent|Landweber"),
+                  "regularization method for the linear subproblems");
+            prm.declare_entry("tolerance choice", "Rieder", Patterns::Selection("Rieder|Constant"),
+                  "algorithm that chooses the target discrepancies for the linear subproblems");
+
+            RiederToleranceChoice::declare_parameters(prm);
+            ConstantToleranceChoice::declare_parameters(prm);
+            Landweber<Param, Sol>::declare_parameters(prm);
+         }
+         prm.leave_subsection();
+      }
+
+      void get_parameters(ParameterHandler &prm) {
+         prm.enter_subsection("REGINN");
+         {
+            std::string slinear_solver = prm.get("linear solver");
+
+            if (slinear_solver == "ConjugateGradients")
+               linear_solver = std::make_shared<ConjugateGradients<Param, Sol>>();
+            else if (slinear_solver == "GradientDescent")
+               linear_solver = std::make_shared<GradientDescent<Param, Sol>>();
+            else if (slinear_solver == "Landweber")
+               linear_solver = std::make_shared<Landweber<Param, Sol>>(prm);
+            else
+               AssertThrow(false, ExcInternalError());
+
+            linear_solver->add_listener(std::make_shared<GenericInversionProgressListener<Param, Sol>>("k"));
+            linear_solver->add_listener(std::make_shared<CtrlCProgressListener<Param, Sol>>());
+
+            std::string stol_choice = prm.get("tolerance choice");
+
+            if (stol_choice == "Rieder")
+               tol_choice = std::make_shared<RiederToleranceChoice>(prm);
+            else if (stol_choice == "Constant")
+               tol_choice = std::make_shared<ConstantToleranceChoice>(prm);
+            else
+               AssertThrow(false, ExcInternalError());
+         }
+         prm.leave_subsection();
       }
 
       virtual ~REGINN() {

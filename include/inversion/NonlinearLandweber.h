@@ -10,6 +10,7 @@
 
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/logstream.h>
+#include <deal.II/base/parameter_handler.h>
 
 #include <inversion/NewtonRegularization.h>
 #include <inversion/NonlinearProblem.h>
@@ -26,13 +27,31 @@ using namespace dealii;
 template<typename Param, typename Sol>
 class NonlinearLandweber: public NewtonRegularization<Param, Sol> {
    public:
-      NonlinearLandweber(std::shared_ptr<NonlinearProblem<Param, Sol>> problem, const Param& initial_guess,
-            double omega)
-            : NewtonRegularization<Param, Sol>(problem), omega(omega), initial_guess(initial_guess) {
+      static void declare_parameters(ParameterHandler &prm) {
+         prm.enter_subsection("NonlinearLandweber");
+         {
+            prm.declare_entry("omega", "1", Patterns::Double(0), "relaxation factor ω");
+         }
+         prm.leave_subsection();
       }
 
-      NonlinearLandweber(const Param& initial_guess, double omega)
-            : omega(omega), initial_guess(initial_guess) {
+      void get_parameters(ParameterHandler &prm) {
+         prm.enter_subsection("NonlinearLandweber");
+         {
+            omega = prm.get_double("omega");
+         }
+         prm.leave_subsection();
+      }
+
+      NonlinearLandweber(std::shared_ptr<NonlinearProblem<Param, Sol>> problem,
+            std::shared_ptr<Param> initial_guess, double omega)
+            : NewtonRegularization<Param, Sol>(problem), initial_guess(initial_guess), omega(omega) {
+      }
+
+      NonlinearLandweber(std::shared_ptr<NonlinearProblem<Param, Sol>> problem,
+            std::shared_ptr<Param> initial_guess, ParameterHandler &prm)
+            : NewtonRegularization<Param, Sol>(problem), initial_guess(initial_guess) {
+         get_parameters(prm);
       }
 
       virtual ~NonlinearLandweber() {
@@ -47,7 +66,7 @@ class NonlinearLandweber: public NewtonRegularization<Param, Sol> {
          AssertThrow(this->problem, ExcInternalError());
          deallog.push("init");
 
-         Param estimate(initial_guess);
+         Param estimate(*initial_guess);
 
          Sol residual(data);
          Sol data_current = this->problem->forward(estimate);
@@ -59,8 +78,8 @@ class NonlinearLandweber: public NewtonRegularization<Param, Sol> {
          double norm_exact = exact_param ? exact_param->norm() : -0.0;
 
          deallog.pop();
-         InversionProgress<Param, Sol> status(0, estimate, estimate.norm(), residual, discrepancy, target_discrepancy, data,
-               norm_data, exact_param, norm_exact, false);
+         InversionProgress<Param, Sol> status(0, &estimate, estimate.norm(), &residual, discrepancy,
+               target_discrepancy, &data, norm_data, exact_param, norm_exact, false);
          this->progress(status);
 
          for (int i = 1;
@@ -81,8 +100,8 @@ class NonlinearLandweber: public NewtonRegularization<Param, Sol> {
             double discrepancy_last = discrepancy;
             discrepancy = residual.norm();
 
-            status = InversionProgress<Param, Sol>(i, estimate, estimate.norm(), residual, discrepancy, target_discrepancy, data,
-                  norm_data, exact_param, norm_exact, false);
+            status = InversionProgress<Param, Sol>(i, &estimate, estimate.norm(), &residual, discrepancy,
+                  target_discrepancy, &data, norm_data, exact_param, norm_exact, false);
 
             if (!this->progress(status))
                break;
@@ -102,7 +121,7 @@ class NonlinearLandweber: public NewtonRegularization<Param, Sol> {
 
    private:
       double omega;
-      const Param initial_guess;
+      std::shared_ptr<Param> initial_guess;
 };
 
 } /* namespace inversion */
