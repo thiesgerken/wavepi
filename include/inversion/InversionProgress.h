@@ -13,6 +13,7 @@
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/logstream.h>
 #include <deal.II/base/utilities.h>
+#include <deal.II/base/parameter_handler.h>
 
 #include <forward/DiscretizedFunction.h>
 
@@ -211,6 +212,48 @@ class OutputProgressListener: public InversionProgressListener<DiscretizedFuncti
 
       OutputProgressListener(int interval)
             : interval(interval) {
+      }
+
+      OutputProgressListener(ParameterHandler &prm) {
+         get_parameters(prm);
+      }
+
+      static void declare_parameters(ParameterHandler &prm) {
+         prm.enter_subsection("output");
+         {
+            prm.declare_entry("interval", "10", Patterns::Integer(0),
+                  "output every n iterations, or never if n == 0.");
+            prm.declare_entry("last", "true", Patterns::Bool(), "output the last iteration before exit");
+
+            prm.declare_entry("data", "true", Patterns::Bool(),
+                  "output the problem's right hand side on the first iteration");
+            prm.declare_entry("exact", "true", Patterns::Bool(),
+                  "output the problem's exact solution on the first iteration (if available)");
+
+            prm.declare_entry("estimate", "true", Patterns::Bool(), "output the current estimate");
+            prm.declare_entry("residual", "true", Patterns::Bool(), "output the current residual");
+
+            prm.declare_entry("destination", "./step-{{i}}/", Patterns::DirectoryName(),
+                  "output path for step {{i}}; has to end with a slash");
+         }
+         prm.leave_subsection();
+      }
+
+      void get_parameters(ParameterHandler &prm) {
+         prm.enter_subsection("output");
+         {
+            interval = prm.get_integer("interval");
+            save_last = prm.get_bool("last");
+
+            save_data = prm.get_bool("data");
+            save_exact = prm.get_bool("exact");
+
+            save_estimate = prm.get_bool("estimate");
+            save_residual = prm.get_bool("residual");
+
+            destination_prefix = prm.get_bool("destination");
+         }
+         prm.leave_subsection();
       }
 
       virtual bool progress(InversionProgress<DiscretizedFunction<dim>, DiscretizedFunction<dim>> state) {

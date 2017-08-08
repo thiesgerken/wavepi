@@ -71,6 +71,7 @@ template<int dim> void WavePI<dim>::declare_parameters(ParameterHandler &prm) {
    }
    prm.leave_subsection();
 
+   OutputProgressListener<dim>::declare_parameters(prm);
 }
 
 template<int dim> WavePI<dim>::WavePI(std::shared_ptr<ParameterHandler> prm)
@@ -221,9 +222,8 @@ template<int dim> void WavePI<dim>::run() {
    prm->leave_subsection();
 
    regularization->add_listener(std::make_shared<GenericInversionProgressListener<Param, Sol>>("i"));
-   regularization->add_listener(std::make_shared<OutputProgressListener<dim>>(10));
-   regularization->add_listener(
-         std::make_shared<CtrlCProgressListener<DiscretizedFunction<dim>, DiscretizedFunction<dim>>>());
+   regularization->add_listener(std::make_shared<CtrlCProgressListener<Param, Sol>>());
+   regularization->add_listener(std::make_shared<OutputProgressListener<dim>>(*prm));
 
    regularization->invert(*data, tau * epsilon * data->norm(), param_exact);
 }
