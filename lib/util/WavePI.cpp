@@ -52,7 +52,7 @@ template<int dim> const std::string WavePI<dim>::KEY_INVERSION_METHOD = "method"
 template<int dim> void WavePI<dim>::declare_parameters(ParameterHandler &prm) {
    prm.declare_entry(KEY_FE_DEGREE, "1", Patterns::Integer(1, 4), "polynomial degree of finite elements");
    prm.declare_entry(KEY_QUAD_ORDER, "3", Patterns::Integer(1, 20),
-         "order of quadrature (QGauss, exact in polynomials of degree ≤ 2n-1) ");
+         "order of quadrature (QGauss, exact in polynomials of degree ≤ 2n-1, use at least finite element degree + 1) ");
    prm.declare_entry(KEY_END_TIME, "2", Patterns::Double(0), "time horizon T");
    prm.declare_entry(KEY_INITIAL_REFINES, "3", Patterns::Integer(0), "refines of the (initial) spatial grid");
    prm.declare_entry(KEY_INITIAL_TIME_STEPS, "64", Patterns::Integer(2), "(initial) number of time steps");
