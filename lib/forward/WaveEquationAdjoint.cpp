@@ -156,12 +156,8 @@ void WaveEquationAdjoint<dim>::setup_step(double time) {
 
 template<int dim>
 void WaveEquationAdjoint<dim>::assemble_u(size_t i) {
-   std::map<types::boundary_id, const Function<dim> *> boundary_map;
-   for (auto id : mesh->get_boundary_ids())
-      boundary_map[id] = this->zero.get();
-
    std::map<types::global_dof_index, double> boundary_values;
-   VectorTools::interpolate_boundary_values(*dof_handler, boundary_map, boundary_values);
+   VectorTools::interpolate_boundary_values(*dof_handler, 0, *this->zero, boundary_values);
 
    if (i == mesh->get_times().size() - 1) {
       /* i == N
@@ -246,12 +242,8 @@ void WaveEquationAdjoint<dim>::assemble_u(size_t i) {
 
 template<int dim>
 void WaveEquationAdjoint<dim>::assemble_v(size_t i) {
-   std::map<types::boundary_id, const Function<dim> *> boundary_map;
-   for (auto id : mesh->get_boundary_ids())
-      boundary_map[id] = this->zero.get();
-
    std::map<types::global_dof_index, double> boundary_values;
-   VectorTools::interpolate_boundary_values(*dof_handler, boundary_map, boundary_values);
+   VectorTools::interpolate_boundary_values(*dof_handler, 0, *this->zero, boundary_values);
 
    if (i == mesh->get_times().size() - 1) {
       /*

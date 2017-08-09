@@ -193,12 +193,8 @@ void WaveEquation<dim>::assemble_u(double time_step) {
    system_matrix.add(theta * time_step, matrix_B);
    system_matrix.add(theta * theta * time_step * time_step, matrix_A);
 
-   std::map<types::boundary_id, const Function<dim> *> boundary_map;
-   for (auto id : mesh->get_boundary_ids())
-      boundary_map[id] = boundary_values_u.get();
-
    std::map<types::global_dof_index, double> boundary_values;
-   VectorTools::interpolate_boundary_values(*dof_handler, boundary_map, boundary_values);
+   VectorTools::interpolate_boundary_values(*dof_handler, 0, *boundary_values_u, boundary_values);
    MatrixTools::apply_boundary_values(boundary_values, system_matrix, solution_u, system_rhs);
 }
 
@@ -226,12 +222,8 @@ void WaveEquation<dim>::assemble_v(double time_step) {
    system_matrix.add(1.0, matrix_C);
    system_matrix.add(theta * time_step, matrix_B);
 
-   std::map<types::boundary_id, const Function<dim> *> boundary_map;
-   for (auto id : mesh->get_boundary_ids())
-      boundary_map[id] = boundary_values_v.get();
-
    std::map<types::global_dof_index, double> boundary_values;
-   VectorTools::interpolate_boundary_values(*dof_handler, boundary_map, boundary_values);
+   VectorTools::interpolate_boundary_values(*dof_handler, 0, *boundary_values_v, boundary_values);
    MatrixTools::apply_boundary_values(boundary_values, system_matrix, solution_v, system_rhs);
 }
 

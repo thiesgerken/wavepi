@@ -5,8 +5,8 @@
  *      Author: thies
  */
 
-#ifndef FORWARD_MATRIXCREATOR_H_
-#define FORWARD_MATRIXCREATOR_H_
+#ifndef UTIL_MATRIXCREATOR_H_
+#define UTIL_MATRIXCREATOR_H_
 
 #include <deal.II/base/function.h>
 #include <deal.II/base/quadrature.h>
@@ -17,7 +17,7 @@
 #include <memory>
 
 namespace wavepi {
-namespace forward {
+namespace util {
 namespace MatrixCreator {
 using namespace dealii;
 
@@ -63,7 +63,7 @@ void create_mass_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad,
       const Vector<double>& c);
 
 }
-} /* namespace forward */
+} /* namespace util */
 } /* namespace wavepi */
 
-#endif /* INCLUDE_MATRIXCREATOR_H_ */
+#endif /* UTIL_MATRIXCREATOR_H_ */

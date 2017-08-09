@@ -23,6 +23,7 @@
 #include <problems/L2QProblem.h>
 
 #include <util/WavePI.h>
+#include <util/GridTools.h>
 
 #include <stddef.h>
 #include <cmath>
@@ -36,6 +37,7 @@ using namespace dealii;
 using namespace wavepi::forward;
 using namespace wavepi::inversion;
 using namespace wavepi::problems;
+using namespace wavepi::util;
 
 template<int dim> const std::string WavePI<dim>::KEY_FE_DEGREE = "finite element degree";
 template<int dim> const std::string WavePI<dim>::KEY_QUAD_ORDER = "quadrature order";
@@ -123,6 +125,7 @@ template<int dim> void WavePI<dim>::initialize_mesh() {
 
    // GridGenerator::cheese(triangulation, std::vector<unsigned int>( { 1, 1 }));
    GridGenerator::hyper_cube(triangulation, -5, 5);
+   GridTools::set_all_boundary_ids(triangulation, 0);
    triangulation.refine_global(initial_refines);
 
    dof_handler = std::make_shared<DoFHandler<dim>>();
@@ -135,9 +138,6 @@ template<int dim> void WavePI<dim>::initialize_mesh() {
    deallog << "dt: " << dt << std::endl;
 
    mesh = std::make_shared<ConstantMesh<dim>>(times, dof_handler, quad);
-
-   if (dim == 1)
-      mesh->set_boundary_ids(std::vector<types::boundary_id> { 0, 1 });
 }
 
 template<int dim> void WavePI<dim>::initialize_problem() {

@@ -13,7 +13,6 @@ SET(LIBSOURCES
         WaveEquation.cpp       
         WaveEquationAdjoint.cpp
         DistributionRightHandSide.cpp  
-        MatrixCreator.cpp
     )
         
 add_library(wavepi_forward ${LIBSOURCES})

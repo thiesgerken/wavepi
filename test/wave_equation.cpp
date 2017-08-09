@@ -30,6 +30,8 @@
 
 #include <problems/L2QProblem.h>
 
+#include <util/GridTools.h>
+
 #include <bits/std_abs.h>
 #include <stddef.h>
 #include <iostream>
@@ -43,6 +45,7 @@ namespace {
 using namespace dealii;
 using namespace wavepi::forward;
 using namespace wavepi::problems;
+using namespace wavepi::util;
 
 template<int dim>
 class TestF: public Function<dim> {
@@ -191,6 +194,7 @@ void run_discretized_test(int fe_order, int quad_order, int refines) {
 
    Triangulation<dim> triangulation;
    GridGenerator::hyper_cube(triangulation, -1, 1);
+   wavepi::util::GridTools::set_all_boundary_ids(triangulation, 0);
    triangulation.refine_global(refines);
 
    FE_Q<dim> fe(fe_order);
@@ -209,9 +213,6 @@ void run_discretized_test(int fe_order, int quad_order, int refines) {
    deallog << ", n_steps: " << times.size() << std::endl;
 
    std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, dof_handler, quad);
-
-   if (dim == 1)
-      mesh->set_boundary_ids(std::vector<types::boundary_id> { 0, 1 });
 
    WaveEquation<dim> wave_eq(mesh, dof_handler, quad);
 
@@ -360,6 +361,7 @@ void run_reference_test(int fe_order, int quad_order, int refines, Point<dim, in
       double t_end, int steps, bool expect = true) {
    Triangulation<dim> triangulation;
    GridGenerator::hyper_cube(triangulation, 0, numbers::PI);
+   wavepi::util::GridTools::set_all_boundary_ids(triangulation, 0);
    triangulation.refine_global(refines);
 
    FE_Q<dim> fe(fe_order);
@@ -378,9 +380,6 @@ void run_reference_test(int fe_order, int quad_order, int refines, Point<dim, in
    deallog << ", n_steps: " << times.size() << std::endl;
 
    std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, dof_handler, quad);
-
-   if (dim == 1)
-      mesh->set_boundary_ids(std::vector<types::boundary_id> { 0, 1 });
 
    WaveEquation<dim> wave_eq(mesh, dof_handler, quad);
 

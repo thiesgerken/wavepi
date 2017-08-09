@@ -36,11 +36,12 @@ class ConstantMesh: public SpaceTimeMesh<dim> {
       }
 
    private:
+      std::shared_ptr<DoFHandler<dim>> dof_handler;
+
       // don't need it, but its lifetime has to be larger than that of mass_matrix ...
       // therefore, the order here is also important! (mass_matrix is deconstructed first)
       SparsityPattern sparsity_pattern;
 
-      std::shared_ptr<DoFHandler<dim>> dof_handler;
       std::shared_ptr<SparseMatrix<double>> mass_matrix;
 
 };

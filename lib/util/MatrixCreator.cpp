@@ -12,14 +12,13 @@
 #include <deal.II/fe/fe_update_flags.h>
 #include <deal.II/fe/fe_values.h>
 #include <deal.II/lac/full_matrix.h>
-
-#include <forward/MatrixCreator.h>
+#include <util/MatrixCreator.h>
 
 #include <functional>
 #include <vector>
 
 namespace wavepi {
-namespace forward {
+namespace util {
 namespace MatrixCreator {
 using namespace dealii;
 
@@ -326,5 +325,5 @@ template void create_mass_matrix(const DoFHandler<2>&, const Quadrature<2>&, Spa
 template void create_mass_matrix(const DoFHandler<3>&, const Quadrature<3>&, SparseMatrix<double>&,
       const Vector<double> &);
 }
-} /* namespace forward */
+} /* namespace util */
 } /* namespace wavepi */

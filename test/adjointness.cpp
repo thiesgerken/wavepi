@@ -30,6 +30,8 @@
 
 #include <problems/L2QProblem.h>
 
+#include <util/GridTools.h>
+
 #include <bits/std_abs.h>
 #include <stddef.h>
 #include <iostream>
@@ -43,6 +45,7 @@ namespace {
 using namespace dealii;
 using namespace wavepi::forward;
 using namespace wavepi::problems;
+using namespace wavepi::util;
 
 template<int dim>
 class TestF: public Function<dim> {
@@ -173,7 +176,8 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
 
    Triangulation<dim> triangulation;
    GridGenerator::hyper_cube(triangulation, -1, 1);
-   triangulation.refine_global(refines);
+   wavepi::util::GridTools::set_all_boundary_ids(triangulation, 0);
+    triangulation.refine_global(refines);
 
    FE_Q<dim> fe(fe_order);
    Quadrature<dim> quad = QGauss<dim>(quad_order); // exact in poly degree 2n-1 (needed: fe_dim^3)
@@ -191,9 +195,6 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
    deallog << ", n_steps: " << times.size() << "  ----------" << std::endl;
 
    std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, dof_handler, quad);
-
-   if (dim == 1)
-      mesh->set_boundary_ids(std::vector<types::boundary_id> { 0, 1 });
 
    WaveEquation<dim> wave_eq(mesh, dof_handler, quad);
    wave_eq.set_param_a(std::make_shared<TestA<dim>>());

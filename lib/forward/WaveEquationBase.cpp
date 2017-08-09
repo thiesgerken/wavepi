@@ -6,13 +6,14 @@
  */
 
 #include <deal.II/numerics/matrix_tools.h>
-#include <forward/MatrixCreator.h>
 #include <forward/WaveEquationBase.h>
+#include <util/MatrixCreator.h>
 
 namespace wavepi {
 namespace forward {
 
 using namespace dealii;
+using namespace wavepi::util;
 
 template<int dim>
 WaveEquationBase<dim>::WaveEquationBase(std::shared_ptr<SpaceTimeMesh<dim>> mesh,
