@@ -6,6 +6,7 @@ SET(LIBSOURCES
         ConstantMesh.cpp               
         L2ProductRightHandSide.cpp  
         SpaceTimeMesh.cpp
+        AdaptiveMesh.cpp
         DiscretizedFunction.cpp        
         L2RightHandSide.cpp     
         WaveEquationBase.cpp    
