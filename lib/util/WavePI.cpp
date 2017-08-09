@@ -26,7 +26,7 @@
 #include <util/GridTools.h>
 
 #include <stddef.h>
-#include <cmath>
+#include <tgmath.h>
 #include <iostream>
 #include <vector>
 
