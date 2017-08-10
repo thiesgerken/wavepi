@@ -43,9 +43,7 @@ class WaveEquationAdjoint: public WaveEquationBase<dim> {
       DiscretizedFunction<dim> run();
 
    private:
-      using WaveEquationBase<dim>::dof_handler;
       using WaveEquationBase<dim>::mesh;
-      using WaveEquationBase<dim>::quad;
       using WaveEquationBase<dim>::theta;
       using WaveEquationBase<dim>::right_hand_side;
 

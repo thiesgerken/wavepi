@@ -36,8 +36,7 @@ class WaveEquationBase {
       std::shared_ptr<Function<dim>> one = std::make_shared<ConstantFunction<dim>>(1.0, 1);
       std::shared_ptr<RightHandSide<dim>> zero_rhs = std::make_shared<L2RightHandSide<dim>>(zero);
 
-      WaveEquationBase(std::shared_ptr<SpaceTimeMesh<dim>> mesh, std::shared_ptr<DoFHandler<dim>> dof_handler,
-            const Quadrature<dim> quad);
+      WaveEquationBase(std::shared_ptr<SpaceTimeMesh<dim>> mesh);
 
       virtual ~WaveEquationBase();
 
@@ -48,7 +47,7 @@ class WaveEquationBase {
       // (too much coupling going on, evaluating the polynomial is actually cheaper)
       // in that case, you should turn of the specialization.
       inline bool is_special_assembly_recommended() const {
-         return !(quad.size() >= std::pow(2, dim) && dim >= 3);
+         return !(mesh->get_quadrature().size() >= std::pow(2, dim) && dim >= 3);
       }
 
       inline bool using_special_assembly() {
@@ -57,16 +56,10 @@ class WaveEquationBase {
                      is_special_assembly_recommended() : (special_assembly_tactic > 0);
       }
 
-      inline std::shared_ptr<DoFHandler<dim> > get_dof_handler() const {
-         return this->dof_handler;
-      }
-      inline void set_dof_handler(std::shared_ptr<DoFHandler<dim> > dof_handler) {
-         this->dof_handler = dof_handler;
-      }
-
       inline std::shared_ptr<SpaceTimeMesh<dim> > get_mesh() const {
          return this->mesh;
       }
+
       inline void set_mesh(std::shared_ptr<SpaceTimeMesh<dim> > mesh) {
          this->mesh = mesh;
       }
@@ -131,14 +124,6 @@ class WaveEquationBase {
          this->theta = theta;
       }
 
-      inline Quadrature<dim> get_quad() const {
-         return quad;
-      }
-
-      inline void set_quad(const Quadrature<dim> quad) {
-         this->quad = quad;
-      }
-
       inline int get_special_assembly_tactic() const {
          return special_assembly_tactic;
       }
@@ -166,8 +151,6 @@ class WaveEquationBase {
       int special_assembly_tactic = 0;
 
       std::shared_ptr<SpaceTimeMesh<dim>> mesh;
-      std::shared_ptr<DoFHandler<dim>> dof_handler;
-      Quadrature<dim> quad;
 
       std::shared_ptr<Function<dim>> param_c, param_nu, param_a, param_q;
 

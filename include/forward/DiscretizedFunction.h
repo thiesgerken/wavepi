@@ -38,12 +38,9 @@ class DiscretizedFunction: public Function<dim> {
       DiscretizedFunction(const DiscretizedFunction& that);
       DiscretizedFunction(DiscretizedFunction&& that);
 
-      DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>> mesh,
-            std::shared_ptr<DoFHandler<dim>> dof_handler, bool store_derivative);
-      DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>> mesh,
-            std::shared_ptr<DoFHandler<dim>> dof_handler);
-      DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>> mesh,
-            std::shared_ptr<DoFHandler<dim>> dof_handler, Function<dim>& function);
+      DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>> mesh, bool store_derivative);
+      DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>> mesh, Function<dim>& function);
+      DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>> mesh);
 
       void set(size_t i, const Vector<double>& u, const Vector<double>& v);
       void set(size_t i, const Vector<double>& u);
@@ -123,10 +120,6 @@ class DiscretizedFunction: public Function<dim> {
          return function_coefficients;
       }
 
-      inline std::shared_ptr<DoFHandler<dim>> get_dof_handler() const {
-         return dof_handler;
-      }
-
       // get / set what `norm()` and `*` do.
       Norm get_norm() const;
       void set_norm(Norm norm);
@@ -143,7 +136,6 @@ class DiscretizedFunction: public Function<dim> {
       size_t cur_time_idx = 0;
 
       std::shared_ptr<SpaceTimeMesh<dim>> mesh;
-      std::shared_ptr<DoFHandler<dim>> dof_handler;
 
       std::vector<Vector<double>> function_coefficients;
       std::vector<Vector<double>> derivative_coefficients;

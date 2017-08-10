@@ -39,15 +39,14 @@ WaveEquation<dim>::~WaveEquation() {
 }
 
 template<int dim>
-WaveEquation<dim>::WaveEquation(std::shared_ptr<SpaceTimeMesh<dim>> mesh,
-      std::shared_ptr<DoFHandler<dim>> dof_handler, const Quadrature<dim> quad)
-      : WaveEquationBase<dim>(mesh, dof_handler, quad), initial_values_u(this->zero), initial_values_v(
+WaveEquation<dim>::WaveEquation(std::shared_ptr<SpaceTimeMesh<dim>> mesh)
+      : WaveEquationBase<dim>(mesh), initial_values_u(this->zero), initial_values_v(
             this->zero), boundary_values_u(this->zero), boundary_values_v(this->zero) {
 }
 
 template<int dim>
 WaveEquation<dim>::WaveEquation(const WaveEquation<dim>& weq)
-      : WaveEquationBase<dim>(weq.get_mesh(), weq.get_dof_handler(), weq.get_quad()), initial_values_u(
+      : WaveEquationBase<dim>(weq.get_mesh()), initial_values_u(
             weq.initial_values_u), initial_values_v(weq.initial_values_v), boundary_values_u(
             weq.boundary_values_u), boundary_values_v(weq.boundary_values_v) {
    this->set_theta(weq.get_theta());
@@ -63,8 +62,6 @@ WaveEquation<dim>::WaveEquation(const WaveEquation<dim>& weq)
 template<int dim>
 WaveEquation<dim>& WaveEquation<dim>::operator=(const WaveEquation<dim>& weq) {
    this->set_mesh(weq.get_mesh());
-   this->set_dof_handler(weq.get_dof_handler());
-   this->set_quad(weq.get_quad());
    this->set_theta(weq.get_theta());
 
    this->set_param_c(weq.get_param_c());
@@ -280,16 +277,16 @@ DiscretizedFunction<dim> WaveEquation<dim>::run() {
    timer.start();
 
    // this is going to be the result
-   DiscretizedFunction<dim> u(mesh, dof_handler, true);
+   DiscretizedFunction<dim> u(mesh);
 
    bool backwards = run_direction == Backward;
    int first_idx = backwards ? mesh->get_times().size() - 1 : 0;
 
    // initialize everything and project/interpolate initial values
-   init_system(mesh->get_times()[first_idx]);
+   init_system(mesh->get_time(first_idx));
 
    // create matrices for first time step
-   setup_step(mesh->get_times()[first_idx]);
+   setup_step(mesh->get_time(first_idx));
 
    // add initial values to output data
    u.set(first_idx, solution_u, solution_v);
@@ -300,8 +297,8 @@ DiscretizedFunction<dim> WaveEquation<dim>::run() {
       int time_idx = backwards ? mesh->get_times().size() - 1 - i : i;
       int last_time_idx = backwards ? mesh->get_times().size() - i : i - 1;
 
-      double time = mesh->get_times()[time_idx];
-      double last_time = mesh->get_times()[last_time_idx];
+      double time = mesh->get_time(time_idx);
+      double last_time = mesh->get_time(last_time_idx);
 
       setup_timer.start();
       setup_step(time);

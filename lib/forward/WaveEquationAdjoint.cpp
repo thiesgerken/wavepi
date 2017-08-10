@@ -169,7 +169,7 @@ void WaveEquationAdjoint<dim>::assemble_u(size_t i) {
        *     = [k_N^2 C^N + θ k_N B^N + θ^2 A^N] u_N
        */
 
-      double time_step = mesh->get_times()[i] - mesh->get_times()[i - 1];
+      double time_step = mesh->get_time(i) - mesh->get_time(i - 1);
 
       system_rhs = rhs;
 
@@ -185,7 +185,7 @@ void WaveEquationAdjoint<dim>::assemble_u(size_t i) {
        *              - (1-θ) A^i v_1
        */
 
-      double time_step_last = mesh->get_times()[i + 1] - mesh->get_times()[i];
+      double time_step_last = mesh->get_time(i + 1) - mesh->get_time(i);
 
       system_rhs = rhs;
       Vector<double> tmp(solution_u.size());
@@ -213,8 +213,8 @@ void WaveEquationAdjoint<dim>::assemble_u(size_t i) {
        *        ╰‒‒‒  =  [k_i^2 C^i + θ k_i B^i + θ^2 A^i]
        */
 
-      double time_step = mesh->get_times()[i] - mesh->get_times()[i - 1];
-      double time_step_last = mesh->get_times()[i + 1] - mesh->get_times()[i];
+      double time_step = mesh->get_time(i) - mesh->get_time(i - 1);
+      double time_step_last = mesh->get_time(i + 1) - mesh->get_time(i);
 
       Vector<double> tmp(solution_u.size());
       system_rhs = rhs;
@@ -267,7 +267,7 @@ void WaveEquationAdjoint<dim>::assemble_v(size_t i) {
        *       + [k_{i+1} C^i - (1-θ) B^i)] v_1
        */
 
-      double time_step_last = mesh->get_times()[1] - mesh->get_times()[0];
+      double time_step_last = mesh->get_time(1) - mesh->get_time(0);
 
       Vector<double> tmp(solution_u.size());
       system_rhs = 0.0;
@@ -300,8 +300,8 @@ void WaveEquationAdjoint<dim>::assemble_v(size_t i) {
        *        ╰‒‒‒  =  [k_i C^i + θ B^i]
        */
 
-      double time_step = mesh->get_times()[i] - mesh->get_times()[i - 1];
-      double time_step_last = mesh->get_times()[i + 1] - mesh->get_times()[i];
+      double time_step = mesh->get_time(i) - mesh->get_time(i - 1);
+      double time_step_last = mesh->get_time(i + 1) - mesh->get_time(i);
 
       Vector<double> tmp(solution_u.size());
       system_rhs = 0.0;
@@ -383,7 +383,7 @@ DiscretizedFunction<dim> WaveEquationAdjoint<dim>::run() {
    timer.start();
 
    // this is going to be the result
-   DiscretizedFunction<dim> u(mesh, dof_handler, true);
+   DiscretizedFunction<dim> u(mesh, true);
 
    // initialize everything
    init_system();
@@ -392,7 +392,7 @@ DiscretizedFunction<dim> WaveEquationAdjoint<dim>::run() {
       size_t i = mesh->get_times().size() - 1 - j;
 
       LogStream::Prefix pp("step-" + Utilities::int_to_string(j, 4));
-      double time = mesh->get_times()[i];
+      double time = mesh->get_time(i);
 
       setup_timer.start();
       setup_step(time);
@@ -427,7 +427,7 @@ DiscretizedFunction<dim> WaveEquationAdjoint<dim>::run() {
 template<int dim>
 DiscretizedFunction<dim> WaveEquationAdjoint<dim>::apply_R_transpose(
       const DiscretizedFunction<dim>& u) const {
-   DiscretizedFunction<dim> res(mesh, dof_handler, false);
+   DiscretizedFunction<dim> res(mesh, false);
 
    for (size_t j = 0; j < mesh->get_times().size(); j++) {
       Vector<double> tmp(solution_u.size());

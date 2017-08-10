@@ -16,9 +16,8 @@ using namespace dealii;
 using namespace wavepi::util;
 
 template<int dim>
-WaveEquationBase<dim>::WaveEquationBase(std::shared_ptr<SpaceTimeMesh<dim>> mesh,
-      std::shared_ptr<DoFHandler<dim>> dof_handler, const Quadrature<dim> quad)
-      : theta(0.5), mesh(mesh), dof_handler(dof_handler), quad(quad), param_c(one), param_nu(zero), param_a(
+WaveEquationBase<dim>::WaveEquationBase(std::shared_ptr<SpaceTimeMesh<dim>> mesh)
+      : theta(0.5), mesh(mesh), param_c(one), param_nu(zero), param_a(
             one), param_q(zero), right_hand_side(zero_rhs) {
 }
 

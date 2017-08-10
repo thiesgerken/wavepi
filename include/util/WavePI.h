@@ -179,8 +179,6 @@ class WavePI {
       ProblemType problem_type;
       NonlinearMethod method;
 
-      Triangulation<dim> triangulation;
-      std::shared_ptr<DoFHandler<dim>> dof_handler;
       std::shared_ptr<SpaceTimeMesh<dim>> mesh;
       std::shared_ptr<WaveEquation<dim>> wave_eq;
 

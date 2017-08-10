@@ -123,40 +123,40 @@ template<int dim> void WavePI<dim>::initialize_mesh() {
    for (size_t i = 0; i * dt <= end_time; i++)
       times.push_back(i * dt);
 
+   auto triangulation = std::make_shared<Triangulation<dim>>();
+
    // GridGenerator::cheese(triangulation, std::vector<unsigned int>( { 1, 1 }));
-   GridGenerator::hyper_cube(triangulation, -5, 5);
-   GridTools::set_all_boundary_ids(triangulation, 0);
-   triangulation.refine_global(initial_refines);
+   GridGenerator::hyper_cube(*triangulation, -5, 5);
+   GridTools::set_all_boundary_ids(*triangulation, 0);
+   triangulation->refine_global(initial_refines);
 
-   dof_handler = std::make_shared<DoFHandler<dim>>();
-   dof_handler->initialize(triangulation, fe);
+   mesh = std::make_shared<ConstantMesh<dim>>(times, fe, quad, triangulation);
 
-   deallog << "Number of active cells: " << triangulation.n_active_cells() << std::endl;
-   deallog << "Number of degrees of freedom: " << dof_handler->n_dofs() << std::endl;
+   deallog << "Number of active cells: " << triangulation->n_active_cells() << std::endl;
+   deallog << "Number of degrees of freedom in spatial mesh: " << mesh->get_dof_handler(0)->n_dofs()
+         << std::endl;
    deallog << "Average cell diameter: "
-         << 10.0 * sqrt((double) dim) / pow(triangulation.n_active_cells(), 1.0 / dim) << std::endl;
+         << 10.0 * sqrt((double ) dim) / pow(triangulation->n_active_cells(), 1.0 / dim) << std::endl;
    deallog << "dt: " << dt << std::endl;
-
-   mesh = std::make_shared<ConstantMesh<dim>>(times, dof_handler, quad);
 }
 
 template<int dim> void WavePI<dim>::initialize_problem() {
    LogStream::Prefix p("initialize_problem");
 
-   wave_eq = std::make_shared<WaveEquation<dim>>(mesh, dof_handler, quad);
+   wave_eq = std::make_shared<WaveEquation<dim>>(mesh);
    wave_eq->set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(std::make_shared<TestF<dim>>()));
    wave_eq->set_param_a(std::make_shared<TestA<dim>>());
    wave_eq->set_param_c(std::make_shared<TestC<dim>>());
    wave_eq->set_param_q(std::make_shared<TestQ<dim>>());
    wave_eq->set_param_nu(std::make_shared<TestNu<dim>>());
 
-   initialGuess = std::make_shared<Param>(mesh, dof_handler);
+   initialGuess = std::make_shared<Param>(mesh);
 
    switch (problem_type) {
       case ProblemType::L2Q:
          /* Reconstruct TestQ */
          param_exact_cont = std::make_shared<TestQ<dim>>();
-         param_exact = std::make_shared<Param>(mesh, dof_handler, *param_exact_cont.get());
+         param_exact = std::make_shared<Param>(mesh, *param_exact_cont.get());
          wave_eq->set_param_q(param_exact);
          problem = std::make_shared<L2QProblem<dim>>(*wave_eq);
          *initialGuess = 0;
@@ -164,7 +164,7 @@ template<int dim> void WavePI<dim>::initialize_problem() {
       case ProblemType::L2C:
          /* Reconstruct TestC */
          param_exact_cont = std::make_shared<TestC<dim>>();
-         param_exact = std::make_shared<Param>(mesh, dof_handler, *param_exact_cont.get());
+         param_exact = std::make_shared<Param>(mesh, *param_exact_cont.get());
          wave_eq->set_param_c(param_exact);
          problem = std::make_shared<L2CProblem<dim>>(*wave_eq);
          *initialGuess = 2;
@@ -172,7 +172,7 @@ template<int dim> void WavePI<dim>::initialize_problem() {
       case ProblemType::L2Nu:
          /* Reconstruct TestNu */
          param_exact_cont = std::make_shared<TestNu<dim>>();
-         param_exact = std::make_shared<Param>(mesh, dof_handler, *param_exact_cont.get());
+         param_exact = std::make_shared<Param>(mesh, *param_exact_cont.get());
          wave_eq->set_param_nu(param_exact);
          problem = std::make_shared<L2NuProblem<dim>>(*wave_eq);
          *initialGuess = 0;
@@ -180,7 +180,7 @@ template<int dim> void WavePI<dim>::initialize_problem() {
       case ProblemType::L2A:
          /* Reconstruct TestA */
          param_exact_cont = std::make_shared<TestA<dim>>();
-         param_exact = std::make_shared<Param>(mesh, dof_handler, *param_exact_cont.get());
+         param_exact = std::make_shared<Param>(mesh, *param_exact_cont.get());
          wave_eq->set_param_a(param_exact);
          problem = std::make_shared<L2AProblem<dim>>(*wave_eq);
          *initialGuess = 2;
