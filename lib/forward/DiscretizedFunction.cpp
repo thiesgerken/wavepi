@@ -242,7 +242,6 @@ void DiscretizedFunction<dim>::set(size_t i, const Vector<double>& u) {
 template<int dim>
 DiscretizedFunction<dim>& DiscretizedFunction<dim>::operator=(double x) {
    Assert(mesh, ExcNotInitialized());
-   Assert(x == 0 || x == 1.0, ExcNotImplemented());
 
    for (size_t i = 0; i < mesh->get_times().size(); i++) {
       function_coefficients[i] = x;

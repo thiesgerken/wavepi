@@ -138,12 +138,11 @@ class WaveEquationBase {
       }
 
    protected:
-      void fill_A(SparseMatrix<double>& destination);
-      void fill_B(SparseMatrix<double>& destination);
-      void fill_C(SparseMatrix<double>& destination);
+      void fill_A(DoFHandler<dim> &dof_handler, SparseMatrix<double>& destination);
+      void fill_B(DoFHandler<dim> &dof_handler, SparseMatrix<double>& destination);
+      void fill_C(DoFHandler<dim> &dof_handler, SparseMatrix<double>& destination);
 
       double theta;
-
       double tolerance = 1e-8;
 
       // treat DiscretizedFunctions as params and right hand side differently

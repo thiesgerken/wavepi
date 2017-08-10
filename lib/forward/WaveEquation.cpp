@@ -150,11 +150,11 @@ void WaveEquation<dim>::setup_step(double time) {
    // this helps only a bit because each of the operations is already parallelized
    // tests show about 20%-30% (depending on dim) speedup on my Intel i5 4690
    Threads::TaskGroup<void> task_group;
-   task_group += Threads::new_task(&WaveEquation<dim>::fill_A, *this, matrix_A);
-   task_group += Threads::new_task(&WaveEquation<dim>::fill_B, *this, matrix_B);
-   task_group += Threads::new_task(&WaveEquation<dim>::fill_C, *this, matrix_C);
+   task_group += Threads::new_task(&WaveEquation<dim>::fill_A, *this, *dof_handler, matrix_A);
+   task_group += Threads::new_task(&WaveEquation<dim>::fill_B, *this, *dof_handler, matrix_B);
+   task_group += Threads::new_task(&WaveEquation<dim>::fill_C, *this, *dof_handler, matrix_C);
    task_group += Threads::new_task(&RightHandSide<dim>::create_right_hand_side, *right_hand_side,
-         *dof_handler, quad, rhs);
+         *dof_handler, mesh->get_quadrature(), rhs);
    task_group.join_all();
 }
 
@@ -277,10 +277,12 @@ DiscretizedFunction<dim> WaveEquation<dim>::run() {
    timer.start();
 
    // this is going to be the result
-   DiscretizedFunction<dim> u(mesh);
+   DiscretizedFunction<dim> u(mesh, true);
 
    bool backwards = run_direction == Backward;
    int first_idx = backwards ? mesh->get_times().size() - 1 : 0;
+
+   dof_handler = mesh->get_dof_handler(first_idx);
 
    // initialize everything and project/interpolate initial values
    init_system(mesh->get_time(first_idx));
@@ -299,6 +301,12 @@ DiscretizedFunction<dim> WaveEquation<dim>::run() {
 
       double time = mesh->get_time(time_idx);
       double last_time = mesh->get_time(last_time_idx);
+
+      // TODO:
+      // 1. use old matrices to compute stuff for next step?
+      // 2. interpolate u and v and the needed temp values to new mesh and advance dof_handler
+      // or use assemble_u and assemble_v for step 1?
+      AssertThrow(false, ExcNotImplemented());
 
       setup_timer.start();
       setup_step(time);

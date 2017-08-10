@@ -174,16 +174,10 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
          adjoint_solver == WaveEquationBase<dim>::WaveEquationAdjoint && adjoint_solver == WaveEquationBase<dim>::WaveEquationBackwards,
          ExcInternalError());
 
-   Triangulation<dim> triangulation;
-   GridGenerator::hyper_cube(triangulation, -1, 1);
-   wavepi::util::GridTools::set_all_boundary_ids(triangulation, 0);
-    triangulation.refine_global(refines);
-
-   FE_Q<dim> fe(fe_order);
-   Quadrature<dim> quad = QGauss<dim>(quad_order); // exact in poly degree 2n-1 (needed: fe_dim^3)
-
-   auto dof_handler = std::make_shared<DoFHandler<dim>>();
-   dof_handler->initialize(triangulation, fe);
+   auto triangulation = std::make_shared<Triangulation<dim>>();
+   GridGenerator::hyper_cube(*triangulation, -1, 1);
+   wavepi::util::GridTools::set_all_boundary_ids(*triangulation, 0);
+   triangulation->refine_global(refines);
 
    double t_start = 0.0, t_end = 2.0, dt = t_end / n_steps;
    std::vector<double> times;
@@ -191,12 +185,16 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
    for (size_t i = 0; t_start + i * dt <= t_end; i++)
       times.push_back(t_start + i * dt);
 
-   deallog << std::endl << "----------  n_dofs: " << dof_handler->n_dofs();
+   FE_Q<dim> fe(fe_order);
+   Quadrature<dim> quad = QGauss<dim>(quad_order); // exact in poly degree 2n-1 (needed: fe_dim^3)
+
+   std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, fe, quad,
+         triangulation);
+
+   deallog << std::endl << "----------  n_dofs / timestep: " << mesh->get_dof_handler(0)->n_dofs();
    deallog << ", n_steps: " << times.size() << "  ----------" << std::endl;
 
-   std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, dof_handler, quad);
-
-   WaveEquation<dim> wave_eq(mesh, dof_handler, quad);
+   WaveEquation<dim> wave_eq(mesh);
    wave_eq.set_param_a(std::make_shared<TestA<dim>>());
    wave_eq.set_param_c(std::make_shared<TestC<dim>>());
    wave_eq.set_param_q(std::make_shared<TestQ<dim>>());
@@ -209,7 +207,7 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
    bool use_adj = adjoint_solver == WaveEquationBase<dim>::WaveEquationAdjoint;
 
    TestF<dim> f_cont;
-   auto f = std::make_shared<DiscretizedFunction<dim>>(mesh, dof_handler, f_cont);
+   auto f = std::make_shared<DiscretizedFunction<dim>>(mesh);
 
    wave_eq.set_run_direction(WaveEquation<dim>::Forward);
    wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(f));
@@ -220,7 +218,7 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
    f_time_mass->set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
    f_time_mass->mult_time_mass();
 
-   DiscretizedFunction<dim> adj_f(mesh, dof_handler);
+   DiscretizedFunction<dim> adj_f(mesh);
    if (use_adj) {
       wave_eq_adj.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(f_time_mass));
       adj_f = wave_eq_adj.run();
@@ -235,7 +233,7 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
    EXPECT_GT(adj_f.norm(), 0.0);
 
    TestG<dim> g_cont;
-   auto g = std::make_shared<DiscretizedFunction<dim>>(mesh, dof_handler, g_cont);
+   auto g = std::make_shared<DiscretizedFunction<dim>>(mesh, g_cont);
 
    wave_eq.set_run_direction(WaveEquation<dim>::Forward);
    wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(g));
@@ -246,7 +244,7 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
    g_time_mass->set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
    g_time_mass->mult_time_mass();
 
-   DiscretizedFunction<dim> adj_g(mesh, dof_handler);
+   DiscretizedFunction<dim> adj_g(mesh);
    if (use_adj) {
       wave_eq_adj.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(g_time_mass));
       adj_g = wave_eq_adj.run();
@@ -271,7 +269,7 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
    z_time_mass->set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
    z_time_mass->mult_time_mass();
 
-   DiscretizedFunction<dim> adj_z(mesh, dof_handler);
+   DiscretizedFunction<dim> adj_z(mesh);
    if (use_adj) {
       wave_eq_adj.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(z_time_mass));
       adj_z = wave_eq_adj.run();
@@ -385,7 +383,7 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
          << ", rel. error = " << mzz_err << std::endl << std::endl;
 
    // test concatenation of both (if they are implemented as above)
-   DiscretizedFunction<dim> estimate(mesh, dof_handler);
+   DiscretizedFunction<dim> estimate(mesh);
    L2QProblem<dim> problem(wave_eq, adjoint_solver);
    auto data_current = problem.forward(estimate);
    auto A = problem.derivative(estimate, data_current);

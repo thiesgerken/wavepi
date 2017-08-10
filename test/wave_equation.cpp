@@ -192,16 +192,10 @@ template<int dim>
 void run_discretized_test(int fe_order, int quad_order, int refines) {
    Timer timer;
 
-   Triangulation<dim> triangulation;
-   GridGenerator::hyper_cube(triangulation, -1, 1);
-   wavepi::util::GridTools::set_all_boundary_ids(triangulation, 0);
-   triangulation.refine_global(refines);
-
-   FE_Q<dim> fe(fe_order);
-   Quadrature<dim> quad = QGauss<dim>(quad_order); // exact in poly degree 2n-1 (needed: fe_dim^3)
-
-   auto dof_handler = std::make_shared<DoFHandler<dim>>();
-   dof_handler->initialize(triangulation, fe);
+   auto triangulation = std::make_shared<Triangulation<dim>>();
+   GridGenerator::hyper_cube(*triangulation, -1, 1);
+   wavepi::util::GridTools::set_all_boundary_ids(*triangulation, 0);
+   triangulation->refine_global(refines);
 
    double t_start = 0.0, t_end = 2.0, dt = t_end / 64.0;
    std::vector<double> times;
@@ -209,12 +203,16 @@ void run_discretized_test(int fe_order, int quad_order, int refines) {
    for (size_t i = 0; t_start + i * dt <= t_end; i++)
       times.push_back(t_start + i * dt);
 
-   deallog << "n_dofs: " << dof_handler->n_dofs();
-   deallog << ", n_steps: " << times.size() << std::endl;
+   FE_Q<dim> fe(fe_order);
+   Quadrature<dim> quad = QGauss<dim>(quad_order); // exact in poly degree 2n-1 (needed: fe_dim^3)
 
-   std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, dof_handler, quad);
+   std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, fe, quad,
+         triangulation);
 
-   WaveEquation<dim> wave_eq(mesh, dof_handler, quad);
+   deallog << std::endl << "----------  n_dofs / timestep: " << mesh->get_dof_handler(0)->n_dofs();
+   deallog << ", n_steps: " << times.size() << "  ----------" << std::endl;
+
+   WaveEquation<dim> wave_eq(mesh);
 
    /* continuous */
 
@@ -234,23 +232,23 @@ void run_discretized_test(int fe_order, int quad_order, int refines) {
    /* discretized */
 
    TestC<dim> c;
-   auto c_disc = std::make_shared<DiscretizedFunction<dim>>(mesh, dof_handler, c);
+   auto c_disc = std::make_shared<DiscretizedFunction<dim>>(mesh,  c);
    wave_eq.set_param_c(c_disc);
 
    TestA<dim> a;
-   auto a_disc = std::make_shared<DiscretizedFunction<dim>>(mesh, dof_handler, a);
+   auto a_disc = std::make_shared<DiscretizedFunction<dim>>(mesh,  a);
    wave_eq.set_param_a(a_disc);
 
    TestQ<dim> q;
-   auto q_disc = std::make_shared<DiscretizedFunction<dim>>(mesh, dof_handler, q);
+   auto q_disc = std::make_shared<DiscretizedFunction<dim>>(mesh,  q);
    wave_eq.set_param_q(q_disc);
 
    TestNu<dim> nu;
-   auto nu_disc = std::make_shared<DiscretizedFunction<dim>>(mesh, dof_handler, nu);
+   auto nu_disc = std::make_shared<DiscretizedFunction<dim>>(mesh,  nu);
    wave_eq.set_param_nu(nu_disc);
 
    TestF<dim> f;
-   auto f_disc = std::make_shared<DiscretizedFunction<dim>>(mesh, dof_handler, f);
+   auto f_disc = std::make_shared<DiscretizedFunction<dim>>(mesh,  f);
    wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(f_disc));
 
    timer.restart();
@@ -359,16 +357,10 @@ class SeparationAnsatz: public Function<dim> {
 template<int dim>
 void run_reference_test(int fe_order, int quad_order, int refines, Point<dim, int> k, Point<2> constants,
       double t_end, int steps, bool expect = true) {
-   Triangulation<dim> triangulation;
-   GridGenerator::hyper_cube(triangulation, 0, numbers::PI);
-   wavepi::util::GridTools::set_all_boundary_ids(triangulation, 0);
-   triangulation.refine_global(refines);
-
-   FE_Q<dim> fe(fe_order);
-   Quadrature<dim> quad = QGauss<dim>(quad_order); // exact in poly degree 2n-1 (needed: fe_dim^3)
-
-   auto dof_handler = std::make_shared<DoFHandler<dim>>();
-   dof_handler->initialize(triangulation, fe);
+   auto triangulation = std::make_shared<Triangulation<dim>>();
+   GridGenerator::hyper_cube(*triangulation, -1, 1);
+   wavepi::util::GridTools::set_all_boundary_ids(*triangulation, 0);
+   triangulation->refine_global(refines);
 
    double t_start = 0.0, dt = t_end / steps;
    std::vector<double> times;
@@ -376,12 +368,16 @@ void run_reference_test(int fe_order, int quad_order, int refines, Point<dim, in
    for (size_t i = 0; t_start + i * dt <= t_end; i++)
       times.push_back(t_start + i * dt);
 
-   deallog << "n_dofs: " << dof_handler->n_dofs();
-   deallog << ", n_steps: " << times.size() << std::endl;
+   FE_Q<dim> fe(fe_order);
+   Quadrature<dim> quad = QGauss<dim>(quad_order); // exact in poly degree 2n-1 (needed: fe_dim^3)
 
-   std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, dof_handler, quad);
+   std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, fe, quad,
+         triangulation);
 
-   WaveEquation<dim> wave_eq(mesh, dof_handler, quad);
+   deallog << std::endl << "----------  n_dofs / timestep: " << mesh->get_dof_handler(0)->n_dofs();
+   deallog << ", n_steps: " << times.size() << "  ----------" << std::endl;
+
+   WaveEquation<dim> wave_eq(mesh);
 
    Point<2> derivative_constants;
    derivative_constants[0] = -constants[1] * std::sqrt(k.square());
@@ -398,8 +394,8 @@ void run_reference_test(int fe_order, int quad_order, int refines, Point<dim, in
    DiscretizedFunction<dim> solv = solu.derivative();
    solu.throw_away_derivative();
 
-   DiscretizedFunction<dim> refu(mesh, dof_handler, *u);
-   DiscretizedFunction<dim> refv(mesh, dof_handler, *v);
+   DiscretizedFunction<dim> refu(mesh,  *u);
+   DiscretizedFunction<dim> refv(mesh,  *v);
 
    DiscretizedFunction<dim> tmp(solu);
    tmp -= refu;
@@ -421,8 +417,8 @@ void run_reference_test(int fe_order, int quad_order, int refines, Point<dim, in
    solv = solu.derivative();
    solu.throw_away_derivative();
 
-   refu = DiscretizedFunction<dim>(mesh, dof_handler, *u);
-   refv = DiscretizedFunction<dim>(mesh, dof_handler, *v);
+   refu = DiscretizedFunction<dim>(mesh,  *u);
+   refv = DiscretizedFunction<dim>(mesh,  *v);
 
    tmp = solu;
    tmp -= refu;

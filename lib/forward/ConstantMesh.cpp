@@ -22,7 +22,7 @@ ConstantMesh<dim>::ConstantMesh(std::vector<double> times, FE_Q<dim> fe, Quadrat
       std::shared_ptr<Triangulation<dim>> tria)
       : SpaceTimeMesh<dim>(times, fe, quad), triangulation(tria) {
    dof_handler = std::make_shared<DoFHandler<dim>>();
-   dof_handler->initialize(*tria, fe);
+   dof_handler->initialize(*tria, this->fe);
 }
 
 template<int dim>

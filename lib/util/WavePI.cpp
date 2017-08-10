@@ -77,8 +77,10 @@ template<int dim> void WavePI<dim>::declare_parameters(ParameterHandler &prm) {
 }
 
 template<int dim> WavePI<dim>::WavePI(std::shared_ptr<ParameterHandler> prm)
-      : prm(prm), fe(prm->get_integer(KEY_FE_DEGREE)), quad(prm->get_integer(KEY_QUAD_ORDER)) {
+      : prm(prm) {
 
+   fe_degree = prm->get_integer(KEY_FE_DEGREE);
+   quad_order = prm->get_integer(KEY_QUAD_ORDER);
    end_time = prm->get_double(KEY_END_TIME);
    initial_refines = prm->get_integer(KEY_INITIAL_REFINES);
    initial_time_steps = prm->get_integer(KEY_INITIAL_TIME_STEPS);
@@ -130,7 +132,8 @@ template<int dim> void WavePI<dim>::initialize_mesh() {
    GridTools::set_all_boundary_ids(*triangulation, 0);
    triangulation->refine_global(initial_refines);
 
-   mesh = std::make_shared<ConstantMesh<dim>>(times, fe, quad, triangulation);
+   mesh = std::make_shared<ConstantMesh<dim>>(times, FE_Q<dim>(fe_degree), QGauss<dim>(quad_order),
+         triangulation);
 
    deallog << "Number of active cells: " << triangulation->n_active_cells() << std::endl;
    deallog << "Number of degrees of freedom in spatial mesh: " << mesh->get_dof_handler(0)->n_dofs()

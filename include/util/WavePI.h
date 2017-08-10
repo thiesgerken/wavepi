@@ -167,8 +167,8 @@ class WavePI {
 
       std::shared_ptr<ParameterHandler> prm;
 
-      FE_Q<dim> fe;
-      QGauss<dim> quad;
+      int fe_degree;
+      int quad_order;
 
       double end_time;
       int initial_refines;

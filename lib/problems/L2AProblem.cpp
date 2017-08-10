@@ -100,7 +100,7 @@ DiscretizedFunction<dim> L2AProblem<dim>::Linearization::adjoint(const Discretiz
    tmp->mult_time_mass();
    rhs_adj->set_base_rhs(tmp);
 
-   DiscretizedFunction<dim> res(weq.get_mesh(), weq.get_dof_handler());
+   DiscretizedFunction<dim> res(weq.get_mesh());
 
    if (adjoint_solver == WaveEquationBase<dim>::WaveEquationBackwards) {
       AssertThrow((std::dynamic_pointer_cast<ZeroFunction<dim>, Function<dim>>(weq.get_param_nu()) != nullptr),
@@ -122,7 +122,7 @@ DiscretizedFunction<dim> L2AProblem<dim>::Linearization::adjoint(const Discretiz
    // should be - nabla(res)*nabla(u) -> piecewise constant function -> fe spaces do not fit
    // res.mult_time_mass();
    m_adj->set_a(std::make_shared<DiscretizedFunction<dim>>(res));
-   res = m_adj->run_adjoint(res.get_mesh(), res.get_dof_handler(), weq.get_quad());
+   res = m_adj->run_adjoint(res.get_mesh());
    res.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
    res.solve_space_time_mass();
 
@@ -131,7 +131,7 @@ DiscretizedFunction<dim> L2AProblem<dim>::Linearization::adjoint(const Discretiz
 
 template<int dim>
 DiscretizedFunction<dim> L2AProblem<dim>::Linearization::zero() {
-   DiscretizedFunction<dim> res(a->get_mesh(), a->get_dof_handler());
+   DiscretizedFunction<dim> res(a->get_mesh());
    res.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
 
    return res;

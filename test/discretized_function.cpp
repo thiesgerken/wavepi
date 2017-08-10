@@ -47,7 +47,6 @@ using namespace wavepi::forward;
 using namespace wavepi::problems;
 using namespace wavepi::util;
 
-
 template<int dim>
 class TestF: public Function<dim> {
    public:
@@ -172,16 +171,10 @@ template<> const Point<3> TestQ<3>::q_position = Point<3>(-1.0, 0.5, 0.0);
 template<int dim>
 void run_dot_norm_test(int fe_order, int quad_order, int refines, int n_steps,
       typename DiscretizedFunction<dim>::Norm norm) {
-   Triangulation<dim> triangulation;
-   GridGenerator::hyper_cube(triangulation, -1, 1);
-   wavepi::util::GridTools::set_all_boundary_ids(triangulation, 0);
-   triangulation.refine_global(refines);
-
-   FE_Q<dim> fe(fe_order);
-   Quadrature<dim> quad = QGauss<dim>(quad_order); // exact in poly degree 2n-1 (needed: fe_dim^3)
-
-   auto dof_handler = std::make_shared<DoFHandler<dim>>();
-   dof_handler->initialize(triangulation, fe);
+   auto triangulation = std::make_shared<Triangulation<dim>>();
+   GridGenerator::hyper_cube(*triangulation, -1, 1);
+   wavepi::util::GridTools::set_all_boundary_ids(*triangulation, 0);
+   triangulation->refine_global(refines);
 
    double t_start = 0.0, t_end = 2.0, dt = t_end / n_steps;
    std::vector<double> times;
@@ -189,13 +182,17 @@ void run_dot_norm_test(int fe_order, int quad_order, int refines, int n_steps,
    for (size_t i = 0; t_start + i * dt <= t_end; i++)
       times.push_back(t_start + i * dt);
 
-   deallog << "n_dofs: " << dof_handler->n_dofs();
-   deallog << ", n_steps: " << times.size() << std::endl;
+   FE_Q<dim> fe(fe_order);
+   Quadrature<dim> quad = QGauss<dim>(quad_order); // exact in poly degree 2n-1 (needed: fe_dim^3)
 
-   std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, dof_handler, quad);
+   std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, fe, quad,
+         triangulation);
+
+   deallog << std::endl << "----------  n_dofs / timestep: " << mesh->get_dof_handler(0)->n_dofs();
+   deallog << ", n_steps: " << times.size() << "  ----------" << std::endl;
 
    TestQ<dim> q_cont;
-   DiscretizedFunction<dim> q(mesh, dof_handler, q_cont);
+   DiscretizedFunction<dim> q(mesh, q_cont);
    q.set_norm(norm);
 
    double norm_q = q.norm();
@@ -206,7 +203,7 @@ void run_dot_norm_test(int fe_order, int quad_order, int refines, int n_steps,
          << q_err << std::endl;
 
    TestG<dim> g_cont;
-   DiscretizedFunction<dim> g(mesh, dof_handler, g_cont);
+   DiscretizedFunction<dim> g(mesh, g_cont);
    g.set_norm(norm);
 
    double norm_g = g.norm();
@@ -217,7 +214,7 @@ void run_dot_norm_test(int fe_order, int quad_order, int refines, int n_steps,
          << g_err << std::endl;
 
    TestF<dim> f_cont;
-   DiscretizedFunction<dim> f(mesh, dof_handler, f_cont);
+   DiscretizedFunction<dim> f(mesh, f_cont);
    f.set_norm(norm);
 
    double norm_f = f.norm();
@@ -240,16 +237,10 @@ void run_dot_norm_test(int fe_order, int quad_order, int refines, int n_steps,
 template<int dim>
 void run_space_time_mass_test(int fe_order, int quad_order, int refines, int n_steps,
       typename DiscretizedFunction<dim>::Norm norm) {
-   Triangulation<dim> triangulation;
-   GridGenerator::hyper_cube(triangulation, -1, 1);
-   wavepi::util::GridTools::set_all_boundary_ids(triangulation, 0);
-   triangulation.refine_global(refines);
-
-   FE_Q<dim> fe(fe_order);
-   Quadrature<dim> quad = QGauss<dim>(quad_order); // exact in poly degree 2n-1 (needed: fe_dim^3)
-
-   auto dof_handler = std::make_shared<DoFHandler<dim>>();
-   dof_handler->initialize(triangulation, fe);
+   auto triangulation = std::make_shared<Triangulation<dim>>();
+   GridGenerator::hyper_cube(*triangulation, -1, 1);
+   wavepi::util::GridTools::set_all_boundary_ids(*triangulation, 0);
+   triangulation->refine_global(refines);
 
    double t_start = 0.0, t_end = 2.0, dt = t_end / n_steps;
    std::vector<double> times;
@@ -257,13 +248,17 @@ void run_space_time_mass_test(int fe_order, int quad_order, int refines, int n_s
    for (size_t i = 0; t_start + i * dt <= t_end; i++)
       times.push_back(t_start + i * dt);
 
-   deallog << "n_dofs: " << dof_handler->n_dofs();
-   deallog << ", n_steps: " << times.size() << std::endl;
+   FE_Q<dim> fe(fe_order);
+   Quadrature<dim> quad = QGauss<dim>(quad_order); // exact in poly degree 2n-1 (needed: fe_dim^3)
 
-   std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, dof_handler, quad);
+   std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, fe, quad,
+         triangulation);
+
+   deallog << std::endl << "----------  n_dofs / timestep: " << mesh->get_dof_handler(0)->n_dofs();
+   deallog << ", n_steps: " << times.size() << "  ----------" << std::endl;
 
    TestQ<dim> q_cont;
-   DiscretizedFunction<dim> q(mesh, dof_handler, q_cont);
+   DiscretizedFunction<dim> q(mesh, q_cont);
    q.set_norm(norm);
 
    auto mstq(q);
@@ -282,7 +277,7 @@ void run_space_time_mass_test(int fe_order, int quad_order, int refines, int n_s
    deallog << std::scientific << "‖q- t^-1( t(q))‖/‖q‖ = " << err_mtq << std::endl;
 
    TestG<dim> g_cont;
-   DiscretizedFunction<dim> g(mesh, dof_handler, g_cont);
+   DiscretizedFunction<dim> g(mesh, g_cont);
    g.set_norm(norm);
 
    auto mstg(g);
@@ -301,7 +296,7 @@ void run_space_time_mass_test(int fe_order, int quad_order, int refines, int n_s
    deallog << std::scientific << "‖g- t^-1( t(g))‖/‖g‖ = " << err_mtg << std::endl;
 
    TestF<dim> f_cont;
-   DiscretizedFunction<dim> f(mesh, dof_handler, f_cont);
+   DiscretizedFunction<dim> f(mesh, f_cont);
    f.set_norm(norm);
 
    auto mstf(f);

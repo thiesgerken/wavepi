@@ -31,8 +31,7 @@ using namespace dealii;
 template<int dim>
 class WaveEquationAdjoint: public WaveEquationBase<dim> {
    public:
-      WaveEquationAdjoint(std::shared_ptr<SpaceTimeMesh<dim>> mesh,
-            std::shared_ptr<DoFHandler<dim>> dof_handler, const Quadrature<dim> quad);
+      WaveEquationAdjoint(std::shared_ptr<SpaceTimeMesh<dim>> mesh);
       WaveEquationAdjoint(const WaveEquationAdjoint<dim>& weq);
       WaveEquationAdjoint(const WaveEquationBase<dim>& weq);
 
@@ -76,6 +75,8 @@ class WaveEquationAdjoint: public WaveEquationBase<dim> {
       // space for linear systems and their right hand sides
       SparseMatrix<double> system_matrix;
       Vector<double> system_rhs;
+
+      std::shared_ptr<DoFHandler<dim>> dof_handler;
 };
 
 } /* namespace forward */

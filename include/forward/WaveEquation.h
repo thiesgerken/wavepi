@@ -94,6 +94,9 @@ class WaveEquation: public WaveEquationBase<dim> {
       // space for linear systems and their right hand sides
       SparseMatrix<double> system_matrix;
       Vector<double> system_rhs;
+
+      // DoFHandler for the current time step
+      std::shared_ptr<DoFHandler<dim>> dof_handler;
 };
 } /* namespace forward */
 } /* namespace wavepi */

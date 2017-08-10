@@ -40,14 +40,13 @@ WaveEquationAdjoint<dim>::~WaveEquationAdjoint() {
 }
 
 template<int dim>
-WaveEquationAdjoint<dim>::WaveEquationAdjoint(std::shared_ptr<SpaceTimeMesh<dim>> mesh,
-      std::shared_ptr<DoFHandler<dim>> dof_handler, const Quadrature<dim> quad)
-      : WaveEquationBase<dim>(mesh, dof_handler, quad) {
+WaveEquationAdjoint<dim>::WaveEquationAdjoint(std::shared_ptr<SpaceTimeMesh<dim>> mesh)
+      : WaveEquationBase<dim>(mesh) {
 }
 
 template<int dim>
 WaveEquationAdjoint<dim>::WaveEquationAdjoint(const WaveEquationAdjoint<dim>& weq)
-      : WaveEquationBase<dim>(weq.get_mesh(), weq.get_dof_handler(), weq.get_quad()) {
+      : WaveEquationBase<dim>(weq.get_mesh()) {
    this->set_theta(weq.get_theta());
 
    this->set_param_c(weq.get_param_c());
@@ -60,7 +59,7 @@ WaveEquationAdjoint<dim>::WaveEquationAdjoint(const WaveEquationAdjoint<dim>& we
 
 template<int dim>
 WaveEquationAdjoint<dim>::WaveEquationAdjoint(const WaveEquationBase<dim>& weq)
-      : WaveEquationBase<dim>(weq.get_mesh(), weq.get_dof_handler(), weq.get_quad()) {
+      : WaveEquationBase<dim>(weq.get_mesh()) {
    this->set_theta(weq.get_theta());
 
    this->set_param_c(weq.get_param_c());
@@ -74,8 +73,6 @@ WaveEquationAdjoint<dim>::WaveEquationAdjoint(const WaveEquationBase<dim>& weq)
 template<int dim>
 WaveEquationAdjoint<dim>& WaveEquationAdjoint<dim>::operator=(const WaveEquationAdjoint<dim>& weq) {
    this->set_mesh(weq.get_mesh());
-   this->set_dof_handler(weq.get_dof_handler());
-   this->set_quad(weq.get_quad());
    this->set_theta(weq.get_theta());
 
    this->set_param_c(weq.get_param_c());
@@ -146,11 +143,11 @@ void WaveEquationAdjoint<dim>::setup_step(double time) {
    // this helps only a bit because each of the operations is already parallelized
    // tests show about 20%-30% (depending on dim) speedup on my Intel i5 4690
    Threads::TaskGroup<void> task_group;
-   task_group += Threads::new_task(&WaveEquationAdjoint<dim>::fill_A, *this, matrix_A);
-   task_group += Threads::new_task(&WaveEquationAdjoint<dim>::fill_B, *this, matrix_B);
-   task_group += Threads::new_task(&WaveEquationAdjoint<dim>::fill_C, *this, matrix_C);
+   task_group += Threads::new_task(&WaveEquationAdjoint<dim>::fill_A, *this, *dof_handler, matrix_A);
+   task_group += Threads::new_task(&WaveEquationAdjoint<dim>::fill_B, *this, *dof_handler, matrix_B);
+   task_group += Threads::new_task(&WaveEquationAdjoint<dim>::fill_C, *this, *dof_handler, matrix_C);
    task_group += Threads::new_task(&RightHandSide<dim>::create_right_hand_side, *right_hand_side,
-         *dof_handler, quad, rhs);
+         *dof_handler, mesh->get_quadrature(), rhs);
    task_group.join_all();
 }
 
@@ -385,6 +382,12 @@ DiscretizedFunction<dim> WaveEquationAdjoint<dim>::run() {
    // this is going to be the result
    DiscretizedFunction<dim> u(mesh, true);
 
+   // TODO: Here the situation is different from WaveEquation, because the first step happens in the for loop.
+   // -> init_system has to be rewritten anyway (executed before each step), so getting the dof handler now might be
+   // unnecessary!
+   AssertThrow(false, ExcNotImplemented());
+   dof_handler = mesh->get_dof_handler(mesh->get_times().size() - 1);
+
    // initialize everything
    init_system();
 
@@ -393,6 +396,12 @@ DiscretizedFunction<dim> WaveEquationAdjoint<dim>::run() {
 
       LogStream::Prefix pp("step-" + Utilities::int_to_string(j, 4));
       double time = mesh->get_time(i);
+
+      // TODO:
+      // 1. use old matrices to compute stuff for next step?
+      // 2. interpolate u and v and the needed temp values to new mesh and advance dof_handler
+      // or use assemble_u and assemble_v for step 1?
+      AssertThrow(false, ExcNotImplemented());
 
       setup_timer.start();
       setup_step(time);
