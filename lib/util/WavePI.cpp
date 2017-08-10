@@ -78,7 +78,6 @@ template<int dim> void WavePI<dim>::declare_parameters(ParameterHandler &prm) {
 
 template<int dim> WavePI<dim>::WavePI(std::shared_ptr<ParameterHandler> prm)
       : prm(prm) {
-
    fe_degree = prm->get_integer(KEY_FE_DEGREE);
    quad_order = prm->get_integer(KEY_QUAD_ORDER);
    end_time = prm->get_double(KEY_END_TIME);
