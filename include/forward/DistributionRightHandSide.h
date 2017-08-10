@@ -28,10 +28,31 @@ class DistributionRightHandSide: public RightHandSide<dim> {
       DistributionRightHandSide(Function<dim>* f1, Function<dim>* f2);
       virtual ~DistributionRightHandSide();
 
-      virtual void create_right_hand_side(const DoFHandler<dim> &dof_handler, const Quadrature<dim> &q,
-            Vector<double> &rhs) const;
+      virtual void create_right_hand_side(const DoFHandler<dim> &dof_handler, const Quadrature<dim> &q, Vector<double> &rhs) const;
 
    private:
+      struct AssemblyScratchData {
+            AssemblyScratchData(const FiniteElement<dim> &fe, const Quadrature<dim> &quad);
+            AssemblyScratchData(const AssemblyScratchData &scratch_data);
+            FEValues<dim> fe_values;
+      };
+
+      struct AssemblyCopyData {
+            Vector<double> cell_rhs;
+            std::vector<types::global_dof_index> local_dof_indices;
+      };
+
+      static void copy_local_to_global(Vector<double> &result, const AssemblyCopyData &copy_data);
+
+      static void local_assemble_dc(const Vector<double> &f1, const Function<dim> * const f2,
+            const typename DoFHandler<dim>::active_cell_iterator &cell, AssemblyScratchData &scratch_data, AssemblyCopyData &copy_data);
+      static void local_assemble_cd(const Function<dim> * const f1, const Vector<double> &f2,
+            const typename DoFHandler<dim>::active_cell_iterator &cell, AssemblyScratchData &scratch_data, AssemblyCopyData &copy_data);
+      static void local_assemble_dd(const Vector<double> &f1, const Vector<double> &f2,
+            const typename DoFHandler<dim>::active_cell_iterator &cell, AssemblyScratchData &scratch_data, AssemblyCopyData &copy_data);
+      static void local_assemble_cc(const Function<dim> * const f1, const Function<dim> * const f2,
+            const typename DoFHandler<dim>::active_cell_iterator &cell, AssemblyScratchData &scratch_data, AssemblyCopyData &copy_data);
+
       Function<dim> *f1;
       Function<dim> *f2;
 
