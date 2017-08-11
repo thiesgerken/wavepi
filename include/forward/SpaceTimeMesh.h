@@ -56,8 +56,8 @@ class SpaceTimeMesh {
 
       // takes some vectors defined on the mesh of time step source_time_index and interpolates them onto the mesh for target_time_index,
       // changing the given Vectors. Also returns an appropriate DoFHandler for target_time_index (invalidating all other DoFHandlers)
-      virtual std::shared_ptr<DoFHandler<dim> > transfer_to(size_t source_time_index, size_t target_time_index,
-            std::vector<std::shared_ptr<Vector<double>>> vectors) = 0;
+      virtual std::shared_ptr<DoFHandler<dim> > transfer(size_t source_time_index, size_t target_time_index,
+            std::initializer_list <Vector<double>*> vectors) = 0;
 
       //  Determine an estimate for the memory consumption (in bytes) of this object.
       virtual std::size_t memory_consumption() const = 0;

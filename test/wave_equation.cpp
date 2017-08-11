@@ -232,23 +232,23 @@ void run_discretized_test(int fe_order, int quad_order, int refines) {
    /* discretized */
 
    TestC<dim> c;
-   auto c_disc = std::make_shared<DiscretizedFunction<dim>>(mesh,  c);
+   auto c_disc = std::make_shared<DiscretizedFunction<dim>>(mesh, c);
    wave_eq.set_param_c(c_disc);
 
    TestA<dim> a;
-   auto a_disc = std::make_shared<DiscretizedFunction<dim>>(mesh,  a);
+   auto a_disc = std::make_shared<DiscretizedFunction<dim>>(mesh, a);
    wave_eq.set_param_a(a_disc);
 
    TestQ<dim> q;
-   auto q_disc = std::make_shared<DiscretizedFunction<dim>>(mesh,  q);
+   auto q_disc = std::make_shared<DiscretizedFunction<dim>>(mesh, q);
    wave_eq.set_param_q(q_disc);
 
    TestNu<dim> nu;
-   auto nu_disc = std::make_shared<DiscretizedFunction<dim>>(mesh,  nu);
+   auto nu_disc = std::make_shared<DiscretizedFunction<dim>>(mesh, nu);
    wave_eq.set_param_nu(nu_disc);
 
    TestF<dim> f;
-   auto f_disc = std::make_shared<DiscretizedFunction<dim>>(mesh,  f);
+   auto f_disc = std::make_shared<DiscretizedFunction<dim>>(mesh, f);
    wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(f_disc));
 
    timer.restart();
@@ -356,9 +356,9 @@ class SeparationAnsatz: public Function<dim> {
 
 template<int dim>
 void run_reference_test(int fe_order, int quad_order, int refines, Point<dim, int> k, Point<2> constants,
-      double t_end, int steps, bool expect = true) {
+      double t_end, int steps, bool expect = true, bool save = false) {
    auto triangulation = std::make_shared<Triangulation<dim>>();
-   GridGenerator::hyper_cube(*triangulation, -1, 1);
+   GridGenerator::hyper_cube(*triangulation, 0.0, numbers::PI);
    wavepi::util::GridTools::set_all_boundary_ids(*triangulation, 0);
    triangulation->refine_global(refines);
 
@@ -394,8 +394,8 @@ void run_reference_test(int fe_order, int quad_order, int refines, Point<dim, in
    DiscretizedFunction<dim> solv = solu.derivative();
    solu.throw_away_derivative();
 
-   DiscretizedFunction<dim> refu(mesh,  *u);
-   DiscretizedFunction<dim> refv(mesh,  *v);
+   DiscretizedFunction<dim> refu(mesh, *u);
+   DiscretizedFunction<dim> refv(mesh, *v);
 
    DiscretizedFunction<dim> tmp(solu);
    tmp -= refu;
@@ -417,8 +417,13 @@ void run_reference_test(int fe_order, int quad_order, int refines, Point<dim, in
    solv = solu.derivative();
    solu.throw_away_derivative();
 
-   refu = DiscretizedFunction<dim>(mesh,  *u);
-   refv = DiscretizedFunction<dim>(mesh,  *v);
+   refu = DiscretizedFunction<dim>(mesh, *u);
+   refv = DiscretizedFunction<dim>(mesh, *v);
+
+   if (save) {
+      solu.write_pvd("./", "solu", "u");
+      refu.write_pvd("./", "refu", "u");
+   }
 
    tmp = solu;
    tmp -= refu;
@@ -470,7 +475,7 @@ TEST(WaveEquationTest, ReferenceTest1DFE1) {
 TEST(WaveEquationTest, ReferenceTest1DFE2) {
    for (int steps = 16; steps <= 128; steps *= 2)
       run_reference_test<1>(2, 4, 7, Point<1, int>(2), Point<2>(1.0, 1.5), 2 * numbers::PI, steps,
-            steps >= 64);
+            steps >= 64, true);
 
    for (int refine = 6; refine >= 1; refine--)
       run_reference_test<1>(2, 4, refine, Point<1, int>(2), Point<2>(1.0, 1.5), 2 * numbers::PI, 128, false);
@@ -479,7 +484,7 @@ TEST(WaveEquationTest, ReferenceTest1DFE2) {
 TEST(WaveEquationTest, ReferenceTest2DFE1) {
    for (int steps = 16; steps <= 256; steps *= 2)
       run_reference_test<2>(1, 3, 6, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, steps,
-            steps >= 64);
+            steps >= 64, false);
 
    for (int refine = 5; refine >= 1; refine--)
       run_reference_test<2>(1, 3, refine, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, 256,

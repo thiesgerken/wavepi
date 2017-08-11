@@ -54,9 +54,9 @@ template<int dim> std::shared_ptr<Triangulation<dim> > ConstantMesh<dim>::get_tr
    return triangulation;
 }
 
-template<int dim> std::shared_ptr<DoFHandler<dim> > ConstantMesh<dim>::transfer_to(
+template<int dim> std::shared_ptr<DoFHandler<dim> > ConstantMesh<dim>::transfer(
       size_t source_time_index __attribute((unused)), size_t target_time_index __attribute((unused)),
-      std::vector<std::shared_ptr<Vector<double>>> vectors __attribute((unused))) {
+      std::initializer_list <Vector<double>*> vectors __attribute((unused))) {
    return dof_handler;
 }
 

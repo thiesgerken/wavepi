@@ -48,8 +48,8 @@ class ConstantMesh: public SpaceTimeMesh<dim> {
       virtual std::shared_ptr<Triangulation<dim> > get_triangulation(size_t time_index);
 
       // does nothing.
-      virtual std::shared_ptr<DoFHandler<dim> > transfer_to(size_t source_time_index, size_t target_time_index,
-            std::vector<std::shared_ptr<Vector<double>>> vectors);
+      virtual std::shared_ptr<DoFHandler<dim> > transfer(size_t source_time_index, size_t target_time_index,
+            std::initializer_list <Vector<double>*> vectors);
 
       //  Determine an estimate for the memory consumption (in bytes) of this object.
       virtual std::size_t memory_consumption() const;

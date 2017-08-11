@@ -62,11 +62,29 @@ class WaveEquation: public WaveEquationBase<dim> {
       using WaveEquationBase<dim>::theta;
       using WaveEquationBase<dim>::right_hand_side;
 
-      void init_system(double initial_time);
-      void setup_step(double time);
+      // initialize vectors and matrices
+      void init_system(size_t first_idx);
+
+      // move on one step (overwrite X_old with X)
+      void next_step(double time);
+
+      // assembling steps of u and v that need to happen on the old mesh
+      void assemble_u_pre(double time_step);
+      void assemble_v_pre(double time_step);
+
+      // move on to the mesh of the current time step,
+      // interpolating system_rhs_[u,v] and tmp_u on the next mesh
+      void next_mesh(size_t source_idx, size_t target_idx);
+
+      // assemble matices of the current time step
+      void assemble_matrices();
+
+      // final assembly of rhs for u and solving for u
       void assemble_u(double time_step);
-      void assemble_v(double time_step);
       void solve_u();
+
+      // final assembly of rhs for v and solving for v
+      void assemble_v(double time_step);
       void solve_v();
 
       Direction run_direction = Forward;
@@ -74,7 +92,6 @@ class WaveEquation: public WaveEquationBase<dim> {
       std::shared_ptr<Function<dim>> initial_values_u, initial_values_v;
       std::shared_ptr<Function<dim>> boundary_values_u, boundary_values_v;
 
-      ConstraintMatrix constraints;
       SparsityPattern sparsity_pattern;
 
       // matrices corresponding to the operators A, B, C at the current and the last time step
@@ -93,7 +110,9 @@ class WaveEquation: public WaveEquationBase<dim> {
 
       // space for linear systems and their right hand sides
       SparseMatrix<double> system_matrix;
-      Vector<double> system_rhs;
+      Vector<double> system_rhs_u;
+      Vector<double> system_rhs_v;
+      Vector<double> tmp_u; // stuff that assemble_u_pre wants to pass on to assemble_u
 
       // DoFHandler for the current time step
       std::shared_ptr<DoFHandler<dim>> dof_handler;

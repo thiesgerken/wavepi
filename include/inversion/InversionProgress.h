@@ -251,7 +251,7 @@ class OutputProgressListener: public InversionProgressListener<DiscretizedFuncti
             save_estimate = prm.get_bool("estimate");
             save_residual = prm.get_bool("residual");
 
-            destination_prefix = prm.get_bool("destination");
+            destination_prefix = prm.get("destination");
          }
          prm.leave_subsection();
       }
