@@ -61,6 +61,10 @@ class WaveEquation: public WaveEquationBase<dim> {
       using WaveEquationBase<dim>::mesh;
       using WaveEquationBase<dim>::theta;
       using WaveEquationBase<dim>::right_hand_side;
+      using WaveEquationBase<dim>::param_c;
+      using WaveEquationBase<dim>::param_nu;
+      using WaveEquationBase<dim>::param_a;
+      using WaveEquationBase<dim>::param_q;
 
       // initialize vectors and matrices
       void init_system(size_t first_idx);

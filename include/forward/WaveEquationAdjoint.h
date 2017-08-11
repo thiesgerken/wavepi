@@ -45,17 +45,35 @@ class WaveEquationAdjoint: public WaveEquationBase<dim> {
       using WaveEquationBase<dim>::mesh;
       using WaveEquationBase<dim>::theta;
       using WaveEquationBase<dim>::right_hand_side;
+      using WaveEquationBase<dim>::param_c;
+      using WaveEquationBase<dim>::param_nu;
+      using WaveEquationBase<dim>::param_a;
+      using WaveEquationBase<dim>::param_q;
 
-      void init_system();
-      void setup_step(double time);
-      void assemble_u(size_t i);
-      void assemble_v(size_t i);
+      // move on one step (overwrite X_old with X)
+      void next_step(size_t time_idx);
+
+      // assembling steps of u and v that need to happen on the old mesh
+      void assemble_u_pre(size_t time_idx);
+      void assemble_v_pre(size_t time_idx);
+
+      // move on to the mesh of the current time step,
+      // interpolating system_rhs_[u,v] and tmp_u on the next mesh
+      void next_mesh(size_t source_idx, size_t target_idx);
+
+      // assemble matices of the current time step
+      void assemble_matrices();
+
+      // final assembly of rhs for u and solving for u
+      void assemble_u(size_t time_idx);
       void solve_u();
+
+      // final assembly of rhs for v and solving for v
+      void assemble_v(size_t time_idx);
       void solve_v();
 
       DiscretizedFunction<dim> apply_R_transpose(const DiscretizedFunction<dim>& u) const;
 
-      ConstraintMatrix constraints;
       SparsityPattern sparsity_pattern;
 
       // matrices corresponding to the operators A, B, C at the current and the last time step
@@ -74,7 +92,8 @@ class WaveEquationAdjoint: public WaveEquationBase<dim> {
 
       // space for linear systems and their right hand sides
       SparseMatrix<double> system_matrix;
-      Vector<double> system_rhs;
+      Vector<double> system_rhs_u;
+      Vector<double> system_rhs_v;
 
       std::shared_ptr<DoFHandler<dim>> dof_handler;
 };

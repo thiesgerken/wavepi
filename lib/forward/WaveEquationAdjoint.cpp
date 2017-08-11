@@ -85,8 +85,13 @@ WaveEquationAdjoint<dim>& WaveEquationAdjoint<dim>::operator=(const WaveEquation
 }
 
 template<int dim>
-void WaveEquationAdjoint<dim>::init_system() {
-   DynamicSparsityPattern dsp(this->dof_handler->n_dofs(), this->dof_handler->n_dofs());
+void WaveEquationAdjoint<dim>::next_mesh(size_t source_idx, size_t target_idx) {
+   if (source_idx == mesh->get_times().size())
+      dof_handler = mesh->get_dof_handler(target_idx);
+   else
+      dof_handler = mesh->transfer(source_idx, target_idx, { &system_rhs_u, &system_rhs_v, &tmp_u });
+
+   DynamicSparsityPattern dsp(dof_handler->n_dofs(), dof_handler->n_dofs());
    DoFTools::make_sparsity_pattern(*dof_handler, dsp);
    sparsity_pattern.copy_from(dsp);
 
@@ -96,49 +101,47 @@ void WaveEquationAdjoint<dim>::init_system() {
    matrix_A.reinit(sparsity_pattern);
    matrix_B.reinit(sparsity_pattern);
    matrix_C.reinit(sparsity_pattern);
-   matrix_A_old.reinit(sparsity_pattern);
-   matrix_B_old.reinit(sparsity_pattern);
-   matrix_C_old.reinit(sparsity_pattern);
 
    system_matrix.reinit(sparsity_pattern);
 
+   rhs.reinit(dof_handler->n_dofs());
+
    solution_u.reinit(dof_handler->n_dofs());
    solution_v.reinit(dof_handler->n_dofs());
-   solution_u_old.reinit(dof_handler->n_dofs());
-   solution_v_old.reinit(dof_handler->n_dofs());
-
-   rhs.reinit(dof_handler->n_dofs());
-   rhs_old.reinit(dof_handler->n_dofs());
-
-   system_rhs.reinit(dof_handler->n_dofs());
-
-   constraints.close();
 }
 
 template<int dim>
-void WaveEquationAdjoint<dim>::setup_step(double time) {
-   LogStream::Prefix p("setup_step");
+void WaveEquationAdjoint<dim>::next_step(size_t time_idx) {
+   LogStream::Prefix p("next_step");
 
-   // matrices, solution and right hand side of current time step -> matrices, solution and rhs of last time step
-   matrix_A_old.copy_from(matrix_A);
-   matrix_B_old.copy_from(matrix_B);
-   matrix_C_old.copy_from(matrix_C);
-   rhs_old = rhs;
+   double time = mesh->get_time(time_idx);
 
-   solution_u_old = solution_u;
-   solution_v_old = solution_v;
+   param_a->set_time(time);
+   param_nu->set_time(time);
+   param_q->set_time(time);
+   param_c->set_time(time);
 
-   // setup matrices and right hand side for current time step
-   this->param_a->set_time(time);
-   this->param_nu->set_time(time);
-   this->param_q->set_time(time);
-   this->param_c->set_time(time);
-   this->right_hand_side->set_time(time);
+   right_hand_side->set_time(time);
 
-   matrix_A = 0;
-   matrix_B = 0;
-   matrix_C = 0;
-   rhs = 0;
+   if (time_idx != mesh->get_times().size() - 1) {
+      matrix_A_old.reinit(sparsity_pattern);
+      matrix_B_old.reinit(sparsity_pattern);
+      matrix_C_old.reinit(sparsity_pattern);
+
+      // matrices, solution and right hand side of current time step -> matrices, solution and rhs of last time step
+      matrix_A_old.copy_from(matrix_A);
+      matrix_B_old.copy_from(matrix_B);
+      matrix_C_old.copy_from(matrix_C);
+      rhs_old = rhs;
+
+      solution_u_old = solution_u;
+      solution_v_old = solution_v;
+   }
+}
+
+template<int dim>
+void WaveEquationAdjoint<dim>::assemble_matrices() {
+   LogStream::Prefix p("assemble_matrices");
 
    // this helps only a bit because each of the operations is already parallelized
    // tests show about 20%-30% (depending on dim) speedup on my Intel i5 4690
@@ -234,7 +237,7 @@ void WaveEquationAdjoint<dim>::assemble_u(size_t i) {
       system_matrix.add(theta * theta, matrix_A);
    }
 
-   MatrixTools::apply_boundary_values(boundary_values, system_matrix, solution_u, system_rhs);
+   MatrixTools::apply_boundary_values(boundary_values, system_matrix, solution_u, system_rhs_u);
 }
 
 template<int dim>
@@ -324,14 +327,16 @@ void WaveEquationAdjoint<dim>::assemble_v(size_t i) {
       system_matrix.add(theta, matrix_B);
    }
 
-   MatrixTools::apply_boundary_values(boundary_values, system_matrix, solution_v, system_rhs);
+   MatrixTools::apply_boundary_values(boundary_values, system_matrix, solution_v, system_rhs_v);
 }
 
 template<int dim>
 void WaveEquationAdjoint<dim>::solve_u() {
    LogStream::Prefix p("solve_u");
 
-   SolverControl solver_control(2000, this->tolerance * system_rhs.l2_norm());
+   double norm_rhs = system_rhs_u.l2_norm();
+
+   SolverControl solver_control(2000, this->tolerance * norm_rhs);
    SolverCG<> cg(solver_control);
 
    // Fewer (~half) iterations using preconditioner, but at least in 2D this is still not worth the effort
@@ -339,12 +344,12 @@ void WaveEquationAdjoint<dim>::solve_u() {
    // precondition.initialize (system_matrix, PreconditionSSOR<SparseMatrix<double> >::AdditionalData(.6));
    PreconditionIdentity precondition = PreconditionIdentity();
 
-   cg.solve(system_matrix, solution_u, system_rhs, precondition);
+   cg.solve(system_matrix, solution_u, system_rhs_u, precondition);
 
    std::ios::fmtflags f(deallog.flags(std::ios_base::scientific));
    deallog << "Steps: " << solver_control.last_step();
    deallog << ", ‖res‖ = " << solver_control.last_value();
-   deallog << ", ‖rhs‖ = " << system_rhs.l2_norm() << std::endl;
+   deallog << ", ‖rhs‖ = " << norm_rhs << std::endl;
 
    deallog.flags(f);
 }
@@ -353,19 +358,21 @@ template<int dim>
 void WaveEquationAdjoint<dim>::solve_v() {
    LogStream::Prefix p("solve_v");
 
-   SolverControl solver_control(2000, this->tolerance * system_rhs.l2_norm());
+   double norm_rhs = system_rhs_v.l2_norm();
+
+   SolverControl solver_control(2000, this->tolerance * norm_rhs);
    SolverCG<> cg(solver_control);
 
    // See the comment in solve_u about preconditioning
    PreconditionIdentity precondition = PreconditionIdentity();
 
-   cg.solve(system_matrix, solution_v, system_rhs, precondition);
+   cg.solve(system_matrix, solution_v, system_rhs_v, precondition);
 
    std::ios::fmtflags f(deallog.flags(std::ios_base::scientific));
 
    deallog << "Steps: " << solver_control.last_step();
    deallog << ", ‖res‖ = " << solver_control.last_value();
-   deallog << ", ‖rhs‖ = " << system_rhs.l2_norm() << std::endl;
+   deallog << ", ‖rhs‖ = " << norm_rhs << std::endl;
 
    deallog.flags(f);
 }
@@ -376,7 +383,7 @@ DiscretizedFunction<dim> WaveEquationAdjoint<dim>::run() {
    Assert(mesh->get_times().size() >= 2, ExcInternalError());
    Assert(mesh->get_times().size() < 10000, ExcNotImplemented());
 
-   Timer timer, setup_timer;
+   Timer timer, assembly_timer;
    timer.start();
 
    // this is going to be the result
@@ -386,10 +393,6 @@ DiscretizedFunction<dim> WaveEquationAdjoint<dim>::run() {
    // -> init_system has to be rewritten anyway (executed before each step), so getting the dof handler now might be
    // unnecessary!
    AssertThrow(false, ExcNotImplemented());
-   dof_handler = mesh->get_dof_handler(mesh->get_times().size() - 1);
-
-   // initialize everything
-   init_system();
 
    for (size_t j = 0; j < mesh->get_times().size(); j++) {
       size_t i = mesh->get_times().size() - 1 - j;
@@ -397,23 +400,31 @@ DiscretizedFunction<dim> WaveEquationAdjoint<dim>::run() {
       LogStream::Prefix pp("step-" + Utilities::int_to_string(j, 4));
       double time = mesh->get_time(i);
 
-      // TODO:
-      // 1. use old matrices to compute stuff for next step?
-      // 2. interpolate u and v and the needed temp values to new mesh and advance dof_handler
-      // or use assemble_u and assemble_v for step 1?
-      AssertThrow(false, ExcNotImplemented());
+      // u -> u_old, same for v and matrices
+      next_step(i);
 
-      setup_timer.start();
-      setup_step(time);
-      setup_timer.stop();
+      // assembling that needs to take place on the old grid
+      assemble_u_pre(i);
+      assemble_v_pre(i);
 
-      // solve for $v^n$
-      assemble_v(i);
-      solve_v();
+      // set dof_handler to mesh for this time step,
+      // interpolate to new mesh (if j != 0)
+      next_mesh(i + 1, i);
 
-      // solve for $u^n$
+      // assemble new matrices
+      assembly_timer.start();
+      assemble_matrices();
+      assembly_timer.stop();
+
+      // finish assembling of rhs_u
+      // and solve for $u^i$
       assemble_u(i);
       solve_u();
+
+      // finish assembling of rhs_u
+      // and solve for $v^i}$
+      assemble_v(i);
+      solve_v();
 
       u.set(i, solution_u, solution_v);
 
@@ -436,6 +447,9 @@ DiscretizedFunction<dim> WaveEquationAdjoint<dim>::run() {
 template<int dim>
 DiscretizedFunction<dim> WaveEquationAdjoint<dim>::apply_R_transpose(
       const DiscretizedFunction<dim>& u) const {
+   // TODO!
+   AssertThrow(false, ExcNotImplemented());
+
    DiscretizedFunction<dim> res(mesh, false);
 
    for (size_t j = 0; j < mesh->get_times().size(); j++) {

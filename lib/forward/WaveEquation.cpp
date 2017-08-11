@@ -140,10 +140,10 @@ template<int dim>
 void WaveEquation<dim>::next_step(double time) {
    LogStream::Prefix p("next_step");
 
-   this->param_a->set_time(time);
-   this->param_nu->set_time(time);
-   this->param_q->set_time(time);
-   this->param_c->set_time(time);
+   param_a->set_time(time);
+   param_nu->set_time(time);
+   param_q->set_time(time);
+   param_c->set_time(time);
 
    boundary_values_u->set_time(time);
    boundary_values_v->set_time(time);
