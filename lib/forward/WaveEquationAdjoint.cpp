@@ -231,7 +231,6 @@ void WaveEquationAdjoint<dim>::assemble_u(size_t i) {
 
       system_rhs_u = rhs;
 
-      system_matrix = 0.0;
       system_matrix.add(1.0 / (time_step * time_step), matrix_C);
       system_matrix.add(theta / time_step, matrix_B);
       system_matrix.add(theta * theta, matrix_A);

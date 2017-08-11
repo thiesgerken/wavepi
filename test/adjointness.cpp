@@ -170,8 +170,8 @@ template<> const Point<3> TestQ<3>::q_position = Point<3>(-1.0, 0.5, 0.0);
 template<int dim>
 void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_steps,
       typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver, bool set_nu, double tol) {
-   Assert(
-         adjoint_solver == WaveEquationBase<dim>::WaveEquationAdjoint && adjoint_solver == WaveEquationBase<dim>::WaveEquationBackwards,
+   AssertThrow(
+         adjoint_solver == WaveEquationBase<dim>::WaveEquationAdjoint || adjoint_solver == WaveEquationBase<dim>::WaveEquationBackwards,
          ExcInternalError());
 
    auto triangulation = std::make_shared<Triangulation<dim>>();
@@ -185,10 +185,7 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
    for (size_t i = 0; t_start + i * dt <= t_end; i++)
       times.push_back(t_start + i * dt);
 
-   FE_Q<dim> fe(fe_order);
-   Quadrature<dim> quad = QGauss<dim>(quad_order); // exact in poly degree 2n-1 (needed: fe_dim^3)
-
-   std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, fe, quad,
+   std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, FE_Q<dim> (fe_order),  QGauss<dim>(quad_order),
          triangulation);
 
    deallog << std::endl << "----------  n_dofs / timestep: " << mesh->get_dof_handler(0)->n_dofs();
@@ -207,7 +204,7 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
    bool use_adj = adjoint_solver == WaveEquationBase<dim>::WaveEquationAdjoint;
 
    TestF<dim> f_cont;
-   auto f = std::make_shared<DiscretizedFunction<dim>>(mesh);
+   auto f = std::make_shared<DiscretizedFunction<dim>>(mesh, f_cont);
 
    wave_eq.set_run_direction(WaveEquation<dim>::Forward);
    wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(f));

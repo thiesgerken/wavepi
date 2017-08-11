@@ -102,8 +102,20 @@ void WaveEquation<dim>::init_system(size_t first_idx) {
    system_rhs_v.reinit(dof_handler->n_dofs());
    tmp_u.reinit(dof_handler->n_dofs());
 
-   initial_values_u->set_time(mesh->get_time(first_idx));
-   initial_values_v->set_time(mesh->get_time(first_idx));
+   double time = mesh->get_time(first_idx);
+
+   param_a->set_time(time);
+   param_nu->set_time(time);
+   param_q->set_time(time);
+   param_c->set_time(time);
+
+   boundary_values_u->set_time(time);
+   boundary_values_v->set_time(time);
+
+   right_hand_side->set_time(time);
+
+   initial_values_u->set_time(time);
+   initial_values_v->set_time(time);
 
    /* projecting might make more sense, but VectorTools::project
     leads to a mutex error (deadlock) on my laptop (Core i5 6267U) */
