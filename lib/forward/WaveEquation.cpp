@@ -182,10 +182,9 @@ void WaveEquation<dim>::assemble_matrices() {
 template<int dim>
 void WaveEquation<dim>::assemble_u_pre(double time_step) {
    Vector<double> tmp(solution_u_old.size());
-   system_rhs_u = 0.0;
 
    matrix_C_old.vmult(tmp, solution_v_old);
-   system_rhs_u.add(theta * time_step, tmp);
+   system_rhs_u.equ(theta * time_step, tmp);
 
    system_rhs_u.add(theta * (1.0 - theta) * time_step * time_step, rhs_old);
 
@@ -226,9 +225,8 @@ void WaveEquation<dim>::assemble_u(double time_step) {
 template<int dim>
 void WaveEquation<dim>::assemble_v_pre(double time_step) {
    Vector<double> tmp(solution_u_old.size());
-   system_rhs_v = 0.0;
 
-   matrix_C_old.vmult_add(system_rhs_v, solution_v_old);
+   matrix_C_old.vmult(system_rhs_v, solution_v_old);
 
    system_rhs_v.add((1.0 - theta) * time_step, rhs_old);
 
@@ -363,7 +361,7 @@ DiscretizedFunction<dim> WaveEquation<dim>::run() {
       solve_u();
 
       // finish assembling of rhs_u
-      // and solve for $v^i}$
+      // and solve for $v^i$
       assemble_v(dt);
       solve_v();
 

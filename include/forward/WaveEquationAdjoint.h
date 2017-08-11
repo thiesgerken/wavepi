@@ -72,7 +72,7 @@ class WaveEquationAdjoint: public WaveEquationBase<dim> {
       void assemble_v(size_t time_idx);
       void solve_v();
 
-      DiscretizedFunction<dim> apply_R_transpose(const DiscretizedFunction<dim>& u) const;
+      DiscretizedFunction<dim> apply_R_transpose(const DiscretizedFunction<dim>& u);
 
       SparsityPattern sparsity_pattern;
 
@@ -90,10 +90,15 @@ class WaveEquationAdjoint: public WaveEquationBase<dim> {
       Vector<double> solution_u_old, solution_v_old;
       Vector<double> rhs, rhs_old;
 
-      // space for linear systems and their right hand sides
+      // space for linear systems, their right hand sides
+      // and some temporary storage between assemble and pre_assemble.
       SparseMatrix<double> system_matrix;
+
       Vector<double> system_rhs_u;
       Vector<double> system_rhs_v;
+
+      Vector<double> tmp_u;
+      Vector<double> tmp_v;
 
       std::shared_ptr<DoFHandler<dim>> dof_handler;
 };

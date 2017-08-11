@@ -86,7 +86,7 @@ void L2RightHandSide<dim>::create_right_hand_side(const DoFHandler<dim> &dof, co
    auto base_rhs_d = std::dynamic_pointer_cast<DiscretizedFunction<dim>>(base_rhs);
 
    if (base_rhs_d) {
-      Vector<double> coeffs = base_rhs_d->get_function_coefficients()[base_rhs_d->get_time_index()];
+      Vector<double> coeffs = base_rhs_d->get_function_coefficient(base_rhs_d->get_time_index());
       Assert(coeffs.size() == dof.n_dofs(), ExcDimensionMismatch (coeffs.size() , dof.n_dofs()));
 
       WorkStream::run(dof.begin_active(), dof.end(),

@@ -110,14 +110,14 @@ class DiscretizedFunction: public Function<dim> {
       double get_time_index() const;
       void set_time(const double new_time);
 
-      inline const std::vector<Vector<double> >& get_derivative_coefficients() const {
+      inline const Vector<double>& get_derivative_coefficient(size_t idx) const {
          Assert(store_derivative, ExcInvalidState());
 
-         return derivative_coefficients;
+         return derivative_coefficients[idx];
       }
 
-      inline const std::vector<Vector<double> >& get_function_coefficients() const {
-         return function_coefficients;
+      inline const Vector<double>& get_function_coefficient(size_t idx) const {
+         return function_coefficients[idx];
       }
 
       // get / set what `norm()` and `*` do.
