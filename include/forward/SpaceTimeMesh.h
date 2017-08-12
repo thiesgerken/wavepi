@@ -37,6 +37,10 @@ class SpaceTimeMesh {
       // Might invalidate the last return value of get_dof_handler!
       virtual std::shared_ptr<SparseMatrix<double>> get_mass_matrix(size_t time_index) = 0;
 
+      // If this is not in storage (yet), then the result of get_dof_handler is used to create one
+      // Might invalidate the last return value of get_dof_handler!
+      virtual std::shared_ptr<SparsityPattern> get_sparsity_pattern(size_t time_index) = 0;
+
       // in some cases one does not need a whole DoFHandler, only the number of degrees of freedom.
       // (e.g. in empty vector creation)
       virtual size_t get_n_dofs(size_t time_index) = 0;
@@ -57,7 +61,7 @@ class SpaceTimeMesh {
       // takes some vectors defined on the mesh of time step source_time_index and interpolates them onto the mesh for target_time_index,
       // changing the given Vectors. Also returns an appropriate DoFHandler for target_time_index (invalidating all other DoFHandlers)
       virtual std::shared_ptr<DoFHandler<dim> > transfer(size_t source_time_index, size_t target_time_index,
-            std::initializer_list <Vector<double>*> vectors) = 0;
+            std::initializer_list<Vector<double>*> vectors) = 0;
 
       //  Determine an estimate for the memory consumption (in bytes) of this object.
       virtual std::size_t memory_consumption() const = 0;
@@ -72,6 +76,11 @@ class SpaceTimeMesh {
          return times[time_index];
       }
 
+      // number of time steps (equals get_times().size())
+      inline size_t length() {
+         return times.size();
+      }
+
       // tries to find a given time in the times vector (using a binary search)
       // returns the index of the nearest time, the caller has to decide whether it is good enough.
       // must not be called on a empty discretization!
@@ -79,7 +88,7 @@ class SpaceTimeMesh {
       size_t find_nearest_time(double time) const;
       bool near_enough(double time, size_t idx) const;
 
-     inline const Quadrature<dim>& get_quadrature() const {
+      inline const Quadrature<dim>& get_quadrature() const {
          return quad;
       }
 

@@ -134,7 +134,7 @@ template<int dim>
 DiscretizedFunction<dim> DivRightHandSideAdjoint<dim>::run_adjoint(std::shared_ptr<SpaceTimeMesh<dim>> mesh) {
    DiscretizedFunction<dim> target(mesh);
 
-   for (size_t i = 0; i < mesh->get_times().size(); i++) {
+   for (size_t i = 0; i < mesh->length(); i++) {
       this->set_time(mesh->get_time(i));
       auto dof_handler = mesh->get_dof_handler(i);
 

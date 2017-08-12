@@ -74,7 +74,7 @@ class WaveEquationAdjoint: public WaveEquationBase<dim> {
 
       DiscretizedFunction<dim> apply_R_transpose(const DiscretizedFunction<dim>& u);
 
-      SparsityPattern sparsity_pattern;
+      std::shared_ptr<SparsityPattern> sparsity_pattern;
 
       // matrices corresponding to the operators A, B, C at the current and the last time step
       SparseMatrix<double> matrix_A;

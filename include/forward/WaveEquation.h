@@ -96,7 +96,7 @@ class WaveEquation: public WaveEquationBase<dim> {
       std::shared_ptr<Function<dim>> initial_values_u, initial_values_v;
       std::shared_ptr<Function<dim>> boundary_values_u, boundary_values_v;
 
-      SparsityPattern sparsity_pattern;
+      std::shared_ptr<SparsityPattern> sparsity_pattern;
 
       // matrices corresponding to the operators A, B, C at the current and the last time step
       SparseMatrix<double> matrix_A;

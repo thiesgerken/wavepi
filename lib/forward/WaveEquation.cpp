@@ -82,17 +82,11 @@ WaveEquation<dim>& WaveEquation<dim>::operator=(const WaveEquation<dim>& weq) {
 template<int dim>
 void WaveEquation<dim>::init_system(size_t first_idx) {
    dof_handler = mesh->get_dof_handler(first_idx);
+   sparsity_pattern = mesh->get_sparsity_pattern(first_idx);
 
-   DynamicSparsityPattern dsp(dof_handler->n_dofs(), dof_handler->n_dofs());
-   DoFTools::make_sparsity_pattern(*dof_handler, dsp);
-   sparsity_pattern.copy_from(dsp);
-
-   // std::ofstream out("sparsity_pattern.svg");
-   // sparsity_pattern.print_svg(out);
-
-   matrix_A.reinit(sparsity_pattern);
-   matrix_B.reinit(sparsity_pattern);
-   matrix_C.reinit(sparsity_pattern);
+   matrix_A.reinit(*sparsity_pattern);
+   matrix_B.reinit(*sparsity_pattern);
+   matrix_C.reinit(*sparsity_pattern);
 
    rhs.reinit(dof_handler->n_dofs());
 
@@ -128,19 +122,13 @@ void WaveEquation<dim>::init_system(size_t first_idx) {
 template<int dim>
 void WaveEquation<dim>::next_mesh(size_t source_idx, size_t target_idx) {
    dof_handler = mesh->transfer(source_idx, target_idx, { &system_rhs_u, &system_rhs_v, &tmp_u });
+   sparsity_pattern = mesh->get_sparsity_pattern(target_idx);
 
-   DynamicSparsityPattern dsp(dof_handler->n_dofs(), dof_handler->n_dofs());
-   DoFTools::make_sparsity_pattern(*dof_handler, dsp);
-   sparsity_pattern.copy_from(dsp);
+   matrix_A.reinit(*sparsity_pattern);
+   matrix_B.reinit(*sparsity_pattern);
+   matrix_C.reinit(*sparsity_pattern);
 
-   // std::ofstream out("sparsity_pattern.svg");
-   // sparsity_pattern.print_svg(out);
-
-   matrix_A.reinit(sparsity_pattern);
-   matrix_B.reinit(sparsity_pattern);
-   matrix_C.reinit(sparsity_pattern);
-
-   system_matrix.reinit(sparsity_pattern);
+   system_matrix.reinit(*sparsity_pattern);
 
    rhs.reinit(dof_handler->n_dofs());
 
@@ -162,9 +150,9 @@ void WaveEquation<dim>::next_step(double time) {
 
    right_hand_side->set_time(time);
 
-   matrix_A_old.reinit(sparsity_pattern);
-   matrix_B_old.reinit(sparsity_pattern);
-   matrix_C_old.reinit(sparsity_pattern);
+   matrix_A_old.reinit(*sparsity_pattern);
+   matrix_B_old.reinit(*sparsity_pattern);
+   matrix_C_old.reinit(*sparsity_pattern);
 
    // matrices, solution and right hand side of current time step -> matrices, solution and rhs of last time step
    matrix_A_old.copy_from(matrix_A);
@@ -319,8 +307,8 @@ void WaveEquation<dim>::solve_v() {
 template<int dim>
 DiscretizedFunction<dim> WaveEquation<dim>::run() {
    LogStream::Prefix p("WaveEq");
-   Assert(mesh->get_times().size() >= 2, ExcInternalError());
-   Assert(mesh->get_times().size() < 10000, ExcNotImplemented());
+   Assert(mesh->length() >= 2, ExcInternalError());
+   Assert(mesh->length() < 10000, ExcNotImplemented());
 
    Timer timer, assembly_timer;
    timer.start();
@@ -329,7 +317,7 @@ DiscretizedFunction<dim> WaveEquation<dim>::run() {
    DiscretizedFunction<dim> u(mesh, true);
 
    bool backwards = run_direction == Backward;
-   int first_idx = backwards ? mesh->get_times().size() - 1 : 0;
+   int first_idx = backwards ? mesh->length() - 1 : 0;
 
    // set dof_handler to first grid,
    // initialize everything and project/interpolate initial values
@@ -341,11 +329,11 @@ DiscretizedFunction<dim> WaveEquation<dim>::run() {
    // add initial values to output data
    u.set(first_idx, solution_u, solution_v);
 
-   for (size_t i = 1; i < mesh->get_times().size(); i++) {
+   for (size_t i = 1; i < mesh->length(); i++) {
       LogStream::Prefix pp("step-" + Utilities::int_to_string(i, 4));
 
-      int time_idx = backwards ? mesh->get_times().size() - 1 - i : i;
-      int last_time_idx = backwards ? mesh->get_times().size() - i : i - 1;
+      int time_idx = backwards ? mesh->length() - 1 - i : i;
+      int last_time_idx = backwards ? mesh->length() - i : i - 1;
 
       double time = mesh->get_time(time_idx);
       double last_time = mesh->get_time(last_time_idx);

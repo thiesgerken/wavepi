@@ -86,7 +86,7 @@ WaveEquationAdjoint<dim>& WaveEquationAdjoint<dim>::operator=(const WaveEquation
 
 template<int dim>
 void WaveEquationAdjoint<dim>::next_mesh(size_t source_idx, size_t target_idx) {
-   if (source_idx == mesh->get_times().size()) {
+   if (source_idx == mesh->length()) {
       dof_handler = mesh->get_dof_handler(target_idx);
 
       system_rhs_u.reinit(dof_handler->n_dofs());
@@ -97,18 +97,13 @@ void WaveEquationAdjoint<dim>::next_mesh(size_t source_idx, size_t target_idx) {
    } else
       dof_handler = mesh->transfer(source_idx, target_idx, { &system_rhs_u, &system_rhs_v, &tmp_u, &tmp_v });
 
-   DynamicSparsityPattern dsp(dof_handler->n_dofs(), dof_handler->n_dofs());
-   DoFTools::make_sparsity_pattern(*dof_handler, dsp);
-   sparsity_pattern.copy_from(dsp);
+   sparsity_pattern = mesh->get_sparsity_pattern(target_idx);
 
-   // std::ofstream out("sparsity_pattern.svg");
-   // sparsity_pattern.print_svg(out);
+   matrix_A.reinit(*sparsity_pattern);
+   matrix_B.reinit(*sparsity_pattern);
+   matrix_C.reinit(*sparsity_pattern);
 
-   matrix_A.reinit(sparsity_pattern);
-   matrix_B.reinit(sparsity_pattern);
-   matrix_C.reinit(sparsity_pattern);
-
-   system_matrix.reinit(sparsity_pattern);
+   system_matrix.reinit(*sparsity_pattern);
 
    rhs.reinit(dof_handler->n_dofs());
 
@@ -129,10 +124,10 @@ void WaveEquationAdjoint<dim>::next_step(size_t time_idx) {
 
    right_hand_side->set_time(time);
 
-   if (time_idx != mesh->get_times().size() - 1) {
-      matrix_A_old.reinit(sparsity_pattern);
-      matrix_B_old.reinit(sparsity_pattern);
-      matrix_C_old.reinit(sparsity_pattern);
+   if (time_idx != mesh->length() - 1) {
+      matrix_A_old.reinit(*sparsity_pattern);
+      matrix_B_old.reinit(*sparsity_pattern);
+      matrix_C_old.reinit(*sparsity_pattern);
 
       // matrices, solution and right hand side of current time step -> matrices, solution and rhs of last time step
       matrix_A_old.copy_from(matrix_A);
@@ -155,14 +150,14 @@ void WaveEquationAdjoint<dim>::assemble_matrices() {
    task_group += Threads::new_task(&WaveEquationAdjoint<dim>::fill_A, *this, *dof_handler, matrix_A);
    task_group += Threads::new_task(&WaveEquationAdjoint<dim>::fill_B, *this, *dof_handler, matrix_B);
    task_group += Threads::new_task(&WaveEquationAdjoint<dim>::fill_C, *this, *dof_handler, matrix_C);
-   task_group += Threads::new_task(&RightHandSide<dim>::create_right_hand_side, *right_hand_side, *dof_handler, mesh->get_quadrature(),
-         rhs);
+   task_group += Threads::new_task(&RightHandSide<dim>::create_right_hand_side, *right_hand_side, *dof_handler,
+         mesh->get_quadrature(), rhs);
    task_group.join_all();
 }
 
 template<int dim>
 void WaveEquationAdjoint<dim>::assemble_u_pre(size_t i) {
-   if (i == mesh->get_times().size() - 1) {
+   if (i == mesh->length() - 1) {
       /* i == N
        *
        * (M_N^2)^t (u_N, v_N)^t = (g_N, 0)^t
@@ -217,7 +212,7 @@ void WaveEquationAdjoint<dim>::assemble_u_pre(size_t i) {
 
 template<int dim>
 void WaveEquationAdjoint<dim>::assemble_u(size_t i) {
-   if (i == mesh->get_times().size() - 1) {
+   if (i == mesh->length() - 1) {
       /* i == N
        *
        * (M_N^2)^t (u_N, v_N)^t = (g_N, 0)^t
@@ -278,7 +273,7 @@ void WaveEquationAdjoint<dim>::assemble_u(size_t i) {
 
 template<int dim>
 void WaveEquationAdjoint<dim>::assemble_v_pre(size_t i) {
-   if (i == mesh->get_times().size() - 1) {
+   if (i == mesh->length() - 1) {
       /*
        * (M_N^2)^t (u_N, v_N)^t = (g_N, 0)^t
        *
@@ -335,7 +330,7 @@ void WaveEquationAdjoint<dim>::assemble_v_pre(size_t i) {
 
 template<int dim>
 void WaveEquationAdjoint<dim>::assemble_v(size_t i) {
-   if (i == mesh->get_times().size() - 1) {
+   if (i == mesh->length() - 1) {
       /*
        * (M_N^2)^t (u_N, v_N)^t = (g_N, 0)^t
        *
@@ -446,8 +441,8 @@ void WaveEquationAdjoint<dim>::solve_v() {
 template<int dim>
 DiscretizedFunction<dim> WaveEquationAdjoint<dim>::run() {
    LogStream::Prefix p("WaveEqAdj");
-   Assert(mesh->get_times().size() >= 2, ExcInternalError());
-   Assert(mesh->get_times().size() < 10000, ExcNotImplemented());
+   Assert(mesh->length() >= 2, ExcInternalError());
+   Assert(mesh->length() < 10000, ExcNotImplemented());
 
    Timer timer, assembly_timer;
    timer.start();
@@ -455,8 +450,8 @@ DiscretizedFunction<dim> WaveEquationAdjoint<dim>::run() {
    // this is going to be the result
    DiscretizedFunction<dim> u(mesh, true);
 
-   for (size_t j = 0; j < mesh->get_times().size(); j++) {
-      size_t i = mesh->get_times().size() - 1 - j;
+   for (size_t j = 0; j < mesh->length(); j++) {
+      size_t i = mesh->length() - 1 - j;
 
       LogStream::Prefix pp("step-" + Utilities::int_to_string(j, 4));
       double time = mesh->get_time(i);
@@ -497,7 +492,8 @@ DiscretizedFunction<dim> WaveEquationAdjoint<dim>::run() {
 
    timer.stop();
    std::ios::fmtflags f(deallog.flags(std::ios_base::fixed));
-   deallog << "solved adjoint pde in " << timer.wall_time() << "s (setup " << assembly_timer.wall_time() << "s)" << std::endl;
+   deallog << "solved adjoint pde in " << timer.wall_time() << "s (setup " << assembly_timer.wall_time() << "s)"
+         << std::endl;
    deallog.flags(f);
 
    return apply_R_transpose(u);
@@ -507,14 +503,14 @@ DiscretizedFunction<dim> WaveEquationAdjoint<dim>::run() {
 template<int dim>
 DiscretizedFunction<dim> WaveEquationAdjoint<dim>::apply_R_transpose(const DiscretizedFunction<dim>& u) {
    DiscretizedFunction<dim> res(mesh, false);
-   dof_handler = mesh->get_dof_handler(mesh->get_times().size() - 1);
+   dof_handler = mesh->get_dof_handler(mesh->length() - 1);
 
-   for (size_t j = 0; j < mesh->get_times().size(); j++) {
-      size_t i = mesh->get_times().size() - 1 - j;
+   for (size_t j = 0; j < mesh->length(); j++) {
+      size_t i = mesh->length() - 1 - j;
 
       Vector<double> tmp(u.get_function_coefficient(i).size());
 
-      if (i != mesh->get_times().size() - 1) {
+      if (i != mesh->length() - 1) {
          tmp.equ(theta * (1 - theta), u.get_function_coefficient(i + 1));
          tmp.add(1 - theta, u.get_derivative_coefficient(i + 1));
 

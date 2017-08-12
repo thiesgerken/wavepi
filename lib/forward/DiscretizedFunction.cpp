@@ -43,12 +43,12 @@ DiscretizedFunction<dim>::DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>
       : store_derivative(store_derivative), cur_time_idx(0), mesh(mesh) {
    Assert(mesh, ExcNotInitialized());
 
-   function_coefficients.reserve(mesh->get_times().size());
+   function_coefficients.reserve(mesh->length());
 
    if (store_derivative)
-      derivative_coefficients.reserve(mesh->get_times().size());
+      derivative_coefficients.reserve(mesh->length());
 
-   for (size_t i = 0; i < mesh->get_times().size(); i++) {
+   for (size_t i = 0; i < mesh->length(); i++) {
       function_coefficients.emplace_back(mesh->get_n_dofs(i));
 
       if (store_derivative)
@@ -68,9 +68,9 @@ DiscretizedFunction<dim>::DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>
       : store_derivative(false), cur_time_idx(0), mesh(mesh) {
    Assert(mesh, ExcNotInitialized());
 
-   function_coefficients.reserve(mesh->get_times().size());
+   function_coefficients.reserve(mesh->length());
 
-   for (size_t i = 0; i < mesh->get_times().size(); i++) {
+   for (size_t i = 0; i < mesh->length(); i++) {
       auto dof_handler = mesh->get_dof_handler(i);
 
       Vector<double> tmp(dof_handler->n_dofs());
@@ -141,12 +141,12 @@ DiscretizedFunction<dim> DiscretizedFunction<dim>::derivative() const {
 template<int dim>
 DiscretizedFunction<dim> DiscretizedFunction<dim>::calculate_derivative() const {
    Assert(mesh, ExcNotInitialized());
-   Assert(mesh->get_times().size() > 1, ExcInternalError());
+   Assert(mesh->length() > 1, ExcInternalError());
    Assert(!store_derivative, ExcInternalError()); // why would you want to calculate it in this case?
 
    DiscretizedFunction<dim> result(mesh, false);
 
-   for (size_t i = 0; i < mesh->get_times().size(); i++) {
+   for (size_t i = 0; i < mesh->length(); i++) {
       if (i == 0) {
          // TODO: get DoFHandlers and so on to do this, maybe even go back to the theory and check what is appropriate here
          AssertThrow(function_coefficients[i + 1].size() == function_coefficients[i].size(),
@@ -155,7 +155,7 @@ DiscretizedFunction<dim> DiscretizedFunction<dim>::calculate_derivative() const 
          result.function_coefficients[i] = function_coefficients[i + 1];
          result.function_coefficients[i] -= function_coefficients[i];
          result.function_coefficients[i] /= mesh->get_time(i + 1) - mesh->get_time(i);
-      } else if (i == mesh->get_times().size() - 1) {
+      } else if (i == mesh->length() - 1) {
          result.function_coefficients[i] = function_coefficients[i];
          result.function_coefficients[i] -= function_coefficients[i - 1];
          result.function_coefficients[i] /= mesh->get_time(i) - mesh->get_time(i - 1);
@@ -177,11 +177,11 @@ DiscretizedFunction<dim> DiscretizedFunction<dim>::calculate_derivative_transpos
    Assert(!store_derivative, ExcInternalError());
 
    // because of the special cases
-   Assert(mesh->get_times().size() > 3, ExcInternalError());
+   Assert(mesh->length() > 3, ExcInternalError());
 
    DiscretizedFunction<dim> result(mesh, false);
 
-   for (size_t i = 0; i < mesh->get_times().size(); i++) {
+   for (size_t i = 0; i < mesh->length(); i++) {
       auto dest = &result.function_coefficients[i];
 
       if (i == 0) {
@@ -196,11 +196,11 @@ DiscretizedFunction<dim> DiscretizedFunction<dim>::calculate_derivative_transpos
          *dest = function_coefficients[i + 1];
          dest->sadd(-1.0 / (mesh->get_time(i + 2) - mesh->get_time(i)),
                1.0 / (mesh->get_time(i) - mesh->get_time(i - 1)), function_coefficients[i - 1]);
-      } else if (i == mesh->get_times().size() - 1) {
+      } else if (i == mesh->length() - 1) {
          *dest = function_coefficients[i];
          dest->sadd(1.0 / (mesh->get_time(i) - mesh->get_time(i - 1)),
                1.0 / (mesh->get_time(i) - mesh->get_time(i - 2)), function_coefficients[i - 1]);
-      } else if (i == mesh->get_times().size() - 2) {
+      } else if (i == mesh->length() - 2) {
          *dest = function_coefficients[i + 1];
          dest->sadd(-1.0 / (mesh->get_time(i + 1) - mesh->get_time(i)),
                1.0 / (mesh->get_time(i) - mesh->get_time(i - 2)), function_coefficients[i - 1]);
@@ -218,7 +218,7 @@ template<int dim>
 void DiscretizedFunction<dim>::set(size_t i, const Vector<double>& u, const Vector<double>& v) {
    Assert(mesh, ExcNotInitialized());
    Assert(store_derivative, ExcInternalError());
-   Assert(i >= 0 && i < mesh->get_times().size(), ExcIndexRange(i, 0, mesh->get_times().size()));
+   Assert(i >= 0 && i < mesh->length(), ExcIndexRange(i, 0, mesh->length()));
    Assert(function_coefficients[i].size() == u.size(),
          ExcDimensionMismatch(function_coefficients[i].size(), u.size()));
    Assert(derivative_coefficients[i].size() == v.size(),
@@ -232,7 +232,7 @@ template<int dim>
 void DiscretizedFunction<dim>::set(size_t i, const Vector<double>& u) {
    Assert(mesh, ExcNotInitialized());
    Assert(!store_derivative, ExcInternalError());
-   Assert(i >= 0 && i < mesh->get_times().size(), ExcIndexRange(i, 0, mesh->get_times().size()));
+   Assert(i >= 0 && i < mesh->length(), ExcIndexRange(i, 0, mesh->length()));
    Assert(function_coefficients[i].size() == u.size(),
          ExcDimensionMismatch(function_coefficients[i].size(), u.size()));
 
@@ -243,7 +243,7 @@ template<int dim>
 DiscretizedFunction<dim>& DiscretizedFunction<dim>::operator=(double x) {
    Assert(mesh, ExcNotInitialized());
 
-   for (size_t i = 0; i < mesh->get_times().size(); i++) {
+   for (size_t i = 0; i < mesh->length(); i++) {
       function_coefficients[i] = x;
 
       if (store_derivative)
@@ -268,7 +268,7 @@ DiscretizedFunction<dim>& DiscretizedFunction<dim>::operator-=(const Discretized
 
 template<int dim>
 DiscretizedFunction<dim>& DiscretizedFunction<dim>::operator*=(const double factor) {
-   for (size_t i = 0; i < mesh->get_times().size(); i++) {
+   for (size_t i = 0; i < mesh->length(); i++) {
       function_coefficients[i] *= factor;
 
       if (store_derivative)
@@ -286,7 +286,7 @@ void DiscretizedFunction<dim>::rand() {
    std::default_random_engine generator;
    std::uniform_real_distribution<double> distribution(0, 1);
 
-   for (size_t i = 0; i < mesh->get_times().size(); i++)
+   for (size_t i = 0; i < mesh->length(); i++)
       for (size_t j = 0; j < function_coefficients[i].size(); j++)
          function_coefficients[i][j] = distribution(generator);
 }
@@ -313,7 +313,7 @@ void DiscretizedFunction<dim>::pointwise_multiplication(const DiscretizedFunctio
    Assert(mesh == V.mesh, ExcInternalError ());
    Assert(!store_derivative || (store_derivative == V.store_derivative), ExcInternalError ());
 
-   for (size_t i = 0; i < mesh->get_times().size(); i++) {
+   for (size_t i = 0; i < mesh->length(); i++) {
       Assert(function_coefficients[i].size() == V.function_coefficients[i].size(),
             ExcDimensionMismatch (function_coefficients[i].size() , V.function_coefficients[i].size()));
 
@@ -339,7 +339,7 @@ void DiscretizedFunction<dim>::add(const double a, const DiscretizedFunction<dim
    Assert(mesh == V.mesh, ExcInternalError ());
    Assert(!store_derivative || (store_derivative == V.store_derivative), ExcInternalError ());
 
-   for (size_t i = 0; i < mesh->get_times().size(); i++) {
+   for (size_t i = 0; i < mesh->length(); i++) {
       Assert(function_coefficients[i].size() == V.function_coefficients[i].size(),
             ExcDimensionMismatch (function_coefficients[i].size() , V.function_coefficients[i].size()));
 
@@ -360,7 +360,7 @@ void DiscretizedFunction<dim>::sadd(const double s, const double a, const Discre
    Assert(mesh == V.mesh, ExcInternalError ());
    Assert(!store_derivative || (store_derivative == V.store_derivative), ExcInternalError ());
 
-   for (size_t i = 0; i < mesh->get_times().size(); i++) {
+   for (size_t i = 0; i < mesh->length(); i++) {
       Assert(function_coefficients[i].size() == V.function_coefficients[i].size(),
             ExcDimensionMismatch (function_coefficients[i].size() , V.function_coefficients[i].size()));
 
@@ -497,7 +497,7 @@ template<int dim>
 void DiscretizedFunction<dim>::l2l2_mass_mult_space_time_mass() {
    Assert(!store_derivative, ExcInternalError ());
 
-   for (size_t i = 0; i < mesh->get_times().size(); i++) {
+   for (size_t i = 0; i < mesh->length(); i++) {
       Vector<double> tmp(function_coefficients[i].size());
       mesh->get_mass_matrix(i)->vmult(tmp, function_coefficients[i]);
       function_coefficients[i] = tmp;
@@ -510,13 +510,13 @@ template<int dim>
 void DiscretizedFunction<dim>::l2l2_mass_mult_time_mass() {
    Assert(!store_derivative, ExcInternalError ());
 
-   for (size_t i = 0; i < mesh->get_times().size(); i++) {
+   for (size_t i = 0; i < mesh->length(); i++) {
       double factor = 0.0;
 
       if (i > 0)
          factor += std::abs(mesh->get_time(i) - mesh->get_time(i - 1)) / 2.0;
 
-      if (i < mesh->get_times().size() - 1)
+      if (i < mesh->length() - 1)
          factor += std::abs(mesh->get_time(i + 1) - mesh->get_time(i)) / 2.0;
 
       function_coefficients[i] *= factor;
@@ -531,7 +531,7 @@ void DiscretizedFunction<dim>::l2l2_mass_solve_space_time_mass() {
    Timer timer;
    timer.start();
 
-   for (size_t i = 0; i < mesh->get_times().size(); i++) {
+   for (size_t i = 0; i < mesh->length(); i++) {
       LogStream::Prefix p("step-" + Utilities::int_to_string(i, 4));
 
       Vector<double> tmp(function_coefficients[i].size());
@@ -553,13 +553,13 @@ template<int dim>
 void DiscretizedFunction<dim>::l2l2_mass_solve_time_mass() {
    Assert(!store_derivative, ExcInternalError ());
 
-   for (size_t i = 0; i < mesh->get_times().size(); i++) {
+   for (size_t i = 0; i < mesh->length(); i++) {
       double factor = 0.0;
 
       if (i > 0)
          factor += std::abs(mesh->get_time(i) - mesh->get_time(i - 1)) / 2.0;
 
-      if (i < mesh->get_times().size() - 1)
+      if (i < mesh->length() - 1)
          factor += std::abs(mesh->get_time(i + 1) - mesh->get_time(i)) / 2.0;
 
       Assert(factor != 0.0, ExcInternalError ());
@@ -574,7 +574,7 @@ double DiscretizedFunction<dim>::l2l2_vec_dot(const DiscretizedFunction<dim> & V
    // (only approx to L2(0,T, L2) inner product if spatial and temporal grid is uniform!
    double result = 0;
 
-   for (size_t i = 0; i < mesh->get_times().size(); i++) {
+   for (size_t i = 0; i < mesh->length(); i++) {
       Assert(function_coefficients[i].size() == V.function_coefficients[i].size(),
             ExcDimensionMismatch (function_coefficients[i].size() , V.function_coefficients[i].size()));
 
@@ -592,7 +592,7 @@ double DiscretizedFunction<dim>::l2l2_vec_norm() const {
    // (only approx to L2(0,T, L2) inner product if spatial and temporal grid is uniform!
    double result = 0;
 
-   for (size_t i = 0; i < mesh->get_times().size(); i++) {
+   for (size_t i = 0; i < mesh->length(); i++) {
       double nrm2 = function_coefficients[i].norm_sqr() / function_coefficients[i].size();
       result += nrm2;
    }
@@ -607,7 +607,7 @@ double DiscretizedFunction<dim>::l2l2_mass_dot(const DiscretizedFunction<dim> & 
    double result = 0.0;
 
    // trapezoidal rule in time:
-   for (size_t i = 0; i < mesh->get_times().size(); i++) {
+   for (size_t i = 0; i < mesh->length(); i++) {
       Assert(function_coefficients[i].size() == V.function_coefficients[i].size(),
             ExcDimensionMismatch (function_coefficients[i].size() , V.function_coefficients[i].size()));
 
@@ -617,14 +617,14 @@ double DiscretizedFunction<dim>::l2l2_mass_dot(const DiscretizedFunction<dim> & 
       if (i > 0)
          result += doti / 2 * (std::abs(mesh->get_time(i) - mesh->get_time(i - 1)));
 
-      if (i < mesh->get_times().size() - 1)
+      if (i < mesh->length() - 1)
          result += doti / 2 * (std::abs(mesh->get_time(i + 1) - mesh->get_time(i)));
    }
 
    // assume that both functions are linear in time (consistent with crank-nicolson!)
    // and integrate that exactly (Simpson rule)
    // problem when mesh changes in time!
-   //   for (size_t i = 0; i < mesh->get_times().size(); i++) {
+   //   for (size_t i = 0; i < mesh->length(); i++) {
    //      Assert(function_coefficients[i].size() == V.function_coefficients[i].size(),
    //            ExcDimensionMismatch (function_coefficients[i].size() , V.function_coefficients[i].size()));
    //
@@ -634,11 +634,11 @@ double DiscretizedFunction<dim>::l2l2_mass_dot(const DiscretizedFunction<dim> & 
    //      if (i > 0)
    //         result += doti / 3 * (std::abs(mesh->get_time(i) - mesh->get_time(i - 1)));
    //
-   //      if (i < mesh->get_times().size() - 1)
+   //      if (i < mesh->length() - 1)
    //         result += doti / 3 * (std::abs(mesh->get_time(i+1) - mesh->get_time(i)));
    //   }
    //
-   //   for (size_t i = 0; i < mesh->get_times().size() - 1; i++) {
+   //   for (size_t i = 0; i < mesh->length() - 1; i++) {
    //      Assert(function_coefficients[i].size() == V.function_coefficients[i+1].size(),
    //            ExcDimensionMismatch (function_coefficients[i].size() , V.function_coefficients[i+1].size()));
    //      Assert(function_coefficients[i+1].size() == V.function_coefficients[i].size(),
@@ -661,30 +661,30 @@ double DiscretizedFunction<dim>::l2l2_mass_norm() const {
    double result = 0;
 
    // trapezoidal rule in time:
-   for (size_t i = 0; i < mesh->get_times().size(); i++) {
+   for (size_t i = 0; i < mesh->length(); i++) {
       double nrm2 = mesh->get_mass_matrix(i)->matrix_norm_square(function_coefficients[i]);
 
       if (i > 0)
          result += nrm2 / 2 * (std::abs(mesh->get_time(i) - mesh->get_time(i - 1)));
 
-      if (i < mesh->get_times().size() - 1)
+      if (i < mesh->length() - 1)
          result += nrm2 / 2 * (std::abs(mesh->get_time(i + 1) - mesh->get_time(i)));
    }
 
    // assume that function is linear in time (consistent with crank-nicolson!)
    // and integrate that exactly (Simpson rule)
    // problem when mesh changes in time!
-   //   for (size_t i = 0; i < mesh->get_times().size(); i++) {
+   //   for (size_t i = 0; i < mesh->length(); i++) {
    //      double nrm2 = mesh->get_mass_matrix(i)->matrix_norm_square(function_coefficients[i]);
    //
    //      if (i > 0)
    //         result += nrm2 / 3 * (std::abs(mesh->get_time(i) - mesh->get_time(i - 1)));
    //
-   //      if (i < mesh->get_times().size() - 1)
+   //      if (i < mesh->length() - 1)
    //         result += nrm2 / 3 * (std::abs(mesh->get_time(i+1) - mesh->get_time(i)));
    //   }
    //
-   //   for (size_t i = 0; i < mesh->get_times().size() - 1; i++) {
+   //   for (size_t i = 0; i < mesh->length() - 1; i++) {
    //      double tmp = mesh->get_mass_matrix(i)->matrix_scalar_product(function_coefficients[i],
    //            function_coefficients[i + 1]);
    //
@@ -707,8 +707,8 @@ void DiscretizedFunction<dim>::write_pvd(std::string path, std::string filename,
    LogStream::Prefix p("write_pvd");
    deallog << "Writing " << path << filename << ".pvd" << std::endl;
 
-   Assert(mesh->get_times().size() < 10000, ExcNotImplemented()); // 4 digits are ok
-   std::vector<std::pair<double, std::string>> times_and_names(mesh->get_times().size(),
+   Assert(mesh->length() < 10000, ExcNotImplemented()); // 4 digits are ok
+   std::vector<std::pair<double, std::string>> times_and_names(mesh->length(),
          std::pair<double, std::string>(0.0, ""));
 
    if (mesh->allows_parallel_access()) {
@@ -716,7 +716,7 @@ void DiscretizedFunction<dim>::write_pvd(std::string path, std::string filename,
       {
          LogStream::Prefix pp("write_vtu");
 
-         for (size_t i = 0; i < mesh->get_times().size(); i++) {
+         for (size_t i = 0; i < mesh->length(); i++) {
             const std::string vtuname = filename + "-" + Utilities::int_to_string(i, 4) + ".vtu";
             times_and_names[i] = std::pair<double, std::string>(mesh->get_time(i), vtuname);
 
@@ -727,7 +727,7 @@ void DiscretizedFunction<dim>::write_pvd(std::string path, std::string filename,
          task_group.join_all();
       }
    } else {
-      for (size_t i = 0; i < mesh->get_times().size(); i++) {
+      for (size_t i = 0; i < mesh->length(); i++) {
          const std::string vtuname = filename + "-" + Utilities::int_to_string(i, 4) + ".vtu";
          times_and_names[i] = std::pair<double, std::string>(mesh->get_time(i), vtuname);
 
@@ -774,8 +774,8 @@ template<int dim>
 double DiscretizedFunction<dim>::value(const Point<dim> &p, const unsigned int component) const {
    Assert(component == 0, ExcIndexRange(component, 0, 1));
    Assert(mesh->near_enough(Function<dim>::get_time(), cur_time_idx), ExcNotImplemented());
-   Assert(cur_time_idx >= 0 && cur_time_idx < mesh->get_times().size(),
-         ExcIndexRange(cur_time_idx, 0, mesh->get_times().size()));
+   Assert(cur_time_idx >= 0 && cur_time_idx < mesh->length(),
+         ExcIndexRange(cur_time_idx, 0, mesh->length()));
 
    return VectorTools::point_value(*mesh->get_dof_handler(cur_time_idx), function_coefficients[cur_time_idx], p);
 }
@@ -785,8 +785,8 @@ Tensor<1, dim, double> DiscretizedFunction<dim>::gradient(const Point<dim> &p,
       const unsigned int component) const {
    Assert(component == 0, ExcIndexRange(component, 0, 1));
    Assert(mesh->near_enough(Function<dim>::get_time(), cur_time_idx), ExcNotImplemented());
-   Assert(cur_time_idx >= 0 && cur_time_idx < mesh->get_times().size(),
-         ExcIndexRange(cur_time_idx, 0, mesh->get_times().size()));
+   Assert(cur_time_idx >= 0 && cur_time_idx < mesh->length(),
+         ExcIndexRange(cur_time_idx, 0, mesh->length()));
 
    return VectorTools::point_gradient(*mesh->get_dof_handler(cur_time_idx), function_coefficients[cur_time_idx], p);
 }

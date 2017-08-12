@@ -37,6 +37,10 @@ class ConstantMesh: public SpaceTimeMesh<dim> {
       // If this is not in storage yet, then the result of get_dof_handler is used to create one
       virtual std::shared_ptr<SparseMatrix<double>> get_mass_matrix(size_t time_index);
 
+      // get a sparsity pattern for the selected time index.
+      // If this is not in storage (yet), then the result of get_dof_handler is used to create one
+      virtual std::shared_ptr<SparsityPattern> get_sparsity_pattern(size_t time_index);
+
       // in some cases one does not need a whole DoFHandler, only the number of degrees of freedom.
       // (e.g. in empty vector creation)
       virtual size_t get_n_dofs(size_t time_index);
@@ -49,7 +53,7 @@ class ConstantMesh: public SpaceTimeMesh<dim> {
 
       // does nothing.
       virtual std::shared_ptr<DoFHandler<dim> > transfer(size_t source_time_index, size_t target_time_index,
-            std::initializer_list <Vector<double>*> vectors);
+            std::initializer_list<Vector<double>*> vectors);
 
       //  Determine an estimate for the memory consumption (in bytes) of this object.
       virtual std::size_t memory_consumption() const;
@@ -69,7 +73,7 @@ class ConstantMesh: public SpaceTimeMesh<dim> {
 
       // don't need it, but its lifetime has to be larger than that of mass_matrix ...
       // therefore, the order here is also important! (mass_matrix is deconstructed first)
-      SparsityPattern sparsity_pattern;
+      std::shared_ptr<SparsityPattern> sparsity_pattern;
 
       std::shared_ptr<SparseMatrix<double>> mass_matrix;
 

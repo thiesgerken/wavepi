@@ -26,18 +26,26 @@ ConstantMesh<dim>::ConstantMesh(std::vector<double> times, FE_Q<dim> fe, Quadrat
 }
 
 template<int dim>
-std::shared_ptr<SparseMatrix<double>> ConstantMesh<dim>::get_mass_matrix(
-      size_t time_index __attribute((unused))) {
+std::shared_ptr<SparseMatrix<double>> ConstantMesh<dim>::get_mass_matrix(size_t time_index) {
    if (!mass_matrix) {
-      DynamicSparsityPattern dsp(dof_handler->n_dofs(), dof_handler->n_dofs());
-      DoFTools::make_sparsity_pattern(*dof_handler, dsp);
-      sparsity_pattern.copy_from(dsp);
+      get_sparsity_pattern(time_index);
 
-      mass_matrix = std::make_shared<SparseMatrix<double>>(sparsity_pattern);
+      mass_matrix = std::make_shared<SparseMatrix<double>>(*sparsity_pattern);
       dealii::MatrixCreator::create_mass_matrix(*dof_handler, quad, *mass_matrix);
    }
 
    return mass_matrix;
+}
+
+template<int dim>
+std::shared_ptr<SparsityPattern> ConstantMesh<dim>::get_sparsity_pattern(size_t time_index __attribute((unused))) {
+   if (!sparsity_pattern) {
+      DynamicSparsityPattern dsp(dof_handler->n_dofs(), dof_handler->n_dofs());
+      DoFTools::make_sparsity_pattern(*dof_handler, dsp);
+      sparsity_pattern->copy_from(dsp);
+   }
+
+   return sparsity_pattern;
 }
 
 template<int dim> size_t ConstantMesh<dim>::get_n_dofs(size_t time_index __attribute((unused))) {
@@ -56,15 +64,14 @@ template<int dim> std::shared_ptr<Triangulation<dim> > ConstantMesh<dim>::get_tr
 
 template<int dim> std::shared_ptr<DoFHandler<dim> > ConstantMesh<dim>::transfer(
       size_t source_time_index __attribute((unused)), size_t target_time_index __attribute((unused)),
-      std::initializer_list <Vector<double>*> vectors __attribute((unused))) {
+      std::initializer_list<Vector<double>*> vectors __attribute((unused))) {
    return dof_handler;
 }
 
 template<int dim> size_t ConstantMesh<dim>::memory_consumption() const {
    size_t mem = MemoryConsumption::memory_consumption(dof_handler)
          + MemoryConsumption::memory_consumption(*triangulation) + MemoryConsumption::memory_consumption(triangulation)
-         + MemoryConsumption::memory_consumption(times)
-         + MemoryConsumption::memory_consumption(sparsity_pattern)
+         + MemoryConsumption::memory_consumption(times) + MemoryConsumption::memory_consumption(sparsity_pattern)
          + MemoryConsumption::memory_consumption(mass_matrix);
 
    if (mass_matrix)
