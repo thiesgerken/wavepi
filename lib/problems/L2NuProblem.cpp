@@ -113,7 +113,7 @@ DiscretizedFunction<dim> L2NuProblem<dim>::Linearization::adjoint(const Discreti
    tmp->mult_time_mass();
    rhs_adj->set_base_rhs(tmp);
 
-   DiscretizedFunction<dim> res(weq.get_mesh(), weq.get_dof_handler());
+   DiscretizedFunction<dim> res(weq.get_mesh());
 
    if (adjoint_solver == WaveEquationBase<dim>::WaveEquationBackwards) {
       AssertThrow((std::dynamic_pointer_cast<ZeroFunction<dim>, Function<dim>>(weq.get_param_nu()) != nullptr),
@@ -142,7 +142,7 @@ DiscretizedFunction<dim> L2NuProblem<dim>::Linearization::adjoint(const Discreti
 
 template<int dim>
 DiscretizedFunction<dim> L2NuProblem<dim>::Linearization::zero() {
-   DiscretizedFunction<dim> res(nu->get_mesh(), nu->get_dof_handler());
+   DiscretizedFunction<dim> res(nu->get_mesh());
    res.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
 
    return res;

@@ -167,8 +167,8 @@ class WavePI {
 
       std::shared_ptr<ParameterHandler> prm;
 
-      FE_Q<dim> fe;
-      QGauss<dim> quad;
+      int fe_degree;
+      int quad_order;
 
       double end_time;
       int initial_refines;
@@ -179,8 +179,6 @@ class WavePI {
       ProblemType problem_type;
       NonlinearMethod method;
 
-      Triangulation<dim> triangulation;
-      std::shared_ptr<DoFHandler<dim>> dof_handler;
       std::shared_ptr<SpaceTimeMesh<dim>> mesh;
       std::shared_ptr<WaveEquation<dim>> wave_eq;
 

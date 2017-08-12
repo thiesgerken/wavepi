@@ -6,13 +6,13 @@ SET(LIBSOURCES
         ConstantMesh.cpp               
         L2ProductRightHandSide.cpp  
         SpaceTimeMesh.cpp
+        AdaptiveMesh.cpp
         DiscretizedFunction.cpp        
         L2RightHandSide.cpp     
         WaveEquationBase.cpp    
         WaveEquation.cpp       
         WaveEquationAdjoint.cpp
         DistributionRightHandSide.cpp  
-        MatrixCreator.cpp
     )
         
 add_library(wavepi_forward ${LIBSOURCES})

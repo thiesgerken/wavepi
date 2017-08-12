@@ -15,17 +15,13 @@ namespace wavepi {
 namespace forward {
 
 template<int dim>
-SpaceTimeMesh<dim>::SpaceTimeMesh(std::vector<double> times, std::vector<types::boundary_id> boundary_ids)
-      : times(times), boundary_ids(boundary_ids) {
-}
+SpaceTimeMesh<dim>::SpaceTimeMesh(std::vector<double> times, FE_Q<dim> fe, Quadrature<dim> quad)
+      : times(times), fe(fe), quad(quad) {
+   Assert(times.size() > 1, ExcInternalError());
+   Assert(times[0] == 0, ExcInternalError());
 
-template<int dim>
-SpaceTimeMesh<dim>::SpaceTimeMesh(std::vector<double> times)
-      : times(times), boundary_ids(1, 0) {
-}
-
-template<int dim>
-SpaceTimeMesh<dim>::~SpaceTimeMesh() {
+   // quick test whether the times are increasing. (fails if they are reversed)
+   Assert(times[1] > times[0], ExcInternalError());
 }
 
 template<int dim>
@@ -53,9 +49,6 @@ size_t SpaceTimeMesh<dim>::find_time(double time) const {
    return idx;
 }
 
-// tries to find a given time in the times vector (using a binary search)
-// returns the index of the nearest time, the caller has to decide whether it is good enough.
-// must not be called on a empty discretization!
 template<int dim>
 size_t SpaceTimeMesh<dim>::find_time(double time, size_t low, size_t up, bool increasing) const {
    Assert(low <= up, ExcInternalError()); // something went wrong

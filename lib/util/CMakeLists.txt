@@ -1,5 +1,5 @@
 # file(GLOB LIBSOURCES *.cpp)
-SET(LIBSOURCES WavePI.cpp)
+SET(LIBSOURCES WavePI.cpp MatrixCreator.cpp GridTools.cpp)
         
 find_program(GIT_SCM git DOC "Git version control")
 mark_as_advanced(GIT_SCM)
@@ -67,4 +67,4 @@ list(APPEND LIBSOURCES "${CMAKE_CURRENT_BINARY_DIR}/Version.cpp")
 add_library(wavepi_util ${LIBSOURCES})
 add_dependencies(wavepi_util touch_version_cpp)
 DEAL_II_SETUP_TARGET(wavepi_util)
-# TARGET_LINK_LIBRARIES(wavepi_util )
+target_link_libraries(wavepi_util boost_filesystem)

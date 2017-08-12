@@ -111,8 +111,8 @@ void DivRightHandSideAdjoint<dim>::create_right_hand_side(const DoFHandler<dim> 
    auto u_d = dynamic_cast<DiscretizedFunction<dim>*>(u.get());
 
    if (a_d != nullptr && u_d != nullptr) {
-      Vector<double> ca = a_d->get_function_coefficients()[a_d->get_time_index()];
-      Vector<double> cu = u_d->get_function_coefficients()[u_d->get_time_index()];
+      Vector<double> ca = a_d->get_function_coefficient(a_d->get_time_index());
+      Vector<double> cu = u_d->get_function_coefficient(u_d->get_time_index());
 
       Assert(ca.size() == dof.n_dofs(), ExcDimensionMismatch (ca.size() , dof.n_dofs()));
       Assert(cu.size() == dof.n_dofs(), ExcDimensionMismatch (cu.size() , dof.n_dofs()));
@@ -131,15 +131,15 @@ void DivRightHandSideAdjoint<dim>::create_right_hand_side(const DoFHandler<dim> 
 }
 
 template<int dim>
-DiscretizedFunction<dim> DivRightHandSideAdjoint<dim>::run_adjoint(std::shared_ptr<SpaceTimeMesh<dim>> mesh,
-      std::shared_ptr<DoFHandler<dim>> dof, const Quadrature<dim> &quad) {
-   DiscretizedFunction<dim> target(mesh, dof);
+DiscretizedFunction<dim> DivRightHandSideAdjoint<dim>::run_adjoint(std::shared_ptr<SpaceTimeMesh<dim>> mesh) {
+   DiscretizedFunction<dim> target(mesh);
 
    for (size_t i = 0; i < mesh->get_times().size(); i++) {
-      this->set_time(mesh->get_times()[i]);
+      this->set_time(mesh->get_time(i));
+      auto dof_handler = mesh->get_dof_handler(i);
 
-      Vector<double> tmp(dof->n_dofs());
-      this->create_right_hand_side(*dof.get(), quad, tmp);
+      Vector<double> tmp(dof_handler->n_dofs());
+      this->create_right_hand_side(*dof_handler, mesh->get_quadrature(), tmp);
       target.set(i, tmp);
    }
 

@@ -31,7 +31,7 @@ template<int dim>
 std::unique_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>> L2QProblem<dim>::derivative(
       const DiscretizedFunction<dim>& q, const DiscretizedFunction<dim>& u) {
    return std::make_unique<L2QProblem<dim>::Linearization>(this->wave_equation,
-         WaveEquationBase<dim>::WaveEquationAdjoint, q, u);
+         adjoint_solver, q, u);
 }
 
 template<int dim>
@@ -103,7 +103,7 @@ DiscretizedFunction<dim> L2QProblem<dim>::Linearization::adjoint(const Discretiz
    tmp->mult_time_mass();
    rhs_adj->set_base_rhs(tmp);
 
-   DiscretizedFunction<dim> res(weq.get_mesh(), weq.get_dof_handler());
+   DiscretizedFunction<dim> res(weq.get_mesh());
 
    if (adjoint_solver == WaveEquationBase<dim>::WaveEquationBackwards) {
       AssertThrow((std::dynamic_pointer_cast<ZeroFunction<dim>, Function<dim>>(weq.get_param_nu()) != nullptr),
@@ -132,7 +132,7 @@ DiscretizedFunction<dim> L2QProblem<dim>::Linearization::adjoint(const Discretiz
 
 template<int dim>
 DiscretizedFunction<dim> L2QProblem<dim>::Linearization::zero() {
-   DiscretizedFunction<dim> res(q->get_mesh(), q->get_dof_handler());
+   DiscretizedFunction<dim> res(q->get_mesh());
    res.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
 
    return res;

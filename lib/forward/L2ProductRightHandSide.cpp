@@ -73,10 +73,10 @@ void L2ProductRightHandSide<dim>::create_right_hand_side(const DoFHandler<dim> &
    func1->set_time(this->get_time());
    func2->set_time(this->get_time());
 
-   Vector<double> coeffs1 = func1->get_function_coefficients()[func1->get_time_index()];
+   Vector<double> coeffs1 = func1->get_function_coefficient(func1->get_time_index());
    Assert(coeffs1.size() == dof.n_dofs(), ExcDimensionMismatch (coeffs1.size(), dof.n_dofs()));
 
-   Vector<double> coeffs2 = func2->get_function_coefficients()[func2->get_time_index()];
+   Vector<double> coeffs2 = func2->get_function_coefficient(func2->get_time_index());
    Assert(coeffs2.size() == dof.n_dofs(), ExcDimensionMismatch (coeffs2.size(), dof.n_dofs()));
 
    WorkStream::run(dof.begin_active(), dof.end(),

@@ -38,12 +38,9 @@ class DiscretizedFunction: public Function<dim> {
       DiscretizedFunction(const DiscretizedFunction& that);
       DiscretizedFunction(DiscretizedFunction&& that);
 
-      DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>> mesh,
-            std::shared_ptr<DoFHandler<dim>> dof_handler, bool store_derivative);
-      DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>> mesh,
-            std::shared_ptr<DoFHandler<dim>> dof_handler);
-      DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>> mesh,
-            std::shared_ptr<DoFHandler<dim>> dof_handler, Function<dim>& function);
+      DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>> mesh, bool store_derivative);
+      DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>> mesh, Function<dim>& function);
+      DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>> mesh);
 
       void set(size_t i, const Vector<double>& u, const Vector<double>& v);
       void set(size_t i, const Vector<double>& u);
@@ -113,18 +110,14 @@ class DiscretizedFunction: public Function<dim> {
       double get_time_index() const;
       void set_time(const double new_time);
 
-      inline const std::vector<Vector<double> >& get_derivative_coefficients() const {
+      inline const Vector<double>& get_derivative_coefficient(size_t idx) const {
          Assert(store_derivative, ExcInvalidState());
 
-         return derivative_coefficients;
+         return derivative_coefficients[idx];
       }
 
-      inline const std::vector<Vector<double> >& get_function_coefficients() const {
-         return function_coefficients;
-      }
-
-      inline std::shared_ptr<DoFHandler<dim>> get_dof_handler() const {
-         return dof_handler;
+      inline const Vector<double>& get_function_coefficient(size_t idx) const {
+         return function_coefficients[idx];
       }
 
       // get / set what `norm()` and `*` do.
@@ -143,7 +136,6 @@ class DiscretizedFunction: public Function<dim> {
       size_t cur_time_idx = 0;
 
       std::shared_ptr<SpaceTimeMesh<dim>> mesh;
-      std::shared_ptr<DoFHandler<dim>> dof_handler;
 
       std::vector<Vector<double>> function_coefficients;
       std::vector<Vector<double>> derivative_coefficients;
