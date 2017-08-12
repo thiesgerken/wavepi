@@ -198,8 +198,6 @@ void WaveEquation<dim>::assemble_u_pre(double time_step) {
    matrix_C_old.vmult(tmp, solution_v_old);
    system_rhs_u.equ(theta * time_step, tmp);
 
-   system_rhs_u.add(theta * (1.0 - theta) * time_step * time_step, rhs_old);
-
    matrix_B_old.vmult(tmp, solution_v_old);
    system_rhs_u.add(-1.0 * theta * (1.0 - theta) * time_step * time_step, tmp);
 
@@ -208,6 +206,8 @@ void WaveEquation<dim>::assemble_u_pre(double time_step) {
 
    tmp_u = solution_u_old;
    tmp_u.add((1.0 - theta) * time_step, solution_v_old);
+
+   system_rhs_u.add(theta * (1.0 - theta) * time_step * time_step, rhs_old);
 }
 
 // everything until this point of assembling for u depends on the old mesh and the old matrices
@@ -240,13 +240,13 @@ void WaveEquation<dim>::assemble_v_pre(double time_step) {
 
    matrix_C_old.vmult(system_rhs_v, solution_v_old);
 
-   system_rhs_v.add((1.0 - theta) * time_step, rhs_old);
-
    matrix_B_old.vmult(tmp, solution_v_old);
    system_rhs_v.add(-1.0 * (1.0 - theta) * time_step, tmp);
 
    matrix_A_old.vmult(tmp, solution_u_old);
    system_rhs_v.add(-1.0 * (1.0 - theta) * time_step, tmp);
+
+   system_rhs_v.add((1.0 - theta) * time_step, rhs_old);
 }
 
 // everything until this point depends on the old mesh and the old matrices

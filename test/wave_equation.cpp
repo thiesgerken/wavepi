@@ -475,7 +475,7 @@ TEST(WaveEquationTest, ReferenceTest1DFE1) {
 TEST(WaveEquationTest, ReferenceTest1DFE2) {
    for (int steps = 16; steps <= 128; steps *= 2)
       run_reference_test<1>(2, 4, 7, Point<1, int>(2), Point<2>(1.0, 1.5), 2 * numbers::PI, steps,
-            steps >= 64, true);
+            steps >= 64);
 
    for (int refine = 6; refine >= 1; refine--)
       run_reference_test<1>(2, 4, refine, Point<1, int>(2), Point<2>(1.0, 1.5), 2 * numbers::PI, 128, false);
@@ -484,7 +484,7 @@ TEST(WaveEquationTest, ReferenceTest1DFE2) {
 TEST(WaveEquationTest, ReferenceTest2DFE1) {
    for (int steps = 16; steps <= 256; steps *= 2)
       run_reference_test<2>(1, 3, 6, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, steps,
-            steps >= 64, false);
+            steps >= 64);
 
    for (int refine = 5; refine >= 1; refine--)
       run_reference_test<2>(1, 3, refine, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, 256,

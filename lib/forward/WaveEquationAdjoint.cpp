@@ -244,7 +244,7 @@ void WaveEquationAdjoint<dim>::assemble_u(size_t i) {
 
       matrix_A.vmult_add(system_rhs_u, tmp_u);
 
-      system_rhs_u.add(1.0, rhs);
+      system_rhs_u += rhs;
 
       system_matrix = IdentityMatrix(solution_u.size());
    } else {
@@ -263,8 +263,9 @@ void WaveEquationAdjoint<dim>::assemble_u(size_t i) {
       tmp_u.add(-theta, solution_v);
       matrix_A.vmult_add(system_rhs_u, tmp_u);
 
-      system_rhs_u.add(1.0, rhs);
+      system_rhs_u += rhs;
 
+      system_matrix = 0.0; // important because it still holds the matrix for v !!
       system_matrix.add(1.0 / (time_step * time_step), matrix_C);
       system_matrix.add(theta / time_step, matrix_B);
       system_matrix.add(theta * theta, matrix_A);
@@ -306,7 +307,7 @@ void WaveEquationAdjoint<dim>::assemble_v_pre(size_t i) {
       matrix_B_old.vmult_add(system_rhs_v, tmp);
 
       tmp_v.equ(theta, solution_u_old);
-      tmp_v.add(1.0, solution_v_old);
+      tmp_v += solution_v_old;
    } else {
       /*
        * (M_i^2)^t (u_i, v_i)^t = (g_i, 0)^t - (M_{i+1}^1)^t (u_{i+1}, v_{i+1})^t
@@ -328,7 +329,7 @@ void WaveEquationAdjoint<dim>::assemble_v_pre(size_t i) {
       matrix_B_old.vmult_add(system_rhs_v, tmp);
 
       tmp_v.equ(theta, solution_u_old);
-      tmp_v.add(1.0, solution_v_old);
+      tmp_v += solution_v_old;
    }
 }
 
@@ -346,7 +347,6 @@ void WaveEquationAdjoint<dim>::assemble_v(size_t i) {
        */
 
       system_rhs_v = 0.0;
-
       system_matrix = IdentityMatrix(solution_u.size());
    } else if (i == 0) {
       /*
@@ -386,6 +386,7 @@ void WaveEquationAdjoint<dim>::assemble_v(size_t i) {
       tmp_v *= -time_step_last * (1 - theta);
       matrix_B.vmult_add(system_rhs_v, tmp_v);
 
+      // system_matrix = 0.0; // not needed because matrix was reinited due to possible mesh change
       system_matrix.add(1.0 / time_step, matrix_C);
       system_matrix.add(theta, matrix_B);
    }
