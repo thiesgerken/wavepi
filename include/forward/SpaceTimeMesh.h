@@ -22,14 +22,24 @@ namespace wavepi {
 namespace forward {
 using namespace dealii;
 
+/**
+ * Mesh in Space and Time. Holds a list of time steps and virtual functions how to get spatial meshes for each time.
+ */
 template<int dim>
 class SpaceTimeMesh {
    public:
+
+      /**
+       * Empty destructor.
+       */
       virtual ~SpaceTimeMesh() {
       }
 
-      // The FiniteElement is used for the construction of DoFHandlers.
-      // The Quadrature is only used for the mass matrix.
+      /**
+       * @param times nodal values in time in ascending order.
+       * @param fe `FiniteElement` that should be used for the construction of `DoFHandlers`.
+       * @param quad `Quadrature` that should be used for mass matrices, is also exposed through `get_quadrature()`.
+       */
       SpaceTimeMesh(std::vector<double> times, FE_Q<dim> fe, Quadrature<dim> quad);
 
       // get a mass matrix for the selected time index.
@@ -63,41 +73,73 @@ class SpaceTimeMesh {
       virtual std::shared_ptr<DoFHandler<dim> > transfer(size_t source_time_index, size_t target_time_index,
             std::initializer_list<Vector<double>*> vectors) = 0;
 
-      //  Determine an estimate for the memory consumption (in bytes) of this object.
+      /**
+       * @return an estimate for the memory consumption (in bytes) of this object.
+       */
       virtual std::size_t memory_consumption() const = 0;
 
-      // time points used in this discretization in ascending order.
-      // The first time point should be 0, and the last one should be equal to T.
+      /**
+       * @return time points used in this discretization (in ascending order).
+       */
       inline const std::vector<double>& get_times() const {
          return times;
       }
 
-      inline double get_time(size_t time_index) const {
-         return times[time_index];
+      /**
+       * Shortcut for `get_times()[idx]` (with range checking in debug mode).
+       *
+       * @return `get_times()[idx]`
+       */
+      inline double get_time(size_t idx) const {
+         Assert(0<=idx && idx < times.size(), ExcIndexRange(idx, 0, times.size()));
+
+         return times[idx];
       }
 
-      // number of time steps (equals get_times().size())
+      /**
+       * shortcut for the number of time steps.
+       *
+       * @return `get_times().size()`
+       */
       inline size_t length() {
          return times.size();
       }
 
-      // tries to find a given time in the times vector (using a binary search)
-      // returns the index of the nearest time, the caller has to decide whether it is good enough.
-      // must not be called on a empty discretization!
-      size_t find_time(double time) const;
-      size_t find_nearest_time(double time) const;
-      bool near_enough(double time, size_t idx) const;
-
+      /**
+       * @return `Quadrature` that was passed to the constructor.
+       */
       inline const Quadrature<dim>& get_quadrature() const {
          return quad;
       }
+
+      /**
+       * Tries to find a given time in the times vector using a binary search.
+       * Must not be called on a empty discretization.
+       *
+       * @param time the searched for time.
+       * @returns the index of the nearest time, the caller has to decide whether it is good enough.
+       */
+      size_t nearest_time(double time) const;
+
+      /**
+       * Tries to find a given time in the times vector using a binary search.
+       * Must not be called on a empty discretization.
+       *
+       * @param time the searched for time.
+       * @returns the index of the time point
+       * @throws Exc
+       */
+      size_t find_time(double time) const;
+
+
 
    protected:
       std::vector<double> times;
       FE_Q<dim> fe;
       Quadrature<dim> quad;
 
-      size_t find_time(double time, size_t low, size_t up, bool increasing) const;
+   private:
+      size_t nearest_time(double time, size_t low, size_t up) const;
 
 };
 

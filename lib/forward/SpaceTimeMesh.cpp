@@ -25,32 +25,7 @@ SpaceTimeMesh<dim>::SpaceTimeMesh(std::vector<double> times, FE_Q<dim> fe, Quadr
 }
 
 template<int dim>
-bool SpaceTimeMesh<dim>::near_enough(double time, size_t idx) const {
-   Assert(idx >= 0 && idx < times.size(), ExcIndexRange(idx, 0, times.size()));
-
-   if (times.size() == 1)
-      return std::abs(times[idx] - time) < 1e-3;
-   else if (idx > 0)
-      return std::abs(times[idx] - time) < 1e-3 * std::abs(times[idx] - times[idx - 1]);
-   else
-      return std::abs(times[idx] - time) < 1e-3 * std::abs(times[idx + 1] - times[idx]);
-}
-
-template<int dim>
-size_t SpaceTimeMesh<dim>::find_time(double time) const {
-   size_t idx = find_nearest_time(time);
-
-   if (!near_enough(time, idx)) {
-      std::stringstream err;
-      err << "requested time " << time << " not found, nearest is " << times[idx];
-      Assert(false, ExcMessage(err.str()));
-   }
-
-   return idx;
-}
-
-template<int dim>
-size_t SpaceTimeMesh<dim>::find_time(double time, size_t low, size_t up, bool increasing) const {
+size_t SpaceTimeMesh<dim>::nearest_time(double time, size_t low, size_t up) const {
    Assert(low <= up, ExcInternalError()); // something went wrong
 
    if (low >= up) // low == up or sth went wrong
@@ -67,27 +42,29 @@ size_t SpaceTimeMesh<dim>::find_time(double time, size_t low, size_t up, bool in
    double val = times[middle];
 
    if (time > val)
-      if (increasing)
-         return find_time(time, middle, up, increasing);
-      else
-         return find_time(time, low, middle, increasing);
+      return nearest_time(time, middle, up);
    else if (time < val)
-      if (increasing)
-         return find_time(time, low, middle, increasing);
-      else
-         return find_time(time, middle, up, increasing);
+      return nearest_time(time, low, middle);
    else
       return middle;
 }
 
 template<int dim>
-size_t SpaceTimeMesh<dim>::find_nearest_time(double time) const {
+size_t SpaceTimeMesh<dim>::nearest_time(double time) const {
    Assert(times.size() > 0, ExcEmptyObject());
 
    if (times.size() == 1)
       return 0;
    else
-      return find_time(time, 0, times.size() - 1, times[1] - times[0] > 0);
+      return nearest_time(time, 0, times.size() - 1);
+}
+
+template<int dim>
+size_t SpaceTimeMesh<dim>::find_time(double time) const {
+   size_t idx = nearest_time(time);
+   AssertThrow(std::abs(time - times[idx]) < 1e-10, ExcMessage("time " + std::to_string(time) + " is not member of this mesh"));
+
+   return idx;
 }
 
 template class SpaceTimeMesh<1> ;

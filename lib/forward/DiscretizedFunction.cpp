@@ -773,7 +773,6 @@ template<int dim> void DiscretizedFunction<dim>::set_norm(Norm norm) {
 template<int dim>
 double DiscretizedFunction<dim>::value(const Point<dim> &p, const unsigned int component) const {
    Assert(component == 0, ExcIndexRange(component, 0, 1));
-   Assert(mesh->near_enough(Function<dim>::get_time(), cur_time_idx), ExcNotImplemented());
    Assert(cur_time_idx >= 0 && cur_time_idx < mesh->length(),
          ExcIndexRange(cur_time_idx, 0, mesh->length()));
 
@@ -784,7 +783,6 @@ template<int dim>
 Tensor<1, dim, double> DiscretizedFunction<dim>::gradient(const Point<dim> &p,
       const unsigned int component) const {
    Assert(component == 0, ExcIndexRange(component, 0, 1));
-   Assert(mesh->near_enough(Function<dim>::get_time(), cur_time_idx), ExcNotImplemented());
    Assert(cur_time_idx >= 0 && cur_time_idx < mesh->length(),
          ExcIndexRange(cur_time_idx, 0, mesh->length()));
 
@@ -799,7 +797,7 @@ double DiscretizedFunction<dim>::get_time_index() const {
 template<int dim>
 void DiscretizedFunction<dim>::set_time(const double new_time) {
    Function<dim>::set_time(new_time);
-   cur_time_idx = mesh->find_nearest_time(new_time);
+   cur_time_idx = mesh->find_time(new_time);
 }
 
 template<int dim>
