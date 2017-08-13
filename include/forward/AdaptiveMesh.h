@@ -27,7 +27,10 @@ using namespace dealii;
 template<int dim>
 class AdaptiveMesh: public SpaceTimeMesh<dim> {
    public:
-      virtual ~AdaptiveMesh();
+      /**
+       * Default destructor.
+       */
+      virtual ~AdaptiveMesh() = default;
 
       // construct an adaptive mesh where the spatial mesh does not vary in time (yet).
       // The triangulation is not copied and must not be modified afterwards.

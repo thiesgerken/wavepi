@@ -27,6 +27,10 @@ using namespace dealii;
 template<typename Param, typename Sol>
 class ConjugateGradients: public LinearRegularization<Param, Sol> {
    public:
+      /**
+       * Default destructor.
+       */
+      virtual ~ConjugateGradients() = default;
 
       ConjugateGradients() {
          // cgls should generate decreasing residuals
@@ -34,13 +38,9 @@ class ConjugateGradients: public LinearRegularization<Param, Sol> {
          this->abort_increasing_discrepancy = true;
       }
 
-      virtual ~ConjugateGradients() {
-      }
-
       using Regularization<Param, Sol>::invert;
 
-      virtual Param invert(const Sol& data, double target_discrepancy,
-            std::shared_ptr<const Param> exact_param,
+      virtual Param invert(const Sol& data, double target_discrepancy, std::shared_ptr<const Param> exact_param,
             std::shared_ptr<InversionProgress<Param, Sol>> status_out) {
          LogStream::Prefix prefix("CGLS");
          AssertThrow(this->problem, ExcInternalError());
@@ -57,8 +57,8 @@ class ConjugateGradients: public LinearRegularization<Param, Sol> {
          double norm_data = data.norm();
          double norm_exact = exact_param ? exact_param->norm() : -0.0;
 
-         InversionProgress<Param, Sol> status(0, &estimate, estimate.norm(), &residual, discrepancy, target_discrepancy, &data,
-               norm_data, exact_param, norm_exact, false);
+         InversionProgress<Param, Sol> status(0, &estimate, estimate.norm(), &residual, discrepancy, target_discrepancy,
+               &data, norm_data, exact_param, norm_exact, false);
          this->progress(status);
 
          for (int k = 1;
@@ -83,8 +83,8 @@ class ConjugateGradients: public LinearRegularization<Param, Sol> {
             double discrepancy_last = discrepancy;
             discrepancy = residual.norm();
 
-            status = InversionProgress<Param, Sol>(k, &estimate, estimate.norm(), &residual, discrepancy, target_discrepancy,
-                  &data, norm_data, exact_param, norm_exact, false);
+            status = InversionProgress<Param, Sol>(k, &estimate, estimate.norm(), &residual, discrepancy,
+                  target_discrepancy, &data, norm_data, exact_param, norm_exact, false);
 
             if (!this->progress(status))
                break;

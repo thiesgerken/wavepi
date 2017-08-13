@@ -56,10 +56,6 @@ DiscretizedFunction<dim> L2CProblem<dim>::forward(const DiscretizedFunction<dim>
 }
 
 template<int dim>
-L2CProblem<dim>::Linearization::~Linearization() {
-}
-
-template<int dim>
 L2CProblem<dim>::Linearization::Linearization(const WaveEquation<dim> &weq,
       typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver,
       std::shared_ptr<DiscretizedFunction<dim>> c, std::shared_ptr<DiscretizedFunction<dim>> u)

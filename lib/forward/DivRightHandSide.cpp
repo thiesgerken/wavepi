@@ -28,10 +28,6 @@ DivRightHandSide<dim>::DivRightHandSide(std::shared_ptr<Function<dim>> a, std::s
 }
 
 template<int dim>
-DivRightHandSide<dim>::~DivRightHandSide() {
-}
-
-template<int dim>
 DivRightHandSide<dim>::AssemblyScratchData::AssemblyScratchData(const FiniteElement<dim> &fe,
       const Quadrature<dim> &quad)
       : fe_values(fe, quad, update_values | update_gradients | update_quadrature_points | update_JxW_values) {

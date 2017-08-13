@@ -29,10 +29,6 @@ DivRightHandSideAdjoint<dim>::DivRightHandSideAdjoint(std::shared_ptr<Function<d
 }
 
 template<int dim>
-DivRightHandSideAdjoint<dim>::~DivRightHandSideAdjoint() {
-}
-
-template<int dim>
 DivRightHandSideAdjoint<dim>::AssemblyScratchData::AssemblyScratchData(const FiniteElement<dim> &fe,
       const Quadrature<dim> &quad)
       : fe_values(fe, quad, update_values | update_gradients | update_quadrature_points | update_JxW_values) {

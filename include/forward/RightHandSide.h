@@ -20,8 +20,10 @@ using namespace dealii;
 template<int dim>
 class RightHandSide: public FunctionTime<double> {
    public:
-      RightHandSide();
-      virtual ~RightHandSide();
+      /**
+       * Default destructor.
+       */
+      virtual ~RightHandSide() = default;
 
       virtual void create_right_hand_side(const DoFHandler<dim> &dof_handler, const Quadrature<dim> &q,
             Vector<double> &rhs) const = 0;

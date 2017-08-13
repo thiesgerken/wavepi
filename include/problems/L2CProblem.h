@@ -29,8 +29,10 @@ using namespace wavepi::inversion;
 template<int dim>
 class L2CProblem: public NonlinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>> {
    public:
-      virtual ~L2CProblem() {
-      }
+      /**
+       * Default destructor.
+       */
+      virtual ~L2CProblem() = default;
 
       L2CProblem(WaveEquation<dim>& weq);
       L2CProblem(WaveEquation<dim>& weq, typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver);
@@ -51,10 +53,12 @@ class L2CProblem: public NonlinearProblem<DiscretizedFunction<dim>, DiscretizedF
 
       class Linearization: public LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>> {
          public:
-            virtual ~Linearization();
+            /**
+             * Default destructor.
+             */
+            virtual ~Linearization() = default;
 
-            Linearization(const WaveEquation<dim> &weq,
-                  typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver,
+            Linearization(const WaveEquation<dim> &weq, typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver,
                   std::shared_ptr<DiscretizedFunction<dim>> q, std::shared_ptr<DiscretizedFunction<dim>> u);
 
             virtual DiscretizedFunction<dim> forward(const DiscretizedFunction<dim>& h);

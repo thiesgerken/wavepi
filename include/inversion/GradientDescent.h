@@ -24,13 +24,15 @@ using namespace dealii;
 template<typename Param, typename Sol>
 class GradientDescent: public LinearRegularization<Param, Sol> {
    public:
+       /**
+       * Default destructor.
+       */
+      virtual ~GradientDescent() = default;
+
       GradientDescent() {
          // should generate decreasing residuals
          this->abort_discrepancy_doubles = true;
          this->abort_increasing_discrepancy = true;
-      }
-
-      virtual ~GradientDescent() {
       }
 
       using Regularization<Param, Sol>::invert;

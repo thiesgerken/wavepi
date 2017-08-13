@@ -16,13 +16,15 @@ namespace inversion {
 template<typename Param, typename Sol>
 class LinearProblem: public InverseProblem<Param, Sol> {
    public:
+      /**
+       * Default destructor.
+       */
+      virtual ~LinearProblem() = default;
+
       virtual Param adjoint(const Sol& g) = 0;
 
       // linear methods often do not use an initial guess, but start with zero
       virtual Param zero() = 0;
-
-      virtual ~LinearProblem() {
-      }
 
 };
 

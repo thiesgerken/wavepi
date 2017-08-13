@@ -25,6 +25,11 @@ using namespace dealii;
 template<typename Param, typename Sol>
 class Landweber: public LinearRegularization<Param, Sol> {
    public:
+       /**
+       * Default destructor.
+       */
+      virtual ~Landweber() = default;
+
       Landweber(double omega)
             : omega(omega) {
          // should generate decreasing residuals
@@ -54,9 +59,6 @@ class Landweber: public LinearRegularization<Param, Sol> {
             omega = prm.get_double("omega");
          }
          prm.leave_subsection();
-      }
-
-      virtual ~Landweber() {
       }
 
       using Regularization<Param, Sol>::invert;

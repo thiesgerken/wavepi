@@ -25,8 +25,10 @@ using namespace dealii;
 template<int dim>
 class ConstantMesh: public SpaceTimeMesh<dim> {
    public:
-      virtual ~ConstantMesh() {
-      }
+      /**
+       * Default destructor.
+       */
+      virtual ~ConstantMesh() = default;
 
       // The FiniteElement is used for the construction of DoFHandlers.
       // The Quadrature is only used for the mass matrix.

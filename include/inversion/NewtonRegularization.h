@@ -20,15 +20,17 @@ namespace inversion {
 template<typename Param, typename Sol>
 class NewtonRegularization: public Regularization<Param, Sol> {
    public:
+      /**
+       * Default destructor.
+       */
+      virtual ~NewtonRegularization() = default;
+
       NewtonRegularization(std::shared_ptr<NonlinearProblem<Param, Sol>> problem)
             : problem(problem) {
       }
 
       NewtonRegularization()
             : problem() {
-      }
-
-      virtual ~NewtonRegularization() {
       }
 
       const std::shared_ptr<NonlinearProblem<Param, Sol> >& get_problem() const {
@@ -38,8 +40,6 @@ class NewtonRegularization: public Regularization<Param, Sol> {
       void set_problem(const std::shared_ptr<NonlinearProblem<Param, Sol>>& problem) {
          this->problem = problem;
       }
-
-      // virtual Param invert(Sol data, double targetDiscrepancy) = 0;
 
    protected:
       std::shared_ptr<NonlinearProblem<Param, Sol>> problem;

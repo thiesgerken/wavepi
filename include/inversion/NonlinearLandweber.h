@@ -27,6 +27,11 @@ using namespace dealii;
 template<typename Param, typename Sol>
 class NonlinearLandweber: public NewtonRegularization<Param, Sol> {
    public:
+      /**
+       * Default destructor.
+       */
+      virtual ~NonlinearLandweber() = default;
+
       static void declare_parameters(ParameterHandler &prm) {
          prm.enter_subsection("NonlinearLandweber");
          {
@@ -43,24 +48,20 @@ class NonlinearLandweber: public NewtonRegularization<Param, Sol> {
          prm.leave_subsection();
       }
 
-      NonlinearLandweber(std::shared_ptr<NonlinearProblem<Param, Sol>> problem,
-            std::shared_ptr<Param> initial_guess, double omega)
+      NonlinearLandweber(std::shared_ptr<NonlinearProblem<Param, Sol>> problem, std::shared_ptr<Param> initial_guess,
+            double omega)
             : NewtonRegularization<Param, Sol>(problem), initial_guess(initial_guess), omega(omega) {
       }
 
-      NonlinearLandweber(std::shared_ptr<NonlinearProblem<Param, Sol>> problem,
-            std::shared_ptr<Param> initial_guess, ParameterHandler &prm)
+      NonlinearLandweber(std::shared_ptr<NonlinearProblem<Param, Sol>> problem, std::shared_ptr<Param> initial_guess,
+            ParameterHandler &prm)
             : NewtonRegularization<Param, Sol>(problem), initial_guess(initial_guess) {
          get_parameters(prm);
       }
 
-      virtual ~NonlinearLandweber() {
-      }
-
       using Regularization<Param, Sol>::invert;
 
-      virtual Param invert(const Sol& data, double target_discrepancy,
-            std::shared_ptr<const Param> exact_param,
+      virtual Param invert(const Sol& data, double target_discrepancy, std::shared_ptr<const Param> exact_param,
             std::shared_ptr<InversionProgress<Param, Sol>> status_out) {
          LogStream::Prefix p = LogStream::Prefix("Landweber");
          AssertThrow(this->problem, ExcInternalError());
@@ -78,8 +79,8 @@ class NonlinearLandweber: public NewtonRegularization<Param, Sol> {
          double norm_exact = exact_param ? exact_param->norm() : -0.0;
 
          deallog.pop();
-         InversionProgress<Param, Sol> status(0, &estimate, estimate.norm(), &residual, discrepancy,
-               target_discrepancy, &data, norm_data, exact_param, norm_exact, false);
+         InversionProgress<Param, Sol> status(0, &estimate, estimate.norm(), &residual, discrepancy, target_discrepancy,
+               &data, norm_data, exact_param, norm_exact, false);
          this->progress(status);
 
          for (int i = 1;

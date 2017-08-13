@@ -39,10 +39,6 @@ DistributionRightHandSide<dim>::DistributionRightHandSide(Function<dim>* f1, Fun
 }
 
 template<int dim>
-DistributionRightHandSide<dim>::~DistributionRightHandSide() {
-}
-
-template<int dim>
 void DistributionRightHandSide<dim>::copy_local_to_global(Vector<double> &result, const AssemblyCopyData &copy_data) {
    for (unsigned int i = 0; i < copy_data.local_dof_indices.size(); ++i)
       result(copy_data.local_dof_indices[i]) += copy_data.cell_rhs(i);

@@ -22,13 +22,14 @@ namespace inversion {
 template<typename Param, typename Sol>
 class Regularization {
    public:
-      virtual ~Regularization() {
-      }
+      /**
+       * Default destructor.
+       */
+      virtual ~Regularization() = default;
 
       // status_out: output for the last status
       // should call `progress` throughout the iteration (if the method is iterative)
-      virtual Param invert(const Sol& data, double target_discrepancy,
-            std::shared_ptr<const Param> exact_param,
+      virtual Param invert(const Sol& data, double target_discrepancy, std::shared_ptr<const Param> exact_param,
             std::shared_ptr<InversionProgress<Param, Sol>> status_out) = 0;
 
       Param invert(const Sol& data, double target_discrepancy, std::shared_ptr<const Param> exact_param) {

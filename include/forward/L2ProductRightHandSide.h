@@ -45,9 +45,13 @@ using namespace dealii;
 template<int dim>
 class L2ProductRightHandSide: public RightHandSide<dim> {
    public:
+      /**
+       * Default destructor.
+       */
+      virtual ~L2ProductRightHandSide() = default;
+
       L2ProductRightHandSide(std::shared_ptr<DiscretizedFunction<dim>> f1,
             std::shared_ptr<DiscretizedFunction<dim>> f2);
-      virtual ~L2ProductRightHandSide();
 
       virtual void create_right_hand_side(const DoFHandler<dim> &dof_handler, const Quadrature<dim> &q,
             Vector<double> &rhs) const;

@@ -35,10 +35,6 @@ template class DiscretizedFunction<2> ;
 template class DiscretizedFunction<3> ;
 
 template<int dim>
-DiscretizedFunction<dim>::~DiscretizedFunction() {
-}
-
-template<int dim>
 DiscretizedFunction<dim>::DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>> mesh, bool store_derivative)
       : store_derivative(store_derivative), cur_time_idx(0), mesh(mesh) {
    Assert(mesh, ExcNotInitialized());

@@ -37,11 +37,16 @@ using namespace dealii;
 template<typename Param, typename Sol>
 class REGINN: public NewtonRegularization<Param, Sol> {
    public:
+      /**
+       * Default destructor.
+       */
+      virtual ~ REGINN() = default;
+
       REGINN(std::shared_ptr<NonlinearProblem<Param, Sol>> problem, std::shared_ptr<Param> initial_guess,
             std::shared_ptr<LinearRegularization<Param, Sol>> linear_solver,
             std::shared_ptr<ToleranceChoice> tol_choice)
-            : NewtonRegularization<Param, Sol>(problem), initial_guess(initial_guess), linear_solver(
-                  linear_solver), tol_choice(tol_choice) {
+            : NewtonRegularization<Param, Sol>(problem), initial_guess(initial_guess), linear_solver(linear_solver), tol_choice(
+                  tol_choice) {
       }
 
       REGINN(std::shared_ptr<NonlinearProblem<Param, Sol>> problem, std::shared_ptr<Param> initial_guess,
@@ -96,13 +101,9 @@ class REGINN: public NewtonRegularization<Param, Sol> {
          prm.leave_subsection();
       }
 
-      virtual ~REGINN() {
-      }
-
       using Regularization<Param, Sol>::invert;
 
-      virtual Param invert(const Sol& data, double target_discrepancy,
-            std::shared_ptr<const Param> exact_param,
+      virtual Param invert(const Sol& data, double target_discrepancy, std::shared_ptr<const Param> exact_param,
             std::shared_ptr<InversionProgress<Param, Sol>> status_out) {
          LogStream::Prefix p = LogStream::Prefix("REGINN");
          deallog.push("init");
@@ -125,8 +126,8 @@ class REGINN: public NewtonRegularization<Param, Sol> {
          tol_choice->reset(target_discrepancy, discrepancy);
 
          deallog.pop();
-         InversionProgress<Param, Sol> status(0, &estimate, estimate.norm(), &residual, discrepancy,
-               target_discrepancy, &data, norm_data, exact_param, norm_exact, false);
+         InversionProgress<Param, Sol> status(0, &estimate, estimate.norm(), &residual, discrepancy, target_discrepancy,
+               &data, norm_data, exact_param, norm_exact, false);
          this->progress(status);
 
          for (int i = 1;

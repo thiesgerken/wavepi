@@ -28,12 +28,10 @@ using namespace dealii;
 template<int dim>
 class SpaceTimeMesh {
    public:
-
       /**
-       * Empty destructor.
+       * Default destructor.
        */
-      virtual ~SpaceTimeMesh() {
-      }
+      virtual ~SpaceTimeMesh() = default;
 
       /**
        * @param times nodal values in time in ascending order.
@@ -41,6 +39,18 @@ class SpaceTimeMesh {
        * @param quad `Quadrature` that should be used for mass matrices, is also exposed through `get_quadrature()`.
        */
       SpaceTimeMesh(std::vector<double> times, FE_Q<dim> fe, Quadrature<dim> quad);
+
+      /**
+       * @return `Quadrature` that was passed to the constructor.
+       */
+      inline const Quadrature<dim>& get_quadrature() const {
+         return quad;
+      }
+
+      /**
+       * @return an estimate for the memory consumption (in bytes) of this object.
+       */
+      virtual std::size_t memory_consumption() const = 0;
 
       // get a mass matrix for the selected time index.
       // If this is not in storage (yet), then the result of get_dof_handler is used to create one
@@ -74,11 +84,6 @@ class SpaceTimeMesh {
             std::initializer_list<Vector<double>*> vectors) = 0;
 
       /**
-       * @return an estimate for the memory consumption (in bytes) of this object.
-       */
-      virtual std::size_t memory_consumption() const = 0;
-
-      /**
        * @return time points used in this discretization (in ascending order).
        */
       inline const std::vector<double>& get_times() const {
@@ -103,13 +108,6 @@ class SpaceTimeMesh {
        */
       inline size_t length() {
          return times.size();
-      }
-
-      /**
-       * @return `Quadrature` that was passed to the constructor.
-       */
-      inline const Quadrature<dim>& get_quadrature() const {
-         return quad;
       }
 
       /**

@@ -25,10 +25,6 @@ L2RightHandSide<dim>::L2RightHandSide(std::shared_ptr<Function<dim>> f)
 }
 
 template<int dim>
-L2RightHandSide<dim>::~L2RightHandSide() {
-}
-
-template<int dim>
 L2RightHandSide<dim>::AssemblyScratchData::AssemblyScratchData(const FiniteElement<dim> &fe,
       const Quadrature<dim> &quad)
       : fe_values(fe, quad, update_values | update_quadrature_points | update_JxW_values) {

@@ -14,9 +14,6 @@ namespace inversion {
 
 using namespace dealii;
 
-ToleranceChoice::~ToleranceChoice() {
-}
-
 void ToleranceChoice::reset(double target_discrepancy, double initial_discrepancy) {
    previous_tolerances.clear();
    required_steps.clear();

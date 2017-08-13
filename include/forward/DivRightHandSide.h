@@ -30,12 +30,14 @@ using namespace dealii;
 template<int dim>
 class DivRightHandSide: public RightHandSide<dim> {
    public:
+      /**
+       * Default destructor.
+       */
+      virtual ~DivRightHandSide() = default;
 
       // optimization is used only when a _and_ u are discretized
       // if u is continuous, then u has to have an implementation of gradient
       DivRightHandSide(std::shared_ptr<Function<dim>> a, std::shared_ptr<Function<dim>> u);
-
-      virtual ~DivRightHandSide();
 
       virtual void create_right_hand_side(const DoFHandler<dim> &dof_handler, const Quadrature<dim> &q,
             Vector<double> &rhs) const;

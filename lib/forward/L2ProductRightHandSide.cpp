@@ -22,10 +22,6 @@ L2ProductRightHandSide<dim>::L2ProductRightHandSide(std::shared_ptr<DiscretizedF
 }
 
 template<int dim>
-L2ProductRightHandSide<dim>::~L2ProductRightHandSide() {
-}
-
-template<int dim>
 L2ProductRightHandSide<dim>::AssemblyScratchData::AssemblyScratchData(const FiniteElement<dim> &fe,
       const Quadrature<dim> &quad)
       : fe_values(fe, quad, update_values | update_quadrature_points | update_JxW_values) {

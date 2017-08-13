@@ -48,10 +48,6 @@ DiscretizedFunction<dim> L2QProblem<dim>::forward(const DiscretizedFunction<dim>
 }
 
 template<int dim>
-L2QProblem<dim>::Linearization::~Linearization() {
-}
-
-template<int dim>
 L2QProblem<dim>::Linearization::Linearization(const WaveEquation<dim> &weq,
       typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver, const DiscretizedFunction<dim>& q,
       const DiscretizedFunction<dim>& u)

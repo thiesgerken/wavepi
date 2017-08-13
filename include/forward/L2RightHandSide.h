@@ -28,8 +28,12 @@ using namespace dealii;
 template<int dim>
 class L2RightHandSide: public RightHandSide<dim> {
    public:
+      /**
+       * Default destructor.
+       */
+      virtual ~L2RightHandSide() = default;
+
       L2RightHandSide(std::shared_ptr<Function<dim>> f);
-      virtual ~L2RightHandSide();
 
       virtual void create_right_hand_side(const DoFHandler<dim> &dof_handler, const Quadrature<dim> &q,
             Vector<double> &rhs) const;

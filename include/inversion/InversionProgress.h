@@ -53,13 +53,12 @@ struct InversionProgress {
       bool finished;
 
       InversionProgress(int iteration_number, const Param* current_estimate, double norm_current_estimate,
-            const Sol* current_residual, double current_discrepancy, double target_discrepancy,
-            const Sol* data, double norm_data, std::shared_ptr<const Param> exact_param,
-            double norm_exact_param, bool finished)
+            const Sol* current_residual, double current_discrepancy, double target_discrepancy, const Sol* data,
+            double norm_data, std::shared_ptr<const Param> exact_param, double norm_exact_param, bool finished)
             : iteration_number(iteration_number), current_estimate(current_estimate), norm_current_estimate(
-                  norm_current_estimate), current_residual(current_residual), current_discrepancy(
-                  current_discrepancy), target_discrepancy(target_discrepancy), data(data), norm_data(
-                  norm_data), exact_param(exact_param), norm_exact_param(norm_exact_param) {
+                  norm_current_estimate), current_residual(current_residual), current_discrepancy(current_discrepancy), target_discrepancy(
+                  target_discrepancy), data(data), norm_data(norm_data), exact_param(exact_param), norm_exact_param(
+                  norm_exact_param) {
          if (exact_param) {
             Param tmp(*current_estimate);
             tmp -= *exact_param;
@@ -74,9 +73,9 @@ struct InversionProgress {
             Sol* current_residual, double current_discrepancy, double target_discrepancy, const Sol* data,
             double norm_data, bool finished)
             : iteration_number(iteration_number), current_estimate(current_estimate), norm_current_estimate(
-                  norm_current_estimate), current_residual(current_residual), current_discrepancy(
-                  current_discrepancy), target_discrepancy(target_discrepancy), data(data), norm_data(
-                  norm_data), exact_param(), norm_exact_param(-0.0), current_error(-0.0), finished(finished) {
+                  norm_current_estimate), current_residual(current_residual), current_discrepancy(current_discrepancy), target_discrepancy(
+                  target_discrepancy), data(data), norm_data(norm_data), exact_param(), norm_exact_param(-0.0), current_error(
+                  -0.0), finished(finished) {
       }
 
       InversionProgress(const InversionProgress<Param, Sol>& o)
@@ -108,9 +107,10 @@ struct InversionProgress {
 template<typename Param, typename Sol>
 class InversionProgressListener {
    public:
-      virtual ~InversionProgressListener() {
-      }
-      ;
+      /**
+       * Default destructor.
+       */
+      virtual ~InversionProgressListener() = default;
 
       // progress indicator that iterative methods can call
       // exact_param might be equal to null_ptr
@@ -122,8 +122,10 @@ class InversionProgressListener {
 template<typename Param, typename Sol>
 class GenericInversionProgressListener: public InversionProgressListener<Param, Sol> {
    public:
-      virtual ~GenericInversionProgressListener() {
-      }
+      /**
+       * Default destructor.
+       */
+      virtual ~GenericInversionProgressListener() = default;
 
       GenericInversionProgressListener(std::string counter_variable)
             : counter_variable(counter_variable) {
@@ -157,8 +159,10 @@ class GenericInversionProgressListener: public InversionProgressListener<Param, 
 template<typename Param, typename Sol>
 class CtrlCProgressListener: public InversionProgressListener<Param, Sol> {
    public:
-      virtual ~CtrlCProgressListener() {
-      }
+      /**
+       * Default destructor.
+       */
+      virtual ~CtrlCProgressListener() = default;
 
       CtrlCProgressListener() {
          if (!handler_installed) {
@@ -204,11 +208,12 @@ template<typename Param, typename Sol>
 bool CtrlCProgressListener<Param, Sol>::handler_installed = false;
 
 template<int dim>
-class OutputProgressListener: public InversionProgressListener<DiscretizedFunction<dim>,
-      DiscretizedFunction<dim>> {
+class OutputProgressListener: public InversionProgressListener<DiscretizedFunction<dim>, DiscretizedFunction<dim>> {
    public:
-      virtual ~OutputProgressListener() {
-      }
+      /**
+       * Default destructor.
+       */
+      virtual ~OutputProgressListener() = default;
 
       OutputProgressListener(int interval)
             : interval(interval) {
@@ -221,8 +226,7 @@ class OutputProgressListener: public InversionProgressListener<DiscretizedFuncti
       static void declare_parameters(ParameterHandler &prm) {
          prm.enter_subsection("output");
          {
-            prm.declare_entry("interval", "10", Patterns::Integer(0),
-                  "output every n iterations, or never if n == 0.");
+            prm.declare_entry("interval", "10", Patterns::Integer(0), "output every n iterations, or never if n == 0.");
             prm.declare_entry("last", "true", Patterns::Bool(), "output the last iteration before exit");
 
             prm.declare_entry("data", "true", Patterns::Bool(),

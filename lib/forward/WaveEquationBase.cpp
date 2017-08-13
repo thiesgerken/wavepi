@@ -22,10 +22,6 @@ WaveEquationBase<dim>::WaveEquationBase(std::shared_ptr<SpaceTimeMesh<dim>> mesh
 }
 
 template<int dim>
-WaveEquationBase<dim>::~WaveEquationBase() {
-}
-
-template<int dim>
 void WaveEquationBase<dim>::fill_A(DoFHandler<dim> &dof_handler, SparseMatrix<double>& destination) {
    if ((!param_a_disc && !param_q_disc) || !using_special_assembly())
       MatrixCreator<dim>::create_laplace_mass_matrix(dof_handler, mesh->get_quadrature(), destination, param_a, param_q);

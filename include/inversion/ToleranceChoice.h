@@ -15,7 +15,10 @@ namespace inversion {
 
 class ToleranceChoice {
    public:
-      virtual ~ToleranceChoice();
+      /**
+       * Default destructor.
+       */
+      virtual ~ToleranceChoice() = default;
 
       // reset iteration history
       void reset(double target_discrepancy, double initial_discrepancy);
