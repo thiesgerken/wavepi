@@ -37,21 +37,21 @@ class ConstantMesh: public SpaceTimeMesh<dim> {
 
       // get a mass matrix for the selected time index.
       // If this is not in storage yet, then the result of get_dof_handler is used to create one
-      virtual std::shared_ptr<SparseMatrix<double>> get_mass_matrix(size_t time_index);
+      virtual std::shared_ptr<SparseMatrix<double>> get_mass_matrix(size_t idx);
 
       // get a sparsity pattern for the selected time index.
       // If this is not in storage (yet), then the result of get_dof_handler is used to create one
-      virtual std::shared_ptr<SparsityPattern> get_sparsity_pattern(size_t time_index);
+      virtual std::shared_ptr<SparsityPattern> get_sparsity_pattern(size_t idx);
 
       // in some cases one does not need a whole DoFHandler, only the number of degrees of freedom.
       // (e.g. in empty vector creation)
-      virtual size_t get_n_dofs(size_t time_index);
+      virtual size_t n_dofs(size_t idx);
 
       // returns the same DoFHandler for all times without changing it
-      virtual std::shared_ptr<DoFHandler<dim> > get_dof_handler(size_t time_index);
+      virtual std::shared_ptr<DoFHandler<dim> > get_dof_handler(size_t idx);
 
       // returns the same Triangulation for all times without changing it
-      virtual std::shared_ptr<Triangulation<dim> > get_triangulation(size_t time_index);
+      virtual std::shared_ptr<Triangulation<dim> > get_triangulation(size_t idx);
 
       // does nothing.
       virtual std::shared_ptr<DoFHandler<dim> > transfer(size_t source_time_index, size_t target_time_index,

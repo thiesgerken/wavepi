@@ -52,28 +52,28 @@ class SpaceTimeMesh {
        */
       virtual std::size_t memory_consumption() const = 0;
 
+      // in some cases one does not need a whole DoFHandler, only the number of degrees of freedom.
+      // (e.g. in empty vector creation)
+      virtual size_t n_dofs(size_t idx) = 0;
+
       // get a mass matrix for the selected time index.
       // If this is not in storage (yet), then the result of get_dof_handler is used to create one
       // Might invalidate the last return value of get_dof_handler!
-      virtual std::shared_ptr<SparseMatrix<double>> get_mass_matrix(size_t time_index) = 0;
+      virtual std::shared_ptr<SparseMatrix<double>> get_mass_matrix(size_t idx) = 0;
 
       // If this is not in storage (yet), then the result of get_dof_handler is used to create one
       // Might invalidate the last return value of get_dof_handler!
-      virtual std::shared_ptr<SparsityPattern> get_sparsity_pattern(size_t time_index) = 0;
-
-      // in some cases one does not need a whole DoFHandler, only the number of degrees of freedom.
-      // (e.g. in empty vector creation)
-      virtual size_t get_n_dofs(size_t time_index) = 0;
+      virtual std::shared_ptr<SparsityPattern> get_sparsity_pattern(size_t idx) = 0;
 
       // get a dof_handler for the selected time_index. It might become invalid when this function is called again with a different time_index.
       // has to decide, whether getting a new dof_handler from the initial triangulation and advancing it until time_index is smarter
       // than reusing the current working_dof_handler and moving it.
-      virtual std::shared_ptr<DoFHandler<dim> > get_dof_handler(size_t time_index) = 0;
+      virtual std::shared_ptr<DoFHandler<dim> > get_dof_handler(size_t idx) = 0;
 
       // get a triangulation for the selected time_index. It might become invalid when this function is called again with a different time_index.
       // has to decide, whether getting a new triangulation from the initial triangulation and advancing it until time_index is smarter
       // than reusing the current triangulation and moving it.
-      virtual std::shared_ptr<Triangulation<dim> > get_triangulation(size_t time_index) = 0;
+      virtual std::shared_ptr<Triangulation<dim> > get_triangulation(size_t idx) = 0;
 
       // essentially, whether get_dof_handler is thread-safe.
       virtual bool allows_parallel_access() const = 0;
@@ -106,7 +106,7 @@ class SpaceTimeMesh {
        *
        * @return `get_times().size()`
        */
-      inline size_t length() {
+      inline size_t length() const {
          return times.size();
       }
 
@@ -128,8 +128,6 @@ class SpaceTimeMesh {
        * @throws Exc
        */
       size_t find_time(double time) const;
-
-
 
    protected:
       std::vector<double> times;

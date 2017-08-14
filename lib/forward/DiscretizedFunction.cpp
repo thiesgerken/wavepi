@@ -45,12 +45,11 @@ DiscretizedFunction<dim>::DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>
       derivative_coefficients.reserve(mesh->length());
 
    for (size_t i = 0; i < mesh->length(); i++) {
-      function_coefficients.emplace_back(mesh->get_n_dofs(i));
+      function_coefficients.emplace_back(mesh->n_dofs(i));
 
       if (store_derivative)
-         derivative_coefficients.emplace_back(mesh->get_n_dofs(i));
+         derivative_coefficients.emplace_back(mesh->n_dofs(i));
    }
-
 }
 
 template<int dim>

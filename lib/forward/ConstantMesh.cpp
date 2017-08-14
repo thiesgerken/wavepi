@@ -50,7 +50,7 @@ std::shared_ptr<SparsityPattern> ConstantMesh<dim>::get_sparsity_pattern(size_t 
    return sparsity_pattern;
 }
 
-template<int dim> size_t ConstantMesh<dim>::get_n_dofs(size_t time_index __attribute((unused))) {
+template<int dim> size_t ConstantMesh<dim>::n_dofs(size_t time_index __attribute((unused))) {
    return dof_handler->n_dofs();
 }
 
@@ -67,17 +67,24 @@ template<int dim> std::shared_ptr<Triangulation<dim> > ConstantMesh<dim>::get_tr
 template<int dim> std::shared_ptr<DoFHandler<dim> > ConstantMesh<dim>::transfer(
       size_t source_time_index __attribute((unused)), size_t target_time_index __attribute((unused)),
       std::initializer_list<Vector<double>*> vectors __attribute((unused))) {
+   // LogStream::Prefix p("ConstantMesh");
+   // deallog << "Mesh transfer: " << source_time_index << " → " << target_time_index << ", taking "
+   //         << vectors.size() << " vector(s) along" << std::endl;
+
    return dof_handler;
 }
 
 template<int dim> size_t ConstantMesh<dim>::memory_consumption() const {
-   size_t mem = MemoryConsumption::memory_consumption(dof_handler)
+   size_t mem = MemoryConsumption::memory_consumption(*dof_handler) + MemoryConsumption::memory_consumption(dof_handler)
          + MemoryConsumption::memory_consumption(*triangulation) + MemoryConsumption::memory_consumption(triangulation)
          + MemoryConsumption::memory_consumption(times) + MemoryConsumption::memory_consumption(sparsity_pattern)
          + MemoryConsumption::memory_consumption(mass_matrix);
 
    if (mass_matrix)
       mem += MemoryConsumption::memory_consumption(*mass_matrix);
+
+   if (sparsity_pattern)
+       mem += MemoryConsumption::memory_consumption(*sparsity_pattern);
 
    return mem;
 }

@@ -8,6 +8,7 @@
 #include <deal.II/base/logstream.h>
 #include <deal.II/base/types.h>
 #include <deal.II/grid/grid_generator.h>
+#include <deal.II/grid/grid_tools.h>
 
 #include <forward/ConstantMesh.h>
 #include <forward/L2RightHandSide.h>
@@ -137,8 +138,12 @@ template<int dim> void WavePI<dim>::initialize_mesh() {
    deallog << "Number of active cells: " << triangulation->n_active_cells() << std::endl;
    deallog << "Number of degrees of freedom in spatial mesh: " << mesh->get_dof_handler(0)->n_dofs()
          << std::endl;
-   deallog << "Average cell diameter: "
+   deallog << "cell diameters: minimal = " << dealii::GridTools::minimal_cell_diameter(*triangulation)
+         << std::endl;
+   deallog << "                average = "
          << 10.0 * sqrt((double ) dim) / pow(triangulation->n_active_cells(), 1.0 / dim) << std::endl;
+   deallog << "                maximal = " << dealii::GridTools::maximal_cell_diameter(*triangulation)
+         << std::endl;
    deallog << "dt: " << dt << std::endl;
 }
 
