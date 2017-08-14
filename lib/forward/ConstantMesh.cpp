@@ -42,6 +42,8 @@ std::shared_ptr<SparsityPattern> ConstantMesh<dim>::get_sparsity_pattern(size_t 
    if (!sparsity_pattern) {
       DynamicSparsityPattern dsp(dof_handler->n_dofs(), dof_handler->n_dofs());
       DoFTools::make_sparsity_pattern(*dof_handler, dsp);
+
+      sparsity_pattern = std::make_shared<SparsityPattern>();
       sparsity_pattern->copy_from(dsp);
    }
 
