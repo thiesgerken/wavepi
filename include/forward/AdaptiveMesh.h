@@ -27,6 +27,9 @@ using namespace dealii;
 template<int dim>
 class AdaptiveMesh: public SpaceTimeMesh<dim> {
    public:
+      // Patch = list of consecutive grid refinements (first item in the pair) and coarsenings (second item)
+      using Patch = std::vector<std::pair<std::vector<bool>, std::vector<bool>>>;
+
       /**
        * Default destructor.
        */
@@ -83,20 +86,26 @@ class AdaptiveMesh: public SpaceTimeMesh<dim> {
             std::vector<std::vector<bool>> refine_trias, std::vector<std::vector<bool>> coarsen_trias,
             std::initializer_list<DiscretizedFunction<dim>*> interpolate_vectors);
 
+      const std::vector<Patch>& get_forward_patches() const;
+
+      void set_forward_patches(const std::vector<Patch>& forward_patches);
+
    private:
       using SpaceTimeMesh<dim>::quad;
       using SpaceTimeMesh<dim>::times;
       using SpaceTimeMesh<dim>::fe;
 
-      // Patch = list of consecutive grid refinements (first item in the pair) and coarsenings (second item)
-      using Patch = std::vector<std::pair<std::vector<bool>, std::vector<bool>>>;
-
-      // reference triangulation (the first time step is one `Patch` (see below) away from this triangulation)
-      // It _might_ also make sense to save one at the last time step (adjoint problems)
+      // triangulation for time step zero
+      // It _might_ also make sense to save the last triangulation (adjoint problems)
       std::shared_ptr<Triangulation<dim>> initial_triangulation;
 
       // how to advance the spatial mesh of one time step to the next one
-      std::vector<Patch> patches;
+      // i-th entry: patch to go from step i to step i+1
+      std::vector<Patch> forward_patches;
+
+      // how to advance the spatial mesh of one time step to the previous one
+      // i-th entry: patch to go from step i+1 to step i
+      std::vector<Patch> backward_patches;
 
       // n_dofs for each time
       std::vector<size_t> vector_sizes;
@@ -114,10 +123,19 @@ class AdaptiveMesh: public SpaceTimeMesh<dim> {
       std::shared_ptr<Triangulation<dim>> working_triangulation;
       std::shared_ptr<DoFHandler<dim>> working_dof_handler;
 
-      // transfer with source_time_index = working_time_idx
-      std::shared_ptr<DoFHandler<dim> > transfer(size_t target_time_index,
-            std::initializer_list<Vector<double>*> vectors);
+      // delete internal caches (mass matrices, ...)
+      void reset();
 
+      // transfer with source_time_index = working_time_idx
+      void transfer(size_t target_time_index, std::vector<Vector<double>> &vectors);
+
+      // transfer with source_time_index = working_time_idx
+      void transfer(size_t target_time_index);
+
+      // apply patch
+      void patch(const Patch &p, std::vector<Vector<double>> &vectors);
+
+      void generate_backward_patches();
 };
 
 } /* namespace forward */

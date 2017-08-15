@@ -11,6 +11,7 @@
 #include <deal.II/grid/grid_tools.h>
 
 #include <forward/ConstantMesh.h>
+#include <forward/AdaptiveMesh.h>
 #include <forward/L2RightHandSide.h>
 
 #include <inversion/InversionProgress.h>
@@ -132,7 +133,7 @@ template<int dim> void WavePI<dim>::initialize_mesh() {
    GridTools::set_all_boundary_ids(*triangulation, 0);
    triangulation->refine_global(initial_refines);
 
-   mesh = std::make_shared<ConstantMesh<dim>>(times, FE_Q<dim>(fe_degree), QGauss<dim>(quad_order),
+   mesh = std::make_shared<AdaptiveMesh<dim>>(times, FE_Q<dim>(fe_degree), QGauss<dim>(quad_order),
          triangulation);
 
    deallog << "Number of active cells: " << triangulation->n_active_cells() << std::endl;
@@ -199,6 +200,7 @@ template<int dim> void WavePI<dim>::initialize_problem() {
 
 template<int dim> void WavePI<dim>::generate_data() {
    LogStream::Prefix p("generate_data");
+   LogStream::Prefix pp(" ");
 
    Sol data_exact = wave_eq->run();
    data_exact.throw_away_derivative();
