@@ -34,6 +34,7 @@ AdaptiveMesh<dim>::AdaptiveMesh(std::vector<double> times, FE_Q<dim> fe, Quadrat
    vector_sizes = std::vector<size_t>(this->length(), 0);
    sparsity_patterns = std::vector<std::shared_ptr<SparsityPattern>>(this->length());
    mass_matrices = std::vector<std::shared_ptr<SparseMatrix<double>>>(this->length());
+   constraints = std::vector<std::shared_ptr<ConstraintMatrix>>(this->length());
 
    working_time_idx = 0;
 
@@ -49,13 +50,15 @@ void AdaptiveMesh<dim>::reset() {
    vector_sizes = std::vector<size_t>(this->length(), 0);
    mass_matrices = std::vector<std::shared_ptr<SparseMatrix<double>>>(this->length());
    sparsity_patterns = std::vector<std::shared_ptr<SparsityPattern>>(this->length());
+   constraints = std::vector<std::shared_ptr<ConstraintMatrix>>(this->length());
 
    working_time_idx = 0;
+
+   working_dof_handler = std::make_shared<DoFHandler<dim>>();
 
    working_triangulation = std::make_shared<Triangulation<dim>>();
    working_triangulation->copy_triangulation(*initial_triangulation);
 
-   working_dof_handler = std::make_shared<DoFHandler<dim>>();
    working_dof_handler->initialize(*working_triangulation, this->fe);
 }
 
@@ -69,6 +72,23 @@ size_t AdaptiveMesh<dim>::n_dofs(size_t idx) {
    }
 
    return vector_sizes[idx];
+}
+
+template<int dim>
+std::shared_ptr<ConstraintMatrix> AdaptiveMesh<dim>::get_constraint_matrix(size_t idx) {
+   if (!constraints[idx]) {
+      {
+         LogStream::Prefix p("AdaptiveMesh");
+         deallog << "making constraint matrix for time step " << idx << std::endl;
+      }
+
+      get_dof_handler(idx);
+      constraints[idx] = std::make_shared<ConstraintMatrix>();
+      DoFTools::make_hanging_node_constraints(*working_dof_handler, *constraints[idx]);
+      constraints[idx]->close();
+   }
+
+   return constraints[idx];
 }
 
 template<int dim>
@@ -100,10 +120,13 @@ template<int dim> std::shared_ptr<SparsityPattern> AdaptiveMesh<dim>::get_sparsi
          deallog << "making sparsity pattern for time step " << idx << std::endl;
       }
 
+      get_constraint_matrix(idx);
       get_dof_handler(idx);
 
       DynamicSparsityPattern dsp(working_dof_handler->n_dofs(), working_dof_handler->n_dofs());
       DoFTools::make_sparsity_pattern(*working_dof_handler, dsp);
+
+      constraints[idx]->condense(dsp);
 
       sparsity_patterns[idx] = std::make_shared<SparsityPattern>();
       sparsity_patterns[idx]->copy_from(dsp);
@@ -131,10 +154,6 @@ std::shared_ptr<Triangulation<dim> > AdaptiveMesh<dim>::get_triangulation(size_t
 template<int dim>
 std::shared_ptr<DoFHandler<dim> > AdaptiveMesh<dim>::transfer(size_t source_time_index,
       size_t target_time_index, std::initializer_list<Vector<double>*> vectors) {
-   LogStream::Prefix p("AdaptiveMesh");
-   deallog << "Mesh transfer: " << source_time_index << " → " << target_time_index << ", taking "
-         << vectors.size() << " vector(s) along" << std::endl;
-
    Assert(source_time_index >= 0 && source_time_index < this->length(),
          ExcIndexRange(source_time_index, 0, this->length()));
    Assert(target_time_index >= 0 && target_time_index < this->length(),
@@ -142,9 +161,9 @@ std::shared_ptr<DoFHandler<dim> > AdaptiveMesh<dim>::transfer(size_t source_time
 
    transfer(source_time_index);
 
-   std::vector<Vector<double>> vecs;
+   std::vector<Vector<double>*> vecs;
    for (auto vec : vectors)
-      vecs.emplace_back(*vec);
+      vecs.push_back(vec);
 
    transfer(target_time_index, vecs);
 
@@ -152,10 +171,14 @@ std::shared_ptr<DoFHandler<dim> > AdaptiveMesh<dim>::transfer(size_t source_time
 }
 
 template<int dim>
-void AdaptiveMesh<dim>::patch(const Patch &patch, std::vector<Vector<double>> &vectors) {
+void AdaptiveMesh<dim>::patch(const Patch &patch, std::vector<Vector<double>*> &vectors) {
    for (auto p : patch) {
       auto cells_to_refine = p.first;
       auto cells_to_coarsen = p.second;
+
+      LogStream::Prefix lp("patch");
+      deallog << "Applying patch (working_time_idx = " << working_time_idx << ") in a set of " << patch.size()
+            << std::endl;
 
       if (vectors.size() == 0) {
          working_triangulation->load_refine_flags(cells_to_refine);
@@ -177,16 +200,16 @@ void AdaptiveMesh<dim>::patch(const Patch &patch, std::vector<Vector<double>> &v
          working_dof_handler->distribute_dofs(fe);
 
          for (auto vec : vectors) {
-            Vector<double> tmp(vec);
-            vec.reinit(working_dof_handler->n_dofs());
-            trans.refine_interpolate(tmp, vec);
+            Vector<double> tmp(*vec);
+            vec->reinit(working_dof_handler->n_dofs());
+            trans.refine_interpolate(tmp, *vec);
          }
       } else {
          SolutionTransfer<dim, Vector<double>> trans(*working_dof_handler);
 
          std::vector<Vector<double>> all_in;
          for (auto vec : vectors)
-            all_in.emplace_back(vec);
+            all_in.emplace_back(*vec);
 
          working_triangulation->load_refine_flags(cells_to_refine);
          working_triangulation->load_coarsen_flags(cells_to_coarsen);
@@ -202,27 +225,35 @@ void AdaptiveMesh<dim>::patch(const Patch &patch, std::vector<Vector<double>> &v
          trans.interpolate(all_in, all_out);
 
          for (size_t i = 0; i < vectors.size(); i++)
-            vectors[i] = all_out[i];
+            *vectors[i] = all_out[i];
       }
    }
 }
 template<int dim>
 void AdaptiveMesh<dim>::transfer(size_t target_idx) {
-   std::vector<Vector<double>> vecs;
+   std::vector<Vector<double>*> vecs;
    transfer(target_idx, vecs);
 }
 
 template<int dim>
-void AdaptiveMesh<dim>::transfer(size_t target_idx, std::vector<Vector<double>> &vectors) {
+void AdaptiveMesh<dim>::transfer(size_t target_idx, std::vector<Vector<double>*> &vectors) {
    Assert(target_idx >= 0 && target_idx < this->length(), ExcIndexRange(target_idx, 0, this->length()));
 
-   if (working_time_idx < target_idx)
-      for (size_t idx = working_time_idx; idx < target_idx; idx++)
-         patch(forward_patches[idx], vectors);
-   else if (working_time_idx > target_idx)
-      for (ssize_t idx = working_time_idx; idx > (ssize_t) target_idx; idx--)
-         patch(backward_patches[idx], vectors);
+   LogStream::Prefix p("AdaptiveMesh");
+   if (target_idx != working_time_idx)
+      deallog << "Mesh transfer: " << working_time_idx << " → " << target_idx << ", taking "
+            << vectors.size() << " vector(s) along" << std::endl;
 
+   if (working_time_idx < target_idx)
+      for (size_t idx = working_time_idx; idx < target_idx; idx++) {
+         patch(forward_patches[idx], vectors);
+         working_time_idx++;
+      }
+   else if (working_time_idx > target_idx)
+      for (ssize_t idx = working_time_idx; idx > (ssize_t) target_idx; idx--) {
+         patch(backward_patches[idx - 1], vectors);
+         working_time_idx--;
+      }
 }
 
 template<int dim>
@@ -267,7 +298,7 @@ template<int dim>
 void AdaptiveMesh<dim>::generate_backward_patches() {
    Assert(working_time_idx == 0, ExcInternalError());
 
-   for (size_t idx = 0; idx < this->length() - 1; idx++) {
+   for (size_t idx = 0; idx < this->length() - 1; idx++, working_time_idx++) {
       Patch bw_patches;
 
       for (auto p : forward_patches[idx]) {
@@ -325,7 +356,6 @@ void AdaptiveMesh<dim>::generate_backward_patches() {
 
       // patches need to be applied in reverse order
       std::reverse(bw_patches.begin(), bw_patches.end());
-
       backward_patches[idx] = bw_patches;
    }
 }

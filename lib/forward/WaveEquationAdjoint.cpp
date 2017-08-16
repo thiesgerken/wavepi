@@ -98,6 +98,7 @@ void WaveEquationAdjoint<dim>::next_mesh(size_t source_idx, size_t target_idx) {
       dof_handler = mesh->transfer(source_idx, target_idx, { &system_rhs_u, &system_rhs_v, &tmp_u, &tmp_v });
 
    sparsity_pattern = mesh->get_sparsity_pattern(target_idx);
+   constraints = mesh->get_constraint_matrix(target_idx);
 
    matrix_A.reinit(*sparsity_pattern);
    matrix_B.reinit(*sparsity_pattern);
@@ -150,8 +151,8 @@ void WaveEquationAdjoint<dim>::assemble_matrices() {
    task_group += Threads::new_task(&WaveEquationAdjoint<dim>::fill_A, *this, *dof_handler, matrix_A);
    task_group += Threads::new_task(&WaveEquationAdjoint<dim>::fill_B, *this, *dof_handler, matrix_B);
    task_group += Threads::new_task(&WaveEquationAdjoint<dim>::fill_C, *this, *dof_handler, matrix_C);
-   task_group += Threads::new_task(&RightHandSide<dim>::create_right_hand_side, *right_hand_side, *dof_handler,
-         mesh->get_quadrature(), rhs);
+   task_group += Threads::new_task(&RightHandSide<dim>::create_right_hand_side, *right_hand_side,
+         *dof_handler, mesh->get_quadrature(), rhs);
    task_group.join_all();
 }
 
@@ -265,6 +266,8 @@ void WaveEquationAdjoint<dim>::assemble_u(size_t i) {
       system_matrix.add(theta / time_step, matrix_B);
       system_matrix.add(theta * theta, matrix_A);
    }
+
+   constraints->condense(system_matrix, system_rhs_u);
 
    std::map<types::global_dof_index, double> boundary_values;
    VectorTools::interpolate_boundary_values(*dof_handler, 0, *this->zero, boundary_values);
@@ -386,6 +389,8 @@ void WaveEquationAdjoint<dim>::assemble_v(size_t i) {
       system_matrix.add(theta, matrix_B);
    }
 
+   constraints->condense(system_matrix, system_rhs_v);
+
    std::map<types::global_dof_index, double> boundary_values;
    VectorTools::interpolate_boundary_values(*dof_handler, 0, *this->zero, boundary_values);
    MatrixTools::apply_boundary_values(boundary_values, system_matrix, solution_v, system_rhs_v);
@@ -406,6 +411,7 @@ void WaveEquationAdjoint<dim>::solve_u() {
    PreconditionIdentity precondition = PreconditionIdentity();
 
    cg.solve(system_matrix, solution_u, system_rhs_u, precondition);
+   constraints->distribute(solution_u);
 
    std::ios::fmtflags f(deallog.flags(std::ios_base::scientific));
    deallog << "Steps: " << solver_control.last_step();
@@ -428,6 +434,7 @@ void WaveEquationAdjoint<dim>::solve_v() {
    PreconditionIdentity precondition = PreconditionIdentity();
 
    cg.solve(system_matrix, solution_v, system_rhs_v, precondition);
+   constraints->distribute(solution_v);
 
    std::ios::fmtflags f(deallog.flags(std::ios_base::scientific));
 
@@ -492,8 +499,8 @@ DiscretizedFunction<dim> WaveEquationAdjoint<dim>::run() {
 
    timer.stop();
    std::ios::fmtflags f(deallog.flags(std::ios_base::fixed));
-   deallog << "solved adjoint pde in " << timer.wall_time() << "s (setup " << assembly_timer.wall_time() << "s)"
-         << std::endl;
+   deallog << "solved adjoint pde in " << timer.wall_time() << "s (setup " << assembly_timer.wall_time()
+         << "s)" << std::endl;
    deallog.flags(f);
 
    return apply_R_transpose(u);
@@ -508,14 +515,17 @@ DiscretizedFunction<dim> WaveEquationAdjoint<dim>::apply_R_transpose(const Discr
    for (size_t j = 0; j < mesh->length(); j++) {
       size_t i = mesh->length() - 1 - j;
 
-      Vector<double> tmp(u.get_function_coefficient(i).size());
+      Vector<double> tmp;
 
       if (i != mesh->length() - 1) {
+         tmp.reinit(u.get_function_coefficient(i+1).size());
+
          tmp.equ(theta * (1 - theta), u.get_function_coefficient(i + 1));
          tmp.add(1 - theta, u.get_derivative_coefficient(i + 1));
 
          dof_handler = mesh->transfer(i + 1, i, { &tmp });
-      }
+      } else
+         tmp.reinit(u.get_function_coefficient(i).size());
 
       if (i != 0) {
          tmp.add(theta * theta, u.get_function_coefficient(i));

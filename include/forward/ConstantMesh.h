@@ -50,6 +50,8 @@ class ConstantMesh: public SpaceTimeMesh<dim> {
       // returns the same DoFHandler for all times without changing it
       virtual std::shared_ptr<DoFHandler<dim> > get_dof_handler(size_t idx);
 
+      virtual std::shared_ptr<ConstraintMatrix> get_constraint_matrix(size_t idx);
+
       // returns the same Triangulation for all times without changing it
       virtual std::shared_ptr<Triangulation<dim> > get_triangulation(size_t idx);
 
@@ -73,12 +75,11 @@ class ConstantMesh: public SpaceTimeMesh<dim> {
       std::shared_ptr<Triangulation<dim>> triangulation;
       std::shared_ptr<DoFHandler<dim>> dof_handler;
 
-      // don't need it, but its lifetime has to be larger than that of mass_matrix ...
-      // therefore, the order here is also important! (mass_matrix is deconstructed first)
+      // the order here is also important! (mass_matrix is deconstructed first)
       std::shared_ptr<SparsityPattern> sparsity_pattern;
-
       std::shared_ptr<SparseMatrix<double>> mass_matrix;
 
+      std::shared_ptr<ConstraintMatrix> constraints;
 };
 
 } /* namespace forward */

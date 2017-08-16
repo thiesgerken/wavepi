@@ -38,10 +38,25 @@ std::shared_ptr<SparseMatrix<double>> ConstantMesh<dim>::get_mass_matrix(size_t 
 }
 
 template<int dim>
-std::shared_ptr<SparsityPattern> ConstantMesh<dim>::get_sparsity_pattern(size_t time_index __attribute((unused))) {
+std::shared_ptr<ConstraintMatrix> ConstantMesh<dim>::get_constraint_matrix(size_t idx __attribute((unused))) {
+   if (!constraints) {
+      constraints = std::make_shared<ConstraintMatrix>();
+      DoFTools::make_hanging_node_constraints(*dof_handler, *constraints);
+      constraints->close();
+   }
+
+   return constraints;
+}
+
+template<int dim>
+std::shared_ptr<SparsityPattern> ConstantMesh<dim>::get_sparsity_pattern(
+      size_t time_index ) {
    if (!sparsity_pattern) {
       DynamicSparsityPattern dsp(dof_handler->n_dofs(), dof_handler->n_dofs());
       DoFTools::make_sparsity_pattern(*dof_handler, dsp);
+
+      get_constraint_matrix(time_index);
+      constraints->condense(dsp);
 
       sparsity_pattern = std::make_shared<SparsityPattern>();
       sparsity_pattern->copy_from(dsp);
@@ -75,16 +90,18 @@ template<int dim> std::shared_ptr<DoFHandler<dim> > ConstantMesh<dim>::transfer(
 }
 
 template<int dim> size_t ConstantMesh<dim>::memory_consumption() const {
-   size_t mem = MemoryConsumption::memory_consumption(*dof_handler) + MemoryConsumption::memory_consumption(dof_handler)
-         + MemoryConsumption::memory_consumption(*triangulation) + MemoryConsumption::memory_consumption(triangulation)
-         + MemoryConsumption::memory_consumption(times) + MemoryConsumption::memory_consumption(sparsity_pattern)
+   size_t mem = MemoryConsumption::memory_consumption(*dof_handler)
+         + MemoryConsumption::memory_consumption(dof_handler)
+         + MemoryConsumption::memory_consumption(*triangulation)
+         + MemoryConsumption::memory_consumption(triangulation) + MemoryConsumption::memory_consumption(times)
+         + MemoryConsumption::memory_consumption(sparsity_pattern)
          + MemoryConsumption::memory_consumption(mass_matrix);
 
    if (mass_matrix)
       mem += MemoryConsumption::memory_consumption(*mass_matrix);
 
    if (sparsity_pattern)
-       mem += MemoryConsumption::memory_consumption(*sparsity_pattern);
+      mem += MemoryConsumption::memory_consumption(*sparsity_pattern);
 
    return mem;
 }

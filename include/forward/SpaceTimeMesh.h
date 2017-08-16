@@ -8,13 +8,18 @@
 #ifndef FORWARD_SPACETIMEMESH_H_
 #define FORWARD_SPACETIMEMESH_H_
 
+#include <deal.II/base/exceptions.h>
 #include <deal.II/base/quadrature.h>
 #include <deal.II/dofs/dof_handler.h>
 #include <deal.II/fe/fe_q.h>
+#include <deal.II/grid/tria.h>
+#include <deal.II/lac/constraint_matrix.h>
 #include <deal.II/lac/sparse_matrix.h>
+#include <deal.II/lac/sparsity_pattern.h>
 #include <deal.II/lac/vector.h>
 
 #include <cstddef>
+#include <initializer_list>
 #include <memory>
 #include <vector>
 
@@ -69,6 +74,11 @@ class SpaceTimeMesh {
       // has to decide, whether getting a new dof_handler from the initial triangulation and advancing it until time_index is smarter
       // than reusing the current working_dof_handler and moving it.
       virtual std::shared_ptr<DoFHandler<dim> > get_dof_handler(size_t idx) = 0;
+
+      // get a ConstraintMatrix (for hanging nodes) for the selected time_index. It might become invalid when this function is called again with a different time_index.
+      // has to decide, whether getting a new dof_handler from the initial triangulation and advancing it until time_index is smarter
+      // than reusing the current working_dof_handler and moving it.
+      virtual std::shared_ptr<ConstraintMatrix> get_constraint_matrix(size_t idx) = 0;
 
       // get a triangulation for the selected time_index. It might become invalid when this function is called again with a different time_index.
       // has to decide, whether getting a new triangulation from the initial triangulation and advancing it until time_index is smarter

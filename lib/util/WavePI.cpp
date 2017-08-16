@@ -58,8 +58,8 @@ template<int dim> void WavePI<dim>::declare_parameters(ParameterHandler &prm) {
    prm.declare_entry(KEY_QUAD_ORDER, "3", Patterns::Integer(1, 20),
          "order of quadrature (QGauss, exact in polynomials of degree ≤ 2n-1, use at least finite element degree + 1) ");
    prm.declare_entry(KEY_END_TIME, "2", Patterns::Double(0), "time horizon T");
-   prm.declare_entry(KEY_INITIAL_REFINES, "3", Patterns::Integer(0), "refines of the (initial) spatial grid");
-   prm.declare_entry(KEY_INITIAL_TIME_STEPS, "64", Patterns::Integer(2), "(initial) number of time steps");
+   prm.declare_entry(KEY_INITIAL_REFINES, "5", Patterns::Integer(0), "refines of the (initial) spatial grid");
+   prm.declare_entry(KEY_INITIAL_TIME_STEPS, "256", Patterns::Integer(2), "(initial) number of time steps");
 
    prm.enter_subsection(KEY_INVERSION);
    {
@@ -133,11 +133,37 @@ template<int dim> void WavePI<dim>::initialize_mesh() {
    GridTools::set_all_boundary_ids(*triangulation, 0);
    triangulation->refine_global(initial_refines);
 
-   mesh = std::make_shared<AdaptiveMesh<dim>>(times, FE_Q<dim>(fe_degree), QGauss<dim>(quad_order),
+//   mesh = std::make_shared<AdaptiveMesh<dim>>(times, FE_Q<dim>(fe_degree), QGauss<dim>(quad_order),
+//         triangulation);
+
+   auto a_mesh = std::make_shared<AdaptiveMesh<dim>>(times, FE_Q<dim>(fe_degree), QGauss<dim>(quad_order),
          triangulation);
 
+   mesh = a_mesh;
+
+   // TEST: flag some cells for refinement, and refine them in some step
+   {
+      LogStream::Prefix pd("TEST");
+      for (auto cell : triangulation->active_cell_iterators())
+         if (cell->center()[1] > 0)
+            cell->set_refine_flag();
+
+      std::vector<bool> ref;
+      std::vector<bool> coa;
+
+      triangulation->save_refine_flags(ref);
+      triangulation->save_coarsen_flags(coa);
+
+      std::vector<Patch> patches = a_mesh->get_forward_patches();
+      patches[initial_time_steps / 2].emplace_back(ref, coa);
+
+      a_mesh->set_forward_patches(patches);
+
+      mesh->get_dof_handler(0);
+   }
+
    deallog << "Number of active cells: " << triangulation->n_active_cells() << std::endl;
-   deallog << "Number of degrees of freedom in spatial mesh: " << mesh->get_dof_handler(0)->n_dofs()
+   deallog << "Number of degrees of freedom in the first spatial mesh: " << mesh->get_dof_handler(0)->n_dofs()
          << std::endl;
    deallog << "cell diameters: minimal = " << dealii::GridTools::minimal_cell_diameter(*triangulation)
          << std::endl;
@@ -150,6 +176,7 @@ template<int dim> void WavePI<dim>::initialize_mesh() {
 
 template<int dim> void WavePI<dim>::initialize_problem() {
    LogStream::Prefix p("initialize_problem");
+   LogStream::Prefix pd(" ");
 
    wave_eq = std::make_shared<WaveEquation<dim>>(mesh);
    wave_eq->set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(std::make_shared<TestF<dim>>()));

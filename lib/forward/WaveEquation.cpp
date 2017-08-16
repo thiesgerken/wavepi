@@ -123,6 +123,7 @@ template<int dim>
 void WaveEquation<dim>::next_mesh(size_t source_idx, size_t target_idx) {
    dof_handler = mesh->transfer(source_idx, target_idx, { &system_rhs_u, &system_rhs_v, &tmp_u });
    sparsity_pattern = mesh->get_sparsity_pattern(target_idx);
+   constraints = mesh->get_constraint_matrix(target_idx);
 
    matrix_A.reinit(*sparsity_pattern);
    matrix_B.reinit(*sparsity_pattern);
@@ -217,6 +218,8 @@ void WaveEquation<dim>::assemble_u(double time_step) {
    system_matrix.add(theta * time_step, matrix_B);
    system_matrix.add(theta * theta * time_step * time_step, matrix_A);
 
+   constraints->condense(system_matrix, system_rhs_u);
+
    std::map<types::global_dof_index, double> boundary_values;
    VectorTools::interpolate_boundary_values(*dof_handler, 0, *boundary_values_u, boundary_values);
    MatrixTools::apply_boundary_values(boundary_values, system_matrix, solution_u, system_rhs_u);
@@ -252,6 +255,8 @@ void WaveEquation<dim>::assemble_v(double time_step) {
    system_matrix.copy_from(matrix_C);
    system_matrix.add(theta * time_step, matrix_B);
 
+   constraints->condense(system_matrix, system_rhs_v);
+
    std::map<types::global_dof_index, double> boundary_values;
    VectorTools::interpolate_boundary_values(*dof_handler, 0, *boundary_values_v, boundary_values);
    MatrixTools::apply_boundary_values(boundary_values, system_matrix, solution_v, system_rhs_v);
@@ -272,6 +277,7 @@ void WaveEquation<dim>::solve_u() {
    PreconditionIdentity precondition = PreconditionIdentity();
 
    cg.solve(system_matrix, solution_u, system_rhs_u, precondition);
+   constraints->distribute(solution_u);
 
    std::ios::fmtflags f(deallog.flags(std::ios_base::scientific));
    deallog << "Steps: " << solver_control.last_step();
@@ -294,6 +300,7 @@ void WaveEquation<dim>::solve_v() {
    PreconditionIdentity precondition = PreconditionIdentity();
 
    cg.solve(system_matrix, solution_v, system_rhs_v, precondition);
+   constraints->distribute(solution_v);
 
    std::ios::fmtflags f(deallog.flags(std::ios_base::scientific));
 

@@ -59,6 +59,11 @@ class AdaptiveMesh: public SpaceTimeMesh<dim> {
       // Might invalidate the last return value of get_dof_handler!
       virtual std::shared_ptr<SparsityPattern> get_sparsity_pattern(size_t idx);
 
+      // get a ConstraintMatrix (for hanging nodes) for the selected time_index. It might become invalid when this function is called again with a different time_index.
+      // has to decide, whether getting a new dof_handler from the initial triangulation and advancing it until time_index is smarter
+      // than reusing the current working_dof_handler and moving it.
+      virtual std::shared_ptr<ConstraintMatrix> get_constraint_matrix(size_t idx);
+
       // get a dof_handler for the selected time_index. It might become invalid when this function is called again with a different time_index.
       // has to decide, whether getting a new dof_handler from the initial triangulation and advancing it until time_index is smarter
       // than reusing the current working_dof_handler and moving it.
@@ -74,10 +79,8 @@ class AdaptiveMesh: public SpaceTimeMesh<dim> {
       virtual std::shared_ptr<DoFHandler<dim> > transfer(size_t source_time_index, size_t target_time_index,
             std::initializer_list<Vector<double>*> vectors);
 
-      //  Determine an estimate for the memory consumption (in bytes) of this object.
       virtual size_t memory_consumption() const;
 
-      // essentially, whether get_dof_handler is thread-safe.
       virtual bool allows_parallel_access() const {
          return false;
       }
@@ -101,46 +104,77 @@ class AdaptiveMesh: public SpaceTimeMesh<dim> {
       using SpaceTimeMesh<dim>::times;
       using SpaceTimeMesh<dim>::fe;
 
-      // triangulation for time step zero
-      // It _might_ also make sense to save the last triangulation (adjoint problems)
+      /**
+       * triangulation for time step zero
+       */
       std::shared_ptr<Triangulation<dim>> initial_triangulation;
 
-      // how to advance the spatial mesh of one time step to the next one
-      // i-th entry: patch to go from step i to step i+1
+      /**
+       * how to advance the spatial mesh of one time step to the next one
+       * i-th entry: patch to go from step i to step i+1
+       */
       std::vector<Patch> forward_patches;
 
-      // how to advance the spatial mesh of one time step to the previous one
-      // i-th entry: patch to go from step i+1 to step i
+      /**
+       * how to advance the spatial mesh of one time step to the previous one
+       * i-th entry: patch to go from step i+1 to step i
+       */
       std::vector<Patch> backward_patches;
 
-      // n_dofs for each time
+      /**
+       * n_dofs for each time
+       */
       std::vector<size_t> vector_sizes;
 
-      // its lifetime has to be larger than that of mass_matrix
-      // therefore the order here is also important! (mass_matrix is deconstructed first)
+      /**
+       * all the sparsity patterns (or empty `std::shared_ptr` if they have not been constructed yet)
+       *
+       * Note: the lifetime of this object has to be longer than that of mass_matrices,
+       * therefore the order of declaration is important! (mass_matrices is deconstructed first)
+       */
       std::vector<std::shared_ptr<SparsityPattern>> sparsity_patterns;
 
-      // all the mass matrices.
-      // the list might contain empty `shared_ptr`s if the requested mass matrix has never been requested before.
+      /**
+       * all the mass matrices (or empty `std::shared_ptr` if they have not been constructed yet)
+       */
       std::vector<std::shared_ptr<SparseMatrix<double>>> mass_matrices;
+
+      /**
+       * all the constraint matrices (or empty `std::shared_ptr` if they have not been constructed yet)
+       */
+      std::vector<std::shared_ptr<ConstraintMatrix>> constraints;
 
       // the Triangulation and DoFHandler for the last requested mass matrix or DoFHandler.
       size_t working_time_idx;
       std::shared_ptr<Triangulation<dim>> working_triangulation;
       std::shared_ptr<DoFHandler<dim>> working_dof_handler;
 
-      // delete internal caches (mass matrices, ...)
+      /**
+       * Deletes internal caches (mass matrices, ...), necessary after a mesh change.
+       */
       void reset();
 
-      // transfer with source_time_index = working_time_idx
-      void transfer(size_t target_time_index, std::vector<Vector<double>> &vectors);
+      /**
+       * `transfer` with `source_time_index` set to `working_time_idx`.
+       */
+      void transfer(size_t target_time_index, std::vector<Vector<double>*> &vectors);
 
-      // transfer with source_time_index = working_time_idx
+      /**
+       * `transfer` with `source_time_index` set to `working_time_idx` and no interpolation.
+       */
       void transfer(size_t target_time_index);
 
-      // apply patch
-      void patch(const Patch &p, std::vector<Vector<double>> &vectors);
+      /**
+       * Applies a given patch.
+       *
+       * @param vectors interpolate those vectors to the patched mesh
+       */
+      void patch(const Patch &p, std::vector<Vector<double>*> &vectors);
 
+      /**
+       * Use `forward_patches` to fill/recreate the vector `backward_patches`.
+       * `working_time_idx` has to be zero upon calling this function, and will be `this->length-1` afterwards.
+       */
       void generate_backward_patches();
 };
 

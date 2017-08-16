@@ -40,7 +40,7 @@ class TestNu: public Function<dim> {
       double value(const Point<dim> &p, const unsigned int component = 0) const {
          Assert(component == 0, ExcIndexRange(component, 0, 1));
 
-         return p[0] * this->get_time();
+         return 0.0*p[0] * this->get_time();
       }
 };
 
@@ -119,7 +119,7 @@ class TestQ: public Function<dim> {
       double value(const Point<dim> &p, const unsigned int component = 0) const {
          Assert(component == 0, ExcIndexRange(component, 0, 1));
 
-         return p.distance(q_position) < 1.0 ? 10 * std::sin(this->get_time() / 2 * 2 * numbers::PI) : 0.0;
+         return p.distance(q_position) < 1.0 ? 0.0 * std::sin(this->get_time() / 2 * 2 * numbers::PI) : 0.0;
       }
 
       static const Point<dim> q_position;
