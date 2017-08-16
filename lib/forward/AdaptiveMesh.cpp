@@ -9,16 +9,17 @@
 #include <deal.II/base/logstream.h>
 #include <deal.II/base/memory_consumption.h>
 #include <deal.II/dofs/dof_tools.h>
-#include <deal.II/fe/fe_q.h>
+#include <deal.II/grid/cell_id.h>
 #include <deal.II/lac/dynamic_sparsity_pattern.h>
 #include <deal.II/numerics/matrix_tools.h>
 #include <deal.II/numerics/solution_transfer.h>
 
 #include <forward/AdaptiveMesh.h>
 
-#include <stddef.h>
-#include <initializer_list>
+#include <stdio.h>
+#include <algorithm>
 #include <iostream>
+#include <list>
 
 namespace wavepi {
 namespace forward {
@@ -266,7 +267,7 @@ void AdaptiveMesh<dim>::set_forward_patches(const std::vector<Patch>& forward_pa
 
 template<int dim>
 void AdaptiveMesh<dim>::generate_backward_patches() {
-   Assert(working_idx == 0, ExcInternalError());
+   Assert(working_time_idx == 0, ExcInternalError());
 
    for (size_t idx = 0; idx < this->length() - 1; idx++) {
       Patch bw_patches;
@@ -279,21 +280,41 @@ void AdaptiveMesh<dim>::generate_backward_patches() {
          working_triangulation->load_coarsen_flags(cells_to_coarsen);
          working_triangulation->prepare_coarsening_and_refinement();
 
-         // ** do something **
-         // Save cell ids of 1. cells to be refined,
-         //     2. parents of cells that will be coarsened (will appear multiple times!)
-         //
+         // Save cell ids of cells to be refined,
+         // and parents of cells that will be coarsened (will appear multiple times!)
+         std::list<CellId> ids_to_refine;
+         std::list<CellId> ids_to_coarsen;
 
-         AssertThrow(false, ExcNotImplemented());
+         for (auto cell : working_triangulation->active_cell_iterators())
+            if (cell->coarsen_flag_set())
+               ids_to_coarsen.push_back(cell->parent()->id());
+            else if (cell->refine_flag_set())
+               ids_to_refine.push_back(cell->id());
 
          working_triangulation->execute_coarsening_and_refinement();
-
          working_dof_handler->distribute_dofs(fe);
 
-         // ** do something **
+         auto refine_it = ids_to_refine.begin();
+         auto coarsen_it = ids_to_coarsen.begin();
+
          // Set refinement flags and coarsening flags according to saved cell ids
-         // -> search? use that they are ordered already?
-         AssertThrow(false, ExcNotImplemented());
+         for (auto cell : working_triangulation->active_cell_iterators()) {
+            auto parent_id = cell->parent()->id();
+
+            while (refine_it != ids_to_refine.end() && *refine_it < parent_id)
+               refine_it++;
+
+            if (refine_it != ids_to_refine.end() && *refine_it == parent_id)
+               cell->set_coarsen_flag();
+
+            auto my_id = cell->id();
+
+            while (coarsen_it != ids_to_coarsen.end() && *coarsen_it < my_id)
+               coarsen_it++;
+
+            if (coarsen_it != ids_to_coarsen.end() && *coarsen_it == my_id)
+               cell->set_refine_flag();
+         }
 
          cells_to_refine.clear();
          cells_to_coarsen.clear();
@@ -304,7 +325,9 @@ void AdaptiveMesh<dim>::generate_backward_patches() {
          bw_patches.emplace_back(cells_to_refine, cells_to_coarsen);
       }
 
+      // patches need to be applied in reverse order
       std::reverse(bw_patches.begin(), bw_patches.end());
+
       backward_patches[idx] = bw_patches;
    }
 }
