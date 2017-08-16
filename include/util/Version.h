@@ -12,6 +12,10 @@
 #include <list>
 
 namespace wavepi {
+
+/**
+ * Utility functions, such as version information and tools for matrix creation.
+ */
 namespace util {
 
 struct Version {

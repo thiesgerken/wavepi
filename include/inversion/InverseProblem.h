@@ -11,6 +11,10 @@
 #include <memory>
 
 namespace wavepi {
+
+/**
+ * Algorithms to solve the inverse problem and possibly linear subproblems
+ */
 namespace inversion {
 
 template<typename Param, typename Sol>

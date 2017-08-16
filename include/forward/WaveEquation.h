@@ -22,8 +22,16 @@
 
 #include <memory>
 
+/**
+ * WavePI - Parameter Identification for Wave Equations
+ */
 namespace wavepi {
+
+/**
+ * Tools for the forward problem (solver for wave equations and adjoints, meshes, ...)
+ */
 namespace forward {
+
 using namespace dealii;
 
 // parameters and rhs must currently be discretized on the same space-time grid!
