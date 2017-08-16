@@ -40,8 +40,12 @@ namespace wavepi {
 namespace forward {
 using namespace dealii;
 
-// implements (-f1*f2, phi_j) for two discretized functions f1 and f2 as a right hand side
-// (note the sign!)
+/**
+ * Implements $`(-f_1*f_2, \phi_j)`$ for two discretized functions $`f_1`$ and $`f_2`$ as a right hand side.
+ *
+ * Please note the sign, and also be aware that the difference between this and just multiplying nodal values of $`f_1`$ and $`f_2`$
+ * is very big. Do not use one for the forward problem and the other for its adjoint, or the linear subproblems will diverge!
+ */
 template<int dim>
 class L2ProductRightHandSide: public RightHandSide<dim> {
    public:
