@@ -29,11 +29,12 @@ namespace wavepi {
 namespace forward {
 using namespace dealii;
 
+// Patch = list of consecutive grid refinements (first item in the pair) and coarsenings (second item)
+typedef std::vector<std::pair<std::vector<bool>, std::vector<bool>>> Patch;
+
 template<int dim>
 class AdaptiveMesh: public SpaceTimeMesh<dim> {
    public:
-      // Patch = list of consecutive grid refinements (first item in the pair) and coarsenings (second item)
-      using Patch = std::vector<std::pair<std::vector<bool>, std::vector<bool>>>;
 
       /**
        * Default destructor.

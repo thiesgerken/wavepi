@@ -250,8 +250,6 @@ size_t AdaptiveMesh<dim>::memory_consumption() const {
    return mem;
 }
 
-using Patch = std::vector<std::pair<std::vector<bool>, std::vector<bool>>>;
-
 template<int dim>
 const std::vector<Patch>& AdaptiveMesh<dim>::get_forward_patches() const {
    return forward_patches;
