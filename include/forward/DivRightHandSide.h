@@ -30,9 +30,7 @@ using namespace dealii;
 template<int dim>
 class DivRightHandSide: public RightHandSide<dim> {
    public:
-      /**
-       * Default destructor.
-       */
+      
       virtual ~DivRightHandSide() = default;
 
       // optimization is used only when a _and_ u are discretized

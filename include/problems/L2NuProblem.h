@@ -29,9 +29,7 @@ using namespace wavepi::inversion;
 template<int dim>
 class L2NuProblem: public NonlinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>> {
    public:
-          /**
-             * Default destructor.
-             */
+          
             virtual ~L2NuProblem() = default;
 
       L2NuProblem(WaveEquation<dim>& weq);
@@ -52,9 +50,7 @@ class L2NuProblem: public NonlinearProblem<DiscretizedFunction<dim>, Discretized
 
       class Linearization: public LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>> {
          public:
-                 /**
-             * Default destructor.
-             */
+                 
             virtual ~Linearization() = default;
 
             Linearization(const WaveEquation<dim> &weq,

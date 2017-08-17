@@ -27,9 +27,7 @@ using namespace dealii;
 template<typename Param, typename Sol>
 class NonlinearLandweber: public NewtonRegularization<Param, Sol> {
    public:
-      /**
-       * Default destructor.
-       */
+      
       virtual ~NonlinearLandweber() = default;
 
       static void declare_parameters(ParameterHandler &prm) {

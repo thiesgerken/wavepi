@@ -36,9 +36,6 @@ template<int dim>
 class AdaptiveMesh: public SpaceTimeMesh<dim> {
    public:
 
-      /**
-       * Default destructor.
-       */
       virtual ~AdaptiveMesh() = default;
 
       // The FiniteElement is used for the construction of DoFHandlers.

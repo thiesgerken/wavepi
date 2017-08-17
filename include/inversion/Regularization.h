@@ -22,9 +22,7 @@ namespace inversion {
 template<typename Param, typename Sol>
 class Regularization {
    public:
-      /**
-       * Default destructor.
-       */
+      
       virtual ~Regularization() = default;
 
       // status_out: output for the last status

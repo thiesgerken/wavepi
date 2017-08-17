@@ -33,9 +33,7 @@ class DiscretizedFunction: public Function<dim> {
          L2L2_Vector, L2L2_Trapezoidal_Mass
       };
 
-      /**
-       * Default destructor.
-       */
+      
       virtual ~DiscretizedFunction() = default;
 
       DiscretizedFunction(const DiscretizedFunction& that);

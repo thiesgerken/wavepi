@@ -107,9 +107,7 @@ struct InversionProgress {
 template<typename Param, typename Sol>
 class InversionProgressListener {
    public:
-      /**
-       * Default destructor.
-       */
+      
       virtual ~InversionProgressListener() = default;
 
       // progress indicator that iterative methods can call
@@ -122,9 +120,7 @@ class InversionProgressListener {
 template<typename Param, typename Sol>
 class GenericInversionProgressListener: public InversionProgressListener<Param, Sol> {
    public:
-      /**
-       * Default destructor.
-       */
+      
       virtual ~GenericInversionProgressListener() = default;
 
       GenericInversionProgressListener(std::string counter_variable)
@@ -159,9 +155,7 @@ class GenericInversionProgressListener: public InversionProgressListener<Param, 
 template<typename Param, typename Sol>
 class CtrlCProgressListener: public InversionProgressListener<Param, Sol> {
    public:
-      /**
-       * Default destructor.
-       */
+      
       virtual ~CtrlCProgressListener() = default;
 
       CtrlCProgressListener() {
@@ -210,9 +204,7 @@ bool CtrlCProgressListener<Param, Sol>::handler_installed = false;
 template<int dim>
 class OutputProgressListener: public InversionProgressListener<DiscretizedFunction<dim>, DiscretizedFunction<dim>> {
    public:
-      /**
-       * Default destructor.
-       */
+      
       virtual ~OutputProgressListener() = default;
 
       OutputProgressListener(int interval)

@@ -19,9 +19,7 @@ namespace inversion {
 template<typename Param, typename Sol>
 class NonlinearProblem: public InverseProblem<Param, Sol> {
    public:
-       /**
-       * Default destructor.
-       */
+       
       virtual ~NonlinearProblem() = default;
 
       // returns the derivative (as linear operator) at h. Also is supplied the current forward data u = Sp.

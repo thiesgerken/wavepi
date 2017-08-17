@@ -51,9 +51,19 @@ template<int dim> const std::string WavePI<dim>::KEY_END_TIME = "end time";
 template<int dim> const std::string WavePI<dim>::KEY_INITIAL_REFINES = "initial refines";
 template<int dim> const std::string WavePI<dim>::KEY_INITIAL_TIME_STEPS = "initial time steps";
 
+template<int dim> const std::string WavePI<dim>::KEY_PROBLEM = "problem";
+template<int dim> const std::string WavePI<dim>::KEY_PROBLEM_TYPE = "type";
+template<int dim> const std::string WavePI<dim>::KEY_PROBLEM_EPSILON = "epsilon";
+template<int dim> const std::string WavePI<dim>::KEY_PROBLEM_CONSTANTS = "constants";
+template<int dim> const std::string WavePI<dim>::KEY_PROBLEM_NUM_RHS = "number of right hand sides";
+template<int dim> const std::string WavePI<dim>::KEY_PROBLEM_RHS = "right hand side";
+template<int dim> const std::string WavePI<dim>::KEY_PROBLEM_GUESS = "initial guess";
+template<int dim> const std::string WavePI<dim>::KEY_PROBLEM_PARAM_A = "parameter a";
+template<int dim> const std::string WavePI<dim>::KEY_PROBLEM_PARAM_Q = "parameter q";
+template<int dim> const std::string WavePI<dim>::KEY_PROBLEM_PARAM_C = "parameter c";
+template<int dim> const std::string WavePI<dim>::KEY_PROBLEM_PARAM_NU = "parameter nu";
+
 template<int dim> const std::string WavePI<dim>::KEY_INVERSION = "inversion";
-template<int dim> const std::string WavePI<dim>::KEY_INVERSION_PROBLEM_TYPE = "problem";
-template<int dim> const std::string WavePI<dim>::KEY_INVERSION_EPSILON = "epsilon";
 template<int dim> const std::string WavePI<dim>::KEY_INVERSION_TAU = "tau";
 template<int dim> const std::string WavePI<dim>::KEY_INVERSION_METHOD = "method";
 
@@ -68,23 +78,40 @@ template<int dim> void WavePI<dim>::declare_parameters(ParameterHandler &prm) {
 
    prm.enter_subsection(KEY_MESH);
    {
-      prm.declare_entry(KEY_END_TIME, "2", Patterns::Double(0), "time horizon T");
-      prm.declare_entry(KEY_INITIAL_REFINES, "5", Patterns::Integer(0),
+      prm.declare_entry(KEY_END_TIME, "6", Patterns::Double(0), "time horizon T");
+      prm.declare_entry(KEY_INITIAL_REFINES, "4", Patterns::Integer(0),
             "refines of the (initial) spatial grid");
       prm.declare_entry(KEY_INITIAL_TIME_STEPS, "256", Patterns::Integer(2),
             "(initial) number of time steps");
    }
    prm.leave_subsection();
 
-   WaveEquationBase < dim > ::declare_parameters(prm);
+   prm.enter_subsection(KEY_PROBLEM);
+   {
+      prm.declare_entry(KEY_PROBLEM_TYPE, "L2A", Patterns::Selection("L2A|L2Q|L2Nu|L2C"),
+            "parameter that is reconstructed, and which spaces are used");
+      prm.declare_entry(KEY_PROBLEM_EPSILON, "1e-2", Patterns::Double(0, 1), "relative noise level ε");
+
+      prm.declare_entry(KEY_PROBLEM_CONSTANTS, "", Patterns::Anything(),
+            "constants for the function declarations, in the form `var1=value1, var2=value2, ...'.");
+
+      // prm.declare_entry(KEY_PROBLEM_NUM_RHS, "1", Patterns::Integer(1), "number of right hand sides");
+      // TODO: only works in 2d now without changing the config!
+      prm.declare_entry(KEY_PROBLEM_RHS, "if(x*x+y*y < 0.2, sin(t), 0.0)", Patterns::Anything(), "right hand side");
+
+      prm.declare_entry(KEY_PROBLEM_GUESS, "0.5", Patterns::Anything(), "initial guess");
+
+      prm.declare_entry(KEY_PROBLEM_PARAM_A, "1.0", Patterns::Anything(), "parameter a");
+      prm.declare_entry(KEY_PROBLEM_PARAM_Q, "0.0", Patterns::Anything(), "parameter q");
+      prm.declare_entry(KEY_PROBLEM_PARAM_C, "2.0", Patterns::Anything(), "parameter c");
+      prm.declare_entry(KEY_PROBLEM_PARAM_NU, "0.0", Patterns::Anything(), "parameter ν");
+   }
+   prm.leave_subsection();
 
    prm.enter_subsection(KEY_INVERSION);
    {
       prm.declare_entry(KEY_INVERSION_METHOD, "REGINN", Patterns::Selection("REGINN|NonlinearLandweber"),
             "solver for the inverse problem");
-      prm.declare_entry(KEY_INVERSION_PROBLEM_TYPE, "L2A", Patterns::Selection("L2A|L2Q|L2Nu|L2C"),
-            "parameter that is reconstructed, and which spaces are used");
-      prm.declare_entry(KEY_INVERSION_EPSILON, "1e-2", Patterns::Double(0, 1), "relative noise level ε");
       prm.declare_entry(KEY_INVERSION_TAU, "2", Patterns::Double(0), "parameter τ for discrepancy principle");
 
       REGINN<DiscretizedFunction<dim>, DiscretizedFunction<dim>>::declare_parameters(prm);
@@ -92,6 +119,7 @@ template<int dim> void WavePI<dim>::declare_parameters(ParameterHandler &prm) {
    }
    prm.leave_subsection();
 
+   WaveEquationBase<dim>::declare_parameters(prm);
    OutputProgressListener<dim>::declare_parameters(prm);
 }
 
@@ -112,12 +140,11 @@ template<int dim> WavePI<dim>::WavePI(std::shared_ptr<ParameterHandler> prm)
    }
    prm->leave_subsection();
 
-   prm->enter_subsection(KEY_INVERSION);
+   prm->enter_subsection(KEY_PROBLEM);
    {
-      epsilon = prm->get_double(KEY_INVERSION_EPSILON);
-      tau = prm->get_double(KEY_INVERSION_TAU);
+      epsilon = prm->get_double(KEY_PROBLEM_EPSILON);
 
-      std::string problem = prm->get(KEY_INVERSION_PROBLEM_TYPE);
+      std::string problem = prm->get(KEY_PROBLEM_TYPE);
 
       if (problem == "L2A")
          problem_type = ProblemType::L2A;
@@ -129,6 +156,48 @@ template<int dim> WavePI<dim>::WavePI(std::shared_ptr<ParameterHandler> prm)
          problem_type = ProblemType::L2C;
       else
          AssertThrow(false, ExcInternalError());
+
+      std::string constants_list = prm->get(KEY_PROBLEM_CONSTANTS);
+      std::vector<std::string> const_listed = Utilities::split_string_list(constants_list, ',');
+
+      std::map<std::string, double> constants;
+      for (size_t i = 0; i < const_listed.size(); ++i) {
+         std::vector<std::string> this_c = Utilities::split_string_list(const_listed[i], '=');
+         AssertThrow(this_c.size() == 2, ExcMessage("Invalid format"));
+         double tmp;
+         AssertThrow(std::sscanf(this_c[1].c_str(), "%lf", &tmp), ExcMessage("Double number?"));
+         constants[this_c[0]] = tmp;
+      }
+
+      rhs = std::make_shared<FunctionParser<dim>>();
+      rhs->initialize(FunctionParser<dim>::default_variable_names() + ",t", prm->get(KEY_PROBLEM_RHS),
+            constants, true);
+
+      initial_guess = std::make_shared<FunctionParser<dim>>();
+      initial_guess->initialize(FunctionParser<dim>::default_variable_names() + ",t",
+            prm->get(KEY_PROBLEM_GUESS), constants, true);
+
+      param_a = std::make_shared<FunctionParser<dim>>();
+      param_a->initialize(FunctionParser<dim>::default_variable_names() + ",t", prm->get(KEY_PROBLEM_PARAM_A),
+            constants, true);
+
+      param_nu = std::make_shared<FunctionParser<dim>>();
+      param_nu->initialize(FunctionParser<dim>::default_variable_names() + ",t",
+            prm->get(KEY_PROBLEM_PARAM_NU), constants, true);
+
+      param_c = std::make_shared<FunctionParser<dim>>();
+      param_c->initialize(FunctionParser<dim>::default_variable_names() + ",t", prm->get(KEY_PROBLEM_PARAM_C),
+            constants, true);
+
+      param_q = std::make_shared<FunctionParser<dim>>();
+      param_q->initialize(FunctionParser<dim>::default_variable_names() + ",t", prm->get(KEY_PROBLEM_PARAM_Q),
+            constants, true);
+   }
+   prm->leave_subsection();
+
+   prm->enter_subsection(KEY_INVERSION);
+   {
+      tau = prm->get_double(KEY_INVERSION_TAU);
 
       std::string smethod = prm->get(KEY_INVERSION_METHOD);
 
@@ -204,47 +273,38 @@ template<int dim> void WavePI<dim>::initialize_problem() {
    LogStream::Prefix pd(" ");
 
    wave_eq = std::make_shared<WaveEquation<dim>>(mesh);
-   wave_eq->set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(std::make_shared<TestF<dim>>()));
-   wave_eq->set_param_a(std::make_shared<TestA<dim>>());
-   wave_eq->set_param_c(std::make_shared<TestC<dim>>());
-   wave_eq->set_param_q(std::make_shared<TestQ<dim>>());
-   wave_eq->set_param_nu(std::make_shared<TestNu<dim>>());
-   wave_eq->get_parameters(*prm);
 
-   initialGuess = std::make_shared<Param>(mesh);
+   wave_eq->set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(rhs));
+   wave_eq->set_param_a(param_a);
+   wave_eq->set_param_c(param_c);
+   wave_eq->set_param_q(param_q);
+   wave_eq->set_param_nu(param_nu);
+   wave_eq->get_parameters(*prm);
 
    switch (problem_type) {
       case ProblemType::L2Q:
          /* Reconstruct TestQ */
-         param_exact_cont = std::make_shared<TestQ<dim>>();
+         param_exact_cont = wave_eq->get_param_q();
          param_exact = std::make_shared<Param>(mesh, *param_exact_cont.get());
-         wave_eq->set_param_q(param_exact);
          problem = std::make_shared<L2QProblem<dim>>(*wave_eq);
-         *initialGuess = 0;
          break;
       case ProblemType::L2C:
          /* Reconstruct TestC */
-         param_exact_cont = std::make_shared<TestC<dim>>();
+         param_exact_cont = wave_eq->get_param_c();
          param_exact = std::make_shared<Param>(mesh, *param_exact_cont.get());
-         wave_eq->set_param_c(param_exact);
          problem = std::make_shared<L2CProblem<dim>>(*wave_eq);
-         *initialGuess = 2;
          break;
       case ProblemType::L2Nu:
          /* Reconstruct TestNu */
-         param_exact_cont = std::make_shared<TestNu<dim>>();
+         param_exact_cont = wave_eq->get_param_nu();
          param_exact = std::make_shared<Param>(mesh, *param_exact_cont.get());
-         wave_eq->set_param_nu(param_exact);
          problem = std::make_shared<L2NuProblem<dim>>(*wave_eq);
-         *initialGuess = 0;
          break;
       case ProblemType::L2A:
          /* Reconstruct TestA */
-         param_exact_cont = std::make_shared<TestA<dim>>();
+         param_exact_cont = wave_eq->get_param_a();
          param_exact = std::make_shared<Param>(mesh, *param_exact_cont.get());
-         wave_eq->set_param_a(param_exact);
          problem = std::make_shared<L2AProblem<dim>>(*wave_eq);
-         *initialGuess = 2;
          break;
       default:
          AssertThrow(false, ExcInternalError())
@@ -274,11 +334,15 @@ template<int dim> void WavePI<dim>::run() {
 
    std::shared_ptr<Regularization<Param, Sol>> regularization;
 
+   // discretize initial guess
+   auto initial_guess_discretized = std::make_shared<Param>(mesh, *initial_guess);
+
    prm->enter_subsection(KEY_INVERSION);
    if (method == NonlinearMethod::REGINN)
-      regularization = std::make_shared<REGINN<Param, Sol> >(problem, initialGuess, *prm);
+      regularization = std::make_shared<REGINN<Param, Sol> >(problem, initial_guess_discretized, *prm);
    else if (method == NonlinearMethod::NonlinearLandweber)
-      regularization = std::make_shared<NonlinearLandweber<Param, Sol> >(problem, initialGuess, *prm);
+      regularization = std::make_shared<NonlinearLandweber<Param, Sol> >(problem, initial_guess_discretized,
+            *prm);
    else
       AssertThrow(false, ExcInternalError());
    prm->leave_subsection();

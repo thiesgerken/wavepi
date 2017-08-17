@@ -36,9 +36,7 @@ class WaveEquationBase {
       std::shared_ptr<Function<dim>> one = std::make_shared<ConstantFunction<dim>>(1.0, 1);
       std::shared_ptr<RightHandSide<dim>> zero_rhs = std::make_shared<L2RightHandSide<dim>>(zero);
 
-      /**
-       * Default destructor.
-       */
+      
       virtual ~WaveEquationBase() = default;
 
       WaveEquationBase(std::shared_ptr<SpaceTimeMesh<dim>> mesh);

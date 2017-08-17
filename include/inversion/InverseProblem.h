@@ -20,9 +20,7 @@ namespace inversion {
 template<typename Param, typename Sol>
 class InverseProblem {
    public:
-      /**
-       * Default destructor.
-       */
+      
       virtual ~InverseProblem() = default;
 
       virtual Sol forward(const Param& f) = 0;

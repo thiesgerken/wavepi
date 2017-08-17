@@ -49,9 +49,7 @@ using namespace dealii;
 template<int dim>
 class L2ProductRightHandSide: public RightHandSide<dim> {
    public:
-      /**
-       * Default destructor.
-       */
+      
       virtual ~L2ProductRightHandSide() = default;
 
       L2ProductRightHandSide(std::shared_ptr<DiscretizedFunction<dim>> f1,

@@ -37,9 +37,7 @@ using namespace dealii;
 template<typename Param, typename Sol>
 class REGINN: public NewtonRegularization<Param, Sol> {
    public:
-      /**
-       * Default destructor.
-       */
+      
       virtual ~ REGINN() = default;
 
       REGINN(std::shared_ptr<NonlinearProblem<Param, Sol>> problem, std::shared_ptr<Param> initial_guess,

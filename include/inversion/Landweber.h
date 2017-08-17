@@ -25,9 +25,7 @@ using namespace dealii;
 template<typename Param, typename Sol>
 class Landweber: public LinearRegularization<Param, Sol> {
    public:
-       /**
-       * Default destructor.
-       */
+       
       virtual ~Landweber() = default;
 
       Landweber(double omega)

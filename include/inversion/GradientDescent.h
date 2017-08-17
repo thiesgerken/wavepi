@@ -24,9 +24,7 @@ using namespace dealii;
 template<typename Param, typename Sol>
 class GradientDescent: public LinearRegularization<Param, Sol> {
    public:
-       /**
-       * Default destructor.
-       */
+       
       virtual ~GradientDescent() = default;
 
       GradientDescent() {

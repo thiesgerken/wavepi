@@ -29,9 +29,7 @@ using namespace dealii;
 template<int dim>
 class DivRightHandSideAdjoint: public RightHandSide<dim> {
    public:
-      /**
-       * Default destructor.
-       */
+      
       virtual ~DivRightHandSideAdjoint() = default;
 
       // optimization is used only when a _and_ u are discretized

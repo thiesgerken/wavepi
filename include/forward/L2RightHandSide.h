@@ -28,9 +28,7 @@ using namespace dealii;
 template<int dim>
 class L2RightHandSide: public RightHandSide<dim> {
    public:
-      /**
-       * Default destructor.
-       */
+      
       virtual ~L2RightHandSide() = default;
 
       L2RightHandSide(std::shared_ptr<Function<dim>> f);

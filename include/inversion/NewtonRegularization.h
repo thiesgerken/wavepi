@@ -20,9 +20,7 @@ namespace inversion {
 template<typename Param, typename Sol>
 class NewtonRegularization: public Regularization<Param, Sol> {
    public:
-      /**
-       * Default destructor.
-       */
+      
       virtual ~NewtonRegularization() = default;
 
       NewtonRegularization(std::shared_ptr<NonlinearProblem<Param, Sol>> problem)

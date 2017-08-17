@@ -17,6 +17,7 @@
 #include <deal.II/dofs/dof_handler.h>
 #include <deal.II/fe/fe_q.h>
 #include <deal.II/grid/tria.h>
+#include <deal.II/base/function_parser.h>
 
 #include <forward/DiscretizedFunction.h>
 #include <forward/SpaceTimeMesh.h>
@@ -142,9 +143,18 @@ class WavePI {
       static const std::string KEY_INITIAL_REFINES;
       static const std::string KEY_INITIAL_TIME_STEPS;
 
+      static const std::string KEY_PROBLEM;
+      static const std::string KEY_PROBLEM_TYPE;
+      static const std::string KEY_PROBLEM_EPSILON;
+      static const std::string KEY_PROBLEM_CONSTANTS;
+      static const std::string KEY_PROBLEM_NUM_RHS;
+      static const std::string KEY_PROBLEM_RHS;
+      static const std::string KEY_PROBLEM_GUESS;
+      static const std::string KEY_PROBLEM_PARAM_A;
+      static const std::string KEY_PROBLEM_PARAM_Q;
+      static const std::string KEY_PROBLEM_PARAM_C;
+      static const std::string KEY_PROBLEM_PARAM_NU;
       static const std::string KEY_INVERSION;
-      static const std::string KEY_INVERSION_PROBLEM_TYPE;
-      static const std::string KEY_INVERSION_EPSILON;
       static const std::string KEY_INVERSION_METHOD;
       static const std::string KEY_INVERSION_TAU;
 
@@ -191,11 +201,18 @@ class WavePI {
       using Sol = DiscretizedFunction<dim>;
 
       std::shared_ptr<NonlinearProblem<Param, Sol>> problem;
+
       std::shared_ptr<Function<dim>> param_exact_cont;
       std::shared_ptr<Param> param_exact;
-      std::shared_ptr<Param> initialGuess;
-      std::shared_ptr<Sol> data; // noisy data
 
+      std::shared_ptr<FunctionParser<dim>> initial_guess;
+      std::shared_ptr<FunctionParser<dim>> param_q;
+      std::shared_ptr<FunctionParser<dim>> param_nu;
+      std::shared_ptr<FunctionParser<dim>> param_a;
+      std::shared_ptr<FunctionParser<dim>> param_c;
+      std::shared_ptr<FunctionParser<dim>> rhs;
+
+      std::shared_ptr<Sol> data; // noisy data
 };
 
 } /* namespace util */

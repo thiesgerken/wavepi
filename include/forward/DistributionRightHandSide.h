@@ -23,9 +23,7 @@ using namespace dealii;
 template<int dim>
 class DistributionRightHandSide: public RightHandSide<dim> {
    public:
-      /**
-       * Default destructor.
-       */
+      
       virtual ~DistributionRightHandSide() = default;
 
       // either of the functions may be zero

@@ -27,9 +27,7 @@ using namespace dealii;
 template<typename Param, typename Sol>
 class ConjugateGradients: public LinearRegularization<Param, Sol> {
    public:
-      /**
-       * Default destructor.
-       */
+      
       virtual ~ConjugateGradients() = default;
 
       ConjugateGradients() {
