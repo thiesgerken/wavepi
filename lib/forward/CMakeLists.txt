@@ -12,6 +12,7 @@ SET(LIBSOURCES
         WaveEquation.cpp       
         WaveEquationAdjoint.cpp
         DistributionRightHandSide.cpp  
+        Measure.cpp
     )
         
 add_library(wavepi_forward ${LIBSOURCES})
