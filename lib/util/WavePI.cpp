@@ -41,8 +41,12 @@ using namespace wavepi::inversion;
 using namespace wavepi::problems;
 using namespace wavepi::util;
 
+template<int dim> const std::string WavePI<dim>::KEY_GENERAL = "general";
+template<int dim> const std::string WavePI<dim>::KEY_DIMENSION = "dimension";
 template<int dim> const std::string WavePI<dim>::KEY_FE_DEGREE = "finite element degree";
 template<int dim> const std::string WavePI<dim>::KEY_QUAD_ORDER = "quadrature order";
+
+template<int dim> const std::string WavePI<dim>::KEY_MESH = "mesh";
 template<int dim> const std::string WavePI<dim>::KEY_END_TIME = "end time";
 template<int dim> const std::string WavePI<dim>::KEY_INITIAL_REFINES = "initial refines";
 template<int dim> const std::string WavePI<dim>::KEY_INITIAL_TIME_STEPS = "initial time steps";
@@ -54,12 +58,25 @@ template<int dim> const std::string WavePI<dim>::KEY_INVERSION_TAU = "tau";
 template<int dim> const std::string WavePI<dim>::KEY_INVERSION_METHOD = "method";
 
 template<int dim> void WavePI<dim>::declare_parameters(ParameterHandler &prm) {
-   prm.declare_entry(KEY_FE_DEGREE, "1", Patterns::Integer(1, 4), "polynomial degree of finite elements");
-   prm.declare_entry(KEY_QUAD_ORDER, "3", Patterns::Integer(1, 20),
-         "order of quadrature (QGauss, exact in polynomials of degree ≤ 2n-1, use at least finite element degree + 1) ");
-   prm.declare_entry(KEY_END_TIME, "2", Patterns::Double(0), "time horizon T");
-   prm.declare_entry(KEY_INITIAL_REFINES, "5", Patterns::Integer(0), "refines of the (initial) spatial grid");
-   prm.declare_entry(KEY_INITIAL_TIME_STEPS, "256", Patterns::Integer(2), "(initial) number of time steps");
+   prm.enter_subsection(KEY_GENERAL);
+   {
+      prm.declare_entry(KEY_FE_DEGREE, "1", Patterns::Integer(1, 4), "polynomial degree of finite elements");
+      prm.declare_entry(KEY_QUAD_ORDER, "3", Patterns::Integer(1, 20),
+            "order of quadrature (QGauss, exact in polynomials of degree ≤ 2n-1, use at least finite element degree + 1) ");
+   }
+   prm.leave_subsection();
+
+   prm.enter_subsection(KEY_MESH);
+   {
+      prm.declare_entry(KEY_END_TIME, "2", Patterns::Double(0), "time horizon T");
+      prm.declare_entry(KEY_INITIAL_REFINES, "5", Patterns::Integer(0),
+            "refines of the (initial) spatial grid");
+      prm.declare_entry(KEY_INITIAL_TIME_STEPS, "256", Patterns::Integer(2),
+            "(initial) number of time steps");
+   }
+   prm.leave_subsection();
+
+   WaveEquationBase < dim > ::declare_parameters(prm);
 
    prm.enter_subsection(KEY_INVERSION);
    {
@@ -80,11 +97,20 @@ template<int dim> void WavePI<dim>::declare_parameters(ParameterHandler &prm) {
 
 template<int dim> WavePI<dim>::WavePI(std::shared_ptr<ParameterHandler> prm)
       : prm(prm) {
-   fe_degree = prm->get_integer(KEY_FE_DEGREE);
-   quad_order = prm->get_integer(KEY_QUAD_ORDER);
-   end_time = prm->get_double(KEY_END_TIME);
-   initial_refines = prm->get_integer(KEY_INITIAL_REFINES);
-   initial_time_steps = prm->get_integer(KEY_INITIAL_TIME_STEPS);
+   prm->enter_subsection(KEY_GENERAL);
+   {
+      fe_degree = prm->get_integer(KEY_FE_DEGREE);
+      quad_order = prm->get_integer(KEY_QUAD_ORDER);
+   }
+   prm->leave_subsection();
+
+   prm->enter_subsection(KEY_MESH);
+   {
+      end_time = prm->get_double(KEY_END_TIME);
+      initial_refines = prm->get_integer(KEY_INITIAL_REFINES);
+      initial_time_steps = prm->get_integer(KEY_INITIAL_TIME_STEPS);
+   }
+   prm->leave_subsection();
 
    prm->enter_subsection(KEY_INVERSION);
    {
@@ -112,7 +138,6 @@ template<int dim> WavePI<dim>::WavePI(std::shared_ptr<ParameterHandler> prm)
          method = NonlinearMethod::NonlinearLandweber;
       else
          AssertThrow(false, ExcInternalError());
-
    }
    prm->leave_subsection();
 }
@@ -184,6 +209,7 @@ template<int dim> void WavePI<dim>::initialize_problem() {
    wave_eq->set_param_c(std::make_shared<TestC<dim>>());
    wave_eq->set_param_q(std::make_shared<TestQ<dim>>());
    wave_eq->set_param_nu(std::make_shared<TestNu<dim>>());
+   wave_eq->get_parameters(*prm);
 
    initialGuess = std::make_shared<Param>(mesh);
 
@@ -260,6 +286,8 @@ template<int dim> void WavePI<dim>::run() {
    regularization->add_listener(std::make_shared<GenericInversionProgressListener<Param, Sol>>("i"));
    regularization->add_listener(std::make_shared<CtrlCProgressListener<Param, Sol>>());
    regularization->add_listener(std::make_shared<OutputProgressListener<dim>>(*prm));
+
+   prm->log_parameters(deallog);
 
    regularization->invert(*data, tau * epsilon * data->norm(), param_exact);
 }

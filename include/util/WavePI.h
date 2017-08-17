@@ -40,7 +40,7 @@ class TestNu: public Function<dim> {
       double value(const Point<dim> &p, const unsigned int component = 0) const {
          Assert(component == 0, ExcIndexRange(component, 0, 1));
 
-         return 0.0*p[0] * this->get_time();
+         return 0.0 * p[0] * this->get_time();
       }
 };
 
@@ -132,6 +132,22 @@ template<> const Point<3> TestQ<3>::q_position = Point<3>(-1.0, 0.5, 0.0);
 template<int dim>
 class WavePI {
    public:
+      static const std::string KEY_GENERAL;
+      static const std::string KEY_DIMENSION;
+      static const std::string KEY_FE_DEGREE;
+      static const std::string KEY_QUAD_ORDER;
+
+      static const std::string KEY_MESH;
+      static const std::string KEY_END_TIME;
+      static const std::string KEY_INITIAL_REFINES;
+      static const std::string KEY_INITIAL_TIME_STEPS;
+
+      static const std::string KEY_INVERSION;
+      static const std::string KEY_INVERSION_PROBLEM_TYPE;
+      static const std::string KEY_INVERSION_EPSILON;
+      static const std::string KEY_INVERSION_METHOD;
+      static const std::string KEY_INVERSION_TAU;
+
       static void declare_parameters(ParameterHandler &prm);
 
       WavePI(std::shared_ptr<ParameterHandler> prm);
@@ -143,17 +159,6 @@ class WavePI {
       void generate_data();
 
    private:
-      static const std::string KEY_FE_DEGREE;
-      static const std::string KEY_QUAD_ORDER;
-      static const std::string KEY_END_TIME;
-      static const std::string KEY_INITIAL_REFINES;
-      static const std::string KEY_INITIAL_TIME_STEPS;
-
-      static const std::string KEY_INVERSION;
-      static const std::string KEY_INVERSION_PROBLEM_TYPE;
-      static const std::string KEY_INVERSION_EPSILON;
-      static const std::string KEY_INVERSION_METHOD;
-      static const std::string KEY_INVERSION_TAU;
 
       // possible problems
       enum class ProblemType {

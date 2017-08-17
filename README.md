@@ -46,3 +46,12 @@ This project uses [Google Test](https://github.com/google/googletest). Run the t
 ## Remarks on the Code
 
 It is common C++ practice to put all the code of templated classes into the header file, because the compiler needs to instantiate them for every compilation unit. For classes/functions that only depend on the dimensions I ignored this and just added instances for one, two and three dimensions to increase compilation speed.  
+
+## Code size
+
+Use `cloc` to count the lines of code in this project. To obtain meaningful results, exclude the build directory (assumed to be in `build`) and `doc`:
+
+```shell
+cloc . --exclude-dir=build,doc
+``` 
+

@@ -9,7 +9,7 @@
 #define LIB_FORWARD_WAVEEQUATIONBASE_H_
 
 #include <deal.II/base/function.h>
-#include <deal.II/base/quadrature.h>
+#include <deal.II/base/parameter_handler.h>
 #include <deal.II/dofs/dof_handler.h>
 #include <deal.II/lac/sparse_matrix.h>
 
@@ -44,6 +44,9 @@ class WaveEquationBase {
       WaveEquationBase(std::shared_ptr<SpaceTimeMesh<dim>> mesh);
 
       virtual DiscretizedFunction<dim> run() = 0;
+
+      static void declare_parameters(ParameterHandler &prm);
+      void get_parameters(ParameterHandler &prm);
 
       // uses special functions for matrix assembly when discretized parameters are passed, which is a lot better for P1 elements.
       // For P2 elements and 3 dimensions it actually turns out to be worse

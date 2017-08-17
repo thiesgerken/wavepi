@@ -57,11 +57,17 @@ int main(int argc, char * argv[]) {
       }
 
       auto prm = std::make_shared<ParameterHandler>();
-      prm->declare_entry("dimension", "2", Patterns::Integer(1, 3), "problem dimension");
+
+      prm->enter_subsection(WavePI<2>::KEY_GENERAL);
+      {
+         prm->declare_entry(WavePI<2>::KEY_DIMENSION, "2", Patterns::Integer(1, 3), "problem dimension");
+      }
+      prm->leave_subsection();
 
       prm->enter_subsection("log");
       {
-         prm->declare_entry("file", "wavepi.log", Patterns::FileName(Patterns::FileName::output), "external log file");
+         prm->declare_entry("file", "wavepi.log", Patterns::FileName(Patterns::FileName::output),
+               "external log file");
          prm->declare_entry("file depth", "100", Patterns::Integer(0), "depth for the log file");
          prm->declare_entry("console depth", "2", Patterns::Integer(0), "depth for stdout");
       }
@@ -108,7 +114,13 @@ int main(int argc, char * argv[]) {
       AssertThrow(vm.count("config-format") == 0,
             ExcMessage("--config-format is useless without --export-config"));
 
-      int dim = prm->get_integer("dimension");
+      int dim;
+
+      prm->enter_subsection(WavePI<2>::KEY_GENERAL);
+      {
+         dim = prm->get_integer(WavePI<2>::KEY_DIMENSION);
+      }
+      prm->leave_subsection();
 
       std::ofstream logout;
       prm->enter_subsection("log");
@@ -129,7 +141,7 @@ int main(int argc, char * argv[]) {
       // deallog << Version::get_infos() << std::endl;
       // deallog.log_execution_time(true);
 
-      prm->log_parameters(deallog);
+      // prm->log_parameters(deallog);
 
       if (dim == 1) {
          WavePI<1> wavepi(prm);
