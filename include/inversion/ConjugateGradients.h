@@ -24,8 +24,8 @@ using namespace dealii;
 // conjugate gradient method applied to normal equation (often called CGNR or CGLS)
 // REGINN(CG) seems to diverge (especially if the time discretization is coarse)
 // while REGINN(Gradient) and REGINN(Landweber) seem to work fine in those cases as well.
-template<typename Param, typename Sol>
-class ConjugateGradients: public LinearRegularization<Param, Sol> {
+template<typename Param, typename Sol, typename Exact>
+class ConjugateGradients: public LinearRegularization<Param, Sol, Exact> {
    public:
       
       virtual ~ConjugateGradients() = default;
@@ -36,10 +36,8 @@ class ConjugateGradients: public LinearRegularization<Param, Sol> {
          this->abort_increasing_discrepancy = true;
       }
 
-      using Regularization<Param, Sol>::invert;
-
-      virtual Param invert(const Sol& data, double target_discrepancy, std::shared_ptr<const Param> exact_param,
-            std::shared_ptr<InversionProgress<Param, Sol>> status_out) {
+      virtual Param invert(const Sol& data, double target_discrepancy, std::shared_ptr<Exact> exact_param, double norm_exact,
+            std::shared_ptr<InversionProgress<Param, Sol, Exact>> status_out) {
          LogStream::Prefix prefix("CGLS");
          AssertThrow(this->problem, ExcInternalError());
 
@@ -53,9 +51,8 @@ class ConjugateGradients: public LinearRegularization<Param, Sol> {
          double discrepancy = residual.norm();
          double initial_discrepancy = discrepancy;
          double norm_data = data.norm();
-         double norm_exact = exact_param ? exact_param->norm() : -0.0;
 
-         InversionProgress<Param, Sol> status(0, &estimate, estimate.norm(), &residual, discrepancy, target_discrepancy,
+         InversionProgress<Param, Sol, Exact> status(0, &estimate, estimate.norm(), &residual, discrepancy, target_discrepancy,
                &data, norm_data, exact_param, norm_exact, false);
          this->progress(status);
 
@@ -81,7 +78,7 @@ class ConjugateGradients: public LinearRegularization<Param, Sol> {
             double discrepancy_last = discrepancy;
             discrepancy = residual.norm();
 
-            status = InversionProgress<Param, Sol>(k, &estimate, estimate.norm(), &residual, discrepancy,
+            status = InversionProgress<Param, Sol, Exact>(k, &estimate, estimate.norm(), &residual, discrepancy,
                   target_discrepancy, &data, norm_data, exact_param, norm_exact, false);
 
             if (!this->progress(status))

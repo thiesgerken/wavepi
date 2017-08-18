@@ -21,8 +21,8 @@ namespace inversion {
 
 using namespace dealii;
 
-template<typename Param, typename Sol>
-class GradientDescent: public LinearRegularization<Param, Sol> {
+template<typename Param, typename Sol, typename Exact>
+class GradientDescent: public LinearRegularization<Param, Sol, Exact> {
    public:
        
       virtual ~GradientDescent() = default;
@@ -33,11 +33,11 @@ class GradientDescent: public LinearRegularization<Param, Sol> {
          this->abort_increasing_discrepancy = true;
       }
 
-      using Regularization<Param, Sol>::invert;
+      using Regularization<Param, Sol, Exact>::invert;
 
       virtual Param invert(const Sol& data, double target_discrepancy,
-            std::shared_ptr<const Param> exact_param,
-            std::shared_ptr<InversionProgress<Param, Sol>> status_out) {
+            std::shared_ptr<Exact> exact_param, double norm_exact,
+            std::shared_ptr<InversionProgress<Param, Sol, Exact>> status_out) {
          LogStream::Prefix p = LogStream::Prefix("Gradient");
          AssertThrow(this->problem, ExcInternalError());
 
@@ -47,9 +47,8 @@ class GradientDescent: public LinearRegularization<Param, Sol> {
          double discrepancy = residual.norm();
          double initial_discrepancy = discrepancy;
          double norm_data = data.norm();
-         double norm_exact = exact_param ? exact_param->norm() : -0.0;
 
-         InversionProgress<Param, Sol> status(0, &estimate, estimate.norm(), &residual, discrepancy, target_discrepancy, &data,
+         InversionProgress<Param, Sol, Exact> status(0, &estimate, estimate.norm(), &residual, discrepancy, target_discrepancy, &data,
                norm_data, exact_param, norm_exact, false);
          this->progress(status);
 
@@ -70,7 +69,7 @@ class GradientDescent: public LinearRegularization<Param, Sol> {
             double discrepancy_last = discrepancy;
             discrepancy = residual.norm();
 
-            status = InversionProgress<Param, Sol>(k, &estimate, estimate.norm(), &residual, discrepancy, target_discrepancy,
+            status = InversionProgress<Param, Sol, Exact>(k, &estimate, estimate.norm(), &residual, discrepancy, target_discrepancy,
                   &data, norm_data, exact_param, norm_exact, false);
 
             if (!this->progress(status))

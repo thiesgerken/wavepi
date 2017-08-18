@@ -104,11 +104,11 @@ class WavePI {
 
       using Param = DiscretizedFunction<dim>;
       using Sol = DiscretizedFunction<dim>;
+      using Exact = Function<dim>;
 
       std::shared_ptr<NonlinearProblem<Param, Sol>> problem;
 
-      std::shared_ptr<Function<dim>> param_exact_cont;
-      std::shared_ptr<Param> param_exact;
+      std::shared_ptr<Function<dim>> param_exact;
 
       std::shared_ptr<FunctionParser<dim>> initial_guess;
       std::shared_ptr<FunctionParser<dim>> param_q;

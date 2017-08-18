@@ -165,6 +165,17 @@ DiscretizedFunction<dim> DiscretizedFunction<dim>::calculate_derivative() const 
 }
 
 template<int dim>
+double DiscretizedFunction<dim>::error(Function<dim>& other) const {
+   LogStream::Prefix p("calculate_error");
+
+   DiscretizedFunction<dim> tmp(mesh, other);
+   tmp.set_norm(norm_type);
+   tmp -= *this;
+
+   return tmp.norm();
+}
+
+template<int dim>
 DiscretizedFunction<dim> DiscretizedFunction<dim>::calculate_derivative_transpose() const {
    Assert(mesh, ExcNotInitialized());
 
@@ -564,7 +575,7 @@ void DiscretizedFunction<dim>::l2l2_mass_solve_time_mass() {
 
 template<int dim>
 double DiscretizedFunction<dim>::l2l2_vec_dot(const DiscretizedFunction<dim> & V) const {
-  // remember to sync this implementation with l2_norm and all l2 adjoints!
+   // remember to sync this implementation with l2_norm and all l2 adjoints!
    // uses vector l2 norm in time and vector l2 norm in space
    // (only approx to L2(0,T, L2) inner product if spatial and temporal grid is uniform!
    double result = 0;
@@ -768,20 +779,20 @@ template<int dim> void DiscretizedFunction<dim>::set_norm(Norm norm) {
 template<int dim>
 double DiscretizedFunction<dim>::value(const Point<dim> &p, const unsigned int component) const {
    Assert(component == 0, ExcIndexRange(component, 0, 1));
-   Assert(cur_time_idx >= 0 && cur_time_idx < mesh->length(),
-         ExcIndexRange(cur_time_idx, 0, mesh->length()));
+   Assert(cur_time_idx >= 0 && cur_time_idx < mesh->length(), ExcIndexRange(cur_time_idx, 0, mesh->length()));
 
-   return VectorTools::point_value(*mesh->get_dof_handler(cur_time_idx), function_coefficients[cur_time_idx], p);
+   return VectorTools::point_value(*mesh->get_dof_handler(cur_time_idx), function_coefficients[cur_time_idx],
+         p);
 }
 
 template<int dim>
 Tensor<1, dim, double> DiscretizedFunction<dim>::gradient(const Point<dim> &p,
       const unsigned int component) const {
    Assert(component == 0, ExcIndexRange(component, 0, 1));
-   Assert(cur_time_idx >= 0 && cur_time_idx < mesh->length(),
-         ExcIndexRange(cur_time_idx, 0, mesh->length()));
+   Assert(cur_time_idx >= 0 && cur_time_idx < mesh->length(), ExcIndexRange(cur_time_idx, 0, mesh->length()));
 
-   return VectorTools::point_gradient(*mesh->get_dof_handler(cur_time_idx), function_coefficients[cur_time_idx], p);
+   return VectorTools::point_gradient(*mesh->get_dof_handler(cur_time_idx),
+         function_coefficients[cur_time_idx], p);
 }
 
 template<int dim>

@@ -100,6 +100,14 @@ class DiscretizedFunction: public Function<dim> {
       // fill this function with random values
       void rand();
 
+      /**
+       * Calculate the absolute error to a given continuous function.
+       * Used the norm specified by `set_norm`.
+       *
+       * @param other The other function.
+       */
+      double error(Function<dim>& other) const;
+
       static DiscretizedFunction<dim> noise(const DiscretizedFunction<dim>& like, double norm);
 
       void write_pvd(std::string path, std::string filename, std::string name, std::string name_deriv) const;

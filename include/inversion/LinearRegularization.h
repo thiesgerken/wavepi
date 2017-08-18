@@ -17,8 +17,8 @@ namespace wavepi {
 namespace inversion {
 
 // Param and Sol need at least banach space structure
-template<typename Param, typename Sol>
-class LinearRegularization: public Regularization<Param, Sol> {
+template<typename Param, typename Sol, typename Exact>
+class LinearRegularization: public Regularization<Param, Sol, Exact> {
    public:
       
       virtual ~LinearRegularization() = default;

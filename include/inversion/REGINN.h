@@ -34,22 +34,22 @@ namespace wavepi {
 namespace inversion {
 using namespace dealii;
 
-template<typename Param, typename Sol>
-class REGINN: public NewtonRegularization<Param, Sol> {
+template<typename Param, typename Sol, typename Exact>
+class REGINN: public NewtonRegularization<Param, Sol, Exact> {
    public:
       
       virtual ~ REGINN() = default;
 
       REGINN(std::shared_ptr<NonlinearProblem<Param, Sol>> problem, std::shared_ptr<Param> initial_guess,
-            std::shared_ptr<LinearRegularization<Param, Sol>> linear_solver,
+            std::shared_ptr<LinearRegularization<Param, Sol, Exact>> linear_solver,
             std::shared_ptr<ToleranceChoice> tol_choice)
-            : NewtonRegularization<Param, Sol>(problem), initial_guess(initial_guess), linear_solver(linear_solver), tol_choice(
+            : NewtonRegularization<Param, Sol, Exact>(problem), initial_guess(initial_guess), linear_solver(linear_solver), tol_choice(
                   tol_choice) {
       }
 
       REGINN(std::shared_ptr<NonlinearProblem<Param, Sol>> problem, std::shared_ptr<Param> initial_guess,
             ParameterHandler &prm)
-            : NewtonRegularization<Param, Sol>(problem), initial_guess(initial_guess) {
+            : NewtonRegularization<Param, Sol, Exact>(problem), initial_guess(initial_guess) {
 
          get_parameters(prm);
       }
@@ -65,7 +65,7 @@ class REGINN: public NewtonRegularization<Param, Sol> {
 
             RiederToleranceChoice::declare_parameters(prm);
             ConstantToleranceChoice::declare_parameters(prm);
-            Landweber<Param, Sol>::declare_parameters(prm);
+            Landweber<Param, Sol, Exact>::declare_parameters(prm);
          }
          prm.leave_subsection();
       }
@@ -76,16 +76,16 @@ class REGINN: public NewtonRegularization<Param, Sol> {
             std::string slinear_solver = prm.get("linear solver");
 
             if (slinear_solver == "ConjugateGradients")
-               linear_solver = std::make_shared<ConjugateGradients<Param, Sol>>();
+               linear_solver = std::make_shared<ConjugateGradients<Param, Sol, Exact>>();
             else if (slinear_solver == "GradientDescent")
-               linear_solver = std::make_shared<GradientDescent<Param, Sol>>();
+               linear_solver = std::make_shared<GradientDescent<Param, Sol, Exact>>();
             else if (slinear_solver == "Landweber")
-               linear_solver = std::make_shared<Landweber<Param, Sol>>(prm);
+               linear_solver = std::make_shared<Landweber<Param, Sol, Exact>>(prm);
             else
                AssertThrow(false, ExcInternalError());
 
-            linear_solver->add_listener(std::make_shared<GenericInversionProgressListener<Param, Sol>>("k"));
-            linear_solver->add_listener(std::make_shared<CtrlCProgressListener<Param, Sol>>());
+            linear_solver->add_listener(std::make_shared<GenericInversionProgressListener<Param, Sol, Exact>>("k"));
+            linear_solver->add_listener(std::make_shared<CtrlCProgressListener<Param, Sol, Exact>>());
 
             std::string stol_choice = prm.get("tolerance choice");
 
@@ -99,10 +99,8 @@ class REGINN: public NewtonRegularization<Param, Sol> {
          prm.leave_subsection();
       }
 
-      using Regularization<Param, Sol>::invert;
-
-      virtual Param invert(const Sol& data, double target_discrepancy, std::shared_ptr<const Param> exact_param,
-            std::shared_ptr<InversionProgress<Param, Sol>> status_out) {
+      virtual Param invert(const Sol& data, double target_discrepancy, std::shared_ptr<Exact> exact_param, double norm_exact,
+            std::shared_ptr<InversionProgress<Param, Sol, Exact>> status_out) {
          LogStream::Prefix p = LogStream::Prefix("REGINN");
          deallog.push("init");
 
@@ -119,12 +117,11 @@ class REGINN: public NewtonRegularization<Param, Sol> {
          double discrepancy = residual.norm();
          double initial_discrepancy = discrepancy;
          double norm_data = data.norm();
-         double norm_exact = exact_param ? exact_param->norm() : -0.0;
 
          tol_choice->reset(target_discrepancy, discrepancy);
 
          deallog.pop();
-         InversionProgress<Param, Sol> status(0, &estimate, estimate.norm(), &residual, discrepancy, target_discrepancy,
+         InversionProgress<Param, Sol, Exact> status(0, &estimate, estimate.norm(), &residual, discrepancy, target_discrepancy,
                &data, norm_data, exact_param, norm_exact, false);
          this->progress(status);
 
@@ -137,9 +134,9 @@ class REGINN: public NewtonRegularization<Param, Sol> {
             double linear_target_discrepancy = discrepancy * theta;
             deallog << "Solving linear problem using rtol=" << theta << std::endl;
 
-            auto linear_status = std::make_shared<InversionProgress<Param, Sol>>(status);
+            auto linear_status = std::make_shared<InversionProgress<Param, Sol, Exact>>(status);
             linear_solver->set_problem(this->problem->derivative(estimate, data_current));
-            Param step = linear_solver->invert(residual, linear_target_discrepancy, nullptr, linear_status);
+            Param step = linear_solver->invert(residual, linear_target_discrepancy, linear_status);
 
             if (linear_status->current_discrepancy > linear_target_discrepancy) {
                deallog << "Linear solver did not converge to desired discrepancy!" << std::endl;
@@ -157,7 +154,7 @@ class REGINN: public NewtonRegularization<Param, Sol> {
             discrepancy = residual.norm();
 
             deallog.pop();
-            status = InversionProgress<Param, Sol>(i, &estimate, estimate.norm(), &residual, discrepancy,
+            status = InversionProgress<Param, Sol, Exact>(i, &estimate, estimate.norm(), &residual, discrepancy,
                   target_discrepancy, &data, norm_data, exact_param, norm_exact, false);
 
             if (!this->progress(status))
@@ -179,10 +176,10 @@ class REGINN: public NewtonRegularization<Param, Sol> {
       }
 
    private:
-      using NewtonRegularization<Param, Sol>::problem;
+      using NewtonRegularization<Param, Sol, Exact>::problem;
 
       std::shared_ptr<Param> initial_guess;
-      std::shared_ptr<LinearRegularization<Param, Sol>> linear_solver;
+      std::shared_ptr<LinearRegularization<Param, Sol, Exact>> linear_solver;
       std::shared_ptr<ToleranceChoice> tol_choice;
 };
 

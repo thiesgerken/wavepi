@@ -97,7 +97,8 @@ template<int dim> void WavePI<dim>::declare_parameters(ParameterHandler &prm) {
 
       // prm.declare_entry(KEY_PROBLEM_NUM_RHS, "1", Patterns::Integer(1), "number of right hand sides");
       // TODO: only works in 2d now without changing the config!
-      prm.declare_entry(KEY_PROBLEM_RHS, "if(x*x+y*y < 0.2, sin(t), 0.0)", Patterns::Anything(), "right hand side");
+      prm.declare_entry(KEY_PROBLEM_RHS, "if(x*x+y*y < 0.2, sin(t), 0.0)", Patterns::Anything(),
+            "right hand side");
 
       prm.declare_entry(KEY_PROBLEM_GUESS, "0.5", Patterns::Anything(), "initial guess");
 
@@ -114,8 +115,9 @@ template<int dim> void WavePI<dim>::declare_parameters(ParameterHandler &prm) {
             "solver for the inverse problem");
       prm.declare_entry(KEY_INVERSION_TAU, "2", Patterns::Double(0), "parameter τ for discrepancy principle");
 
-      REGINN<DiscretizedFunction<dim>, DiscretizedFunction<dim>>::declare_parameters(prm);
-      NonlinearLandweber<DiscretizedFunction<dim>, DiscretizedFunction<dim>>::declare_parameters(prm);
+      REGINN<DiscretizedFunction<dim>, DiscretizedFunction<dim>, Function<dim>>::declare_parameters(prm);
+      NonlinearLandweber<DiscretizedFunction<dim>, DiscretizedFunction<dim>, Function<dim>>::declare_parameters(
+            prm);
    }
    prm.leave_subsection();
 
@@ -270,7 +272,6 @@ template<int dim> void WavePI<dim>::initialize_mesh() {
 
 template<int dim> void WavePI<dim>::initialize_problem() {
    LogStream::Prefix p("initialize_problem");
-   LogStream::Prefix pd(" ");
 
    wave_eq = std::make_shared<WaveEquation<dim>>(mesh);
 
@@ -284,26 +285,22 @@ template<int dim> void WavePI<dim>::initialize_problem() {
    switch (problem_type) {
       case ProblemType::L2Q:
          /* Reconstruct TestQ */
-         param_exact_cont = wave_eq->get_param_q();
-         param_exact = std::make_shared<Param>(mesh, *param_exact_cont.get());
+         param_exact = wave_eq->get_param_q();
          problem = std::make_shared<L2QProblem<dim>>(*wave_eq);
          break;
       case ProblemType::L2C:
          /* Reconstruct TestC */
-         param_exact_cont = wave_eq->get_param_c();
-         param_exact = std::make_shared<Param>(mesh, *param_exact_cont.get());
+         param_exact = wave_eq->get_param_c();
          problem = std::make_shared<L2CProblem<dim>>(*wave_eq);
          break;
       case ProblemType::L2Nu:
          /* Reconstruct TestNu */
-         param_exact_cont = wave_eq->get_param_nu();
-         param_exact = std::make_shared<Param>(mesh, *param_exact_cont.get());
+         param_exact = wave_eq->get_param_nu();
          problem = std::make_shared<L2NuProblem<dim>>(*wave_eq);
          break;
       case ProblemType::L2A:
          /* Reconstruct TestA */
-         param_exact_cont = wave_eq->get_param_a();
-         param_exact = std::make_shared<Param>(mesh, *param_exact_cont.get());
+         param_exact = wave_eq->get_param_a();
          problem = std::make_shared<L2AProblem<dim>>(*wave_eq);
          break;
       default:
@@ -332,23 +329,25 @@ template<int dim> void WavePI<dim>::run() {
    initialize_problem();
    generate_data();
 
-   std::shared_ptr<Regularization<Param, Sol>> regularization;
+   std::shared_ptr<Regularization<Param, Sol, Exact>> regularization;
 
+   deallog.push(" ");
    // discretize initial guess
    auto initial_guess_discretized = std::make_shared<Param>(mesh, *initial_guess);
+   deallog.pop();
 
    prm->enter_subsection(KEY_INVERSION);
    if (method == NonlinearMethod::REGINN)
-      regularization = std::make_shared<REGINN<Param, Sol> >(problem, initial_guess_discretized, *prm);
+      regularization = std::make_shared<REGINN<Param, Sol, Exact> >(problem, initial_guess_discretized, *prm);
    else if (method == NonlinearMethod::NonlinearLandweber)
-      regularization = std::make_shared<NonlinearLandweber<Param, Sol> >(problem, initial_guess_discretized,
-            *prm);
+      regularization = std::make_shared<NonlinearLandweber<Param, Sol, Exact> >(problem,
+            initial_guess_discretized, *prm);
    else
       AssertThrow(false, ExcInternalError());
    prm->leave_subsection();
 
-   regularization->add_listener(std::make_shared<GenericInversionProgressListener<Param, Sol>>("i"));
-   regularization->add_listener(std::make_shared<CtrlCProgressListener<Param, Sol>>());
+   regularization->add_listener(std::make_shared<GenericInversionProgressListener<Param, Sol, Exact>>("i"));
+   regularization->add_listener(std::make_shared<CtrlCProgressListener<Param, Sol, Exact>>());
    regularization->add_listener(std::make_shared<OutputProgressListener<dim>>(*prm));
 
    prm->log_parameters(deallog);

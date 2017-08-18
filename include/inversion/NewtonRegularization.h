@@ -17,10 +17,10 @@ namespace wavepi {
 namespace inversion {
 
 // Param and Sol need at least banach space structure
-template<typename Param, typename Sol>
-class NewtonRegularization: public Regularization<Param, Sol> {
+template<typename Param, typename Sol, typename Exact>
+class NewtonRegularization: public Regularization<Param, Sol, Exact> {
    public:
-      
+
       virtual ~NewtonRegularization() = default;
 
       NewtonRegularization(std::shared_ptr<NonlinearProblem<Param, Sol>> problem)
