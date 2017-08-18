@@ -1,5 +1,5 @@
 # file(GLOB LIBSOURCES *.cpp)
-SET(LIBSOURCES WavePI.cpp MatrixCreator.cpp GridTools.cpp)
+SET(LIBSOURCES WavePI.cpp MatrixCreator.cpp GridTools.cpp MacroFunctionParser.cpp)
         
 find_program(GIT_SCM git DOC "Git version control")
 mark_as_advanced(GIT_SCM)

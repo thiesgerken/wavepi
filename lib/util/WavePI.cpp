@@ -26,6 +26,7 @@
 
 #include <util/WavePI.h>
 #include <util/GridTools.h>
+#include <util/MacroFunctionParser.h>
 
 #include <stddef.h>
 #include <tgmath.h>
@@ -96,8 +97,7 @@ template<int dim> void WavePI<dim>::declare_parameters(ParameterHandler &prm) {
             "constants for the function declarations, in the form `var1=value1, var2=value2, ...'.");
 
       // prm.declare_entry(KEY_PROBLEM_NUM_RHS, "1", Patterns::Integer(1), "number of right hand sides");
-      // TODO: only works in 2d now without changing the config!
-      prm.declare_entry(KEY_PROBLEM_RHS, "if(x*x+y*y < 0.2, sin(t), 0.0)", Patterns::Anything(),
+      prm.declare_entry(KEY_PROBLEM_RHS, "if(norm{x|y|z} < 0.2, sin(t), 0.0)", Patterns::Anything(),
             "right hand side");
 
       prm.declare_entry(KEY_PROBLEM_GUESS, "0.5", Patterns::Anything(), "initial guess");
@@ -171,29 +171,14 @@ template<int dim> WavePI<dim>::WavePI(std::shared_ptr<ParameterHandler> prm)
          constants[this_c[0]] = tmp;
       }
 
-      rhs = std::make_shared<FunctionParser<dim>>();
-      rhs->initialize(FunctionParser<dim>::default_variable_names() + ",t", prm->get(KEY_PROBLEM_RHS),
-            constants, true);
+      rhs = std::make_shared<MacroFunctionParser<dim>>(prm->get(KEY_PROBLEM_RHS), constants);
 
-      initial_guess = std::make_shared<FunctionParser<dim>>();
-      initial_guess->initialize(FunctionParser<dim>::default_variable_names() + ",t",
-            prm->get(KEY_PROBLEM_GUESS), constants, true);
+      initial_guess = std::make_shared<MacroFunctionParser<dim>>(prm->get(KEY_PROBLEM_GUESS), constants);
 
-      param_a = std::make_shared<FunctionParser<dim>>();
-      param_a->initialize(FunctionParser<dim>::default_variable_names() + ",t", prm->get(KEY_PROBLEM_PARAM_A),
-            constants, true);
-
-      param_nu = std::make_shared<FunctionParser<dim>>();
-      param_nu->initialize(FunctionParser<dim>::default_variable_names() + ",t",
-            prm->get(KEY_PROBLEM_PARAM_NU), constants, true);
-
-      param_c = std::make_shared<FunctionParser<dim>>();
-      param_c->initialize(FunctionParser<dim>::default_variable_names() + ",t", prm->get(KEY_PROBLEM_PARAM_C),
-            constants, true);
-
-      param_q = std::make_shared<FunctionParser<dim>>();
-      param_q->initialize(FunctionParser<dim>::default_variable_names() + ",t", prm->get(KEY_PROBLEM_PARAM_Q),
-            constants, true);
+      param_a = std::make_shared<MacroFunctionParser<dim>>(prm->get(KEY_PROBLEM_PARAM_A), constants);
+      param_nu = std::make_shared<MacroFunctionParser<dim>>(prm->get(KEY_PROBLEM_PARAM_NU), constants);
+      param_c = std::make_shared<MacroFunctionParser<dim>>(prm->get(KEY_PROBLEM_PARAM_C), constants);
+      param_q = std::make_shared<MacroFunctionParser<dim>>(prm->get(KEY_PROBLEM_PARAM_Q), constants);
    }
    prm->leave_subsection();
 
