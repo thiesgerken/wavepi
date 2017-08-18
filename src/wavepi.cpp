@@ -156,7 +156,7 @@ int main(int argc, char * argv[]) {
 
       // deallog.timestamp();
    } catch (std::exception &exc) {
-      std::cerr << "Exception on processing: " << exc.what();
+      std::cerr << "Exception on processing: " << exc.what() << std::endl;
       return 1;
    } catch (...) {
       std::cerr << "Unknown exception!" << std::endl;

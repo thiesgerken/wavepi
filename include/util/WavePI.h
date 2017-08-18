@@ -47,6 +47,9 @@ class WavePI {
       static const std::string KEY_END_TIME;
       static const std::string KEY_INITIAL_REFINES;
       static const std::string KEY_INITIAL_TIME_STEPS;
+      static const std::string KEY_SHAPE;
+      static const std::string KEY_SHAPE_GENERATOR;
+      static const std::string KEY_SHAPE_OPTIONS;
 
       static const std::string KEY_PROBLEM;
       static const std::string KEY_PROBLEM_TYPE;
@@ -59,6 +62,7 @@ class WavePI {
       static const std::string KEY_PROBLEM_PARAM_Q;
       static const std::string KEY_PROBLEM_PARAM_C;
       static const std::string KEY_PROBLEM_PARAM_NU;
+
       static const std::string KEY_INVERSION;
       static const std::string KEY_INVERSION_METHOD;
       static const std::string KEY_INVERSION_TAU;
@@ -118,6 +122,11 @@ class WavePI {
       std::shared_ptr<FunctionParser<dim>> rhs;
 
       std::shared_ptr<Sol> data; // noisy data
+
+      /**
+       * `Point` constructor from three values, neglecting those that are not needed.
+       */
+      static Point<dim> make_point(double x, double y, double z);
 };
 
 } /* namespace util */

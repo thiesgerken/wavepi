@@ -51,6 +51,9 @@ template<int dim> const std::string WavePI<dim>::KEY_MESH = "mesh";
 template<int dim> const std::string WavePI<dim>::KEY_END_TIME = "end time";
 template<int dim> const std::string WavePI<dim>::KEY_INITIAL_REFINES = "initial refines";
 template<int dim> const std::string WavePI<dim>::KEY_INITIAL_TIME_STEPS = "initial time steps";
+template<int dim> const std::string WavePI<dim>::KEY_SHAPE = "shape";
+template<int dim> const std::string WavePI<dim>::KEY_SHAPE_GENERATOR = "generator name";
+template<int dim> const std::string WavePI<dim>::KEY_SHAPE_OPTIONS = "options";
 
 template<int dim> const std::string WavePI<dim>::KEY_PROBLEM = "problem";
 template<int dim> const std::string WavePI<dim>::KEY_PROBLEM_TYPE = "type";
@@ -84,6 +87,16 @@ template<int dim> void WavePI<dim>::declare_parameters(ParameterHandler &prm) {
             "refines of the (initial) spatial grid");
       prm.declare_entry(KEY_INITIAL_TIME_STEPS, "256", Patterns::Integer(2),
             "(initial) number of time steps");
+
+      prm.enter_subsection(KEY_SHAPE);
+      {
+         prm.declare_entry(KEY_SHAPE_GENERATOR, "hyper_cube",
+               Patterns::Selection("hyper_cube|hyper_L|hyper_ball|cheese"),
+               "generator for the triangulation");
+         prm.declare_entry(KEY_SHAPE_OPTIONS, "left=-5.0, right=5.0", Patterns::Anything(),
+               "options for the generator, in the form `var1=value1, var2=value2, ...`.\n Available options: left, right for hyper_cube and hyper_L, center_{x,y,z} and radius for hyper_cube, scale for cheese.");
+      }
+      prm.leave_subsection();
    }
    prm.leave_subsection();
 
@@ -94,7 +107,7 @@ template<int dim> void WavePI<dim>::declare_parameters(ParameterHandler &prm) {
       prm.declare_entry(KEY_PROBLEM_EPSILON, "1e-2", Patterns::Double(0, 1), "relative noise level ε");
 
       prm.declare_entry(KEY_PROBLEM_CONSTANTS, "", Patterns::Anything(),
-            "constants for the function declarations, in the form `var1=value1, var2=value2, ...'.");
+            "constants for the function declarations, in the form `var1=value1, var2=value2, ...`.");
 
       // prm.declare_entry(KEY_PROBLEM_NUM_RHS, "1", Patterns::Integer(1), "number of right hand sides");
       prm.declare_entry(KEY_PROBLEM_RHS, "if(norm{x|y|z} < 0.2, sin(t), 0.0)", Patterns::Anything(),
@@ -198,6 +211,19 @@ template<int dim> WavePI<dim>::WavePI(std::shared_ptr<ParameterHandler> prm)
    prm->leave_subsection();
 }
 
+template<> Point<1> WavePI<1>::make_point(double x, double y __attribute__((unused)),
+      double z __attribute__((unused))) {
+   return Point<1>(x);
+}
+
+template<> Point<2> WavePI<2>::make_point(double x, double y, double z __attribute__((unused))) {
+   return Point<2>(x, y);
+}
+
+template<> Point<3> WavePI<3>::make_point(double x, double y, double z) {
+   return Point<3>(x, y, z);
+}
+
 template<int dim> void WavePI<dim>::initialize_mesh() {
    LogStream::Prefix p("initialize_mesh");
 
@@ -209,13 +235,82 @@ template<int dim> void WavePI<dim>::initialize_mesh() {
 
    auto triangulation = std::make_shared<Triangulation<dim>>();
 
-   // GridGenerator::cheese(triangulation, std::vector<unsigned int>( { 1, 1 }));
-   GridGenerator::hyper_cube(*triangulation, -5, 5);
-   GridTools::set_all_boundary_ids(*triangulation, 0);
+   prm->enter_subsection(KEY_MESH);
+   {
+      prm->enter_subsection(KEY_SHAPE);
+      {
+         std::string generator = prm->get(KEY_SHAPE_GENERATOR);
+
+         std::string options_list = prm->get(KEY_SHAPE_OPTIONS);
+         std::vector<std::string> options_listed = Utilities::split_string_list(options_list, ',');
+         std::map<std::string, double> options;
+
+         for (size_t i = 0; i < options_listed.size(); ++i) {
+            std::vector<std::string> this_c = Utilities::split_string_list(options_listed[i], '=');
+            AssertThrow(this_c.size() == 2, ExcMessage("Could not parse generator options"));
+            double tmp;
+            AssertThrow(std::sscanf(this_c[1].c_str(), "%lf", &tmp),
+                  ExcMessage("Could not parse generator options"));
+            options[this_c[0]] = tmp;
+         }
+
+         if (generator == "hyper_cube") {
+            if (!options.count("left"))
+               options.emplace("left", -5.0);
+
+            if (!options.count("right"))
+               options.emplace("right", 5.0);
+
+            GridGenerator::hyper_cube(*triangulation, options["left"], options["right"]);
+         } else if (generator == "hyper_L") {
+            if (!options.count("left"))
+               options.emplace("left", -5.0);
+
+            if (!options.count("right"))
+               options.emplace("right", 5.0);
+
+            GridGenerator::hyper_L(*triangulation, options["left"], options["right"]);
+         } else if (generator == "hyper_ball") {
+            if (!options.count("center_x"))
+               options.emplace("center_x", 0.0);
+
+            if (!options.count("center_y"))
+               options.emplace("center_y", 0.0);
+
+            if (!options.count("center_z"))
+               options.emplace("center_z", 0.0);
+
+            if (!options.count("radius"))
+               options.emplace("radius", 1.0);
+
+            Point<dim> center = make_point(options["center_x"], options["center_y"], options["center_z"]);
+
+            GridGenerator::hyper_ball(*triangulation, center, options["radius"]);
+         } else if (generator == "cheese") {
+            if (!options.count("scale"))
+               options.emplace("scale", 1.0);
+
+            AssertThrow(dim > 1, ExcMessage("cheese only makes sense for dim > 1."));
+
+            std::vector<unsigned int> holes( { 2, 1 });
+
+            if (dim == 3)
+               holes.push_back(1);
+
+            GridGenerator::cheese(*triangulation, holes);
+            dealii::GridTools::scale(options["scale"], *triangulation);
+         } else
+            AssertThrow(false, ExcMessage("Unknown grid generator:" + generator));
+      }
+      prm->leave_subsection();
+   }
+   prm->leave_subsection();
+
+   wavepi::util::GridTools::set_all_boundary_ids(*triangulation, 0);
    triangulation->refine_global(initial_refines);
 
-//   mesh = std::make_shared<AdaptiveMesh<dim>>(times, FE_Q<dim>(fe_degree), QGauss<dim>(quad_order),
-//         triangulation);
+   //   mesh = std::make_shared<AdaptiveMesh<dim>>(times, FE_Q<dim>(fe_degree), QGauss<dim>(quad_order),
+   //         triangulation);
 
    auto a_mesh = std::make_shared<AdaptiveMesh<dim>>(times, FE_Q<dim>(fe_degree), QGauss<dim>(quad_order),
          triangulation);
@@ -335,7 +430,12 @@ template<int dim> void WavePI<dim>::run() {
    regularization->add_listener(std::make_shared<CtrlCProgressListener<Param, Sol, Exact>>());
    regularization->add_listener(std::make_shared<OutputProgressListener<dim>>(*prm));
 
+   // dump all parameters to deallog (console and file)
+   unsigned int prev_console = deallog.depth_console(100);
+   unsigned int prev_file = deallog.depth_file(100);
    prm->log_parameters(deallog);
+   deallog.depth_console(prev_console);
+   deallog.depth_file(prev_file);
 
    regularization->invert(*data, tau * epsilon * data->norm(), param_exact);
 }

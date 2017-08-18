@@ -22,7 +22,7 @@ using namespace dealii;
  * In contrast to its base class, you do not need to call `initialize` (not virtual ...).
  *
  * Additional replacements:
- * norm{x|y|z} -> sqrt(pow(x,2)), sqrt(pow(x,2)+pow(y,2)) or sqrt(pow(x,2)+pow(y,2)+pow(z,2)), depending on dimension.
+ * `norm{x|y|z}` becomes `sqrt(pow(x,2))`, `sqrt(pow(x,2)+pow(y,2))` or `sqrt(pow(x,2)+pow(y,2)+pow(z,2))`, depending on dimension.
  * Currently this is implemented using naive string replacement, so the characters '}', '{' and '|' must not be used in expressions x,y or z.
  */
 template<int dim>
