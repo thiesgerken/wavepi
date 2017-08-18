@@ -25,7 +25,7 @@ using namespace dealii;
 template<typename Param, typename Sol, typename Exact>
 class Landweber: public LinearRegularization<Param, Sol, Exact> {
    public:
-       
+
       virtual ~Landweber() = default;
 
       Landweber(double omega)
@@ -59,8 +59,7 @@ class Landweber: public LinearRegularization<Param, Sol, Exact> {
          prm.leave_subsection();
       }
 
-      virtual Param invert(const Sol& data, double target_discrepancy,
-            std::shared_ptr<Exact> exact_param, double norm_exact,
+      virtual Param invert(const Sol& data, double target_discrepancy, std::shared_ptr<Exact> exact_param,
             std::shared_ptr<InversionProgress<Param, Sol, Exact>> status_out) {
          LogStream::Prefix p = LogStream::Prefix("Landweber");
          AssertThrow(this->problem, ExcInternalError());
@@ -73,7 +72,7 @@ class Landweber: public LinearRegularization<Param, Sol, Exact> {
          double norm_data = data.norm();
 
          InversionProgress<Param, Sol, Exact> status(0, &estimate, estimate.norm(), &residual, discrepancy,
-               target_discrepancy, &data, norm_data, exact_param, norm_exact, false);
+               target_discrepancy, &data, norm_data, exact_param, false);
          this->progress(status);
 
          for (int k = 1;
@@ -92,8 +91,8 @@ class Landweber: public LinearRegularization<Param, Sol, Exact> {
             double discrepancy_last = discrepancy;
             discrepancy = residual.norm();
 
-            status = InversionProgress<Param, Sol, Exact>(k, &estimate, estimate.norm(), &residual, discrepancy,
-                  target_discrepancy, &data, norm_data, exact_param, norm_exact, false);
+            status = InversionProgress<Param, Sol, Exact>(k, &estimate, estimate.norm(), &residual,
+                  discrepancy, target_discrepancy, &data, norm_data, exact_param, false);
 
             if (!this->progress(status))
                break;

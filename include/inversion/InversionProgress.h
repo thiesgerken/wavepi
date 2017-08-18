@@ -54,16 +54,17 @@ struct InversionProgress {
 
       InversionProgress(int iteration_number, const Param* current_estimate, double norm_current_estimate,
             const Sol* current_residual, double current_discrepancy, double target_discrepancy,
-            const Sol* data, double norm_data, std::shared_ptr<Exact> exact_param,
-            double norm_exact_param, bool finished)
+            const Sol* data, double norm_data, std::shared_ptr<Exact> exact_param, bool finished)
             : iteration_number(iteration_number), current_estimate(current_estimate), norm_current_estimate(
                   norm_current_estimate), current_residual(current_residual), current_discrepancy(
                   current_discrepancy), target_discrepancy(target_discrepancy), data(data), norm_data(
-                  norm_data), exact_param(exact_param), norm_exact_param(norm_exact_param) {
+                  norm_data), exact_param(exact_param) {
          if (exact_param)
-            current_error = current_estimate->error(*exact_param);
-         else
+            current_error = current_estimate->absolute_error(*exact_param, &norm_exact_param);
+         else {
             current_error = -0.0;
+            norm_exact_param = -0.0;
+         }
 
          this->finished = finished;
       }

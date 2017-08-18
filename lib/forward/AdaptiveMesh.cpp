@@ -240,9 +240,11 @@ void AdaptiveMesh<dim>::transfer(size_t target_idx, std::vector<Vector<double>*>
    Assert(target_idx >= 0 && target_idx < this->length(), ExcIndexRange(target_idx, 0, this->length()));
 
    LogStream::Prefix p("AdaptiveMesh");
+   LogStream::Prefix pp("transfer");
+
    if (target_idx != working_time_idx)
-      deallog << "Mesh transfer: " << working_time_idx << " → " << target_idx << ", taking "
-            << vectors.size() << " vector(s) along" << std::endl;
+      deallog << working_time_idx << " → " << target_idx << ", taking " << vectors.size()
+            << " vector(s) along" << std::endl;
 
    if (working_time_idx < target_idx)
       for (size_t idx = working_time_idx; idx < target_idx; idx++) {

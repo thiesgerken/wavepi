@@ -331,7 +331,7 @@ template<int dim> void WavePI<dim>::run() {
 
    std::shared_ptr<Regularization<Param, Sol, Exact>> regularization;
 
-   deallog.push(" ");
+   deallog.push("Initial Guess");
    // discretize initial guess
    auto initial_guess_discretized = std::make_shared<Param>(mesh, *initial_guess);
    deallog.pop();

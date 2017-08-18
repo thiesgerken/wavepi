@@ -49,7 +49,7 @@ using namespace dealii;
 template<int dim>
 class L2ProductRightHandSide: public RightHandSide<dim> {
    public:
-      
+
       virtual ~L2ProductRightHandSide() = default;
 
       L2ProductRightHandSide(std::shared_ptr<DiscretizedFunction<dim>> f1,

@@ -37,14 +37,14 @@ using namespace dealii;
 template<typename Param, typename Sol, typename Exact>
 class REGINN: public NewtonRegularization<Param, Sol, Exact> {
    public:
-      
+
       virtual ~ REGINN() = default;
 
       REGINN(std::shared_ptr<NonlinearProblem<Param, Sol>> problem, std::shared_ptr<Param> initial_guess,
             std::shared_ptr<LinearRegularization<Param, Sol, Exact>> linear_solver,
             std::shared_ptr<ToleranceChoice> tol_choice)
-            : NewtonRegularization<Param, Sol, Exact>(problem), initial_guess(initial_guess), linear_solver(linear_solver), tol_choice(
-                  tol_choice) {
+            : NewtonRegularization<Param, Sol, Exact>(problem), initial_guess(initial_guess), linear_solver(
+                  linear_solver), tol_choice(tol_choice) {
       }
 
       REGINN(std::shared_ptr<NonlinearProblem<Param, Sol>> problem, std::shared_ptr<Param> initial_guess,
@@ -84,7 +84,8 @@ class REGINN: public NewtonRegularization<Param, Sol, Exact> {
             else
                AssertThrow(false, ExcInternalError());
 
-            linear_solver->add_listener(std::make_shared<GenericInversionProgressListener<Param, Sol, Exact>>("k"));
+            linear_solver->add_listener(
+                  std::make_shared<GenericInversionProgressListener<Param, Sol, Exact>>("k"));
             linear_solver->add_listener(std::make_shared<CtrlCProgressListener<Param, Sol, Exact>>());
 
             std::string stol_choice = prm.get("tolerance choice");
@@ -99,7 +100,7 @@ class REGINN: public NewtonRegularization<Param, Sol, Exact> {
          prm.leave_subsection();
       }
 
-      virtual Param invert(const Sol& data, double target_discrepancy, std::shared_ptr<Exact> exact_param, double norm_exact,
+      virtual Param invert(const Sol& data, double target_discrepancy, std::shared_ptr<Exact> exact_param,
             std::shared_ptr<InversionProgress<Param, Sol, Exact>> status_out) {
          LogStream::Prefix p = LogStream::Prefix("REGINN");
          deallog.push("init");
@@ -121,8 +122,8 @@ class REGINN: public NewtonRegularization<Param, Sol, Exact> {
          tol_choice->reset(target_discrepancy, discrepancy);
 
          deallog.pop();
-         InversionProgress<Param, Sol, Exact> status(0, &estimate, estimate.norm(), &residual, discrepancy, target_discrepancy,
-               &data, norm_data, exact_param, norm_exact, false);
+         InversionProgress<Param, Sol, Exact> status(0, &estimate, estimate.norm(), &residual, discrepancy,
+               target_discrepancy, &data, norm_data, exact_param, false);
          this->progress(status);
 
          for (int i = 1;
@@ -154,8 +155,8 @@ class REGINN: public NewtonRegularization<Param, Sol, Exact> {
             discrepancy = residual.norm();
 
             deallog.pop();
-            status = InversionProgress<Param, Sol, Exact>(i, &estimate, estimate.norm(), &residual, discrepancy,
-                  target_discrepancy, &data, norm_data, exact_param, norm_exact, false);
+            status = InversionProgress<Param, Sol, Exact>(i, &estimate, estimate.norm(), &residual,
+                  discrepancy, target_discrepancy, &data, norm_data, exact_param, false);
 
             if (!this->progress(status))
                break;

@@ -518,7 +518,7 @@ DiscretizedFunction<dim> WaveEquationAdjoint<dim>::apply_R_transpose(const Discr
       Vector<double> tmp;
 
       if (i != mesh->length() - 1) {
-         tmp.reinit(u.get_function_coefficient(i+1).size());
+         tmp.reinit(u.get_function_coefficient(i + 1).size());
 
          tmp.equ(theta * (1 - theta), u.get_function_coefficient(i + 1));
          tmp.add(1 - theta, u.get_derivative_coefficient(i + 1));

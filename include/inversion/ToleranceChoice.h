@@ -15,7 +15,7 @@ namespace inversion {
 
 class ToleranceChoice {
    public:
-      
+
       virtual ~ToleranceChoice() = default;
 
       // reset iteration history

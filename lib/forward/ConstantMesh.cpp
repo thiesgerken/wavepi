@@ -49,8 +49,7 @@ std::shared_ptr<ConstraintMatrix> ConstantMesh<dim>::get_constraint_matrix(size_
 }
 
 template<int dim>
-std::shared_ptr<SparsityPattern> ConstantMesh<dim>::get_sparsity_pattern(
-      size_t time_index ) {
+std::shared_ptr<SparsityPattern> ConstantMesh<dim>::get_sparsity_pattern(size_t time_index) {
    if (!sparsity_pattern) {
       DynamicSparsityPattern dsp(dof_handler->n_dofs(), dof_handler->n_dofs());
       DoFTools::make_sparsity_pattern(*dof_handler, dsp);

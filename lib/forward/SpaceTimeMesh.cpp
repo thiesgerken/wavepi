@@ -62,7 +62,8 @@ size_t SpaceTimeMesh<dim>::nearest_time(double time) const {
 template<int dim>
 size_t SpaceTimeMesh<dim>::find_time(double time) const {
    size_t idx = nearest_time(time);
-   AssertThrow(std::abs(time - times[idx]) < 1e-10, ExcMessage("time " + std::to_string(time) + " is not member of this mesh"));
+   AssertThrow(std::abs(time - times[idx]) < 1e-10,
+         ExcMessage("time " + std::to_string(time) + " is not member of this mesh"));
 
    return idx;
 }

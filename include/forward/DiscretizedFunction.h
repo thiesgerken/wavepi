@@ -33,7 +33,6 @@ class DiscretizedFunction: public Function<dim> {
          L2L2_Vector, L2L2_Trapezoidal_Mass
       };
 
-      
       virtual ~DiscretizedFunction() = default;
 
       DiscretizedFunction(const DiscretizedFunction& that);
@@ -100,14 +99,6 @@ class DiscretizedFunction: public Function<dim> {
       // fill this function with random values
       void rand();
 
-      /**
-       * Calculate the absolute error to a given continuous function.
-       * Used the norm specified by `set_norm`.
-       *
-       * @param other The other function.
-       */
-      double error(Function<dim>& other) const;
-
       static DiscretizedFunction<dim> noise(const DiscretizedFunction<dim>& like, double norm);
 
       void write_pvd(std::string path, std::string filename, std::string name, std::string name_deriv) const;
@@ -136,6 +127,23 @@ class DiscretizedFunction: public Function<dim> {
       // relative error (using this object's norm settings)
       // if this->norm() == 0 it returns the absolute error.
       double relative_error(const DiscretizedFunction<dim>& other) const;
+
+      /**
+       * Calculate the absolute error to a given continuous function.
+       * Used the norm specified by `set_norm`.
+       *
+       * @param other The other function.
+       */
+      double absolute_error(Function<dim>& other) const;
+
+      /**
+       * Calculate the absolute error to a given continuous function.
+       * Used the norm specified by `set_norm`.
+       *
+       * @param other The other function.
+       * @param norm_out `double` that is filled with the norm of `other`, or `nullptr`.
+       */
+      double absolute_error(Function<dim>& other, double* norm_out) const;
 
       std::shared_ptr<SpaceTimeMesh<dim> > get_mesh() const;
 

@@ -35,21 +35,20 @@ class Regularization {
        * @param norm_exact Norm of the exact parameter, if known. Is used to output relative errors.
        * @param status_out Output for the last status.
        */
-      virtual Param invert(const Sol& data, double target_discrepancy,
-            std::shared_ptr<Exact> exact_param, double norm_exact,
+      virtual Param invert(const Sol& data, double target_discrepancy, std::shared_ptr<Exact> exact_param,
             std::shared_ptr<InversionProgress<Param, Sol, Exact>> status_out) = 0;
 
       Param invert(const Sol& data, double target_discrepancy, std::shared_ptr<Exact> exact_param) {
-         return invert(data, target_discrepancy, exact_param, -0.0, nullptr);
+         return invert(data, target_discrepancy, exact_param, nullptr);
       }
 
       Param invert(const Sol& data, double target_discrepancy,
             std::shared_ptr<InversionProgress<Param, Sol, Exact>> status_out) {
-         return invert(data, target_discrepancy, nullptr, -0.0, status_out);
+         return invert(data, target_discrepancy, nullptr, status_out);
       }
 
       Param invert(const Sol& data, double target_discrepancy) {
-         return invert(data, target_discrepancy, nullptr, -0.0, nullptr);
+         return invert(data, target_discrepancy, nullptr, nullptr);
       }
 
       int get_max_iterations() const {

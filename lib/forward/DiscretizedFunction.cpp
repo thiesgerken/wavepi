@@ -165,11 +165,20 @@ DiscretizedFunction<dim> DiscretizedFunction<dim>::calculate_derivative() const 
 }
 
 template<int dim>
-double DiscretizedFunction<dim>::error(Function<dim>& other) const {
+double DiscretizedFunction<dim>::absolute_error(Function<dim>& other) const {
+   return absolute_error(other, nullptr);
+}
+
+template<int dim>
+double DiscretizedFunction<dim>::absolute_error(Function<dim>& other, double* norm_out) const {
    LogStream::Prefix p("calculate_error");
 
    DiscretizedFunction<dim> tmp(mesh, other);
    tmp.set_norm(norm_type);
+
+   if (norm_out)
+      *norm_out = tmp.norm();
+
    tmp -= *this;
 
    return tmp.norm();

@@ -171,8 +171,8 @@ template<int dim>
 void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_steps,
       typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver, bool set_nu, double tol) {
    AssertThrow(
-         adjoint_solver == WaveEquationBase<dim>::WaveEquationAdjoint || adjoint_solver == WaveEquationBase<dim>::WaveEquationBackwards,
-         ExcInternalError());
+         adjoint_solver == WaveEquationBase<dim>::WaveEquationAdjoint
+               || adjoint_solver == WaveEquationBase<dim>::WaveEquationBackwards, ExcInternalError());
 
    auto triangulation = std::make_shared<Triangulation<dim>>();
    GridGenerator::hyper_cube(*triangulation, -1, 1);
@@ -185,8 +185,8 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
    for (size_t i = 0; t_start + i * dt <= t_end; i++)
       times.push_back(t_start + i * dt);
 
-   std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, FE_Q<dim> (fe_order),  QGauss<dim>(quad_order),
-         triangulation);
+   std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, FE_Q<dim>(fe_order),
+         QGauss<dim>(quad_order), triangulation);
 
    deallog << std::endl << "----------  n_dofs / timestep: " << mesh->get_dof_handler(0)->n_dofs();
    deallog << ", n_steps: " << times.size() << "  ----------" << std::endl;
@@ -277,7 +277,7 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
       wave_eq.set_run_direction(WaveEquation<dim>::Backward);
       adj_z = wave_eq.run();
       adj_z.throw_away_derivative();
-  }
+   }
 
    adj_z.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
    adj_z.solve_time_mass();

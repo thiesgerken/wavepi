@@ -23,13 +23,14 @@ using namespace dealii;
 template<int dim>
 class DistributionRightHandSide: public RightHandSide<dim> {
    public:
-      
+
       virtual ~DistributionRightHandSide() = default;
 
       // either of the functions may be zero
       DistributionRightHandSide(Function<dim>* f1, Function<dim>* f2);
 
-      virtual void create_right_hand_side(const DoFHandler<dim> &dof_handler, const Quadrature<dim> &q, Vector<double> &rhs) const;
+      virtual void create_right_hand_side(const DoFHandler<dim> &dof_handler, const Quadrature<dim> &q,
+            Vector<double> &rhs) const;
 
    private:
       struct AssemblyScratchData {
@@ -46,13 +47,17 @@ class DistributionRightHandSide: public RightHandSide<dim> {
       static void copy_local_to_global(Vector<double> &result, const AssemblyCopyData &copy_data);
 
       static void local_assemble_dc(const Vector<double> &f1, const Function<dim> * const f2,
-            const typename DoFHandler<dim>::active_cell_iterator &cell, AssemblyScratchData &scratch_data, AssemblyCopyData &copy_data);
+            const typename DoFHandler<dim>::active_cell_iterator &cell, AssemblyScratchData &scratch_data,
+            AssemblyCopyData &copy_data);
       static void local_assemble_cd(const Function<dim> * const f1, const Vector<double> &f2,
-            const typename DoFHandler<dim>::active_cell_iterator &cell, AssemblyScratchData &scratch_data, AssemblyCopyData &copy_data);
+            const typename DoFHandler<dim>::active_cell_iterator &cell, AssemblyScratchData &scratch_data,
+            AssemblyCopyData &copy_data);
       static void local_assemble_dd(const Vector<double> &f1, const Vector<double> &f2,
-            const typename DoFHandler<dim>::active_cell_iterator &cell, AssemblyScratchData &scratch_data, AssemblyCopyData &copy_data);
+            const typename DoFHandler<dim>::active_cell_iterator &cell, AssemblyScratchData &scratch_data,
+            AssemblyCopyData &copy_data);
       static void local_assemble_cc(const Function<dim> * const f1, const Function<dim> * const f2,
-            const typename DoFHandler<dim>::active_cell_iterator &cell, AssemblyScratchData &scratch_data, AssemblyCopyData &copy_data);
+            const typename DoFHandler<dim>::active_cell_iterator &cell, AssemblyScratchData &scratch_data,
+            AssemblyCopyData &copy_data);
 
       Function<dim> *f1;
       Function<dim> *f2;

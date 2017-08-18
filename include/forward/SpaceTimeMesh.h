@@ -33,7 +33,7 @@ using namespace dealii;
 template<int dim>
 class SpaceTimeMesh {
    public:
-      
+
       virtual ~SpaceTimeMesh() = default;
 
       /**

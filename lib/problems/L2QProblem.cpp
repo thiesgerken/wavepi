@@ -30,8 +30,7 @@ L2QProblem<dim>::L2QProblem(WaveEquation<dim>& weq,
 template<int dim>
 std::unique_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>> L2QProblem<dim>::derivative(
       const DiscretizedFunction<dim>& q, const DiscretizedFunction<dim>& u) {
-   return std::make_unique<L2QProblem<dim>::Linearization>(this->wave_equation,
-         adjoint_solver, q, u);
+   return std::make_unique<L2QProblem<dim>::Linearization>(this->wave_equation, adjoint_solver, q, u);
 }
 
 template<int dim>

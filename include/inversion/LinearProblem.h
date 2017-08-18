@@ -16,7 +16,7 @@ namespace inversion {
 template<typename Param, typename Sol>
 class LinearProblem: public InverseProblem<Param, Sol> {
    public:
-      
+
       virtual ~LinearProblem() = default;
 
       virtual Param adjoint(const Sol& g) = 0;

@@ -27,7 +27,7 @@ using namespace dealii;
 template<typename Param, typename Sol, typename Exact>
 class ConjugateGradients: public LinearRegularization<Param, Sol, Exact> {
    public:
-      
+
       virtual ~ConjugateGradients() = default;
 
       ConjugateGradients() {
@@ -36,7 +36,7 @@ class ConjugateGradients: public LinearRegularization<Param, Sol, Exact> {
          this->abort_increasing_discrepancy = true;
       }
 
-      virtual Param invert(const Sol& data, double target_discrepancy, std::shared_ptr<Exact> exact_param, double norm_exact,
+      virtual Param invert(const Sol& data, double target_discrepancy, std::shared_ptr<Exact> exact_param,
             std::shared_ptr<InversionProgress<Param, Sol, Exact>> status_out) {
          LogStream::Prefix prefix("CGLS");
          AssertThrow(this->problem, ExcInternalError());
@@ -52,8 +52,8 @@ class ConjugateGradients: public LinearRegularization<Param, Sol, Exact> {
          double initial_discrepancy = discrepancy;
          double norm_data = data.norm();
 
-         InversionProgress<Param, Sol, Exact> status(0, &estimate, estimate.norm(), &residual, discrepancy, target_discrepancy,
-               &data, norm_data, exact_param, norm_exact, false);
+         InversionProgress<Param, Sol, Exact> status(0, &estimate, estimate.norm(), &residual, discrepancy,
+               target_discrepancy, &data, norm_data, exact_param, false);
          this->progress(status);
 
          for (int k = 1;
@@ -78,8 +78,8 @@ class ConjugateGradients: public LinearRegularization<Param, Sol, Exact> {
             double discrepancy_last = discrepancy;
             discrepancy = residual.norm();
 
-            status = InversionProgress<Param, Sol, Exact>(k, &estimate, estimate.norm(), &residual, discrepancy,
-                  target_discrepancy, &data, norm_data, exact_param, norm_exact, false);
+            status = InversionProgress<Param, Sol, Exact>(k, &estimate, estimate.norm(), &residual,
+                  discrepancy, target_discrepancy, &data, norm_data, exact_param, false);
 
             if (!this->progress(status))
                break;
