@@ -29,7 +29,7 @@ L2NuProblem<dim>::L2NuProblem(WaveEquation<dim>& weq,
 
 template<int dim>
 std::unique_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>> L2NuProblem<dim>::derivative(
-      const DiscretizedFunction<dim>& nu, const DiscretizedFunction<dim>& data __attribute((unused))) {
+      const DiscretizedFunction<dim>& nu) {
    Assert(this->nu->relative_error(nu) < 1e-10, ExcInternalError());
 
    return std::make_unique<L2NuProblem<dim>::Linearization>(this->wave_equation,

@@ -29,14 +29,19 @@ L2AProblem<dim>::L2AProblem(WaveEquation<dim>& weq,
 
 template<int dim>
 std::unique_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>> L2AProblem<dim>::derivative(
-      const DiscretizedFunction<dim>& a, const DiscretizedFunction<dim>& u) {
+      const DiscretizedFunction<dim>& a) {
+   Assert(this->a->relative_error(a) < 1e-10, ExcInternalError());
+
    return std::make_unique<L2AProblem<dim>::Linearization>(this->wave_equation,
-         WaveEquationBase<dim>::WaveEquationAdjoint, a, u);
+         WaveEquationBase<dim>::WaveEquationAdjoint, this->a, this->u);
 }
 
 template<int dim>
 DiscretizedFunction<dim> L2AProblem<dim>::forward(const DiscretizedFunction<dim>& a) {
    LogStream::Prefix p("eval_forward");
+
+   // save a copy of a
+   this->a = std::make_shared<DiscretizedFunction<dim>>(a);
 
    this->wave_equation.set_param_a(std::make_shared<DiscretizedFunction<dim>>(a));
    this->wave_equation.set_run_direction(WaveEquation<dim>::Forward);
@@ -44,16 +49,19 @@ DiscretizedFunction<dim> L2AProblem<dim>::forward(const DiscretizedFunction<dim>
    DiscretizedFunction<dim> res = this->wave_equation.run();
    res.throw_away_derivative();
 
+   // save a copy of res
+   this->u = std::make_shared<DiscretizedFunction<dim>>(res);
+
    return res;
 }
 
 template<int dim>
 L2AProblem<dim>::Linearization::Linearization(const WaveEquation<dim> &weq,
-      typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver, const DiscretizedFunction<dim>& a,
-      const DiscretizedFunction<dim>& u)
+      typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver, std::shared_ptr<DiscretizedFunction<dim>> a,
+      std::shared_ptr<DiscretizedFunction<dim>> u)
       : weq(weq), weq_adj(weq), adjoint_solver(adjoint_solver) {
-   this->a = std::make_shared<DiscretizedFunction<dim>>(a);
-   this->u = std::make_shared<DiscretizedFunction<dim>>(u);
+   this->a = a;
+   this->u = u;
 
    this->rhs = std::make_shared<DivRightHandSide<dim>>(this->a, this->u);
    this->rhs_adj = std::make_shared<L2RightHandSide<dim>>(this->u);

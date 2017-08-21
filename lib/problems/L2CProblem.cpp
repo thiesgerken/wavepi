@@ -29,8 +29,7 @@ L2CProblem<dim>::L2CProblem(WaveEquation<dim>& weq,
 
 template<int dim>
 std::unique_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>> L2CProblem<dim>::derivative(
-      const DiscretizedFunction<dim>& c, const DiscretizedFunction<dim>& data __attribute((unused))) {
-
+      const DiscretizedFunction<dim>& c) {
    Assert(this->c->relative_error(c) < 1e-10, ExcInternalError());
 
    return std::make_unique<L2CProblem<dim>::Linearization>(this->wave_equation,

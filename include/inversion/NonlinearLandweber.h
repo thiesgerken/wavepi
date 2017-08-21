@@ -82,7 +82,7 @@ class NonlinearLandweber: public NewtonRegularization<Param, Sol, Exact> {
                discrepancy > target_discrepancy
                      && (!this->abort_discrepancy_doubles || discrepancy < 2 * initial_discrepancy)
                      && i <= this->max_iterations; i++) {
-            std::unique_ptr<LinearProblem<Param, Sol>> lp = this->problem->derivative(estimate, data_current);
+            std::unique_ptr<LinearProblem<Param, Sol>> lp = this->problem->derivative(estimate);
 
             Param adj = lp->adjoint(residual);
 

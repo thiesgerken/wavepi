@@ -36,13 +36,17 @@ class L2QProblem: public NonlinearProblem<DiscretizedFunction<dim>, DiscretizedF
       L2QProblem(WaveEquation<dim>& weq, typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver);
 
       virtual std::unique_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>> derivative(
-            const DiscretizedFunction<dim>& q, const DiscretizedFunction<dim>& u);
+            const DiscretizedFunction<dim>& q);
 
       virtual DiscretizedFunction<dim> forward(const DiscretizedFunction<dim>& q);
 
    private:
       WaveEquation<dim> wave_equation;
       typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver;
+
+      // solution and parameter from the last forward problem
+       std::shared_ptr<DiscretizedFunction<dim>> q;
+       std::shared_ptr<DiscretizedFunction<dim>> u;
 
       class Linearization: public LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>> {
          public:
@@ -51,7 +55,7 @@ class L2QProblem: public NonlinearProblem<DiscretizedFunction<dim>, DiscretizedF
 
             Linearization(const WaveEquation<dim> &weq,
                   typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver,
-                  const DiscretizedFunction<dim>& q, const DiscretizedFunction<dim>& u);
+                  std::shared_ptr<DiscretizedFunction<dim>> q, std::shared_ptr<DiscretizedFunction<dim>> u);
 
             virtual DiscretizedFunction<dim> forward(const DiscretizedFunction<dim>& h);
 

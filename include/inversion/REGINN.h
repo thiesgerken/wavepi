@@ -136,7 +136,7 @@ class REGINN: public NewtonRegularization<Param, Sol, Exact> {
             deallog << "Solving linear problem using rtol=" << theta << std::endl;
 
             auto linear_status = std::make_shared<InversionProgress<Param, Sol, Exact>>(status);
-            linear_solver->set_problem(this->problem->derivative(estimate, data_current));
+            linear_solver->set_problem(this->problem->derivative(estimate));
             Param step = linear_solver->invert(residual, linear_target_discrepancy, linear_status);
 
             if (linear_status->current_discrepancy > linear_target_discrepancy) {

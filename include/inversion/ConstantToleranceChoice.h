@@ -9,7 +9,6 @@
 #define INCLUDE_INVERSION_CONSTANTTOLERANCECHOICE_H_
 
 #include <deal.II/base/parameter_handler.h>
-
 #include <inversion/ToleranceChoice.h>
 
 namespace wavepi {

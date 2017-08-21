@@ -386,7 +386,7 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
    DiscretizedFunction<dim> estimate(mesh);
    L2QProblem<dim> problem(wave_eq, adjoint_solver);
    auto data_current = problem.forward(estimate);
-   auto A = problem.derivative(estimate, data_current);
+   auto A = problem.derivative(estimate);
 
    auto Af(A->forward(*f));
    auto Aadjf(A->adjoint(*f));

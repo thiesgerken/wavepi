@@ -66,6 +66,9 @@ class WavePI {
       static const std::string KEY_INVERSION_METHOD;
       static const std::string KEY_INVERSION_TAU;
 
+      static const std::string KEY_MEASUREMENTS;
+      static const std::string KEY_MEASUREMENTS_TYPE;
+
       static void declare_parameters(ParameterHandler &prm);
 
       WavePI(std::shared_ptr<ParameterHandler> prm);

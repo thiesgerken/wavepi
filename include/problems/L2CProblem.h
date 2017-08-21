@@ -37,7 +37,7 @@ class L2CProblem: public NonlinearProblem<DiscretizedFunction<dim>, DiscretizedF
 
       // has to be called for the same parameter as the last forward problem!
       virtual std::unique_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>> derivative(
-            const DiscretizedFunction<dim>& c, const DiscretizedFunction<dim>& data);
+            const DiscretizedFunction<dim>& c);
 
       virtual DiscretizedFunction<dim> forward(const DiscretizedFunction<dim>& c);
 

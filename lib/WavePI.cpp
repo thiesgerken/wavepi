@@ -6,13 +6,15 @@
  */
 
 #include <deal.II/base/logstream.h>
-#include <deal.II/base/types.h>
+#include <deal.II/base/utilities.h>
 #include <deal.II/grid/grid_generator.h>
 #include <deal.II/grid/grid_tools.h>
 
-#include <forward/ConstantMesh.h>
 #include <forward/AdaptiveMesh.h>
+#include <forward/ConstantMesh.h>
 #include <forward/L2RightHandSide.h>
+#include <forward/Measure.h>
+#include <forward/WaveEquationBase.h>
 
 #include <inversion/InversionProgress.h>
 #include <inversion/NonlinearLandweber.h>
@@ -23,14 +25,20 @@
 #include <problems/L2CProblem.h>
 #include <problems/L2NuProblem.h>
 #include <problems/L2QProblem.h>
-
-#include <WavePI.h>
-#include <util/GridTools.h>
-#include <util/MacroFunctionParser.h>
+#include <problems/MeasurementProblem.h>
 
 #include <stddef.h>
 #include <tgmath.h>
+
+#include <util/GridTools.h>
+#include <util/MacroFunctionParser.h>
+
+#include <WavePI.h>
+
+#include <cstdio>
 #include <iostream>
+#include <map>
+#include <utility>
 #include <vector>
 
 namespace wavepi {
@@ -69,6 +77,9 @@ template<int dim> const std::string WavePI<dim>::KEY_PROBLEM_PARAM_NU = "paramet
 template<int dim> const std::string WavePI<dim>::KEY_INVERSION = "inversion";
 template<int dim> const std::string WavePI<dim>::KEY_INVERSION_TAU = "tau";
 template<int dim> const std::string WavePI<dim>::KEY_INVERSION_METHOD = "method";
+
+template<int dim> const std::string WavePI<dim>::KEY_MEASUREMENTS = "measurements";
+template<int dim> const std::string WavePI<dim>::KEY_MEASUREMENTS_TYPE = "measure";
 
 template<int dim> void WavePI<dim>::declare_parameters(ParameterHandler &prm) {
    prm.enter_subsection(KEY_GENERAL);
@@ -130,6 +141,15 @@ template<int dim> void WavePI<dim>::declare_parameters(ParameterHandler &prm) {
       REGINN<DiscretizedFunction<dim>, DiscretizedFunction<dim>, Function<dim>>::declare_parameters(prm);
       NonlinearLandweber<DiscretizedFunction<dim>, DiscretizedFunction<dim>, Function<dim>>::declare_parameters(
             prm);
+   }
+   prm.leave_subsection();
+
+   prm.enter_subsection(KEY_MEASUREMENTS);
+   {
+      prm.declare_entry(KEY_MEASUREMENTS_TYPE, "None", Patterns::Selection("None|Identical|Grid"),
+            "type of measurements (none and identical are theoretically the same, here for test purposes)");
+
+      GridPointMeasure<dim>::declare_parameters(prm);
    }
    prm.leave_subsection();
 
@@ -385,6 +405,29 @@ template<int dim> void WavePI<dim>::initialize_problem() {
       default:
          AssertThrow(false, ExcInternalError())
    }
+
+   prm->enter_subsection(KEY_MEASUREMENTS);
+   {
+      // TODO
+//      auto measure_title = prm->get(KEY_MEASUREMENTS_TYPE);
+//
+//      std::shared_ptr<Measure<DiscretizedFunction<dim>, Measurement>> measure;
+//
+//      if (measure_title == "Grid") {
+//         auto measure1 = std::make_shared<GridPointMeasure<DiscretizedFunction<dim>, Measurement> >(mesh);
+//         measure1->get_parameters(*prm);
+//         measure = measure1;
+//      } else if (measure_title == "Identical")
+//         measure = std::make_shared<IdenticalMeasure<DiscretizedFunction<dim>>>();
+//     else if (measure_title != "None")
+//            AssertThrow(false, ExcMessage("Unknown Measure: " + measure_title));
+//
+//         if (measure)
+//       problem = std::make_shared<
+//            MeasurementProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>, Measurement>>(problem,
+//            measure);
+   }
+   prm->leave_subsection();
 }
 
 template<int dim> void WavePI<dim>::generate_data() {

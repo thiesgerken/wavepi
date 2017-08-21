@@ -36,7 +36,7 @@ class L2NuProblem: public NonlinearProblem<DiscretizedFunction<dim>, Discretized
       L2NuProblem(WaveEquation<dim>& weq, typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver);
 
       virtual std::unique_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>> derivative(
-            const DiscretizedFunction<dim>& nu, const DiscretizedFunction<dim>& u);
+            const DiscretizedFunction<dim>& nu);
 
       virtual DiscretizedFunction<dim> forward(const DiscretizedFunction<dim>& nu);
 
