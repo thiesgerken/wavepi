@@ -8,4 +8,4 @@ SET(LIBSOURCES
     
 add_library(wavepi_problems ${LIBSOURCES})
 DEAL_II_SETUP_TARGET(wavepi_problems)
-TARGET_LINK_LIBRARIES(wavepi_problems wavepi_forward)
+TARGET_LINK_LIBRARIES(wavepi_problems wavepi_forward wavepi_inversion)

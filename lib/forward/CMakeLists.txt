@@ -16,4 +16,6 @@ SET(LIBSOURCES
     )
         
 add_library(wavepi_forward ${LIBSOURCES})
+TARGET_LINK_LIBRARIES(wavepi_forward wavepi_util)
+
 DEAL_II_SETUP_TARGET(wavepi_forward)
