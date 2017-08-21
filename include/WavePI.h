@@ -5,8 +5,8 @@
  *      Author: thies
  */
 
-#ifndef INCLUDE_UTIL_WAVEPI_H_
-#define INCLUDE_UTIL_WAVEPI_H_
+#ifndef INCLUDE_WAVEPI_H_
+#define INCLUDE_WAVEPI_H_
 
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/function.h>
@@ -29,7 +29,6 @@
 #include <string>
 
 namespace wavepi {
-namespace util {
 
 using namespace dealii;
 using namespace wavepi::forward;
@@ -129,7 +128,6 @@ class WavePI {
       static Point<dim> make_point(double x, double y, double z);
 };
 
-} /* namespace util */
 } /* namespace wavepi */
 
 #endif /* INCLUDE_UTIL_WAVEPI_H_ */

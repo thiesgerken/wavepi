@@ -24,7 +24,7 @@
 #include <problems/L2NuProblem.h>
 #include <problems/L2QProblem.h>
 
-#include <util/WavePI.h>
+#include <WavePI.h>
 #include <util/GridTools.h>
 #include <util/MacroFunctionParser.h>
 
@@ -34,7 +34,6 @@
 #include <vector>
 
 namespace wavepi {
-namespace util {
 
 using namespace dealii;
 using namespace wavepi::forward;
@@ -444,5 +443,4 @@ template class WavePI<1> ;
 template class WavePI<2> ;
 template class WavePI<3> ;
 
-} /* namespace util */
 } /* namespace wavepi */

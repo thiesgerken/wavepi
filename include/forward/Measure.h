@@ -75,16 +75,35 @@ class PointMeasure: public Measure<DiscretizedFunction<dim>, std::vector<double>
       /**
        * @param solution_mesh Mesh that the functions that are measured live on, needed for `adjoint`.
        * @param points Points in space and time (last dimension is time) where you want those point measurements.
+       * @param delta_shape Shape of the delta-approximating function. Should be supported in [-1,1]^{n+1}
+       * @param delta_scale_space Desired support radius in space
+       * @param delta_scale_time Desired support radius in time
        */
       PointMeasure(std::shared_ptr<SpaceTimeMesh<dim>> solution_mesh,
-            const std::vector<Point<dim + 1>>& points);
+            const std::vector<Point<dim + 1>>& points, std::shared_ptr<Function<dim>> delta_shape,
+            double delta_scale_space, double delta_scale_time);
+
+      /**
+       * Does not initialize most of the values, you have to use get_parameters afterwards.
+       *
+       * @param solution_mesh Mesh that the functions that are measured live on, needed for `adjoint`.
+       */
+      PointMeasure(std::shared_ptr<SpaceTimeMesh<dim>> solution_mesh);
+
+      static void declare_parameters(ParameterHandler &prm);
+      void get_parameters(ParameterHandler &prm);
 
       virtual std::vector<double> evaluate(const DiscretizedFunction<dim>& field);
 
       virtual DiscretizedFunction<dim> adjoint(const std::vector<double>& measurements);
+
    protected:
       std::shared_ptr<SpaceTimeMesh<dim>> mesh;
       std::vector<Point<dim + 1>> measurement_points;
+
+      std::shared_ptr<Function<dim>> delta_shape;
+      double delta_scale_space;
+      double delta_scale_time;
 
 };
 
@@ -103,10 +122,24 @@ class GridPointMeasure: public PointMeasure<dim> {
        *
        * @param solution_mesh Mesh that the functions that are measured live on, needed for `adjoint`.
        * @param times Points in time where you want those point measurements.
-       * @param spatial_points a vector with `dim` entries, each containing the coordinates for measurment points in that dimension.
+       * @param spatial_points a vector with `dim` entries, each containing the coordinates for measurement points in that dimension.
+       * @param delta_shape Shape of the delta-approximating function. Should be supported in [-1,1]^{n+1}.
+       * @param delta_scale_space Desired support radius in space.
+       * @param delta_scale_time Desired support radius in time.
        */
       GridPointMeasure(std::shared_ptr<SpaceTimeMesh<dim>> solution_mesh, const std::vector<double> &times,
-            const std::vector<std::vector<double>> &spatial_points);
+            const std::vector<std::vector<double>> &spatial_points,
+            std::shared_ptr<Function<dim>> delta_shape, double delta_scale_space, double delta_scale_time);
+
+      /**
+       * Does not initialize most of the values, you have to use get_parameters afterwards.
+       *
+       * @param solution_mesh Mesh that the functions that are measured live on, needed for `adjoint`.
+       */
+      GridPointMeasure(std::shared_ptr<SpaceTimeMesh<dim>> solution_mesh);
+
+      static void declare_parameters(ParameterHandler &prm);
+      void get_parameters(ParameterHandler &prm);
 
    private:
       static std::vector<Point<dim + 1>> make_grid(const std::vector<double> &times,

@@ -16,7 +16,7 @@
 #include <inversion/InversionProgress.h>
 
 #include <util/Version.h>
-#include <util/WavePI.h>
+#include <WavePI.h>
 
 #include <fstream>
 #include <iostream>
@@ -25,7 +25,9 @@
 #include <string>
 
 using namespace dealii;
+using namespace wavepi;
 using namespace wavepi::util;
+
 namespace po = boost::program_options;
 
 int main(int argc, char * argv[]) {

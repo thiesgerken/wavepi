@@ -1,5 +1,6 @@
-ADD_EXECUTABLE(wavepi wavepi.cpp)
-DEAL_II_SETUP_TARGET(wavepi)
-target_link_libraries(wavepi wavepi_util wavepi_forward wavepi_inversion wavepi_problems boost_filesystem boost_program_options)
+ADD_EXECUTABLE(wavepi_exe wavepi.cpp)
+DEAL_II_SETUP_TARGET(wavepi_exe)
+target_link_libraries(wavepi_exe wavepi wavepi_util wavepi_forward wavepi_inversion wavepi_problems boost_filesystem boost_program_options)
+set_target_properties(wavepi_exe PROPERTIES OUTPUT_NAME "wavepi")
 
 ADD_EXECUTABLE(logfilter logfilter.cpp)
