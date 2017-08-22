@@ -113,7 +113,7 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
       prm->declare_entry(KEY_PROBLEM_EPSILON, "1e-2", Patterns::Double(0, 1), "relative noise level ε");
 
       prm->declare_entry(KEY_PROBLEM_CONSTANTS, "", Patterns::Anything(),
-            "constants for the function declarations, in the form `var1=value1, var2=value2, ...`.");
+            "constants for the function declarations,\nin the form `var1=value1, var2=value2, ...`.");
 
       // prm->declare_entry(KEY_PROBLEM_NUM_RHS, "1", Patterns::Integer(1), "number of right hand sides");
       prm->declare_entry(KEY_PROBLEM_RHS, "if(norm{x|y|z} < 0.2, sin(t), 0.0)", Patterns::Anything(),

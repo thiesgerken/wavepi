@@ -226,7 +226,7 @@ class OutputProgressListener: public InversionProgressListener<DiscretizedFuncti
             prm.declare_entry("data", "true", Patterns::Bool(),
                   "output the problem's right hand side on the first iteration");
             prm.declare_entry("exact", "true", Patterns::Bool(),
-                  "output the problem's exact solution on the first iteration (if available, discretized on first grid)");
+                  "output the problem's exact solution on the first iteration\n(if available and discretized on first grid)");
 
             prm.declare_entry("estimate", "true", Patterns::Bool(), "output the current estimate");
             prm.declare_entry("residual", "true", Patterns::Bool(), "output the current residual");
