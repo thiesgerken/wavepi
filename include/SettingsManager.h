@@ -9,25 +9,12 @@
 #define LIB_SETTINGSMANAGER_H_
 
 #include <deal.II/base/parameter_handler.h>
-#include <deal.II/base/exceptions.h>
-#include <deal.II/base/function.h>
-#include <deal.II/base/numbers.h>
-#include <deal.II/base/parameter_handler.h>
-#include <deal.II/base/point.h>
-#include <deal.II/base/quadrature_lib.h>
-#include <deal.II/dofs/dof_handler.h>
-#include <deal.II/fe/fe_q.h>
-#include <deal.II/grid/tria.h>
-#include <deal.II/base/function_parser.h>
 
-#include <forward/DiscretizedFunction.h>
-#include <forward/SpaceTimeMesh.h>
-#include <forward/WaveEquation.h>
-
-#include <inversion/NonlinearProblem.h>
-
+#include <stddef.h>
+#include <map>
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace wavepi {
 using namespace dealii;
@@ -138,6 +125,11 @@ class SettingsManager {
        * i.e. to construct instances of classes that are needed elsewhere.
        */
       void get_parameters(std::shared_ptr<ParameterHandler> prm);
+
+      /**
+       * Write all parameters to `deallog`.
+       */
+      void log();
 
 };
 

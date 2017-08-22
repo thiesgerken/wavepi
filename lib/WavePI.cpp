@@ -5,16 +5,17 @@
  *      Author: thies
  */
 
+#include <deal.II/base/exceptions.h>
 #include <deal.II/base/logstream.h>
-#include <deal.II/base/utilities.h>
+#include <deal.II/base/parameter_handler.h>
+#include <deal.II/base/quadrature_lib.h>
+#include <deal.II/fe/fe_q.h>
 #include <deal.II/grid/grid_generator.h>
 #include <deal.II/grid/grid_tools.h>
+#include <deal.II/grid/tria.h>
 
 #include <forward/AdaptiveMesh.h>
-#include <forward/ConstantMesh.h>
 #include <forward/L2RightHandSide.h>
-#include <forward/Measure.h>
-#include <forward/WaveEquationBase.h>
 
 #include <inversion/InversionProgress.h>
 #include <inversion/NonlinearLandweber.h>
@@ -25,20 +26,15 @@
 #include <problems/L2CProblem.h>
 #include <problems/L2NuProblem.h>
 #include <problems/L2QProblem.h>
-#include <problems/MeasurementProblem.h>
-
-#include <stddef.h>
-#include <tgmath.h>
 
 #include <util/GridTools.h>
-#include <util/MacroFunctionParser.h>
 
 #include <WavePI.h>
 
-#include <cstdio>
+#include <tgmath.h>
+#include <ccomplex>
+#include <cmath>
 #include <iostream>
-#include <map>
-#include <utility>
 #include <vector>
 
 namespace wavepi {
@@ -252,12 +248,7 @@ template<int dim> void WavePI<dim>::run() {
    regularization->add_listener(std::make_shared<CtrlCProgressListener<Param, Sol, Exact>>());
    regularization->add_listener(std::make_shared<OutputProgressListener<dim>>(*cfg->prm));
 
-   // dump all parameters to deallog (console and file)
-   unsigned int prev_console = deallog.depth_console(100);
-   unsigned int prev_file = deallog.depth_file(100);
-   cfg->prm->log_parameters(deallog);
-   deallog.depth_console(prev_console);
-   deallog.depth_file(prev_file);
+   cfg->log();
 
    regularization->invert(*data, cfg->tau * cfg->epsilon * data->norm(), param_exact);
 }

@@ -8,16 +8,9 @@
 #ifndef INCLUDE_WAVEPI_H_
 #define INCLUDE_WAVEPI_H_
 
-#include <deal.II/base/exceptions.h>
 #include <deal.II/base/function.h>
-#include <deal.II/base/numbers.h>
-#include <deal.II/base/parameter_handler.h>
-#include <deal.II/base/point.h>
-#include <deal.II/base/quadrature_lib.h>
-#include <deal.II/dofs/dof_handler.h>
-#include <deal.II/fe/fe_q.h>
-#include <deal.II/grid/tria.h>
 #include <deal.II/base/function_parser.h>
+#include <deal.II/base/point.h>
 
 #include <forward/DiscretizedFunction.h>
 #include <forward/SpaceTimeMesh.h>
@@ -27,14 +20,16 @@
 
 #include <SettingsManager.h>
 
+#include <util/MacroFunctionParser.h>
+
 #include <memory>
-#include <string>
 
 namespace wavepi {
 
 using namespace dealii;
 using namespace wavepi::forward;
 using namespace wavepi::inversion;
+using namespace wavepi::util;
 
 template<int dim>
 class WavePI {
@@ -62,12 +57,12 @@ class WavePI {
 
       std::shared_ptr<Function<dim>> param_exact;
 
-      std::shared_ptr<FunctionParser<dim>> initial_guess;
-      std::shared_ptr<FunctionParser<dim>> param_q;
-      std::shared_ptr<FunctionParser<dim>> param_nu;
-      std::shared_ptr<FunctionParser<dim>> param_a;
-      std::shared_ptr<FunctionParser<dim>> param_c;
-      std::shared_ptr<FunctionParser<dim>> rhs;
+      std::shared_ptr<MacroFunctionParser<dim>> initial_guess;
+      std::shared_ptr<MacroFunctionParser<dim>> param_q;
+      std::shared_ptr<MacroFunctionParser<dim>> param_nu;
+      std::shared_ptr<MacroFunctionParser<dim>> param_a;
+      std::shared_ptr<MacroFunctionParser<dim>> param_c;
+      std::shared_ptr<MacroFunctionParser<dim>> rhs;
 
       std::shared_ptr<Sol> data; // noisy data
 

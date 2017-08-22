@@ -5,41 +5,23 @@
  *      Author: thies
  */
 
-#include <SettingsManager.h>
-
-#include <deal.II/base/logstream.h>
+#include <deal.II/base/exceptions.h>
+#include <deal.II/base/function.h>
 #include <deal.II/base/utilities.h>
-#include <deal.II/grid/grid_generator.h>
-#include <deal.II/grid/grid_tools.h>
 
-#include <forward/AdaptiveMesh.h>
-#include <forward/ConstantMesh.h>
-#include <forward/L2RightHandSide.h>
+#include <forward/DiscretizedFunction.h>
 #include <forward/Measure.h>
 #include <forward/WaveEquationBase.h>
 
 #include <inversion/InversionProgress.h>
 #include <inversion/NonlinearLandweber.h>
-#include <inversion/Regularization.h>
 #include <inversion/REGINN.h>
 
-#include <problems/L2AProblem.h>
-#include <problems/L2CProblem.h>
-#include <problems/L2NuProblem.h>
-#include <problems/L2QProblem.h>
-#include <problems/MeasurementProblem.h>
+#include <SettingsManager.h>
 
-#include <stddef.h>
 #include <tgmath.h>
-
-#include <util/GridTools.h>
-#include <util/MacroFunctionParser.h>
-
 #include <cstdio>
-#include <iostream>
-#include <map>
 #include <utility>
-#include <vector>
 
 namespace wavepi {
 using namespace dealii;
@@ -88,7 +70,7 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
    prm->enter_subsection(KEY_GENERAL);
    {
       prm->declare_entry(KEY_GENERAL_DIMENSION, "2", Patterns::Integer(1, 3), "problem dimension");
-       prm->declare_entry(KEY_GENERAL_FE_DEGREE, "1", Patterns::Integer(1, 4),
+      prm->declare_entry(KEY_GENERAL_FE_DEGREE, "1", Patterns::Integer(1, 4),
             "polynomial degree of finite elements");
       prm->declare_entry(KEY_GENERAL_QUAD_ORDER, "3", Patterns::Integer(1, 20),
             "order of quadrature (QGauss, exact in polynomials of degree ≤ 2n-1, use at least finite element degree + 1) ");
@@ -96,13 +78,13 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
    prm->leave_subsection();
 
    prm->enter_subsection(KEY_LOG);
-    {
-       prm->declare_entry(KEY_LOG_FILE, "wavepi.log", Patterns::FileName(Patterns::FileName::output),
-             "external log file");
-       prm->declare_entry(KEY_LOG_FILE_DEPTH, "100", Patterns::Integer(0), "depth for the log file");
-       prm->declare_entry(KEY_LOG_CONSOLE_DEPTH, "2", Patterns::Integer(0), "depth for stdout");
-    }
-    prm->leave_subsection();
+   {
+      prm->declare_entry(KEY_LOG_FILE, "wavepi.log", Patterns::FileName(Patterns::FileName::output),
+            "external log file");
+      prm->declare_entry(KEY_LOG_FILE_DEPTH, "100", Patterns::Integer(0), "depth for the log file");
+      prm->declare_entry(KEY_LOG_CONSOLE_DEPTH, "2", Patterns::Integer(0), "depth for stdout");
+   }
+   prm->leave_subsection();
 
    prm->enter_subsection(KEY_MESH);
    {
@@ -322,4 +304,15 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
    prm->leave_subsection();
 }
 
-} /* namespace wavepi */
+void SettingsManager::log() {
+   unsigned int prev_console = deallog.depth_console(100);
+   unsigned int prev_file = deallog.depth_file(100);
+
+   prm->log_parameters(deallog);
+
+   deallog.depth_console(prev_console);
+   deallog.depth_file(prev_file);
+}
+
+}
+/* namespace wavepi */
