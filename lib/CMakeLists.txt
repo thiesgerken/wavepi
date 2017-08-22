@@ -5,6 +5,7 @@ add_subdirectory(problems)
 
 SET(LIBSOURCES
     WavePI.cpp 
+    SettingsManager.cpp
     )
     
 add_library(wavepi ${LIBSOURCES})

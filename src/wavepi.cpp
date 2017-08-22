@@ -59,23 +59,7 @@ int main(int argc, char * argv[]) {
       }
 
       auto prm = std::make_shared<ParameterHandler>();
-
-      prm->enter_subsection(WavePI<2>::KEY_GENERAL);
-      {
-         prm->declare_entry(WavePI<2>::KEY_DIMENSION, "2", Patterns::Integer(1, 3), "problem dimension");
-      }
-      prm->leave_subsection();
-
-      prm->enter_subsection("log");
-      {
-         prm->declare_entry("file", "wavepi.log", Patterns::FileName(Patterns::FileName::output),
-               "external log file");
-         prm->declare_entry("file depth", "100", Patterns::Integer(0), "depth for the log file");
-         prm->declare_entry("console depth", "2", Patterns::Integer(0), "depth for stdout");
-      }
-      prm->leave_subsection();
-
-      WavePI<2>::declare_parameters(*prm);
+      SettingsManager::declare_parameters(prm);
 
       if (vm.count("config")) {
          deallog << "Loading parameter file " << vm["config"].as<std::string>() << std::endl;
@@ -116,26 +100,19 @@ int main(int argc, char * argv[]) {
       AssertThrow(vm.count("config-format") == 0,
             ExcMessage("--config-format is useless without --export-config"));
 
-      int dim;
+      auto cfg = std::make_shared<SettingsManager>();
+      cfg->get_parameters(prm);
 
-      prm->enter_subsection(WavePI<2>::KEY_GENERAL);
-      {
-         dim = prm->get_integer(WavePI<2>::KEY_DIMENSION);
-      }
-      prm->leave_subsection();
-
+      // has to be kept in scope
       std::ofstream logout;
-      prm->enter_subsection("log");
-      {
-         if (prm->get("file").size()) {
-            logout = std::ofstream(prm->get("file"));
-            deallog.attach(logout);
-            deallog.depth_file(prm->get_integer("file depth"));
-         }
 
-         deallog.depth_console(prm->get_integer("console depth"));
+      if (cfg->log_file.size()) {
+         logout = std::ofstream(cfg->log_file);
+         deallog.attach(logout);
+         deallog.depth_file(cfg->log_file_depth);
       }
-      prm->leave_subsection();
+
+      deallog.depth_console(cfg->log_console_depth);
 
       deallog.precision(3);
       deallog.pop();
@@ -143,18 +120,17 @@ int main(int argc, char * argv[]) {
       // deallog << Version::get_infos() << std::endl;
       // deallog.log_execution_time(true);
 
-      // prm->log_parameters(deallog);
-
-      if (dim == 1) {
-         WavePI<1> wavepi(prm);
+      if (cfg->dimension == 1) {
+         WavePI<1> wavepi(cfg);
          wavepi.run();
-      } else if (dim == 2) {
-         WavePI<2> wavepi(prm);
+      } else if (cfg->dimension == 2) {
+         WavePI<2> wavepi(cfg);
          wavepi.run();
-      } else {
-         WavePI<3> wavepi(prm);
+      } else if (cfg->dimension == 3) {
+         WavePI<3> wavepi(cfg);
          wavepi.run();
-      }
+      } else
+         AssertThrow(false, ExcInternalError());
 
       // deallog.timestamp();
    } catch (std::exception &exc) {

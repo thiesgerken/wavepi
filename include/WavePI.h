@@ -25,6 +25,8 @@
 
 #include <inversion/NonlinearProblem.h>
 
+#include <SettingsManager.h>
+
 #include <memory>
 #include <string>
 
@@ -37,41 +39,7 @@ using namespace wavepi::inversion;
 template<int dim>
 class WavePI {
    public:
-      static const std::string KEY_GENERAL;
-      static const std::string KEY_DIMENSION;
-      static const std::string KEY_FE_DEGREE;
-      static const std::string KEY_QUAD_ORDER;
-
-      static const std::string KEY_MESH;
-      static const std::string KEY_END_TIME;
-      static const std::string KEY_INITIAL_REFINES;
-      static const std::string KEY_INITIAL_TIME_STEPS;
-      static const std::string KEY_SHAPE;
-      static const std::string KEY_SHAPE_GENERATOR;
-      static const std::string KEY_SHAPE_OPTIONS;
-
-      static const std::string KEY_PROBLEM;
-      static const std::string KEY_PROBLEM_TYPE;
-      static const std::string KEY_PROBLEM_EPSILON;
-      static const std::string KEY_PROBLEM_CONSTANTS;
-      static const std::string KEY_PROBLEM_NUM_RHS;
-      static const std::string KEY_PROBLEM_RHS;
-      static const std::string KEY_PROBLEM_GUESS;
-      static const std::string KEY_PROBLEM_PARAM_A;
-      static const std::string KEY_PROBLEM_PARAM_Q;
-      static const std::string KEY_PROBLEM_PARAM_C;
-      static const std::string KEY_PROBLEM_PARAM_NU;
-
-      static const std::string KEY_INVERSION;
-      static const std::string KEY_INVERSION_METHOD;
-      static const std::string KEY_INVERSION_TAU;
-
-      static const std::string KEY_MEASUREMENTS;
-      static const std::string KEY_MEASUREMENTS_TYPE;
-
-      static void declare_parameters(ParameterHandler &prm);
-
-      WavePI(std::shared_ptr<ParameterHandler> prm);
+      WavePI(std::shared_ptr<SettingsManager> cfg);
 
       void run();
 
@@ -81,29 +49,7 @@ class WavePI {
 
    private:
 
-      // possible problems
-      enum class ProblemType {
-         L2Q = 1, L2A = 2, L2C = 3, L2Nu = 4
-      };
-
-      // possible nonlinear methods
-      enum class NonlinearMethod {
-         REGINN = 1, NonlinearLandweber = 2
-      };
-
-      std::shared_ptr<ParameterHandler> prm;
-
-      int fe_degree;
-      int quad_order;
-
-      double end_time;
-      int initial_refines;
-      int initial_time_steps;
-
-      double epsilon;
-      double tau;
-      ProblemType problem_type;
-      NonlinearMethod method;
+      std::shared_ptr<SettingsManager> cfg;
 
       std::shared_ptr<SpaceTimeMesh<dim>> mesh;
       std::shared_ptr<WaveEquation<dim>> wave_eq;
