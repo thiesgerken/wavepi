@@ -55,3 +55,15 @@ Use `cloc` to count the lines of code in this project. To obtain meaningful resu
 cloc . --exclude-dir=build,doc
 ``` 
 
+## Shell Autocompletion (ZSH)
+
+Put (or symlink) [completions.zsh](completions.zsh) in `~/.zsh-completions` and make sure you have the following lines in `~/.zshrc`:
+
+```shell
+# folder of all of your autocomplete functions
+fpath=($HOME/.zsh-completions $fpath)
+
+# enable autocomplete function
+autoload -U compinit
+compinit
+``` 

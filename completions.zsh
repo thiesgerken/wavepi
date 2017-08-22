@@ -17,10 +17,3 @@ _wavepi() {
 }
 
 _wavepi
-
-# Put this file in ~/.zsh-completions and the following in ~/.zshrc:
-# # folder of all of your autocomplete functions
-#fpath=($HOME/.zsh-completions $fpath)
-# enable autocomplete function
-# autoload -U compinit
-# compinit
