@@ -51,20 +51,21 @@ const std::string SettingsManager::KEY_PROBLEM = "problem";
 const std::string SettingsManager::KEY_PROBLEM_TYPE = "type";
 const std::string SettingsManager::KEY_PROBLEM_EPSILON = "epsilon";
 const std::string SettingsManager::KEY_PROBLEM_CONSTANTS = "constants";
-const std::string SettingsManager::KEY_PROBLEM_NUM_RHS = "number of right hand sides";
-const std::string SettingsManager::KEY_PROBLEM_RHS = "right hand side";
 const std::string SettingsManager::KEY_PROBLEM_GUESS = "initial guess";
 const std::string SettingsManager::KEY_PROBLEM_PARAM_A = "parameter a";
 const std::string SettingsManager::KEY_PROBLEM_PARAM_Q = "parameter q";
 const std::string SettingsManager::KEY_PROBLEM_PARAM_C = "parameter c";
 const std::string SettingsManager::KEY_PROBLEM_PARAM_NU = "parameter nu";
 
+const std::string SettingsManager::KEY_PROBLEM_DATA = "measurement configurations";
+const std::string SettingsManager::KEY_PROBLEM_DATA_COUNT = "number of configurations";
+const std::string SettingsManager::KEY_PROBLEM_DATA_I = "configuration "; // + number
+const std::string SettingsManager::KEY_PROBLEM_DATA_I_RHS = "right hand side";
+const std::string SettingsManager::KEY_PROBLEM_DATA_I_MEASURE = "measure";
+
 const std::string SettingsManager::KEY_INVERSION = "inversion";
 const std::string SettingsManager::KEY_INVERSION_TAU = "tau";
 const std::string SettingsManager::KEY_INVERSION_METHOD = "method";
-
-const std::string SettingsManager::KEY_MEASUREMENTS = "measurements";
-const std::string SettingsManager::KEY_MEASUREMENTS_TYPE = "measure";
 
 void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) {
    prm->enter_subsection(KEY_GENERAL);
@@ -115,16 +116,31 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
       prm->declare_entry(KEY_PROBLEM_CONSTANTS, "", Patterns::Anything(),
             "constants for the function declarations,\nin the form `var1=value1, var2=value2, ...`.");
 
-      // prm->declare_entry(KEY_PROBLEM_NUM_RHS, "1", Patterns::Integer(1), "number of right hand sides");
-      prm->declare_entry(KEY_PROBLEM_RHS, "if(norm{x|y|z} < 0.2, sin(t), 0.0)", Patterns::Anything(),
-            "right hand side");
-
       prm->declare_entry(KEY_PROBLEM_GUESS, "0.5", Patterns::Anything(), "initial guess");
 
       prm->declare_entry(KEY_PROBLEM_PARAM_A, "1.0", Patterns::Anything(), "parameter a");
       prm->declare_entry(KEY_PROBLEM_PARAM_Q, "0.0", Patterns::Anything(), "parameter q");
       prm->declare_entry(KEY_PROBLEM_PARAM_C, "2.0", Patterns::Anything(), "parameter c");
       prm->declare_entry(KEY_PROBLEM_PARAM_NU, "0.0", Patterns::Anything(), "parameter ν");
+
+      prm->enter_subsection(KEY_PROBLEM_DATA);
+      {
+         prm->declare_entry(KEY_PROBLEM_DATA_COUNT, "1", Patterns::Integer(1),
+               "Number of configurations. Each configuration has its own right hand side and own measurement settings. Make sure that there are at least as many `configuration {i}` blocks as this number.");
+
+         prm->enter_subsection(KEY_PROBLEM_DATA_I + "1");
+         {
+            prm->declare_entry(KEY_PROBLEM_DATA_I_RHS, "if(norm{x|y|z} < 0.2, sin(t), 0.0)",
+                  Patterns::Anything(), "right hand side");
+
+            prm->declare_entry(KEY_PROBLEM_DATA_I_MEASURE, "None", Patterns::Selection("Identical|Grid"),
+                  "type of measurements");
+
+            GridPointMeasure<2>::declare_parameters(*prm);
+         }
+         prm->leave_subsection();
+      }
+      prm->leave_subsection();
    }
    prm->leave_subsection();
 
@@ -138,15 +154,6 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
       REGINN<DiscretizedFunction<2>, DiscretizedFunction<2>, Function<2>>::declare_parameters(*prm);
       NonlinearLandweber<DiscretizedFunction<2>, DiscretizedFunction<2>, Function<2>>::declare_parameters(
             *prm);
-   }
-   prm->leave_subsection();
-
-   prm->enter_subsection(KEY_MEASUREMENTS);
-   {
-      prm->declare_entry(KEY_MEASUREMENTS_TYPE, "None", Patterns::Selection("None|Identical|Grid"),
-            "type of measurements (none and identical are theoretically the same, here for test purposes)");
-
-      GridPointMeasure<2>::declare_parameters(*prm);
    }
    prm->leave_subsection();
 
@@ -278,12 +285,48 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
          constants_for_exprs[this_c[0]] = tmp;
       }
 
-      expr_rhs = prm->get(KEY_PROBLEM_RHS);
       expr_initial_guess = prm->get(KEY_PROBLEM_GUESS);
       expr_param_a = prm->get(KEY_PROBLEM_PARAM_A);
       expr_param_nu = prm->get(KEY_PROBLEM_PARAM_NU);
       expr_param_c = prm->get(KEY_PROBLEM_PARAM_C);
       expr_param_q = prm->get(KEY_PROBLEM_PARAM_Q);
+
+      prm->enter_subsection(KEY_PROBLEM_DATA);
+      {
+         num_configurations = prm->get_integer(KEY_PROBLEM_DATA_COUNT);
+
+         exprs_rhs.clear();
+         measures.clear();
+
+         for (size_t i = 0; i < num_configurations; i++) {
+            prm->enter_subsection(KEY_PROBLEM_DATA_I + Utilities::int_to_string(i, 1));
+
+            exprs_rhs.push_back(prm->get(KEY_PROBLEM_DATA_I_RHS));
+
+            auto measure_desc = prm->get(KEY_PROBLEM_DATA_I_MEASURE);
+            MeasureType my_measure_type;
+
+            if (measure_desc == "Identical") {
+               measures.push_back(Measure::identical);
+               my_measure_type = MeasureType::discretized_function;
+            } else if (measure_desc == "Grid") {
+               measures.push_back(Measure::identical);
+               my_measure_type = MeasureType::discretized_function;
+            } else
+               AssertThrow(false, ExcMessage("Unknown Measure: " + measure_desc));
+
+            if (!i)
+               measure_type = my_measure_type;
+
+            AssertThrow(measure_type == my_measure_type,
+                  ExcMessage("the resulting data types must be the same for all measurement configurations!"))
+
+            GridPointMeasure<2>::declare_parameters(*prm);
+
+            prm->leave_subsection();
+         }
+      }
+      prm->leave_subsection();
    }
    prm->leave_subsection();
 

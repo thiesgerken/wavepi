@@ -40,7 +40,6 @@ int main(int argc, char * argv[]) {
             "generate config file with default values (unless [config] is specified) and exit");
       desc.add_options()("config-format", po::value<std::string>(),
             "format for --export-config. Options are Text|LaTeX|Description|XML|JSON|ShortText; default is Text.");
-
       desc.add_options()("config,c", po::value<std::string>(), "read config from this file");
 
       po::variables_map vm;
@@ -65,9 +64,8 @@ int main(int argc, char * argv[]) {
          deallog << "Loading parameter file " << vm["config"].as<std::string>() << std::endl;
 
          prm->parse_input(vm["config"].as<std::string>());
-      } else {
+      } else
          deallog << "Using default parameters" << std::endl;
-      }
 
       if (vm.count("export-config")) {
          ParameterHandler::OutputStyle style = ParameterHandler::Text;
