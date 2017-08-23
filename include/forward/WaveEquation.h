@@ -44,7 +44,7 @@ class WaveEquation: public WaveEquationBase<dim> {
 
       WaveEquation(std::shared_ptr<SpaceTimeMesh<dim>> mesh);
       WaveEquation(const WaveEquation<dim>& weq);
-      ~WaveEquation();
+      ~WaveEquation() = default;
 
       WaveEquation<dim>& operator=(const WaveEquation<dim>& weq);
 
@@ -98,6 +98,12 @@ class WaveEquation: public WaveEquationBase<dim> {
       // final assembly of rhs for v and solving for v
       void assemble_v(double time_step);
       void solve_v();
+
+      /**
+       * Deinitialize matrices and vectors.
+       * This function should be called after computations to have minimal memory requirements when this object is not currently in use.
+       */
+      void cleanup();
 
       Direction run_direction = Forward;
 

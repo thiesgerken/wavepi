@@ -45,10 +45,14 @@ using namespace wavepi::inversion;
 using namespace wavepi::problems;
 using namespace wavepi::util;
 
-template<int dim> WavePI<dim>::WavePI(std::shared_ptr<SettingsManager> cfg)
-      : cfg(cfg) {
+template<int dim, typename Meas> WavePI<dim, Meas>::WavePI(std::shared_ptr<SettingsManager> cfg,
+      std::vector<std::shared_ptr<Measure<Param, Meas>>> measures)
+      : cfg(cfg), measures(measures) {
 
-   rhs = std::make_shared<MacroFunctionParser<dim>>(cfg->expr_rhs, cfg->constants_for_exprs);
+   for (auto expr : cfg->exprs_rhs)
+      pulses.push_back(std::make_shared<MacroFunctionParser<dim>>(expr, cfg->constants_for_exprs));
+
+   AssertThrow(pulses.size() == measures.size(), ExcInternalError());
 
    initial_guess = std::make_shared<MacroFunctionParser<dim>>(cfg->expr_initial_guess,
          cfg->constants_for_exprs);
@@ -59,20 +63,18 @@ template<int dim> WavePI<dim>::WavePI(std::shared_ptr<SettingsManager> cfg)
    param_q = std::make_shared<MacroFunctionParser<dim>>(cfg->expr_param_q, cfg->constants_for_exprs);
 }
 
-template<> Point<1> WavePI<1>::make_point(double x, double y __attribute__((unused)),
-      double z __attribute__((unused))) {
-   return Point<1>(x);
+template<int dim, typename Meas> Point<dim> WavePI<dim, Meas>::make_point(double x, double y, double z) {
+   switch (dim) {
+      case 1:
+         return Point<dim>(x);
+      case 2:
+         return Point<dim>(x, y);
+      case 3:
+         return Point<dim>(x, y, z);
+   }
 }
 
-template<> Point<2> WavePI<2>::make_point(double x, double y, double z __attribute__((unused))) {
-   return Point<2>(x, y);
-}
-
-template<> Point<3> WavePI<3>::make_point(double x, double y, double z) {
-   return Point<3>(x, y, z);
-}
-
-template<int dim> void WavePI<dim>::initialize_mesh() {
+template<int dim, typename Meas> void WavePI<dim, Meas>::initialize_mesh() {
    LogStream::Prefix p("initialize_mesh");
 
    auto triangulation = std::make_shared<Triangulation<dim>>();
@@ -141,12 +143,11 @@ template<int dim> void WavePI<dim>::initialize_mesh() {
    deallog << "dt: " << cfg->dt << std::endl;
 }
 
-template<int dim> void WavePI<dim>::initialize_problem() {
+template<int dim, typename Meas> void WavePI<dim, Meas>::initialize_problem() {
    LogStream::Prefix p("initialize_problem");
 
    wave_eq = std::make_shared<WaveEquation<dim>>(mesh);
 
-   wave_eq->set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(rhs));
    wave_eq->set_param_a(param_a);
    wave_eq->set_param_c(param_c);
    wave_eq->set_param_q(param_q);
@@ -157,22 +158,22 @@ template<int dim> void WavePI<dim>::initialize_problem() {
       case SettingsManager::ProblemType::L2Q:
          /* Reconstruct TestQ */
          param_exact = wave_eq->get_param_q();
-         problem = std::make_shared<L2QProblem<dim>>(*wave_eq);
+//         problem = std::make_shared < L2QProblem < dim >> (*wave_eq); // TODO
          break;
       case SettingsManager::ProblemType::L2C:
          /* Reconstruct TestC */
          param_exact = wave_eq->get_param_c();
-         problem = std::make_shared<L2CProblem<dim>>(*wave_eq);
+//         problem = std::make_shared < L2CProblem < dim >> (*wave_eq); // TODO
          break;
       case SettingsManager::ProblemType::L2Nu:
          /* Reconstruct TestNu */
          param_exact = wave_eq->get_param_nu();
-         problem = std::make_shared<L2NuProblem<dim>>(*wave_eq);
+//         problem = std::make_shared < L2NuProblem < dim >> (*wave_eq); // TODO
          break;
       case SettingsManager::ProblemType::L2A:
          /* Reconstruct TestA */
          param_exact = wave_eq->get_param_a();
-         problem = std::make_shared<L2AProblem<dim>>(*wave_eq);
+         problem = std::make_shared<L2AProblem<dim, Meas>>(*wave_eq, pulses, measures);
          break;
       default:
          AssertThrow(false, ExcInternalError())
@@ -202,7 +203,7 @@ template<int dim> void WavePI<dim>::initialize_problem() {
 //   prm->leave_subsection();
 }
 
-template<int dim> void WavePI<dim>::generate_data() {
+template<int dim, typename Meas> void WavePI<dim, Meas>::generate_data() {
    LogStream::Prefix p("generate_data");
    LogStream::Prefix pp(" ");
 
@@ -218,12 +219,12 @@ template<int dim> void WavePI<dim>::generate_data() {
    data->add(1.0, data_exact);
 }
 
-template<int dim> void WavePI<dim>::run() {
+template<int dim, typename Meas> void WavePI<dim, Meas>::run() {
    initialize_mesh();
    initialize_problem();
    generate_data();
 
-   std::shared_ptr<Regularization<Param, Sol, Exact>> regularization;
+   std::shared_ptr<Regularization<Param, Tuple<Meas>, Exact>> regularization;
 
    deallog.push("Initial Guess");
    auto initial_guess_discretized = std::make_shared<Param>(mesh, *initial_guess);
@@ -232,11 +233,11 @@ template<int dim> void WavePI<dim>::run() {
    cfg->prm->enter_subsection(SettingsManager::KEY_INVERSION);
    switch (cfg->method) {
       case SettingsManager::NonlinearMethod::REGINN:
-         regularization = std::make_shared<REGINN<Param, Sol, Exact> >(problem, initial_guess_discretized,
-               *cfg->prm);
+         regularization = std::make_shared<REGINN<Param, Tuple<Meas>, Exact> >(problem,
+               initial_guess_discretized, *cfg->prm);
          break;
       case SettingsManager::NonlinearMethod::NonlinearLandweber:
-         regularization = std::make_shared<NonlinearLandweber<Param, Sol, Exact> >(problem,
+         regularization = std::make_shared<NonlinearLandweber<Param, Tuple<Meas>, Exact> >(problem,
                initial_guess_discretized, *cfg->prm);
          break;
       default:
@@ -248,13 +249,18 @@ template<int dim> void WavePI<dim>::run() {
    regularization->add_listener(std::make_shared<CtrlCProgressListener<Param, Sol, Exact>>());
    regularization->add_listener(std::make_shared<OutputProgressListener<dim>>(*cfg->prm));
 
-   cfg->log();
+   cfg->log_parameters();
 
    regularization->invert(*data, cfg->tau * cfg->epsilon * data->norm(), param_exact);
 }
 
-template class WavePI<1> ;
-template class WavePI<2> ;
-template class WavePI<3> ;
+template class WavePI<1, DiscretizedFunction<1>> ;
+template class WavePI<1, Tuple<double>> ;
+
+template class WavePI<2, DiscretizedFunction<2>> ;
+template class WavePI<2, Tuple<double>> ;
+
+template class WavePI<3, DiscretizedFunction<3>> ;
+template class WavePI<3, Tuple<double>> ;
 
 } /* namespace wavepi */

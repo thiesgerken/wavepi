@@ -20,12 +20,15 @@
 #include <memory>
 
 namespace wavepi {
-namespace problems {
+namespace measurements {
 
 using namespace dealii;
 using namespace wavepi::forward;
 using namespace wavepi::inversion;
 
+/**
+ * Extend a given Nonlinear Problem with one measurement.
+ */
 template<typename Param, typename Sol, typename Measurement>
 class MeasurementProblem: public NonlinearProblem<Param, Measurement> {
    public:

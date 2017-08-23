@@ -35,7 +35,7 @@ class WaveEquationAdjoint: public WaveEquationBase<dim> {
       WaveEquationAdjoint(const WaveEquationAdjoint<dim>& weq);
       WaveEquationAdjoint(const WaveEquationBase<dim>& weq);
 
-      ~WaveEquationAdjoint();
+      ~WaveEquationAdjoint() = default;
 
       WaveEquationAdjoint<dim>& operator=(const WaveEquationAdjoint<dim>& weq);
 
@@ -72,6 +72,12 @@ class WaveEquationAdjoint: public WaveEquationBase<dim> {
       void assemble_v(size_t time_idx);
       void solve_v();
 
+      /**
+       * Deinitialize matrices and vectors.
+       * This function should be called after computations to have minimal memory requirements when this object is not currently in use.
+       */
+      void cleanup() ;
+
       DiscretizedFunction<dim> apply_R_transpose(const DiscretizedFunction<dim>& u);
 
       std::shared_ptr<SparsityPattern> sparsity_pattern;
@@ -89,7 +95,7 @@ class WaveEquationAdjoint: public WaveEquationBase<dim> {
       // solution and its derivative at the current and the last time step
       Vector<double> solution_u, solution_v;
       Vector<double> solution_u_old, solution_v_old;
-      Vector<double> rhs, rhs_old;
+      Vector<double> rhs;
 
       // space for linear systems, their right hand sides
       // and some temporary storage between assemble and pre_assemble.

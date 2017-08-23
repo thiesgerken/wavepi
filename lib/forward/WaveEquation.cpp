@@ -35,10 +35,6 @@ namespace forward {
 using namespace dealii;
 
 template<int dim>
-WaveEquation<dim>::~WaveEquation() {
-}
-
-template<int dim>
 WaveEquation<dim>::WaveEquation(std::shared_ptr<SpaceTimeMesh<dim>> mesh)
       : WaveEquationBase<dim>(mesh), initial_values_u(this->zero), initial_values_v(this->zero), boundary_values_u(
             this->zero), boundary_values_v(this->zero) {
@@ -117,6 +113,31 @@ void WaveEquation<dim>::init_system(size_t first_idx) {
    //   VectorTools::project(*dof_handler, constraints, QGauss<dim>(3), *initial_values_v, old_solution_v);
    VectorTools::interpolate(*dof_handler, *initial_values_u, solution_u);
    VectorTools::interpolate(*dof_handler, *initial_values_v, solution_v);
+}
+
+template<int dim>
+void WaveEquation<dim>::cleanup() {
+   matrix_A.clear();
+   matrix_B.clear();
+   matrix_C.clear();
+
+   matrix_A_old.clear();
+   matrix_B_old.clear();
+   matrix_C_old.clear();
+
+   solution_u.reinit(0);
+   solution_v.reinit(0);
+
+   solution_u_old.reinit(0);
+   solution_v_old.reinit(0);
+
+   system_rhs_u.reinit(0);
+   system_rhs_v.reinit(0);
+
+   tmp_u.reinit(0);
+
+   rhs.reinit(0);
+   rhs_old.reinit(0);
 }
 
 template<int dim>
@@ -386,6 +407,7 @@ DiscretizedFunction<dim> WaveEquation<dim>::run() {
          << "s)" << std::endl;
    deallog.flags(f);
 
+   cleanup();
    return u;
 }
 

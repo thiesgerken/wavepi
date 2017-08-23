@@ -18,11 +18,15 @@
 
 #include <inversion/NonlinearProblem.h>
 
+#include <measurements/Measure.h>
+#include <measurements/Tuple.h>
+
 #include <SettingsManager.h>
 
 #include <util/MacroFunctionParser.h>
 
 #include <memory>
+#include <vector>
 
 namespace wavepi {
 
@@ -30,11 +34,21 @@ using namespace dealii;
 using namespace wavepi::forward;
 using namespace wavepi::inversion;
 using namespace wavepi::util;
+using namespace wavepi::measurements;
 
-template<int dim>
+template<int dim, typename Meas>
 class WavePI {
+      using Param = DiscretizedFunction<dim>;
+      using Sol = DiscretizedFunction<dim>;
+      using Exact = Function<dim>;
+
    public:
-      WavePI(std::shared_ptr<SettingsManager> cfg);
+      /**
+       * @param cfg Settings to use
+       * @param measures Measures to use for the right hand sides, due to templating this class cannot instantiate them itself
+       */
+      WavePI(std::shared_ptr<SettingsManager> cfg,
+            std::vector<std::shared_ptr<Measure<Param, Meas>>> measures);
 
       void run();
 
@@ -45,15 +59,12 @@ class WavePI {
    private:
 
       std::shared_ptr<SettingsManager> cfg;
+      std::vector<std::shared_ptr<Measure<Param, Meas>>> measures;
 
       std::shared_ptr<SpaceTimeMesh<dim>> mesh;
       std::shared_ptr<WaveEquation<dim>> wave_eq;
 
-      using Param = DiscretizedFunction<dim>;
-      using Sol = DiscretizedFunction<dim>;
-      using Exact = Function<dim>;
-
-      std::shared_ptr<NonlinearProblem<Param, Sol>> problem;
+      std::shared_ptr<NonlinearProblem<Param, Tuple<Meas>>> problem;
 
       std::shared_ptr<Function<dim>> param_exact;
 
@@ -62,9 +73,10 @@ class WavePI {
       std::shared_ptr<MacroFunctionParser<dim>> param_nu;
       std::shared_ptr<MacroFunctionParser<dim>> param_a;
       std::shared_ptr<MacroFunctionParser<dim>> param_c;
-      std::shared_ptr<MacroFunctionParser<dim>> rhs;
 
-      std::shared_ptr<Sol> data; // noisy data
+      std::vector<std::shared_ptr<Function<dim>>> pulses;
+
+      std::shared_ptr<Tuple<Meas>> data; // noisy data
 
       /**
        * `Point` constructor from three values, neglecting those that are not needed.

@@ -10,12 +10,13 @@
 #include <deal.II/base/utilities.h>
 
 #include <forward/DiscretizedFunction.h>
-#include <forward/Measure.h>
 #include <forward/WaveEquationBase.h>
 
 #include <inversion/InversionProgress.h>
 #include <inversion/NonlinearLandweber.h>
 #include <inversion/REGINN.h>
+
+#include <measurements/Measure.h>
 
 #include <SettingsManager.h>
 
@@ -28,6 +29,7 @@ using namespace dealii;
 using namespace wavepi::forward;
 using namespace wavepi::inversion;
 using namespace wavepi::util;
+using namespace wavepi::measurements;
 
 const std::string SettingsManager::KEY_GENERAL = "general";
 const std::string SettingsManager::KEY_GENERAL_DIMENSION = "dimension";
@@ -347,7 +349,7 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
    prm->leave_subsection();
 }
 
-void SettingsManager::log() {
+void SettingsManager::log_parameters() {
    unsigned int prev_console = deallog.depth_console(100);
    unsigned int prev_file = deallog.depth_file(100);
 

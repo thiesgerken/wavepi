@@ -148,7 +148,7 @@ class SettingsManager {
       /**
        * Write all parameters to `deallog`.
        */
-      void log();
+      void log_parameters();
 
 };
 

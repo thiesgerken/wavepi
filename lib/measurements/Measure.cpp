@@ -8,40 +8,40 @@
 #include <deal.II/base/function.h>
 #include <deal.II/base/parameter_handler.h>
 
-#include <forward/Measure.h>
+#include <measurements/Measure.h>
 
 #include <stddef.h>
 #include <cstdio>
 #include <string>
 
 namespace wavepi {
-namespace forward {
+namespace measurements {
 using namespace dealii;
 using namespace wavepi::util;
+using namespace wavepi::forward;
 
-template<int dim> PointMeasure<dim>::PointMeasure(std::shared_ptr<SpaceTimeMesh<dim>> solution_mesh,
-      const std::vector<Point<dim + 1>>& points, std::shared_ptr<Function<dim>> delta_shape,
+template<int dim> PointMeasure<dim>::PointMeasure(      const std::vector<Point<dim + 1>>& points, std::shared_ptr<Function<dim>> delta_shape,
       double delta_scale_space, double delta_scale_time)
-      : mesh(solution_mesh), measurement_points(points), delta_shape(delta_shape), delta_scale_space(
+      :  mesh(), measurement_points(points), delta_shape(delta_shape), delta_scale_space(
             delta_scale_space), delta_scale_time(delta_scale_time) {
 }
 
-template<int dim> PointMeasure<dim>::PointMeasure(std::shared_ptr<SpaceTimeMesh<dim>> solution_mesh)
-      : mesh(solution_mesh), measurement_points(), delta_shape(), delta_scale_space(0.0), delta_scale_time(
+template<int dim> PointMeasure<dim>::PointMeasure()
+      : mesh(), measurement_points(), delta_shape(), delta_scale_space(0.0), delta_scale_time(
             0.0) {
 }
 
-template<int dim> std::vector<double> PointMeasure<dim>::evaluate(const DiscretizedFunction<dim>& field) {
-   AssertThrow(
-         mesh && delta_shape && delta_scale_space > 0 && delta_scale_time > 0
+template<int dim> Tuple<double> PointMeasure<dim>::evaluate(const DiscretizedFunction<dim>& field) {
+   AssertThrow(          delta_shape && delta_scale_space > 0 && delta_scale_time > 0
                && measurement_points.size() > 0, ExcNotInitialized());
+   this->mesh = field.get_mesh();
 
    // TODO: Implement, probably also needs class members for shape of delta approx and its size.
    AssertThrow(false, ExcNotImplemented());
 }
 
 template<int dim> DiscretizedFunction<dim> PointMeasure<dim>::adjoint(
-      const std::vector<double>& measurements) {
+      const Tuple<double>& measurements) {
    AssertThrow(
          mesh && delta_shape && delta_scale_space > 0 && delta_scale_time > 0
                && measurement_points.size() > 0, ExcNotInitialized());
@@ -81,16 +81,16 @@ void PointMeasure<dim>::get_parameters(ParameterHandler &prm) {
 }
 
 template<int dim>
-GridPointMeasure<dim>::GridPointMeasure(std::shared_ptr<SpaceTimeMesh<dim>> solution_mesh,
+GridPointMeasure<dim>::GridPointMeasure(
       const std::vector<double> &times, const std::vector<std::vector<double>> &spatial_points,
       std::shared_ptr<Function<dim>> delta_shape, double delta_scale_space, double delta_scale_time)
-      : PointMeasure<dim>(solution_mesh, make_grid(times, spatial_points), delta_shape, delta_scale_space,
+      : PointMeasure<dim>(make_grid(times, spatial_points), delta_shape, delta_scale_space,
             delta_scale_time) {
 }
 
 template<int dim>
-GridPointMeasure<dim>::GridPointMeasure(std::shared_ptr<SpaceTimeMesh<dim>> solution_mesh)
-      : PointMeasure<dim>(solution_mesh) {
+GridPointMeasure<dim>::GridPointMeasure()
+      : PointMeasure<dim>() {
 }
 
 template<int dim>

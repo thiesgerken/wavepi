@@ -36,10 +36,6 @@ namespace forward {
 using namespace dealii;
 
 template<int dim>
-WaveEquationAdjoint<dim>::~WaveEquationAdjoint() {
-}
-
-template<int dim>
 WaveEquationAdjoint<dim>::WaveEquationAdjoint(std::shared_ptr<SpaceTimeMesh<dim>> mesh)
       : WaveEquationBase<dim>(mesh) {
 }
@@ -113,6 +109,31 @@ void WaveEquationAdjoint<dim>::next_mesh(size_t source_idx, size_t target_idx) {
 }
 
 template<int dim>
+void WaveEquationAdjoint<dim>::cleanup() {
+   matrix_A.clear();
+   matrix_B.clear();
+   matrix_C.clear();
+
+   matrix_A_old.clear();
+   matrix_B_old.clear();
+   matrix_C_old.clear();
+
+   solution_u.reinit(0);
+   solution_v.reinit(0);
+
+   solution_u_old.reinit(0);
+   solution_v_old.reinit(0);
+
+   system_rhs_u.reinit(0);
+   system_rhs_v.reinit(0);
+
+   tmp_u.reinit(0);
+   tmp_v.reinit(0);
+
+   rhs.reinit(0);
+}
+
+template<int dim>
 void WaveEquationAdjoint<dim>::next_step(size_t time_idx) {
    LogStream::Prefix p("next_step");
 
@@ -134,7 +155,6 @@ void WaveEquationAdjoint<dim>::next_step(size_t time_idx) {
       matrix_A_old.copy_from(matrix_A);
       matrix_B_old.copy_from(matrix_B);
       matrix_C_old.copy_from(matrix_C);
-      rhs_old = rhs;
 
       solution_u_old = solution_u;
       solution_v_old = solution_v;
@@ -503,6 +523,7 @@ DiscretizedFunction<dim> WaveEquationAdjoint<dim>::run() {
          << "s)" << std::endl;
    deallog.flags(f);
 
+   cleanup();
    return apply_R_transpose(u);
 }
 
