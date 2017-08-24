@@ -119,14 +119,32 @@ int main(int argc, char * argv[]) {
       // deallog.log_execution_time(true);
 
       if (cfg->dimension == 1) {
-         WavePI<1> wavepi(cfg);
-         wavepi.run();
+         if (cfg->measure_type == SettingsManager::MeasureType::vector) {
+            WavePI<1, Tuple<double>> wavepi(cfg);
+            wavepi.run();
+         } else if (cfg->measure_type == SettingsManager::MeasureType::discretized_function) {
+            WavePI<1, DiscretizedFunction<1>> wavepi(cfg);
+            wavepi.run();
+         } else
+            AssertThrow(false, ExcInternalError());
       } else if (cfg->dimension == 2) {
-         WavePI<2> wavepi(cfg);
-         wavepi.run();
+         if (cfg->measure_type == SettingsManager::MeasureType::vector) {
+            WavePI<2, Tuple<double>> wavepi(cfg);
+            wavepi.run();
+         } else if (cfg->measure_type == SettingsManager::MeasureType::discretized_function) {
+            WavePI<2, DiscretizedFunction<2>> wavepi(cfg);
+            wavepi.run();
+         } else
+            AssertThrow(false, ExcInternalError());
       } else if (cfg->dimension == 3) {
-         WavePI<3> wavepi(cfg);
-         wavepi.run();
+         if (cfg->measure_type == SettingsManager::MeasureType::vector) {
+            WavePI<3, Tuple<double>> wavepi(cfg);
+            wavepi.run();
+         } else if (cfg->measure_type == SettingsManager::MeasureType::discretized_function) {
+            WavePI<3, DiscretizedFunction<3>> wavepi(cfg);
+            wavepi.run();
+         } else
+            AssertThrow(false, ExcInternalError());
       } else
          AssertThrow(false, ExcInternalError());
 

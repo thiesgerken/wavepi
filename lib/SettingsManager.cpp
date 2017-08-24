@@ -130,12 +130,12 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
          prm->declare_entry(KEY_PROBLEM_DATA_COUNT, "1", Patterns::Integer(1),
                "Number of configurations. Each configuration has its own right hand side and own measurement settings. Make sure that there are at least as many `configuration {i}` blocks as this number.");
 
-         prm->enter_subsection(KEY_PROBLEM_DATA_I + "1");
+         prm->enter_subsection(KEY_PROBLEM_DATA_I + "0");
          {
             prm->declare_entry(KEY_PROBLEM_DATA_I_RHS, "if(norm{x|y|z} < 0.2, sin(t), 0.0)",
                   Patterns::Anything(), "right hand side");
 
-            prm->declare_entry(KEY_PROBLEM_DATA_I_MEASURE, "None", Patterns::Selection("Identical|Grid"),
+            prm->declare_entry(KEY_PROBLEM_DATA_I_MEASURE, "Identical", Patterns::Selection("Identical|Grid"),
                   "type of measurements");
 
             GridPointMeasure<2>::declare_parameters(*prm);

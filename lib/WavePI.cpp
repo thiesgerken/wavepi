@@ -45,9 +45,10 @@ using namespace wavepi::inversion;
 using namespace wavepi::problems;
 using namespace wavepi::util;
 
-template<int dim, typename Meas> WavePI<dim, Meas>::WavePI(std::shared_ptr<SettingsManager> cfg,
-      std::vector<std::shared_ptr<Measure<Param, Meas>>> measures)
-      : cfg(cfg), measures(measures) {
+template<int dim, typename Meas> WavePI<dim, Meas>::WavePI(std::shared_ptr<SettingsManager> cfg)
+      : cfg(cfg) {
+
+   initialize_measurements();
 
    for (auto expr : cfg->exprs_rhs)
       pulses.push_back(std::make_shared<MacroFunctionParser<dim>>(expr, cfg->constants_for_exprs));
@@ -73,6 +74,47 @@ template<int dim, typename Meas> Point<dim> WavePI<dim, Meas>::make_point(double
          return Point<dim>(x, y, z);
    }
 }
+
+#define initialize_measurements_tuple(D) \
+template<> void WavePI<D, Tuple<double>>::initialize_measurements() { \
+  measures.clear();  \
+   for (size_t i = 0; i < cfg->num_configurations; i++) { \
+      cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM_DATA); \
+      cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM_DATA_I + Utilities::int_to_string(i, 1)); \
+      if (cfg->measures[i] == SettingsManager::Measure::grid) { \
+         auto measure = std::make_shared<GridPointMeasure<D>>(); \
+         measure->get_parameters(*cfg->prm); \
+         measures.push_back(measure); \
+      } else \
+         AssertThrow(false, ExcInternalError()); \
+      cfg->prm->leave_subsection(); \
+      cfg->prm->leave_subsection(); \
+   } \
+}
+
+initialize_measurements_tuple(1)
+initialize_measurements_tuple(2)
+initialize_measurements_tuple(3)
+
+#define initialize_measurements_cont(D) \
+template<> void WavePI<D, DiscretizedFunction<D>>::initialize_measurements() { \
+  measures.clear();  \
+   for (size_t i = 0; i < cfg->num_configurations; i++) { \
+      cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM_DATA); \
+      cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM_DATA_I + Utilities::int_to_string(i, 1)); \
+      if (cfg->measures[i] == SettingsManager::Measure::identical) { \
+         measures.push_back(std::make_shared<IdenticalMeasure<DiscretizedFunction<D>> >()); \
+      } else \
+         AssertThrow(false, ExcInternalError()); \
+      cfg->prm->leave_subsection(); \
+      cfg->prm->leave_subsection(); \
+   } \
+}
+
+initialize_measurements_cont(1)
+initialize_measurements_cont(2)
+initialize_measurements_cont(3)
+
 
 template<int dim, typename Meas> void WavePI<dim, Meas>::initialize_mesh() {
    LogStream::Prefix p("initialize_mesh");
@@ -137,7 +179,7 @@ template<int dim, typename Meas> void WavePI<dim, Meas>::initialize_mesh() {
    deallog << "cell diameters: minimal = " << dealii::GridTools::minimal_cell_diameter(*triangulation)
          << std::endl;
    deallog << "                average = "
-         << 10.0 * sqrt((double ) dim) / pow(triangulation->n_active_cells(), 1.0 / dim) << std::endl;
+         << 10.0 * sqrt((double) dim) / pow(triangulation->n_active_cells(), 1.0 / dim) << std::endl;
    deallog << "                maximal = " << dealii::GridTools::maximal_cell_diameter(*triangulation)
          << std::endl;
    deallog << "dt: " << cfg->dt << std::endl;
@@ -178,45 +220,21 @@ template<int dim, typename Meas> void WavePI<dim, Meas>::initialize_problem() {
       default:
          AssertThrow(false, ExcInternalError())
    }
-
-//   prm->enter_subsection(KEY_MEASUREMENTS);
-//   {
-// TODO
-//      auto measure_title = prm->get(KEY_MEASUREMENTS_TYPE);
-//
-//      std::shared_ptr<Measure<DiscretizedFunction<dim>, Measurement>> measure;
-//
-//      if (measure_title == "Grid") {
-//         auto measure1 = std::make_shared<GridPointMeasure<DiscretizedFunction<dim>, Measurement> >(mesh);
-//         measure1->get_parameters(*prm);
-//         measure = measure1;
-//      } else if (measure_title == "Identical")
-//         measure = std::make_shared<IdenticalMeasure<DiscretizedFunction<dim>>>();
-//     else if (measure_title != "None")
-//            AssertThrow(false, ExcMessage("Unknown Measure: " + measure_title));
-//
-//         if (measure)
-//       problem = std::make_shared<
-//            MeasurementProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>, Measurement>>(problem,
-//            measure);
-//   }
-//   prm->leave_subsection();
 }
 
 template<int dim, typename Meas> void WavePI<dim, Meas>::generate_data() {
    LogStream::Prefix p("generate_data");
    LogStream::Prefix pp(" ");
 
-   Sol data_exact = wave_eq->run();
-   data_exact.throw_away_derivative();
-   data_exact.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
+   DiscretizedFunction<dim> param_exact_disc(mesh, *param_exact);
+   Tuple<Meas> data_exact = problem->forward(param_exact_disc);
    double data_exact_norm = data_exact.norm();
 
    // in itself not wrong, but makes relative errors and noise levels meaningless.
    AssertThrow(data_exact_norm > 0, ExcMessage("Exact Data is zero"));
 
-   data = std::make_shared<Sol>(DiscretizedFunction<dim>::noise(data_exact, cfg->epsilon * data_exact_norm));
-   data->add(1.0, data_exact);
+   data = std::make_shared<Tuple<Meas>>(data_exact);
+   data->add(1.0, Tuple<Meas>::noise(data_exact, cfg->epsilon * data_exact_norm));
 }
 
 template<int dim, typename Meas> void WavePI<dim, Meas>::run() {
@@ -245,9 +263,12 @@ template<int dim, typename Meas> void WavePI<dim, Meas>::run() {
    }
    cfg->prm->leave_subsection();
 
-   regularization->add_listener(std::make_shared<GenericInversionProgressListener<Param, Sol, Exact>>("i"));
-   regularization->add_listener(std::make_shared<CtrlCProgressListener<Param, Sol, Exact>>());
-   regularization->add_listener(std::make_shared<OutputProgressListener<dim>>(*cfg->prm));
+   regularization->add_listener(
+         std::make_shared<GenericInversionProgressListener<Param, Tuple<Meas>, Exact>>("i"));
+   regularization->add_listener(std::make_shared<CtrlCProgressListener<Param, Tuple<Meas>, Exact>>());
+
+   // TODO: modify listener
+   //   regularization->add_listener(std::make_shared<OutputProgressListener<dim>>(*cfg->prm));
 
    cfg->log_parameters();
 

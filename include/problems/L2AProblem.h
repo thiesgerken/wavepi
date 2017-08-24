@@ -48,6 +48,8 @@ class L2AProblem: public L2WaveProblem<dim, Measurement> {
       }
 
    protected:
+using L2WaveProblem<dim, Measurement>::derivative;
+using L2WaveProblem<dim, Measurement>::forward;
 
       virtual std::unique_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>> derivative(
             size_t i) {

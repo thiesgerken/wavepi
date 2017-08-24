@@ -85,7 +85,7 @@ class Landweber: public LinearRegularization<Param, Sol, Exact> {
             estimate.add(omega, adj);
 
             // calculate new residual and discrepancy for next step
-            residual = Sol(data);
+            residual = data;
             Sol data_current = this->problem->forward(estimate);
             residual -= data_current;
             double discrepancy_last = discrepancy;

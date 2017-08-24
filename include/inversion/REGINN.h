@@ -148,7 +148,7 @@ class REGINN: public NewtonRegularization<Param, Sol, Exact> {
 
             // calculate new residual and discrepancy
             deallog.push("post_step");
-            residual = Sol(data);
+            residual = data;
             data_current = this->problem->forward(estimate);
             residual -= data_current;
             double discrepancy_last = discrepancy;

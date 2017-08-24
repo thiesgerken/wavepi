@@ -48,7 +48,6 @@ class Measure {
        * This function should ask `Sol` and `Measurement` for the required spaces.
        */
       virtual Sol adjoint(const Measurement& measurements) = 0;
-
 };
 
 /**
@@ -68,7 +67,6 @@ class IdenticalMeasure: public Measure<Sol, Sol> {
       virtual Sol adjoint(const Sol& measurements) {
          return measurements;
       }
-
 };
 
 /**
