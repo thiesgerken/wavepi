@@ -16,8 +16,7 @@
 #include <forward/SpaceTimeMesh.h>
 
 #include <util/RadialParsedFunction.h>
-
-#include <measurements/Tuple.h>
+#include <util/Tuple.h>
 
 #include <memory>
 #include <vector>

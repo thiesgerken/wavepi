@@ -5,8 +5,8 @@
  *      Author: thies
  */
 
-#ifndef INCLUDE_MEASUREMENTS_TUPLE_H_
-#define INCLUDE_MEASUREMENTS_TUPLE_H_
+#ifndef INCLUDE_UTIL_TUPLE_H_
+#define INCLUDE_UTIL_TUPLE_H_
 
 #include <deal.II/base/exceptions.h>
 #include <stddef.h>
@@ -15,7 +15,7 @@
 #include <random>
 
 namespace wavepi {
-namespace measurements {
+namespace util {
 using namespace dealii;
 
 /**

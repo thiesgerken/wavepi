@@ -19,11 +19,10 @@
 #include <inversion/NonlinearProblem.h>
 
 #include <measurements/Measure.h>
-#include <measurements/Tuple.h>
-
 #include <SettingsManager.h>
 
 #include <util/MacroFunctionParser.h>
+#include <util/Tuple.h>
 
 #include <memory>
 #include <vector>
