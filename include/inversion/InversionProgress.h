@@ -201,9 +201,8 @@ bool CtrlCProgressListener<Param, Sol, Exact>::abort = false;
 template<typename Param, typename Sol, typename Exact>
 bool CtrlCProgressListener<Param, Sol, Exact>::handler_installed = false;
 
-template<int dim>
-class OutputProgressListener: public InversionProgressListener<DiscretizedFunction<dim>,
-      DiscretizedFunction<dim>, Function<dim>> {
+template<int dim, typename Meas>
+class OutputProgressListener: public InversionProgressListener<DiscretizedFunction<dim>, Meas, Function<dim>> {
    public:
 
       virtual ~OutputProgressListener() = default;
@@ -255,7 +254,7 @@ class OutputProgressListener: public InversionProgressListener<DiscretizedFuncti
       }
 
       virtual bool progress(
-            InversionProgress<DiscretizedFunction<dim>, DiscretizedFunction<dim>, Function<dim>> state) {
+            InversionProgress<DiscretizedFunction<dim>, Meas, Function<dim>> state) {
          std::map<std::string, std::string> subs;
          subs["i"] = Utilities::int_to_string(state.iteration_number, 4);
 
@@ -268,7 +267,7 @@ class OutputProgressListener: public InversionProgressListener<DiscretizedFuncti
             deallog << "Saving exact parameter in " << dest << std::endl;
             LogStream::Prefix p = LogStream::Prefix("Output");
 
-            DiscretizedFunction<dim> exact_disc(state.data->get_mesh(), *state.exact_param);
+            DiscretizedFunction<dim> exact_disc(state.current_estimate->get_mesh(), *state.exact_param);
             exact_disc.write_pvd(dest, filename, "param");
          }
 

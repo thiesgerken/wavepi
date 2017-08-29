@@ -69,7 +69,7 @@ const std::string SettingsManager::KEY_INVERSION = "inversion";
 const std::string SettingsManager::KEY_INVERSION_TAU = "tau";
 const std::string SettingsManager::KEY_INVERSION_METHOD = "method";
 
-void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) {
+void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm, bool full) {
    prm->enter_subsection(KEY_GENERAL);
    {
       prm->declare_entry(KEY_GENERAL_DIMENSION, "2", Patterns::Integer(1, 3), "problem dimension");
@@ -128,10 +128,10 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
       prm->enter_subsection(KEY_PROBLEM_DATA);
       {
          prm->declare_entry(KEY_PROBLEM_DATA_COUNT, "1", Patterns::Integer(1),
-               "Number of configurations. Each configuration has its own right hand side and own measurement settings. Make sure that there are at least as many `configuration {i}` blocks as this number.");
+               "Number of configurations. Maximum is 99. Each configuration has its own right hand side and own measurement settings. Make sure that there are at least as many `configuration {ii}` blocks as this number.");
 
-         prm->enter_subsection(KEY_PROBLEM_DATA_I + "0");
-         {
+         for (int i = 0; !i || (i < 100 && full); i++) {
+            prm->enter_subsection(KEY_PROBLEM_DATA_I + Utilities::int_to_string(i, 2));
             prm->declare_entry(KEY_PROBLEM_DATA_I_RHS, "if(norm{x|y|z} < 0.2, sin(t), 0.0)",
                   Patterns::Anything(), "right hand side");
 
@@ -139,8 +139,8 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
                   "type of measurements");
 
             GridPointMeasure<2>::declare_parameters(*prm);
+            prm->leave_subsection();
          }
-         prm->leave_subsection();
       }
       prm->leave_subsection();
    }
@@ -160,7 +160,7 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
    prm->leave_subsection();
 
    WaveEquationBase<2>::declare_parameters(*prm);
-   OutputProgressListener<2>::declare_parameters(*prm);
+   OutputProgressListener<2, Tuple<DiscretizedFunction<2>>>::declare_parameters(*prm);
 }
 
 void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
@@ -301,7 +301,7 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
          measures.clear();
 
          for (size_t i = 0; i < num_configurations; i++) {
-            prm->enter_subsection(KEY_PROBLEM_DATA_I + Utilities::int_to_string(i, 1));
+            prm->enter_subsection(KEY_PROBLEM_DATA_I + Utilities::int_to_string(i, 2));
 
             exprs_rhs.push_back(prm->get(KEY_PROBLEM_DATA_I_RHS));
 

@@ -26,6 +26,7 @@ namespace measurements {
 
 using namespace dealii;
 using namespace wavepi::forward;
+using namespace wavepi::util;
 
 /**
  * Interface for linear Measurements. `Measurement` will most likely be `std::vector<double>`.

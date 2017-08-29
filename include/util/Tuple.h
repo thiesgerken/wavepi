@@ -9,10 +9,15 @@
 #define INCLUDE_UTIL_TUPLE_H_
 
 #include <deal.II/base/exceptions.h>
+#include <deal.II/base/utilities.h>
+
 #include <stddef.h>
-#include <vector>
 #include <tgmath.h>
+#include <algorithm>
+#include <cmath>
 #include <random>
+#include <string>
+#include <vector>
 
 namespace wavepi {
 namespace util {
@@ -151,6 +156,13 @@ class Tuple {
          elements.push_back(std::move(value));
       }
 
+      void write_pvd(std::string path, std::string filename, std::string name) const {
+         AssertThrow(elements.size() < 100, ExcNotImplemented()); // 2 digits are ok
+
+         for (size_t i = 0; i < elements.size(); i++)
+            elements[i].write_pvd(path, filename + Utilities::int_to_string(i, 2), name);
+      }
+
    private:
       std::vector<T> elements;
 };
@@ -285,6 +297,13 @@ class Tuple<double> {
 
       void push_back(const double value) {
          elements.push_back(value);
+      }
+
+      void write_pvd(std::string path, std::string filename, std::string name) const {
+         AssertThrow(elements.size() < 100, ExcNotImplemented()); // 2 digits are ok
+
+         // TODO
+         AssertThrow(false, ExcNotImplemented());
       }
 
    private:

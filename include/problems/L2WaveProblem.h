@@ -18,7 +18,7 @@
 #include <inversion/LinearProblem.h>
 #include <inversion/NonlinearProblem.h>
 
-#include <measurements/Tuple.h>
+#include <util/Tuple.h>
 #include <measurements/Measure.h>
 
 #include <stddef.h>
@@ -32,6 +32,7 @@ using namespace dealii;
 using namespace wavepi::forward;
 using namespace wavepi::inversion;
 using namespace wavepi::measurements;
+using namespace wavepi::util;
 
 template<int dim, typename Measurement>
 class L2WaveProblem: public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Measurement>> {
@@ -77,6 +78,7 @@ class L2WaveProblem: public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Mea
 
          return result;
       }
+
    protected:
       WaveEquation<dim> wave_equation;
       typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver;

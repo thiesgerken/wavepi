@@ -266,9 +266,7 @@ template<int dim, typename Meas> void WavePI<dim, Meas>::run() {
    regularization->add_listener(
          std::make_shared<GenericInversionProgressListener<Param, Tuple<Meas>, Exact>>("i"));
    regularization->add_listener(std::make_shared<CtrlCProgressListener<Param, Tuple<Meas>, Exact>>());
-
-   // TODO: modify listener
-   //   regularization->add_listener(std::make_shared<OutputProgressListener<dim>>(*cfg->prm));
+   regularization->add_listener(std::make_shared<OutputProgressListener<dim, Tuple<Meas>>>(*cfg->prm));
 
    cfg->log_parameters();
 

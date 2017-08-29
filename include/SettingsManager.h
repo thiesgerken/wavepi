@@ -137,7 +137,7 @@ class SettingsManager {
       /**
        * Declare all available Parameters.
        */
-      static void declare_parameters(std::shared_ptr<ParameterHandler> prm);
+      static void declare_parameters(std::shared_ptr<ParameterHandler> prm, bool full = true);
 
       /**
        * Read general parameters and those for class WavePI from `prm`. `prm` is also stored for later access,
