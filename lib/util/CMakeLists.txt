@@ -1,5 +1,10 @@
 # file(GLOB LIBSOURCES *.cpp)
-SET(LIBSOURCES MatrixCreator.cpp GridTools.cpp MacroFunctionParser.cpp RadialParsedFunction.cpp)
+SET(LIBSOURCES 
+  MatrixCreator.cpp 
+  GridTools.cpp 
+  MacroFunctionParser.cpp 
+  RadialParsedFunction.cpp 
+  SpaceTimeGrid.cpp)
         
 find_program(GIT_SCM git DOC "Git version control")
 mark_as_advanced(GIT_SCM)

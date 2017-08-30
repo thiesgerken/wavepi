@@ -27,6 +27,8 @@
 #include <problems/L2NuProblem.h>
 #include <problems/L2QProblem.h>
 
+#include <measurements/MeasuredValues.h>
+
 #include <util/GridTools.h>
 
 #include <WavePI.h>
@@ -47,8 +49,9 @@ using namespace wavepi::util;
 
 template<int dim, typename Meas> WavePI<dim, Meas>::WavePI(std::shared_ptr<SettingsManager> cfg)
       : cfg(cfg) {
-
-   initialize_measurements();
+   measures.clear();  \
+   for (auto config_idx : cfg->configs)
+      measures.push_back(get_measure(config_idx));
 
    for (auto expr : cfg->exprs_rhs)
       pulses.push_back(std::make_shared<MacroFunctionParser<dim>>(expr, cfg->constants_for_exprs));
@@ -75,45 +78,43 @@ template<int dim, typename Meas> Point<dim> WavePI<dim, Meas>::make_point(double
    }
 }
 
-#define initialize_measurements_tuple(D) \
-template<> void WavePI<D, Tuple<double>>::initialize_measurements() { \
-  measures.clear();  \
-   for (size_t i = 0; i < cfg->num_configurations; i++) { \
-      cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM_DATA); \
-      cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM_DATA_I + Utilities::int_to_string(i, 1)); \
-      if (cfg->measures[i] == SettingsManager::Measure::grid) { \
-         auto measure = std::make_shared<GridPointMeasure<D>>(); \
-         measure->get_parameters(*cfg->prm); \
-         measures.push_back(measure); \
-      } else \
-         AssertThrow(false, ExcInternalError()); \
-      cfg->prm->leave_subsection(); \
-      cfg->prm->leave_subsection(); \
-   } \
+#define get_measure_tuple(D) \
+template<> std::shared_ptr<Measure<DiscretizedFunction<D>, MeasuredValues<D>>> WavePI<D, MeasuredValues<D>>::get_measure(size_t config_idx) { \
+   cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM_DATA); \
+   cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM_DATA_I + Utilities::int_to_string(config_idx, 1)); \
+   std::shared_ptr<Measure<Param, MeasuredValues<D>>> measure; \
+   if (cfg->measures[config_idx] == SettingsManager::Measure::grid) { \
+      auto my_measure = std::make_shared<GridPointMeasure<D>>(); \
+      my_measure->get_parameters(*cfg->prm); \
+      measure = my_measure; \
+   } else \
+      AssertThrow(false, ExcInternalError()); \
+   cfg->prm->leave_subsection(); \
+   cfg->prm->leave_subsection(); \
+   return measure; \
 }
 
-initialize_measurements_tuple(1)
-initialize_measurements_tuple(2)
-initialize_measurements_tuple(3)
+get_measure_tuple(1)
+get_measure_tuple(2)
+get_measure_tuple(3)
 
-#define initialize_measurements_cont(D) \
-template<> void WavePI<D, DiscretizedFunction<D>>::initialize_measurements() { \
-  measures.clear();  \
-   for (size_t i = 0; i < cfg->num_configurations; i++) { \
-      cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM_DATA); \
-      cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM_DATA_I + Utilities::int_to_string(i, 1)); \
-      if (cfg->measures[i] == SettingsManager::Measure::identical) { \
-         measures.push_back(std::make_shared<IdenticalMeasure<DiscretizedFunction<D>> >()); \
-      } else \
-         AssertThrow(false, ExcInternalError()); \
-      cfg->prm->leave_subsection(); \
-      cfg->prm->leave_subsection(); \
-   } \
+#define get_measure_cont(D) \
+template<> std::shared_ptr<Measure<DiscretizedFunction<D>, DiscretizedFunction<D>>> WavePI<D, DiscretizedFunction<D>>::get_measure(size_t config_idx) { \
+   cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM_DATA); \
+   cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM_DATA_I + Utilities::int_to_string(config_idx, 1)); \
+   std::shared_ptr<Measure<Param, DiscretizedFunction<D>>> measure; \
+   if (cfg->measures[config_idx] == SettingsManager::Measure::identical) { \
+      measure = std::make_shared<IdenticalMeasure<DiscretizedFunction<D>>>(); \
+   } else \
+      AssertThrow(false, ExcInternalError()); \
+   cfg->prm->leave_subsection(); \
+   cfg->prm->leave_subsection(); \
+   return measure; \
 }
 
-initialize_measurements_cont(1)
-initialize_measurements_cont(2)
-initialize_measurements_cont(3)
+get_measure_cont(1)
+get_measure_cont(2)
+get_measure_cont(3)
 
 
 template<int dim, typename Meas> void WavePI<dim, Meas>::initialize_mesh() {
@@ -274,12 +275,12 @@ template<int dim, typename Meas> void WavePI<dim, Meas>::run() {
 }
 
 template class WavePI<1, DiscretizedFunction<1>> ;
-template class WavePI<1, Tuple<double>> ;
+template class WavePI<1, MeasuredValues<1>> ;
 
 template class WavePI<2, DiscretizedFunction<2>> ;
-template class WavePI<2, Tuple<double>> ;
+template class WavePI<2, MeasuredValues<2>> ;
 
 template class WavePI<3, DiscretizedFunction<3>> ;
-template class WavePI<3, Tuple<double>> ;
+template class WavePI<3, MeasuredValues<3>> ;
 
 } /* namespace wavepi */

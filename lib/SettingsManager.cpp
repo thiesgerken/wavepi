@@ -60,16 +60,17 @@ const std::string SettingsManager::KEY_PROBLEM_PARAM_C = "parameter c";
 const std::string SettingsManager::KEY_PROBLEM_PARAM_NU = "parameter nu";
 
 const std::string SettingsManager::KEY_PROBLEM_DATA = "measurement configurations";
-const std::string SettingsManager::KEY_PROBLEM_DATA_COUNT = "number of configurations";
+const std::string SettingsManager::KEY_PROBLEM_DATA_COUNT = "number of right hand sides";
+const std::string SettingsManager::KEY_PROBLEM_DATA_RHS = "right hand sides";
+const std::string SettingsManager::KEY_PROBLEM_DATA_CONFIG = "configurations";
 const std::string SettingsManager::KEY_PROBLEM_DATA_I = "configuration "; // + number
-const std::string SettingsManager::KEY_PROBLEM_DATA_I_RHS = "right hand side";
 const std::string SettingsManager::KEY_PROBLEM_DATA_I_MEASURE = "measure";
 
 const std::string SettingsManager::KEY_INVERSION = "inversion";
 const std::string SettingsManager::KEY_INVERSION_TAU = "tau";
 const std::string SettingsManager::KEY_INVERSION_METHOD = "method";
 
-void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm, bool full) {
+void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) {
    prm->enter_subsection(KEY_GENERAL);
    {
       prm->declare_entry(KEY_GENERAL_DIMENSION, "2", Patterns::Integer(1, 3), "problem dimension");
@@ -127,18 +128,20 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm, 
 
       prm->enter_subsection(KEY_PROBLEM_DATA);
       {
-         prm->declare_entry(KEY_PROBLEM_DATA_COUNT, "1", Patterns::Integer(1),
-               "Number of configurations. Maximum is 99. Each configuration has its own right hand side and own measurement settings. Make sure that there are at least as many `configuration {ii}` blocks as this number.");
+         prm->declare_entry(KEY_PROBLEM_DATA_COUNT, "1", Patterns::Integer(1), "Number of right hand sides");
 
-         for (int i = 0; !i || (i < 100 && full); i++) {
-            prm->enter_subsection(KEY_PROBLEM_DATA_I + Utilities::int_to_string(i, 2));
-            prm->declare_entry(KEY_PROBLEM_DATA_I_RHS, "if(norm{x|y|z} < 0.2, sin(t), 0.0)",
-                  Patterns::Anything(), "right hand side");
+         prm->declare_entry(KEY_PROBLEM_DATA_CONFIG, "0", Patterns::Anything(),
+               "configuration to use for which right hand side, separated by semicolons");
+         prm->declare_entry(KEY_PROBLEM_DATA_RHS, "if(norm{x|y|z} < 0.2, sin(t), 0.0)", Patterns::Anything(),
+               "right hand sides, separated by semicolons");
 
+         for (size_t i = 0; i < num_configurations; i++) {
+            prm->enter_subsection(KEY_PROBLEM_DATA_I + Utilities::int_to_string(i, 1));
+
+            GridPointMeasure<2>::declare_parameters(*prm);
             prm->declare_entry(KEY_PROBLEM_DATA_I_MEASURE, "Identical", Patterns::Selection("Identical|Grid"),
                   "type of measurements");
 
-            GridPointMeasure<2>::declare_parameters(*prm);
             prm->leave_subsection();
          }
       }
@@ -295,15 +298,31 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
 
       prm->enter_subsection(KEY_PROBLEM_DATA);
       {
-         num_configurations = prm->get_integer(KEY_PROBLEM_DATA_COUNT);
+         num_rhs = prm->get_integer(KEY_PROBLEM_DATA_COUNT);
+         exprs_rhs = Utilities::split_string_list(prm->get(KEY_PROBLEM_DATA_RHS), ';');
 
-         exprs_rhs.clear();
+         configs.clear();
          measures.clear();
 
-         for (size_t i = 0; i < num_configurations; i++) {
-            prm->enter_subsection(KEY_PROBLEM_DATA_I + Utilities::int_to_string(i, 2));
+         try {
+            for (auto is : Utilities::split_string_list(prm->get(KEY_PROBLEM_DATA_CONFIG), ';')) {
+               size_t ci = std::stoi(is);
+               AssertThrow(ci < num_configurations, ExcIndexRange(ci, 0, num_configurations));
+               configs.push_back(ci);
+            }
+         } catch (std::invalid_argument &e) {
+            AssertThrow(false, ExcMessage("could not parse configurations: " + std::string(e.what())));
+         }
 
-            exprs_rhs.push_back(prm->get(KEY_PROBLEM_DATA_I_RHS));
+         AssertThrow(num_rhs == exprs_rhs.size(),
+               ExcMessage("number of right hand sides != number of expressions given"));
+         AssertThrow(num_rhs == configs.size(),
+               ExcMessage("number of right hand sides != number of configurations given"));
+
+         std::vector<MeasureType> measure_types;
+
+         for (size_t i = 0; i < num_configurations; i++) {
+            prm->enter_subsection(KEY_PROBLEM_DATA_I + Utilities::int_to_string(i, 1));
 
             auto measure_desc = prm->get(KEY_PROBLEM_DATA_I_MEASURE);
             MeasureType my_measure_type;
@@ -312,21 +331,29 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
                measures.push_back(Measure::identical);
                my_measure_type = MeasureType::discretized_function;
             } else if (measure_desc == "Grid") {
-               measures.push_back(Measure::identical);
-               my_measure_type = MeasureType::discretized_function;
+               measures.push_back(Measure::grid);
+               my_measure_type = MeasureType::vector;
             } else
                AssertThrow(false, ExcMessage("Unknown Measure: " + measure_desc));
 
-            if (!i)
-               measure_type = my_measure_type;
-
-            AssertThrow(measure_type == my_measure_type,
-                  ExcMessage("the resulting data types must be the same for all measurement configurations!"))
+            measure_types.push_back(my_measure_type);
 
             GridPointMeasure<2>::declare_parameters(*prm);
 
             prm->leave_subsection();
          }
+
+         for (size_t i = 0; i < num_rhs; i++) {
+            auto my_measure_type = measure_types[configs[i]];
+
+            if (!i)
+               measure_type = my_measure_type;
+
+            AssertThrow(measure_type == my_measure_type,
+                  ExcMessage("the resulting data types must be the same for all used measurement configurations!"))
+         }
+
+
       }
       prm->leave_subsection();
    }

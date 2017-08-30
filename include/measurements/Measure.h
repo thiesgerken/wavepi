@@ -17,6 +17,9 @@
 
 #include <util/RadialParsedFunction.h>
 #include <util/Tuple.h>
+#include <util/SpaceTimeGrid.h>
+
+#include <measurements/MeasuredValues.h>
 
 #include <memory>
 #include <vector>
@@ -73,7 +76,7 @@ class IdenticalMeasure: public Measure<Sol, Sol> {
  * Point measurements, implemented as scalar product between the given field and a delta-approximating function.
  */
 template<int dim>
-class PointMeasure: public Measure<DiscretizedFunction<dim>, Tuple<double>> {
+class PointMeasure: public Measure<DiscretizedFunction<dim>, MeasuredValues<dim>> {
    public:
 
       virtual ~PointMeasure() = default;
@@ -84,7 +87,7 @@ class PointMeasure: public Measure<DiscretizedFunction<dim>, Tuple<double>> {
        * @param delta_scale_space Desired support radius in space
        * @param delta_scale_time Desired support radius in time
        */
-      PointMeasure(const std::vector<Point<dim + 1>>& points, std::shared_ptr<Function<dim>> delta_shape,
+      PointMeasure(std::shared_ptr<SpaceTimeGrid<dim>> points, std::shared_ptr<Function<dim>> delta_shape,
             double delta_scale_space, double delta_scale_time);
 
       /**
@@ -95,24 +98,24 @@ class PointMeasure: public Measure<DiscretizedFunction<dim>, Tuple<double>> {
       static void declare_parameters(ParameterHandler &prm);
       void get_parameters(ParameterHandler &prm);
 
-      virtual Tuple<double> evaluate(const DiscretizedFunction<dim>& field);
+      virtual MeasuredValues<dim> evaluate(const DiscretizedFunction<dim>& field);
 
       /**
        * Adjoint, discretized on the mesh last used for evaluate
        */
-      virtual DiscretizedFunction<dim> adjoint(const Tuple<double>& measurements);
+      virtual DiscretizedFunction<dim> adjoint(const MeasuredValues<dim>& measurements);
 
-      const std::vector<Point<dim + 1> >& get_measurement_points() const {
+      const std::shared_ptr<SpaceTimeGrid<dim>>& get_measurement_points() const {
          return measurement_points;
       }
 
-      void set_measurement_points(const std::vector<Point<dim + 1> >& measurement_points) {
+      void set_measurement_points(const std::shared_ptr<SpaceTimeGrid<dim>>& measurement_points) {
          this->measurement_points = measurement_points;
       }
 
    protected:
       std::shared_ptr<SpaceTimeMesh<dim>> mesh;
-      std::vector<Point<dim + 1>> measurement_points;
+      std::shared_ptr<SpaceTimeGrid<dim>> measurement_points;
 
       std::shared_ptr<Function<dim>> delta_shape;
       double delta_scale_space;
@@ -144,7 +147,7 @@ class GridPointMeasure: public PointMeasure<dim> {
             std::shared_ptr<Function<dim>> delta_shape, double delta_scale_space, double delta_scale_time);
 
       /**
-       * Does not initialize most of the values, you have to use get_parameters afterwards.
+       * Does not initialize most of the values, you have to use `get_parameters` afterwards.
        *
        */
       GridPointMeasure();
@@ -153,8 +156,6 @@ class GridPointMeasure: public PointMeasure<dim> {
       void get_parameters(ParameterHandler &prm);
 
    private:
-      static std::vector<Point<dim + 1>> make_grid(const std::vector<double> &times,
-            const std::vector<std::vector<double>> &spatial_points);
 
       static std::vector<double> make_points(const std::string description, bool is_time = false);
 

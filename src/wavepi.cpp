@@ -16,6 +16,7 @@
 #include <inversion/InversionProgress.h>
 
 #include <util/Version.h>
+#include <measurements/MeasuredValues.h>
 #include <WavePI.h>
 
 #include <fstream>
@@ -120,7 +121,7 @@ int main(int argc, char * argv[]) {
 
       if (cfg->dimension == 1) {
          if (cfg->measure_type == SettingsManager::MeasureType::vector) {
-            WavePI<1, Tuple<double>> wavepi(cfg);
+            WavePI<1, MeasuredValues<1>> wavepi(cfg);
             wavepi.run();
          } else if (cfg->measure_type == SettingsManager::MeasureType::discretized_function) {
             WavePI<1, DiscretizedFunction<1>> wavepi(cfg);
@@ -129,7 +130,7 @@ int main(int argc, char * argv[]) {
             AssertThrow(false, ExcInternalError());
       } else if (cfg->dimension == 2) {
          if (cfg->measure_type == SettingsManager::MeasureType::vector) {
-            WavePI<2, Tuple<double>> wavepi(cfg);
+            WavePI<2, MeasuredValues<2>> wavepi(cfg);
             wavepi.run();
          } else if (cfg->measure_type == SettingsManager::MeasureType::discretized_function) {
             WavePI<2, DiscretizedFunction<2>> wavepi(cfg);
@@ -138,7 +139,7 @@ int main(int argc, char * argv[]) {
             AssertThrow(false, ExcInternalError());
       } else if (cfg->dimension == 3) {
          if (cfg->measure_type == SettingsManager::MeasureType::vector) {
-            WavePI<3, Tuple<double>> wavepi(cfg);
+            WavePI<3, MeasuredValues<3>> wavepi(cfg);
             wavepi.run();
          } else if (cfg->measure_type == SettingsManager::MeasureType::discretized_function) {
             WavePI<3, DiscretizedFunction<3>> wavepi(cfg);

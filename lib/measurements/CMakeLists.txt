@@ -1,6 +1,7 @@
 # file(GLOB LIBSOURCES *.cpp)
 SET(LIBSOURCES
     Measure.cpp 
+    MeasuredValues.cpp
    )
     
 add_library(wavepi_measurements ${LIBSOURCES})

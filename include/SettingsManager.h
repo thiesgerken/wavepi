@@ -58,8 +58,9 @@ class SettingsManager {
 
       static const std::string KEY_PROBLEM_DATA;
       static const std::string KEY_PROBLEM_DATA_COUNT;
+      static const std::string KEY_PROBLEM_DATA_RHS;
+      static const std::string KEY_PROBLEM_DATA_CONFIG;
       static const std::string KEY_PROBLEM_DATA_I;
-      static const std::string KEY_PROBLEM_DATA_I_RHS;
       static const std::string KEY_PROBLEM_DATA_I_MEASURE;
 
       /**
@@ -126,8 +127,11 @@ class SettingsManager {
       std::string expr_param_a;
       std::string expr_param_c;
 
-      size_t num_configurations;
+      size_t num_rhs;
       std::vector<std::string> exprs_rhs;
+      std::vector<size_t> configs;
+
+      static const size_t num_configurations = 2;
       std::vector<Measure> measures;
       MeasureType measure_type;
 
@@ -137,7 +141,7 @@ class SettingsManager {
       /**
        * Declare all available Parameters.
        */
-      static void declare_parameters(std::shared_ptr<ParameterHandler> prm, bool full = true);
+      static void declare_parameters(std::shared_ptr<ParameterHandler> prm);
 
       /**
        * Read general parameters and those for class WavePI from `prm`. `prm` is also stored for later access,

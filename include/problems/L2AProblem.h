@@ -48,8 +48,8 @@ class L2AProblem: public L2WaveProblem<dim, Measurement> {
       }
 
    protected:
-using L2WaveProblem<dim, Measurement>::derivative;
-using L2WaveProblem<dim, Measurement>::forward;
+      using L2WaveProblem<dim, Measurement>::derivative;
+      using L2WaveProblem<dim, Measurement>::forward;
 
       virtual std::unique_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>> derivative(
             size_t i) {
@@ -59,7 +59,8 @@ using L2WaveProblem<dim, Measurement>::forward;
 
       virtual DiscretizedFunction<dim> forward(size_t i) {
          this->wave_equation.set_param_a(this->current_param);
-         this->wave_equation.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(this->right_hand_sides[i]));
+         this->wave_equation.set_right_hand_side(
+               std::make_shared<L2RightHandSide<dim>>(this->right_hand_sides[i]));
          this->wave_equation.set_run_direction(WaveEquation<dim>::Forward);
 
          DiscretizedFunction<dim> res = this->wave_equation.run();

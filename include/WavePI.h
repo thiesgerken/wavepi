@@ -47,16 +47,10 @@ class WavePI {
        * @param measures Measures to use for the right hand sides, due to templating this class cannot instantiate them itself
        */
       WavePI(std::shared_ptr<SettingsManager> cfg);
-      void initialize_mesh();
 
       void run();
 
-      void initialize_measurements();
-      void initialize_problem();
-      void generate_data();
-
    private:
-
       std::shared_ptr<SettingsManager> cfg;
       std::vector<std::shared_ptr<Measure<Param, Meas>>> measures;
 
@@ -81,6 +75,12 @@ class WavePI {
        * `Point` constructor from three values, neglecting those that are not needed.
        */
       static Point<dim> make_point(double x, double y, double z);
+
+      std::shared_ptr<Measure<Param, Meas>> get_measure(size_t config_idx);
+
+      void initialize_mesh();
+      void initialize_problem();
+      void generate_data();
 };
 
 } /* namespace wavepi */
