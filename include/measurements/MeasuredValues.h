@@ -139,6 +139,11 @@ class MeasuredValues {
 
       void write_pvd(std::string path, std::string filename, std::string name) const;
 
+      /**
+       * Only in 1D: write space + time data as 2D vts file
+       */
+      void write_vts(std::string path, std::string filename, std::string name) const;
+
    private:
       std::shared_ptr<SpaceTimeGrid<dim>> grid;
       std::vector<double> elements;

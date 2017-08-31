@@ -18,6 +18,8 @@
 #include <algorithm>
 #include <cmath>
 #include <random>
+#include <iostream>
+#include <fstream>
 #include <string>
 #include <vector>
 
@@ -45,100 +47,112 @@ MeasuredValues<dim> MeasuredValues<dim>::noise(const MeasuredValues<dim>& like, 
    return res;
 }
 
-template<>
-void MeasuredValues<1>::write_pvd(std::string path, std::string filename, std::string name) const {
-   // TODO
-   AssertThrow(false, ExcNotImplemented());
+template<int dim>
+void MeasuredValues<dim>::write_vts(std::string path, std::string filename, std::string name) const {
+   // currently only implemented for structured grids
+   // ( ... and only in 1D )
+   AssertThrow(grid->get_grid_extents().size(), ExcNotImplemented());
+   AssertThrow(dim == 1, ExcInternalError());
+   Assert(grid->size() == elements.size(), ExcInternalError());
 
-   // TODO: in 1D also output as pvd? this as extra?
-   // std::ofstream fvts (path + filename + ".vtu", std::ios::out | std::ios::trunc);
+   std::ofstream fvts(path + filename + ".vts", std::ios::out | std::ios::trunc);
+   auto extents = grid->get_grid_extents();
+   auto times = grid->get_times();
 
-   //    int pointsSpace = pow_d(m.opt.opt.nbSpace);
-   //    int extentX, extentY;
-   //    extentX = m.opt.opt.nbSpace-1; extentY = m.opt.opt.nbTime-1;
-   //
-   //    fprintf(fvts, "<VTKFile type=\"StructuredGrid\" version=\"1.0\" byte_order=\"LittleEndian\" header_type=\"UInt64\">\n<StructuredGrid WholeExtent=\"0 %i 0 %i 0 %i\">\n<Piece Extent=\"0 %i 0 %i 0 %i\">\n<PointData Scalars=\"u_h\">\n<DataArray type=\"Float64\" Name=\"u_h\" format=\"ascii\">\n", extentX, extentY, 0, extentX, extentY, 0);
-   //
-   //    for (int j=0; j < m.opt.opt.nbTime; j++) {
-   //      for (int i=0; i<pointsSpace; i++) {
-   //        int idx = j*pointsSpace+i;
-   //        fprintf(fvts, "%4.8e ", m.data[midx].sensors[idx]);
-   //      }
-   //    }
-   //
-   //    fprintf(fvts, "\n</DataArray>\n</PointData>\n<CellData>\n</CellData>\n<Points>\n<DataArray type=\"Float64\" Name=\"Points\" NumberOfComponents=\"3\" format=\"ascii\">\n");
-   //
-   //    for (int j=0; j < m.opt.opt.nbTime; j++) {
-   //      REAL t = calculateTime(j);
-   //
-   //      for (int i=0; i<pointsSpace; i++) {
-   //        REAL_D coord; calculateCoordinates(i, m.opt.opt.nbSpace, coord);
-   //        fprintf(fvts, "%4.3f %4.3f 0 ", coord[0], t);
-   //      }
-   //    }
-   //
-   //    fprintf(fvts, "\n</DataArray>\n</Points>\n</Piece>\n</StructuredGrid>\n</VTKFile>\n");
-   //    fclose(fvts);
-   //
+   int extentX = extents[0].size() - 1;
+   int extentY = times.size() - 1;
+   int extentZ = 0;
+
+   fvts << std::fixed
+         << "<VTKFile type=\"StructuredGrid\" version=\"1.0\" byte_order=\"LittleEndian\" header_type=\"UInt64\">"
+         << std::endl << "<StructuredGrid WholeExtent=\"0 " << extentX << " 0 " << extentY << " 0 " << extentZ
+         << "\">" << std::endl << "<Piece Extent=\"0 " << extentX << " 0 " << extentY << " 0 " << extentZ
+         << "\">\n<PointData Scalars=\"" << name << "\"><DataArray type=\"Float64\" Name=\"" << name
+         << "\" format=\"ascii\">";
+
+   fvts.precision(16);
+   fvts << std::scientific;
+
+   for (auto x : elements)
+      fvts << x << " ";
+
+   fvts << "</DataArray></PointData><CellData></CellData>"
+         << "<Points><DataArray type=\"Float64\" Name=\"Points\" NumberOfComponents=\"3\" format=\"ascii\">";
+
+   fvts.precision(6);
+   fvts << std::fixed;
+
+   for (auto p : grid->get_space_time_points())
+      fvts << p(0) << " " << p(1) << " 0 ";
+
+   fvts << "</DataArray></Points></Piece></StructuredGrid></VTKFile>" << std::endl;
+   fvts.close();
 }
 
 template<int dim>
 void MeasuredValues<dim>::write_pvd(std::string path, std::string filename, std::string name) const {
-   // TODO
-   AssertThrow(false, ExcNotImplemented());
+   // currently only implemented for structured grids!
+   AssertThrow(grid->get_grid_extents().size(), ExcNotImplemented());
+   Assert(grid->size() == elements.size(), ExcInternalError());
+   Assert(grid->get_times().size() < 10000, ExcNotImplemented());
+   Assert(0 < dim && dim < 4, ExcNotImplemented());
 
-//    sprintf(path, "%s/%s/data/%s_grid.pvd", outputPath, subdir, title);
-//    FILE *fpvd = fopen(path, "w");
-//
-//    fprintf(fpvd, "<?xml version=\"1.0\"?>\n<VTKFile type=\"Collection\" version=\"0.1\" byte_order=\"LittleEndian\">\n<Collection>\n");
-//
-//    for (int j=0; j < m.opt.opt.nbTime; j++) {
-//      REAL t = calculateTime(j);
-//      fprintf(fpvd, "<DataSet timestep=\"%4.6f\" group=\"\" part=\"0\" file=\"%s%06i_grid.vts\"/>\n", t, title, j);
-//
-//      int pointsSpace = pow_d(m.opt.opt.nbSpace);
-//      sprintf(path, "%s/%s/data/%s%06i_grid.vts", outputPath, subdir, title, j);
-//      FILE *fvts = fopen(path, "w");
-//
-//      int extentX, extentY, extentZ;
-//
-//      #if DIM_OF_WORLD == 1
-//      extentX = m.opt.opt.nbSpace-1; extentY = extentZ = 0;
-//      #elif DIM_OF_WORLD == 2
-//      extentX = extentY = m.opt.opt.nbSpace-1; extentZ = 0;
-//      #elif DIM_OF_WORLD == 3
-//      extentX = extentY = extentZ = m.opt.opt.nbSpace-1;
-//      #endif
-//
-//      fprintf(fvts, "<VTKFile type=\"StructuredGrid\" version=\"1.0\" byte_order=\"LittleEndian\" header_type=\"UInt64\">\n<StructuredGrid WholeExtent=\"0 %i 0 %i 0 %i\">\n<Piece Extent=\"0 %i 0 %i 0 %i\">\n<PointData Scalars=\"u_h\">\n<DataArray type=\"Float64\" Name=\"u_h\" format=\"ascii\">\n", extentX, extentY, extentZ, extentX, extentY, extentZ);
-//
-//      for (int i=0; i<pointsSpace; i++) {
-//        int idx = j*pointsSpace+i;
-//        fprintf(fvts, "%4.8e ", m.data[midx].sensors[idx]);
-//      }
-//
-//      fprintf(fvts, "\n</DataArray>\n</PointData>\n<CellData>\n</CellData>\n<Points>\n<DataArray type=\"Float64\" Name=\"Points\" NumberOfComponents=\"3\" format=\"ascii\">\n");
-//
-//      for (int i=0; i<pointsSpace; i++) {
-//        REAL_D coord; calculateCoordinates(i, m.opt.opt.nbSpace, coord);
-//
-//        #if DIM_OF_WORLD == 1
-//        fprintf(fvts, "%4.3f 0 0 ", coord[0]);
-//        #elif DIM_OF_WORLD == 2
-//        fprintf(fvts, "%4.3f %4.3f 0 ", coord[0], coord[1]);
-//        #elif DIM_OF_WORLD == 3
-//        fprintf(fvts, "%4.3f %4.3f %4.3f ", coord[0], coord[1], coord[2]);
-//        #endif
-//      }
-//
-//      fprintf(fvts, "\n</DataArray>\n</Points>\n</Piece>\n</StructuredGrid>\n</VTKFile>\n");
-//      fclose(fvts);
-//    }
-//
-//    fprintf(fpvd, "</Collection>\n</VTKFile>\n");
-//    fclose(fpvd);
+   if (dim == 1)
+      write_vts(path, filename, name);
+
+   auto extents = grid->get_grid_extents();
+   auto times = grid->get_times();
+
+   size_t extentX = extents[0].size() - 1;
+   size_t extentY = dim > 1 ? extents[1].size() - 1 : 0;
+   size_t extentZ = dim > 2 ? extents[2].size() - 1 : 0;
+   size_t nb_spatial_points = grid->get_points()[0].size();
+
+   std::ofstream fpvd(path + filename + ".pvd", std::ios::out | std::ios::trunc);
+   fpvd.precision(8);
+   fpvd << std::fixed << "<?xml version=\"1.0\"?>" << std::endl
+         << "<VTKFile type=\"Collection\" version=\"0.1\" byte_order=\"LittleEndian\">" << std::endl
+         << "<Collection>";
+
+   for (size_t ti = 0; ti < times.size(); ti++) {
+      fpvd << "<DataSet timestep=\"" << times[ti] << "\" group=\"\" part=\"0\" file=\"" << filename
+            << Utilities::to_string(ti, 4) << ".vts\"/>" << std::endl;
+
+      std::ofstream fvts(path + filename + Utilities::to_string(ti, 4) + ".vts",
+            std::ios::out | std::ios::trunc);
+
+      fvts << std::fixed
+            << "<VTKFile type=\"StructuredGrid\" version=\"1.0\" byte_order=\"LittleEndian\" header_type=\"UInt64\">"
+            << std::endl << "<StructuredGrid WholeExtent=\"0 " << extentX << " 0 " << extentY << " 0 "
+            << extentZ << "\">" << std::endl << "<Piece Extent=\"0 " << extentX << " 0 " << extentY << " 0 "
+            << extentZ << "\">" << std::endl << "<PointData Scalars=\"" << name << "\">" << std::endl
+            << "<DataArray type=\"Float64\" Name=\"" << name << "\" format=\"ascii\">" << std::endl;
+
+      fvts.precision(16);
+      fvts << std::scientific;
+
+      for (size_t i = 0; i < nb_spatial_points; i++)
+         fvts << elements[nb_spatial_points * ti + i] << " ";
+
+      fvts << std::endl << "</DataArray>" << std::endl << "</PointData>" << std::endl
+            << "<CellData></CellData>" << std::endl << "<Points>" << std::endl
+            << "<DataArray type=\"Float64\" Name=\"Points\" NumberOfComponents=\"3\" format=\"ascii\">"
+            << std::endl;
+
+      fvts.precision(6);
+      fvts << std::fixed;
+
+      for (auto p : grid->get_points()[ti])
+         fvts << p(0) << " " << (dim > 1 ? p(1) : 0.0) << " " << (dim > 2 ? p(2) : 0.0) << " ";
+
+      fvts << std::endl << "</DataArray>" << std::endl << "</Points>" << std::endl << "</Piece>" << std::endl
+            << "</StructuredGrid>" << std::endl << "</VTKFile>" << std::endl;
+      fvts.close();
+   }
+
+   fpvd << "</Collection>" << std::endl << "</VTKFile>" << std::endl;
+   fpvd.close();
 }
-
 
 template class MeasuredValues<1> ;
 template class MeasuredValues<2> ;

@@ -83,7 +83,7 @@ template<int dim>
 GridPointMeasure<dim>::GridPointMeasure(
       const std::vector<double> &times, const std::vector<std::vector<double>> &spatial_points,
       std::shared_ptr<Function<dim>> delta_shape, double delta_scale_space, double delta_scale_time)
-      : PointMeasure<dim>(SpaceTimeGrid<dim>::make_grid(times, spatial_points), delta_shape, delta_scale_space,
+      : PointMeasure<dim>(std::make_shared<SpaceTimeGrid<dim>>(times, spatial_points), delta_shape, delta_scale_space,
             delta_scale_time) {
 }
 
@@ -126,7 +126,7 @@ void GridPointMeasure<dim>::get_parameters(ParameterHandler &prm) {
          spatial_points.emplace_back(make_points(prm.get("points z")));
 
       auto temporal_points = make_points(prm.get("points t"), true);
-      this->set_measurement_points(SpaceTimeGrid<dim>::make_grid(temporal_points, spatial_points));
+      this->set_measurement_points(std::make_shared<SpaceTimeGrid<dim>>(temporal_points, spatial_points));
       PointMeasure<dim>::get_parameters(prm);
    }
    prm.leave_subsection();
