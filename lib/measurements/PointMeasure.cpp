@@ -52,7 +52,7 @@ void PointMeasure<dim>::copy_local_to_global(const std::vector<std::pair<size_t,
 
 template<int dim>
 void PointMeasure<dim>::local_add_contributions(const std::vector<std::pair<size_t, double>> &jobs,
-      Vector<double> &u, const double time, const typename DoFHandler<dim>::active_cell_iterator &cell,
+      const Vector<double> &u, double time, const typename DoFHandler<dim>::active_cell_iterator &cell,
       AssemblyScratchData &scratch_data, AssemblyCopyData &copy_data) const {
    const unsigned int dofs_per_cell = scratch_data.fe_values.get_fe().dofs_per_cell;
    const unsigned int n_q_points = scratch_data.fe_values.get_quadrature().size();
@@ -168,7 +168,7 @@ void PointMeasure<dim>::declare_parameters(ParameterHandler &prm) {
             "scaling of shape function in time variable");
       prm.declare_entry("shape", "max(sqrt(3)*(1-norm{x|y|z}), 0) * if(t < 1, sqrt(3)*(1-t), 0)",
             Patterns::Anything(),
-            "shape of the delta approximating function, operating on variablet. has to have support in [-1,1]^{dim+1}.");
+            "shape of the delta approximating function. Has to have support in [-1,1]^{dim+1}.");
    }
    prm.leave_subsection();
 }

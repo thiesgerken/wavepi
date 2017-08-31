@@ -107,8 +107,8 @@ class PointMeasure: public Measure<DiscretizedFunction<dim>, MeasuredValues<dim>
       void copy_local_to_global(const std::vector<std::pair<size_t, double>> &jobs, MeasuredValues<dim> &dest,
             const AssemblyCopyData &copy_data) const;
 
-      void local_add_contributions(const std::vector<std::pair<size_t, double>> &jobs, Vector<double> &u,
-            const double time, const typename DoFHandler<dim>::active_cell_iterator &cell,
+      void local_add_contributions(const std::vector<std::pair<size_t, double>> &jobs, const Vector<double> &u,
+            double time, const typename DoFHandler<dim>::active_cell_iterator &cell,
             AssemblyScratchData &scratch_data, AssemblyCopyData &copy_data) const;
 
 };
