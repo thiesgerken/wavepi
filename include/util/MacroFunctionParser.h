@@ -30,10 +30,10 @@ class MacroFunctionParser: public FunctionParser<dim> {
    public:
       virtual ~MacroFunctionParser() = default;
 
-      MacroFunctionParser(const std::string & expression, const std::map<std::string, double> & constants);
+      MacroFunctionParser(const std::string & expression, const std::map<std::string, double> & constants, bool last_is_time = false);
 
       MacroFunctionParser(const std::vector<std::string> & expressions,
-            const std::map<std::string, double> & constants);
+            const std::map<std::string, double> & constants, bool last_is_time = false);
 
    private:
       static const std::string norm_replacement;

@@ -16,7 +16,8 @@
 #include <inversion/NonlinearLandweber.h>
 #include <inversion/REGINN.h>
 
-#include <measurements/Measure.h>
+#include <measurements/GridPointMeasure.h>
+#include <measurements/PointMeasure.h>
 
 #include <SettingsManager.h>
 

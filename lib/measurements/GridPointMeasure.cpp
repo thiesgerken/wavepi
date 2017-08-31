@@ -1,13 +1,13 @@
 /*
- * Measure.cpp
+ * GridPointMeasure.cpp
  *
- *  Created on: 17.08.2017
+ *  Created on: 31.08.2017
  *      Author: thies
  */
 
 #include <deal.II/base/function.h>
 
-#include <measurements/Measure.h>
+#include <measurements/GridPointMeasure.h>
 
 #include <stddef.h>
 #include <cstdio>
@@ -19,72 +19,12 @@ using namespace dealii;
 using namespace wavepi::util;
 using namespace wavepi::forward;
 
-template<int dim> PointMeasure<dim>::PointMeasure(  std::shared_ptr<SpaceTimeGrid<dim>> points, std::shared_ptr<Function<dim>> delta_shape,
+template<int dim>
+GridPointMeasure<dim>::GridPointMeasure(const std::vector<double> &times,
+      const std::vector<std::vector<double>> &spatial_points, std::shared_ptr<Function<dim+1>> delta_shape,
       double delta_scale_space, double delta_scale_time)
-      :  mesh(), measurement_points(points), delta_shape(delta_shape), delta_scale_space(
-            delta_scale_space), delta_scale_time(delta_scale_time) {
-}
-
-template<int dim> PointMeasure<dim>::PointMeasure()
-      : mesh(), measurement_points(), delta_shape(), delta_scale_space(0.0), delta_scale_time(
-            0.0) {
-}
-
-template<int dim> MeasuredValues<dim> PointMeasure<dim>::evaluate(const DiscretizedFunction<dim>& field) {
-   AssertThrow(          delta_shape && delta_scale_space > 0 && delta_scale_time > 0
-         && measurement_points  && measurement_points->size() > 0, ExcNotInitialized());
-   this->mesh = field.get_mesh();
-
-   // TODO: Implement, probably also needs class members for shape of delta approx and its size.
-   AssertThrow(false, ExcNotImplemented());
-}
-
-template<int dim> DiscretizedFunction<dim> PointMeasure<dim>::adjoint(
-      const MeasuredValues<dim>& measurements) {
-   AssertThrow(
-         mesh && delta_shape && delta_scale_space > 0 && delta_scale_time > 0
-               && measurement_points && measurement_points->size() > 0, ExcNotInitialized());
-
-   // TODO: Implement
-   AssertThrow(false, ExcNotImplemented());
-}
-
-template<int dim>
-void PointMeasure<dim>::declare_parameters(ParameterHandler &prm) {
-   prm.enter_subsection("PointMeasure");
-   {
-      prm.declare_entry("radius space", "0.1", Patterns::Double(0),
-            "scaling of shape function in spatial variables");
-      prm.declare_entry("radius time", "0.1", Patterns::Double(0),
-            "scaling of shape function in time variable");
-      prm.declare_entry("shape", "if(r < 1, sqrt(3)*(1-r), 0) * if(t < 1, sqrt(3)*(1-t), 0)",
-            Patterns::Anything(),
-            "shape of the delta approximating function, operating on variables r and t. has to have support in [0,1]^2.");
-   }
-   prm.leave_subsection();
-}
-
-template<int dim>
-void PointMeasure<dim>::get_parameters(ParameterHandler &prm) {
-   prm.enter_subsection("PointMeasure");
-   {
-      delta_shape = std::make_shared<RadialParsedFunction<dim>>(prm.get("shape"));
-
-      delta_scale_space = prm.get_double("radius space");
-      delta_scale_time = prm.get_double("radius time");
-
-      AssertThrow(delta_scale_space * delta_scale_time > 0.0,
-            ExcMessage("sensor radii in time and space have to be positive!"));
-   }
-   prm.leave_subsection();
-}
-
-template<int dim>
-GridPointMeasure<dim>::GridPointMeasure(
-      const std::vector<double> &times, const std::vector<std::vector<double>> &spatial_points,
-      std::shared_ptr<Function<dim>> delta_shape, double delta_scale_space, double delta_scale_time)
-      : PointMeasure<dim>(std::make_shared<SpaceTimeGrid<dim>>(times, spatial_points), delta_shape, delta_scale_space,
-            delta_scale_time) {
+      : PointMeasure<dim>(std::make_shared<SpaceTimeGrid<dim>>(times, spatial_points), delta_shape,
+            delta_scale_space, delta_scale_time) {
 }
 
 template<int dim>
@@ -164,3 +104,5 @@ template class GridPointMeasure<3> ;
 
 } /* namespace forward */
 } /* namespace wavepi */
+
+

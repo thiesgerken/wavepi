@@ -9,35 +9,36 @@
 #include <deal.II/base/logstream.h>
 #include <deal.II/base/parameter_handler.h>
 #include <deal.II/base/quadrature_lib.h>
+#include <deal.II/base/utilities.h>
 #include <deal.II/fe/fe_q.h>
 #include <deal.II/grid/grid_generator.h>
-#include <deal.II/grid/grid_tools.h>
 #include <deal.II/grid/tria.h>
+#include <deal.II/grid/grid_tools.h>
 
 #include <forward/AdaptiveMesh.h>
-#include <forward/L2RightHandSide.h>
 
 #include <inversion/InversionProgress.h>
 #include <inversion/NonlinearLandweber.h>
 #include <inversion/Regularization.h>
 #include <inversion/REGINN.h>
 
+#include <measurements/GridPointMeasure.h>
+#include <measurements/MeasuredValues.h>
+
 #include <problems/L2AProblem.h>
 #include <problems/L2CProblem.h>
 #include <problems/L2NuProblem.h>
 #include <problems/L2QProblem.h>
 
-#include <measurements/MeasuredValues.h>
+#include <stddef.h>
+#include <tgmath.h>
 
 #include <util/GridTools.h>
-
 #include <WavePI.h>
 
-#include <tgmath.h>
-#include <ccomplex>
 #include <cmath>
 #include <iostream>
-#include <vector>
+#include <string>
 
 namespace wavepi {
 

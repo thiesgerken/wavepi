@@ -1,6 +1,7 @@
 # file(GLOB LIBSOURCES *.cpp)
 SET(LIBSOURCES
-    Measure.cpp 
+    PointMeasure.cpp 
+    GridPointMeasure.cpp 
     MeasuredValues.cpp
    )
     
