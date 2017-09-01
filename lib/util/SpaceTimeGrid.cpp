@@ -15,12 +15,17 @@ SpaceTimeGrid<dim>::SpaceTimeGrid(const std::vector<double> &times,
       const std::vector<std::vector<Point<dim>>> &points)
       : times(times), points(points), grid_extents() {
    AssertThrow(times.size() == points.size(), ExcDimensionMismatch(times.size(), points.size()));
+   make_space_time_points();
+}
 
+template<int dim>
+void SpaceTimeGrid<dim>::make_space_time_points() {
    size_t size_cache = 0;
 
    for (auto x : points)
       size_cache += x.size();
 
+   space_time_points.clear();
    space_time_points.reserve(size_cache);
 
    for (size_t i = 0; i < times.size(); i++)
@@ -54,6 +59,7 @@ SpaceTimeGrid<1>::SpaceTimeGrid(const std::vector<double> &times,
       points[i] = points_per_time;
 
    this->grid_extents = spatial_points;
+   make_space_time_points();
 }
 
 template<>
@@ -76,6 +82,7 @@ SpaceTimeGrid<2>::SpaceTimeGrid(const std::vector<double> &times,
       points[i] = points_per_time;
 
    this->grid_extents = spatial_points;
+   make_space_time_points();
 }
 
 template<>
@@ -100,6 +107,7 @@ SpaceTimeGrid<3>::SpaceTimeGrid(const std::vector<double> &times,
       points[i] = points_per_time;
 
    this->grid_extents = spatial_points;
+   make_space_time_points();
 }
 
 template class SpaceTimeGrid<1> ;

@@ -45,7 +45,7 @@ class GridPointMeasure: public PointMeasure<dim> {
        */
       GridPointMeasure(const std::vector<double> &times,
             const std::vector<std::vector<double>> &spatial_points,
-            std::shared_ptr<Function<dim+1>> delta_shape, double delta_scale_space, double delta_scale_time);
+            std::shared_ptr<LightFunction<dim>> delta_shape, double delta_scale_space, double delta_scale_time);
 
       /**
        * Does not initialize most of the values, you have to use `get_parameters` afterwards.

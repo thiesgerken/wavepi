@@ -21,7 +21,7 @@ using namespace wavepi::forward;
 
 template<int dim>
 GridPointMeasure<dim>::GridPointMeasure(const std::vector<double> &times,
-      const std::vector<std::vector<double>> &spatial_points, std::shared_ptr<Function<dim+1>> delta_shape,
+      const std::vector<std::vector<double>> &spatial_points, std::shared_ptr<LightFunction<dim>> delta_shape,
       double delta_scale_space, double delta_scale_time)
       : PointMeasure<dim>(std::make_shared<SpaceTimeGrid<dim>>(times, spatial_points), delta_shape,
             delta_scale_space, delta_scale_time) {
@@ -42,7 +42,7 @@ void GridPointMeasure<dim>::declare_parameters(ParameterHandler &prm) {
             "points for the grid in y-direction. Format: '[lower bound]:[number of points]:[upper bound]'.\n Lower bound and upper bound are exclusive.");
       prm.declare_entry("points z", "-1:10:1", Patterns::Anything(),
             "points for the grid in z-direction. Format: '[lower bound]:[number of points]:[upper bound]'.\n Lower bound and upper bound are exclusive.");
-      prm.declare_entry("points t", "-1:10:1", Patterns::Anything(),
+      prm.declare_entry("points t", "0:10:6", Patterns::Anything(),
             "points for the grid in time. Format: '[lower bound]:[number of points]:[upper bound]'.\n Upper bound is inclusive, lower bound is exclusive iff it equals 0.0.");
 
       PointMeasure<dim>::declare_parameters(prm);
@@ -77,10 +77,10 @@ std::vector<double> GridPointMeasure<dim>::make_points(const std::string descrip
    double lb, ub;
    size_t nb;
 
-   AssertThrow(std::sscanf(description.c_str(), "%*[ ]%lf:%*[ ]%zu:%*[ ]%lf%*[ ]", &lb, &nb, &ub),
+   AssertThrow(std::sscanf(description.c_str(), " %lf : %zu : %lf ", &lb, &nb, &ub) == 3,
          ExcMessage("Could not parse points"));
    AssertThrow((is_time && nb > 1 && lb < ub && lb >= 0.0) || (!is_time && nb >= 1 && lb <= ub),
-         ExcMessage("Illegal interval spec"));
+         ExcMessage("Illegal interval spec: " + description));
 
    std::vector<double> points(nb);
 
@@ -104,5 +104,4 @@ template class GridPointMeasure<3> ;
 
 } /* namespace forward */
 } /* namespace wavepi */
-
 

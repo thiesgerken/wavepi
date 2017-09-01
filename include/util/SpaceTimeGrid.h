@@ -73,6 +73,11 @@ class SpaceTimeGrid {
       std::vector<Point<dim + 1>> space_time_points; // waste of memory, but easier access
 
       std::vector<std::vector<double>> grid_extents;
+
+      /**
+       * Generates `space_time_points` from `times` and `points`.
+       */
+      void make_space_time_points();
 };
 
 } /* namespace measurements */

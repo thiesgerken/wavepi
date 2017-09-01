@@ -60,22 +60,26 @@ void PointMeasure<dim>::local_add_contributions(const std::vector<std::pair<size
    copy_data.cell_values.resize(jobs.size());
    scratch_data.fe_values.reinit(cell);
 
-   std::vector<types::global_dof_index> local_dof_indices;
+   std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
    cell->get_dof_indices(local_dof_indices);
-
-   // TODO: Scale p2 in time and space and values s.t. l2 norm = 1 if it was before
-     AssertThrow(false, ExcNotImplemented());
 
    for (size_t i = 0; i < jobs.size(); ++i) {
       Point<dim + 1> p = (*measurement_points)[jobs[i].first];
-      p(dim) = time - p(dim);
+      p(dim) = (time - p(dim)) / delta_scale_time;
+
+      // TODO: Try interpolated delta shape
+//      Vector<double> tmp;
+//      LightFunctionWrapper wrapper(delta_shape, delta_scale_space, delta_scale_time);
+//      wrapper.set_offset((*measurement_points)[jobs[i].first]);
+//      wrapper.set_time(time);
+//      VectorTools::interpolate(*dof_handler, wrapper, tmp);
 
       for (unsigned int q_point = 0; q_point < n_q_points; ++q_point) {
          Point<dim + 1> p2(p);
          for (size_t d = 0; d < dim; d++)
-            p2(d) = scratch_data.fe_values.quadrature_point(q_point)(d) - p2(d);
+            p2(d) = (scratch_data.fe_values.quadrature_point(q_point)(d) - p2(d)) / delta_scale_space;
 
-         const double val_delta = delta_shape->value(p2);
+         const double val_delta = delta_shape->evaluate(p2);
 
          for (unsigned int k = 0; k < dofs_per_cell; ++k)
             copy_data.cell_values[i] += jobs[i].second * val_delta * u[local_dof_indices[k]]
@@ -85,7 +89,7 @@ void PointMeasure<dim>::local_add_contributions(const std::vector<std::pair<size
 }
 
 template<int dim> PointMeasure<dim>::PointMeasure(std::shared_ptr<SpaceTimeGrid<dim>> points,
-      std::shared_ptr<Function<dim + 1>> delta_shape, double delta_scale_space, double delta_scale_time)
+      std::shared_ptr<LightFunction<dim>> delta_shape, double delta_scale_space, double delta_scale_time)
       : mesh(), measurement_points(points), delta_shape(delta_shape), delta_scale_space(delta_scale_space), delta_scale_time(
             delta_scale_time) {
 }
@@ -94,14 +98,8 @@ template<int dim> PointMeasure<dim>::PointMeasure()
       : mesh(), measurement_points(), delta_shape(), delta_scale_space(0.0), delta_scale_time(0.0) {
 }
 
-template<int dim> MeasuredValues<dim> PointMeasure<dim>::evaluate(const DiscretizedFunction<dim>& field) {
-   AssertThrow(
-         delta_shape && delta_scale_space > 0 && delta_scale_time > 0 && measurement_points
-               && measurement_points->size() > 0, ExcNotInitialized());
-   this->mesh = field.get_mesh();
-
-   // collect jobs so that we have to go through the mesh only once
-   // for each time a list of sensor numbers and factors
+template<int dim>
+std::vector<std::vector<std::pair<size_t, double>>> PointMeasure<dim>::compute_jobs() const {
    std::vector<std::vector<std::pair<size_t, double>>> jobs(mesh->length());
 
    size_t sensor_offset = 0;
@@ -124,6 +122,9 @@ template<int dim> MeasuredValues<dim> PointMeasure<dim>::evaluate(const Discreti
          if (ti + 1 < mesh->get_times().size())
             factor += (mesh->get_time(ti + 1) - t) / 2;
 
+         // norm correction
+         factor *= delta_scale_time * pow(delta_scale_space, dim);
+
          for (size_t msi = 0; msi < measurement_points->get_points()[mti].size(); msi++)
             jobs[ti].emplace_back(msi + sensor_offset, factor);
       }
@@ -131,7 +132,44 @@ template<int dim> MeasuredValues<dim> PointMeasure<dim>::evaluate(const Discreti
       sensor_offset += measurement_points->get_points()[mti].size();
    }
 
+   return jobs;
+}
+
+template<int dim>
+std::vector<std::vector<std::pair<size_t, double>>> PointMeasure<dim>::compute_jobs_adjoint() const {
+   std::vector<std::vector<std::pair<size_t, double>>> jobs(mesh->length());
+
+   size_t sensor_offset = 0;
+   for (size_t mti = 0; mti < measurement_points->get_times().size(); mti++) {
+      double mtime = measurement_points->get_times()[mti];
+
+      for (size_t ti = 0; ti < mesh->get_times().size(); ti++) {
+         double t = mesh->get_time(ti);
+
+         if (t < mtime - delta_scale_time)
+            continue;
+         if (t > mtime + delta_scale_time)
+            break;
+
+         double factor = delta_scale_time * pow(delta_scale_space, dim);
+
+         for (size_t msi = 0; msi < measurement_points->get_points()[mti].size(); msi++)
+            jobs[ti].emplace_back(msi + sensor_offset, factor);
+      }
+
+      sensor_offset += measurement_points->get_points()[mti].size();
+   }
+
+   return jobs;
+}
+
+template<int dim> MeasuredValues<dim> PointMeasure<dim>::evaluate(const DiscretizedFunction<dim>& field) {
+   AssertThrow(delta_shape && delta_scale_space > 0 && delta_scale_time > 0, ExcNotInitialized());
+   AssertThrow(measurement_points && measurement_points->size(), ExcNotInitialized());
+   this->mesh = field.get_mesh();
+
    MeasuredValues<dim> res(measurement_points);
+   auto jobs = compute_jobs();
 
    for (size_t ji = 0; ji < jobs.size(); ji++) {
       auto dof = field.get_mesh()->get_dof_handler(ji);
@@ -150,25 +188,48 @@ template<int dim> MeasuredValues<dim> PointMeasure<dim>::evaluate(const Discreti
 
 template<int dim> DiscretizedFunction<dim> PointMeasure<dim>::adjoint(
       const MeasuredValues<dim>& measurements) {
-   AssertThrow(
-         mesh && delta_shape && delta_scale_space > 0 && delta_scale_time > 0 && measurement_points
-               && measurement_points->size() > 0, ExcNotInitialized());
+   AssertThrow(delta_shape && delta_scale_space > 0 && delta_scale_time > 0, ExcNotInitialized());
+   AssertThrow(mesh && measurement_points && measurement_points->size(), ExcNotInitialized());
 
-   // TODO: Implement
-   AssertThrow(false, ExcNotImplemented());
+   DiscretizedFunction<dim> res(mesh);
+   auto jobs = compute_jobs_adjoint();
+
+   LightFunctionWrapper wrapper(delta_shape, delta_scale_space, delta_scale_time);
+
+   for (size_t ji = 0; ji < jobs.size(); ji++) {
+      auto dof_handler = mesh->get_dof_handler(ji);
+      Vector<double> tmp(dof_handler->n_dofs());
+      wrapper.set_time(mesh->get_time(ji));
+
+      for (size_t i = 0; i < jobs[ji].size(); i++) {
+         size_t sensor_idx = jobs[ji][i].first;
+
+         wrapper.set_offset((*measurement_points)[sensor_idx]);
+
+         tmp = 0.0;
+
+         // interpolate makes sense, if the forward measurement operator also uses the interpolation.
+         // projecting is better if the exact function is integrated, but it also takes much longer.
+         VectorTools::interpolate(*dof_handler, wrapper, tmp);
+         //VectorTools::project(*dof_handler, *mesh->get_constraint_matrix(ji) , mesh->get_quadrature(), wrapper, tmp);
+
+         res.get_function_coefficient(ji).add(jobs[ji][i].second * measurements[sensor_idx], tmp);
+      }
+   }
+
+   return res;
 }
 
 template<int dim>
 void PointMeasure<dim>::declare_parameters(ParameterHandler &prm) {
    prm.enter_subsection("PointMeasure");
    {
-      prm.declare_entry("radius space", "0.1", Patterns::Double(0),
+      prm.declare_entry("radius space", "0.2", Patterns::Double(0),
             "scaling of shape function in spatial variables");
-      prm.declare_entry("radius time", "0.1", Patterns::Double(0),
+      prm.declare_entry("radius time", "0.2", Patterns::Double(0),
             "scaling of shape function in time variable");
-      prm.declare_entry("shape", "max(sqrt(3)*(1-norm{x|y|z}), 0) * if(t < 1, sqrt(3)*(1-t), 0)",
-            Patterns::Anything(),
-            "shape of the delta approximating function. Has to have support in [-1,1]^{dim+1}.");
+      prm.declare_entry("shape", "hat", Patterns::Selection("hat|constant"),
+            "shape of the delta approximating function. ");
    }
    prm.leave_subsection();
 }
@@ -177,8 +238,14 @@ template<int dim>
 void PointMeasure<dim>::get_parameters(ParameterHandler &prm) {
    prm.enter_subsection("PointMeasure");
    {
-      std::map<std::string, double> constants;
-      delta_shape = std::make_shared<MacroFunctionParser<dim + 1>>(prm.get("shape"), constants, true);
+      auto shape_desc = prm.get("shape");
+
+      if (shape_desc == "hat")
+         delta_shape = std::make_shared<HatShape>();
+      else if (shape_desc == "constant")
+         delta_shape = std::make_shared<ConstShape>();
+      else
+         AssertThrow(false, ExcMessage("Unknown delta shape: " + shape_desc));
 
       delta_scale_space = prm.get_double("radius space");
       delta_scale_time = prm.get_double("radius time");

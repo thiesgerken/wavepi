@@ -55,7 +55,6 @@ const std::string MacroFunctionParser<3>::norm_replacement = "sqrt(pow($1,2)+pow
 template class MacroFunctionParser<1> ;
 template class MacroFunctionParser<2> ;
 template class MacroFunctionParser<3> ;
-template class MacroFunctionParser<4> ;
 
 } /* namespace util */
 } /* namespace wavepi */

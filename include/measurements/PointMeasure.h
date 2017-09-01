@@ -33,6 +33,7 @@
 #include <stddef.h>
 
 #include <util/SpaceTimeGrid.h>
+#include <util/LightFunction.h>
 
 #include <list>
 #include <memory>
@@ -60,8 +61,9 @@ class PointMeasure: public Measure<DiscretizedFunction<dim>, MeasuredValues<dim>
        * @param delta_scale_space Desired support radius in space
        * @param delta_scale_time Desired support radius in time
        */
-      PointMeasure(std::shared_ptr<SpaceTimeGrid<dim>> points, std::shared_ptr<Function<dim + 1>> delta_shape,
-            double delta_scale_space, double delta_scale_time);
+      PointMeasure(std::shared_ptr<SpaceTimeGrid<dim>> points,
+            std::shared_ptr<LightFunction<dim>> delta_shape, double delta_scale_space,
+            double delta_scale_time);
 
       /**
        * Does not initialize most of the values, you have to use get_parameters afterwards and use `set_measurement_points`.       *
@@ -86,11 +88,72 @@ class PointMeasure: public Measure<DiscretizedFunction<dim>, MeasuredValues<dim>
          this->measurement_points = measurement_points;
       }
 
+      class HatShape: public LightFunction<dim> {
+         public:
+            virtual ~HatShape() = default;
+
+            virtual double evaluate(const Point<dim + 1> &p) const {
+               double nrm = 0.0;
+               for (size_t i = 0; i < dim; i++)
+                  nrm += p[i] * p[i];
+
+               return std::max(1 - sqrt(nrm), 0.0) * std::max(1 - p[dim], 0.0);
+            }
+      };
+
+      class ConstShape: public LightFunction<dim> {
+         public:
+            virtual ~ConstShape() = default;
+
+            virtual double evaluate(const Point<dim + 1> &p) const {
+               double nrm = 0.0;
+               for (size_t i = 0; i < dim; i++)
+                  nrm += p[i] * p[i];
+
+               return nrm <= 1.0 && p[dim] <= 1.0 && p[dim] >= -1.0 ? 1.0 : 0.0;
+            }
+      };
+
+      class LightFunctionWrapper: public Function<dim> {
+         public:
+            virtual ~LightFunctionWrapper() = default;
+            LightFunctionWrapper(std::shared_ptr<LightFunction<dim>> base, double delta_scale_space,
+                  double delta_scale_time)
+                  : base(base), delta_scale_space(delta_scale_space), delta_scale_time(delta_scale_time) {
+            }
+
+            virtual double value(const Point<dim> & p, const unsigned int component = 0) const {
+               Assert(component == 0, ExcInternalError());
+               Assert(base, ExcInternalError());
+
+               Point<dim + 1> p1;
+
+               p1(dim) = (this->get_time() - offset(dim)) / delta_scale_time;
+
+               for (size_t d = 0; d < dim; d++)
+                  p1(d) = (p(d) - offset(d)) / delta_scale_space;
+
+               return base->evaluate(p1);
+            }
+
+            void set_offset(const Point<dim + 1>& offset) {
+               this->offset = offset;
+            }
+
+         private:
+            std::shared_ptr<LightFunction<dim>> base;
+            double delta_scale_space;
+            double delta_scale_time;
+
+            Point<dim + 1> offset;
+
+      };
+
    protected:
       std::shared_ptr<SpaceTimeMesh<dim>> mesh;
       std::shared_ptr<SpaceTimeGrid<dim>> measurement_points;
+      std::shared_ptr<LightFunction<dim>> delta_shape;
 
-      std::shared_ptr<Function<dim + 1>> delta_shape;
       double delta_scale_space;
       double delta_scale_time;
 
@@ -107,9 +170,21 @@ class PointMeasure: public Measure<DiscretizedFunction<dim>, MeasuredValues<dim>
       void copy_local_to_global(const std::vector<std::pair<size_t, double>> &jobs, MeasuredValues<dim> &dest,
             const AssemblyCopyData &copy_data) const;
 
-      void local_add_contributions(const std::vector<std::pair<size_t, double>> &jobs, const Vector<double> &u,
-            double time, const typename DoFHandler<dim>::active_cell_iterator &cell,
+      void local_add_contributions(const std::vector<std::pair<size_t, double>> &jobs,
+            const Vector<double> &u, double time, const typename DoFHandler<dim>::active_cell_iterator &cell,
             AssemblyScratchData &scratch_data, AssemblyCopyData &copy_data) const;
+
+      /**
+       * collect jobs so that we have to go through the mesh only once
+       * for each time a list of sensor numbers and factors
+       */
+      std::vector<std::vector<std::pair<size_t, double>>> compute_jobs() const;
+
+      /**
+       * Same as `compute_jobs`, but for the adjoint.
+       * (i.e. does not take the time discretization into account)
+       */
+      std::vector<std::vector<std::pair<size_t, double>>> compute_jobs_adjoint() const;
 
 };
 

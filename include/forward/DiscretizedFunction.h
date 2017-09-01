@@ -129,6 +129,16 @@ class DiscretizedFunction: public Function<dim> {
          return function_coefficients[idx];
       }
 
+      inline Vector<double>& get_derivative_coefficient(size_t idx) {
+         Assert(store_derivative, ExcInvalidState());
+
+         return derivative_coefficients[idx];
+      }
+
+      inline Vector<double>& get_function_coefficient(size_t idx) {
+         return function_coefficients[idx];
+      }
+
       // get / set what `norm()` and `*` do.
       Norm get_norm() const;
       void set_norm(Norm norm);

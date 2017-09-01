@@ -50,7 +50,7 @@ using namespace wavepi::util;
 
 template<int dim, typename Meas> WavePI<dim, Meas>::WavePI(std::shared_ptr<SettingsManager> cfg)
       : cfg(cfg) {
-   measures.clear();  \
+   measures.clear();
    for (auto config_idx : cfg->configs)
       measures.push_back(get_measure(config_idx));
 
@@ -81,6 +81,7 @@ template<int dim, typename Meas> Point<dim> WavePI<dim, Meas>::make_point(double
 
 #define get_measure_tuple(D) \
 template<> std::shared_ptr<Measure<DiscretizedFunction<D>, MeasuredValues<D>>> WavePI<D, MeasuredValues<D>>::get_measure(size_t config_idx) { \
+   cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM); \
    cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM_DATA); \
    cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM_DATA_I + Utilities::int_to_string(config_idx, 1)); \
    std::shared_ptr<Measure<Param, MeasuredValues<D>>> measure; \
@@ -92,6 +93,7 @@ template<> std::shared_ptr<Measure<DiscretizedFunction<D>, MeasuredValues<D>>> W
       AssertThrow(false, ExcInternalError()); \
    cfg->prm->leave_subsection(); \
    cfg->prm->leave_subsection(); \
+   cfg->prm->leave_subsection(); \
    return measure; \
 }
 
@@ -101,6 +103,7 @@ get_measure_tuple(3)
 
 #define get_measure_cont(D) \
 template<> std::shared_ptr<Measure<DiscretizedFunction<D>, DiscretizedFunction<D>>> WavePI<D, DiscretizedFunction<D>>::get_measure(size_t config_idx) { \
+   cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM); \
    cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM_DATA); \
    cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM_DATA_I + Utilities::int_to_string(config_idx, 1)); \
    std::shared_ptr<Measure<Param, DiscretizedFunction<D>>> measure; \
@@ -110,13 +113,13 @@ template<> std::shared_ptr<Measure<DiscretizedFunction<D>, DiscretizedFunction<D
       AssertThrow(false, ExcInternalError()); \
    cfg->prm->leave_subsection(); \
    cfg->prm->leave_subsection(); \
+   cfg->prm->leave_subsection(); \
    return measure; \
 }
 
 get_measure_cont(1)
 get_measure_cont(2)
 get_measure_cont(3)
-
 
 template<int dim, typename Meas> void WavePI<dim, Meas>::initialize_mesh() {
    LogStream::Prefix p("initialize_mesh");
@@ -180,8 +183,6 @@ template<int dim, typename Meas> void WavePI<dim, Meas>::initialize_mesh() {
          << std::endl;
    deallog << "cell diameters: minimal = " << dealii::GridTools::minimal_cell_diameter(*triangulation)
          << std::endl;
-   deallog << "                average = "
-         << 10.0 * sqrt((double) dim) / pow(triangulation->n_active_cells(), 1.0 / dim) << std::endl;
    deallog << "                maximal = " << dealii::GridTools::maximal_cell_diameter(*triangulation)
          << std::endl;
    deallog << "dt: " << cfg->dt << std::endl;

@@ -96,10 +96,10 @@ std::shared_ptr<SparseMatrix<double>> AdaptiveMesh<dim>::get_mass_matrix(size_t 
    Assert(idx >= 0 && idx < this->length(), ExcIndexRange(idx, 0, this->length()));
 
    if (!mass_matrices[idx]) {
-      {
-         LogStream::Prefix p("AdaptiveMesh");
-         deallog << "making mass matrix for time step " << idx << std::endl;
-      }
+      //{
+      //   LogStream::Prefix p("AdaptiveMesh");
+      //   deallog << "making mass matrix for time step " << idx << std::endl;
+      //}
 
       get_sparsity_pattern(idx);
       get_dof_handler(idx);
@@ -115,10 +115,10 @@ template<int dim> std::shared_ptr<SparsityPattern> AdaptiveMesh<dim>::get_sparsi
    Assert(idx >= 0 && idx < this->length(), ExcIndexRange(idx, 0, this->length()));
 
    if (!sparsity_patterns[idx]) {
-      {
-         LogStream::Prefix p("AdaptiveMesh");
-         deallog << "making sparsity pattern for time step " << idx << std::endl;
-      }
+      //{
+      //   LogStream::Prefix p("AdaptiveMesh");
+      //   deallog << "making sparsity pattern for time step " << idx << std::endl;
+      //}
 
       get_constraint_matrix(idx);
       get_dof_handler(idx);

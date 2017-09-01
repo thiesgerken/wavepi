@@ -60,11 +60,11 @@ const std::string SettingsManager::KEY_PROBLEM_PARAM_Q = "parameter q";
 const std::string SettingsManager::KEY_PROBLEM_PARAM_C = "parameter c";
 const std::string SettingsManager::KEY_PROBLEM_PARAM_NU = "parameter nu";
 
-const std::string SettingsManager::KEY_PROBLEM_DATA = "measurement configurations";
+const std::string SettingsManager::KEY_PROBLEM_DATA = "data";
 const std::string SettingsManager::KEY_PROBLEM_DATA_COUNT = "number of right hand sides";
 const std::string SettingsManager::KEY_PROBLEM_DATA_RHS = "right hand sides";
 const std::string SettingsManager::KEY_PROBLEM_DATA_CONFIG = "configurations";
-const std::string SettingsManager::KEY_PROBLEM_DATA_I = "configuration "; // + number
+const std::string SettingsManager::KEY_PROBLEM_DATA_I = "config "; // + number
 const std::string SettingsManager::KEY_PROBLEM_DATA_I_MEASURE = "measure";
 
 const std::string SettingsManager::KEY_INVERSION = "inversion";
@@ -94,7 +94,7 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
    prm->enter_subsection(KEY_MESH);
    {
       prm->declare_entry(KEY_MESH_END_TIME, "6", Patterns::Double(0), "time horizon T");
-      prm->declare_entry(KEY_MESH_INITIAL_REFINES, "4", Patterns::Integer(0),
+      prm->declare_entry(KEY_MESH_INITIAL_REFINES, "5", Patterns::Integer(0),
             "refines of the (initial) spatial grid");
       prm->declare_entry(KEY_MESH_INITIAL_TIME_STEPS, "256", Patterns::Integer(2),
             "(initial) number of time steps");
@@ -104,7 +104,7 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
          prm->declare_entry(KEY_MESH_SHAPE_GENERATOR, "hyper_cube",
                Patterns::Selection("hyper_cube|hyper_L|hyper_ball|cheese"),
                "generator for the triangulation");
-         prm->declare_entry(KEY_MESH_SHAPE_OPTIONS, "left=-5.0, right=5.0", Patterns::Anything(),
+         prm->declare_entry(KEY_MESH_SHAPE_OPTIONS, "left=-1.0, right=1.0", Patterns::Anything(),
                "options for the generator, in the form `var1=value1, var2=value2, ...`.\n Available options: left, right for hyper_cube and hyper_L, center_{x,y,z} and radius for hyper_cube, scale for cheese.");
       }
       prm->leave_subsection();
@@ -140,7 +140,7 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
             prm->enter_subsection(KEY_PROBLEM_DATA_I + Utilities::int_to_string(i, 1));
 
             GridPointMeasure<2>::declare_parameters(*prm);
-            prm->declare_entry(KEY_PROBLEM_DATA_I_MEASURE, "Identical", Patterns::Selection("Identical|Grid"),
+            prm->declare_entry(KEY_PROBLEM_DATA_I_MEASURE, "Grid", Patterns::Selection("Identical|Grid"),
                   "type of measurements");
 
             prm->leave_subsection();
