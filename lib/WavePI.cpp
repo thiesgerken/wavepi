@@ -149,41 +149,40 @@ template<int dim, typename Meas> void WavePI<dim, Meas>::initialize_mesh() {
    wavepi::util::GridTools::set_all_boundary_ids(*triangulation, 0);
    triangulation->refine_global(cfg->initial_refines);
 
-   //   mesh = std::make_shared<AdaptiveMesh<dim>>(times, FE_Q<dim>(fe_degree), QGauss<dim>(quad_order),
-   //         triangulation);
-
-   auto a_mesh = std::make_shared<AdaptiveMesh<dim>>(cfg->times, FE_Q<dim>(cfg->fe_degree),
+   mesh = std::make_shared<AdaptiveMesh<dim>>(cfg->times, FE_Q<dim>(cfg->fe_degree),
          QGauss<dim>(cfg->quad_order), triangulation);
 
-   mesh = a_mesh;
+   //auto a_mesh = std::make_shared<AdaptiveMesh<dim>>(cfg->times, FE_Q<dim>(cfg->fe_degree),
+   //      QGauss<dim>(cfg->quad_order), triangulation);
+   //
+   //mesh = a_mesh;
 
-   // TEST: flag some cells for refinement, and refine them in some step
-   {
-      LogStream::Prefix pd("TEST");
-      for (auto cell : triangulation->active_cell_iterators())
-         if (cell->center()[1] > 0)
-            cell->set_refine_flag();
-
-      std::vector<bool> ref;
-      std::vector<bool> coa;
-
-      triangulation->save_refine_flags(ref);
-      triangulation->save_coarsen_flags(coa);
-
-      std::vector<Patch> patches = a_mesh->get_forward_patches();
-      patches[cfg->initial_time_steps / 2].emplace_back(ref, coa);
-
-      a_mesh->set_forward_patches(patches);
-
-      mesh->get_dof_handler(0);
-   }
+   //// TEST: flag some cells for refinement, and refine them in some step
+   //{
+   //   LogStream::Prefix pd("TEST");
+   //   for (auto cell : triangulation->active_cell_iterators())
+   //      if (cell->center()[1] > 0)
+   //         cell->set_refine_flag();
+   //
+   //   std::vector<bool> ref;
+   //   std::vector<bool> coa;
+   //
+   //   triangulation->save_refine_flags(ref);
+   //   triangulation->save_coarsen_flags(coa);
+   //
+   //   std::vector<Patch> patches = a_mesh->get_forward_patches();
+   //   patches[cfg->initial_time_steps / 2].emplace_back(ref, coa);
+   //
+   //   a_mesh->set_forward_patches(patches);
+   //
+   //   mesh->get_dof_handler(0);
+   //}
 
    deallog << "Number of active cells: " << triangulation->n_active_cells() << std::endl;
    deallog << "Number of degrees of freedom in the first spatial mesh: " << mesh->get_dof_handler(0)->n_dofs()
          << std::endl;
    deallog << "cell diameters: minimal = " << dealii::GridTools::minimal_cell_diameter(*triangulation);
-   deallog << ", maximal = " << dealii::GridTools::maximal_cell_diameter(*triangulation)
-         << std::endl;
+   deallog << ", maximal = " << dealii::GridTools::maximal_cell_diameter(*triangulation) << std::endl;
    deallog << "dt: " << cfg->dt << std::endl;
 }
 

@@ -31,48 +31,6 @@ using namespace dealii;
 using namespace wavepi::util;
 using namespace wavepi::forward;
 
-template<int dim>
-PointMeasure<dim>::AssemblyScratchData::AssemblyScratchData(const FiniteElement<dim> &fe,
-      const Quadrature<dim> &quad)
-      : fe_values(fe, quad, update_values | update_quadrature_points | update_JxW_values) {
-}
-
-template<int dim>
-PointMeasure<dim>::AssemblyScratchData::AssemblyScratchData(const AssemblyScratchData &scratch_data)
-      : fe_values(scratch_data.fe_values.get_fe(), scratch_data.fe_values.get_quadrature(),
-            update_values | update_quadrature_points | update_JxW_values) {
-}
-
-template<int dim>
-void PointMeasure<dim>::copy_local_to_global(const std::vector<std::pair<size_t, double>> &jobs,
-      MeasuredValues<dim> &dest, const AssemblyCopyData &copy_data) const {
-   for (size_t i = 0; i < jobs.size(); ++i)
-      dest[jobs[i].first] += copy_data.cell_values[i];
-}
-
-template<int dim>
-void PointMeasure<dim>::local_add_contributions(const std::vector<std::pair<size_t, double>> &jobs,
-      const std::vector<Vector<double>> &shapes, const Vector<double> &u, double time,
-      const typename DoFHandler<dim>::active_cell_iterator &cell, AssemblyScratchData &scratch_data,
-      AssemblyCopyData &copy_data) const {
-   const unsigned int dofs_per_cell = scratch_data.fe_values.get_fe().dofs_per_cell;
-   const unsigned int n_q_points = scratch_data.fe_values.get_quadrature().size();
-
-   copy_data.cell_values = std::vector<double>(jobs.size());
-   scratch_data.fe_values.reinit(cell);
-
-   std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
-   cell->get_dof_indices(local_dof_indices);
-
-   for (size_t i = 0; i < jobs.size(); ++i)
-      for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
-         for (unsigned int k = 0; k < dofs_per_cell; ++k)
-            for (unsigned int l = 0; l < dofs_per_cell; ++l)
-               copy_data.cell_values[i] += jobs[i].second * shapes[i][local_dof_indices[l]]
-                     * u[local_dof_indices[k]] * scratch_data.fe_values.shape_value(l, q_point)
-                     * scratch_data.fe_values.shape_value(k, q_point) * scratch_data.fe_values.JxW(q_point);
-}
-
 template<int dim> PointMeasure<dim>::PointMeasure(std::shared_ptr<SpaceTimeGrid<dim>> points,
       std::shared_ptr<LightFunction<dim>> delta_shape, double delta_scale_space, double delta_scale_time)
       : mesh(), measurement_points(points), delta_shape(delta_shape), delta_scale_space(delta_scale_space), delta_scale_time(
@@ -125,31 +83,26 @@ template<int dim> MeasuredValues<dim> PointMeasure<dim>::evaluate(const Discreti
    AssertThrow(measurement_points && measurement_points->size(), ExcNotInitialized());
    this->mesh = field.get_mesh();
 
+   LightFunctionWrapper wrapper(delta_shape, delta_scale_space, delta_scale_time);
    MeasuredValues<dim> res(measurement_points);
    auto jobs = compute_jobs();
 
    for (size_t ji = 0; ji < jobs.size(); ji++) {
       auto dof = field.get_mesh()->get_dof_handler(ji);
+      Vector<double> interp_shape(dof->n_dofs());
 
-      // interpolate delta shapes
-      std::vector<Vector<double>> interp_shapes(jobs[ji].size());
-      LightFunctionWrapper wrapper(delta_shape, delta_scale_space, delta_scale_time);
       wrapper.set_time(mesh->get_time(ji));
 
       for (size_t k = 0; k < jobs[ji].size(); k++) {
          wrapper.set_offset((*measurement_points)[jobs[ji][k].first]);
-         interp_shapes[k].reinit(dof->n_dofs());
-         VectorTools::interpolate(*dof, wrapper, interp_shapes[k]);
-      }
 
-      // one could also do this by just multiplying with mass matrices, idk what is faster
-      WorkStream::run(dof->begin_active(), dof->end(),
-            std::bind(&PointMeasure<dim>::local_add_contributions, *this, std::ref(jobs[ji]), interp_shapes,
-                  std::ref(field.get_function_coefficient(ji)), mesh->get_time(ji), std::placeholders::_1,
-                  std::placeholders::_2, std::placeholders::_3),
-            std::bind(&PointMeasure<dim>::copy_local_to_global, *this, std::ref(jobs[ji]), std::ref(res),
-                  std::placeholders::_1), AssemblyScratchData(dof->get_fe(), mesh->get_quadrature()),
-            AssemblyCopyData());
+         interp_shape = 0.0;
+         VectorTools::interpolate(*dof, wrapper, interp_shape);
+
+         res[jobs[ji][k].first] += jobs[ji][k].second
+               * mesh->get_mass_matrix(ji)->matrix_scalar_product(interp_shape,
+                     field.get_function_coefficient(ji));
+      }
    }
 
    return res;

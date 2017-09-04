@@ -157,24 +157,6 @@ class PointMeasure: public Measure<DiscretizedFunction<dim>, MeasuredValues<dim>
       double delta_scale_space;
       double delta_scale_time;
 
-      struct AssemblyScratchData {
-            AssemblyScratchData(const FiniteElement<dim> &fe, const Quadrature<dim> &quad);
-            AssemblyScratchData(const AssemblyScratchData &scratch_data);
-            FEValues<dim> fe_values;
-      };
-
-      struct AssemblyCopyData {
-            std::vector<double> cell_values;
-      };
-
-      void copy_local_to_global(const std::vector<std::pair<size_t, double>> &jobs, MeasuredValues<dim> &dest,
-            const AssemblyCopyData &copy_data) const;
-
-      void local_add_contributions(const std::vector<std::pair<size_t, double>> &jobs,
-            const std::vector<Vector<double>> &shapes, const Vector<double> &u, double time,
-            const typename DoFHandler<dim>::active_cell_iterator &cell, AssemblyScratchData &scratch_data,
-            AssemblyCopyData &copy_data) const;
-
       /**
        * collect jobs so that we have to go through the mesh only once
        * for each time a list of sensor numbers and factors
