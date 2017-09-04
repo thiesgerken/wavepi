@@ -52,40 +52,25 @@ void PointMeasure<dim>::copy_local_to_global(const std::vector<std::pair<size_t,
 
 template<int dim>
 void PointMeasure<dim>::local_add_contributions(const std::vector<std::pair<size_t, double>> &jobs,
-      const Vector<double> &u, double time, const typename DoFHandler<dim>::active_cell_iterator &cell,
-      AssemblyScratchData &scratch_data, AssemblyCopyData &copy_data) const {
+      const std::vector<Vector<double>> &shapes, const Vector<double> &u, double time,
+      const typename DoFHandler<dim>::active_cell_iterator &cell, AssemblyScratchData &scratch_data,
+      AssemblyCopyData &copy_data) const {
    const unsigned int dofs_per_cell = scratch_data.fe_values.get_fe().dofs_per_cell;
    const unsigned int n_q_points = scratch_data.fe_values.get_quadrature().size();
 
-   copy_data.cell_values.resize(jobs.size());
+   copy_data.cell_values = std::vector<double>(jobs.size());
    scratch_data.fe_values.reinit(cell);
 
    std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
    cell->get_dof_indices(local_dof_indices);
 
-   for (size_t i = 0; i < jobs.size(); ++i) {
-      Point<dim + 1> p = (*measurement_points)[jobs[i].first];
-      p(dim) = (time - p(dim)) / delta_scale_time;
-
-      // TODO: Try interpolated delta shape
-//      Vector<double> tmp;
-//      LightFunctionWrapper wrapper(delta_shape, delta_scale_space, delta_scale_time);
-//      wrapper.set_offset((*measurement_points)[jobs[i].first]);
-//      wrapper.set_time(time);
-//      VectorTools::interpolate(*dof_handler, wrapper, tmp);
-
-      for (unsigned int q_point = 0; q_point < n_q_points; ++q_point) {
-         Point<dim + 1> p2(p);
-         for (size_t d = 0; d < dim; d++)
-            p2(d) = (scratch_data.fe_values.quadrature_point(q_point)(d) - p2(d)) / delta_scale_space;
-
-         const double val_delta = delta_shape->evaluate(p2);
-
+   for (size_t i = 0; i < jobs.size(); ++i)
+      for (unsigned int q_point = 0; q_point < n_q_points; ++q_point)
          for (unsigned int k = 0; k < dofs_per_cell; ++k)
-            copy_data.cell_values[i] += jobs[i].second * val_delta * u[local_dof_indices[k]]
-                  * scratch_data.fe_values.shape_value(k, q_point) * scratch_data.fe_values.JxW(q_point);
-      }
-   }
+            for (unsigned int l = 0; l < dofs_per_cell; ++l)
+               copy_data.cell_values[i] += jobs[i].second * shapes[i][local_dof_indices[l]]
+                     * u[local_dof_indices[k]] * scratch_data.fe_values.shape_value(l, q_point)
+                     * scratch_data.fe_values.shape_value(k, q_point) * scratch_data.fe_values.JxW(q_point);
 }
 
 template<int dim> PointMeasure<dim>::PointMeasure(std::shared_ptr<SpaceTimeGrid<dim>> points,
@@ -135,34 +120,6 @@ std::vector<std::vector<std::pair<size_t, double>>> PointMeasure<dim>::compute_j
    return jobs;
 }
 
-template<int dim>
-std::vector<std::vector<std::pair<size_t, double>>> PointMeasure<dim>::compute_jobs_adjoint() const {
-   std::vector<std::vector<std::pair<size_t, double>>> jobs(mesh->length());
-
-   size_t sensor_offset = 0;
-   for (size_t mti = 0; mti < measurement_points->get_times().size(); mti++) {
-      double mtime = measurement_points->get_times()[mti];
-
-      for (size_t ti = 0; ti < mesh->get_times().size(); ti++) {
-         double t = mesh->get_time(ti);
-
-         if (t < mtime - delta_scale_time)
-            continue;
-         if (t > mtime + delta_scale_time)
-            break;
-
-         double factor = delta_scale_time * pow(delta_scale_space, dim);
-
-         for (size_t msi = 0; msi < measurement_points->get_points()[mti].size(); msi++)
-            jobs[ti].emplace_back(msi + sensor_offset, factor);
-      }
-
-      sensor_offset += measurement_points->get_points()[mti].size();
-   }
-
-   return jobs;
-}
-
 template<int dim> MeasuredValues<dim> PointMeasure<dim>::evaluate(const DiscretizedFunction<dim>& field) {
    AssertThrow(delta_shape && delta_scale_space > 0 && delta_scale_time > 0, ExcNotInitialized());
    AssertThrow(measurement_points && measurement_points->size(), ExcNotInitialized());
@@ -174,8 +131,20 @@ template<int dim> MeasuredValues<dim> PointMeasure<dim>::evaluate(const Discreti
    for (size_t ji = 0; ji < jobs.size(); ji++) {
       auto dof = field.get_mesh()->get_dof_handler(ji);
 
+      // interpolate delta shapes
+      std::vector<Vector<double>> interp_shapes(jobs[ji].size());
+      LightFunctionWrapper wrapper(delta_shape, delta_scale_space, delta_scale_time);
+      wrapper.set_time(mesh->get_time(ji));
+
+      for (size_t k = 0; k < jobs[ji].size(); k++) {
+         wrapper.set_offset((*measurement_points)[jobs[ji][k].first]);
+         interp_shapes[k].reinit(dof->n_dofs());
+         VectorTools::interpolate(*dof, wrapper, interp_shapes[k]);
+      }
+
+      // one could also do this by just multiplying with mass matrices, idk what is faster
       WorkStream::run(dof->begin_active(), dof->end(),
-            std::bind(&PointMeasure<dim>::local_add_contributions, *this, std::ref(jobs[ji]),
+            std::bind(&PointMeasure<dim>::local_add_contributions, *this, std::ref(jobs[ji]), interp_shapes,
                   std::ref(field.get_function_coefficient(ji)), mesh->get_time(ji), std::placeholders::_1,
                   std::placeholders::_2, std::placeholders::_3),
             std::bind(&PointMeasure<dim>::copy_local_to_global, *this, std::ref(jobs[ji]), std::ref(res),
@@ -192,14 +161,14 @@ template<int dim> DiscretizedFunction<dim> PointMeasure<dim>::adjoint(
    AssertThrow(mesh && measurement_points && measurement_points->size(), ExcNotInitialized());
 
    DiscretizedFunction<dim> res(mesh);
-   auto jobs = compute_jobs_adjoint();
+   auto jobs = compute_jobs();
 
    LightFunctionWrapper wrapper(delta_shape, delta_scale_space, delta_scale_time);
 
    for (size_t ji = 0; ji < jobs.size(); ji++) {
       auto dof_handler = mesh->get_dof_handler(ji);
-      Vector<double> tmp(dof_handler->n_dofs());
       wrapper.set_time(mesh->get_time(ji));
+      Vector<double> tmp(dof_handler->n_dofs());
 
       for (size_t i = 0; i < jobs[ji].size(); i++) {
          size_t sensor_idx = jobs[ji][i].first;
@@ -208,14 +177,15 @@ template<int dim> DiscretizedFunction<dim> PointMeasure<dim>::adjoint(
 
          tmp = 0.0;
 
-         // interpolate makes sense, if the forward measurement operator also uses the interpolation.
-         // projecting is better if the exact function is integrated, but it also takes much longer.
+         // interpolate makes sense if the forward measurement operator also uses the interpolation.
          VectorTools::interpolate(*dof_handler, wrapper, tmp);
-         //VectorTools::project(*dof_handler, *mesh->get_constraint_matrix(ji) , mesh->get_quadrature(), wrapper, tmp);
 
          res.get_function_coefficient(ji).add(jobs[ji][i].second * measurements[sensor_idx], tmp);
       }
    }
+
+   res.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
+   res.solve_time_mass();
 
    return res;
 }

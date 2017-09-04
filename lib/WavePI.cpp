@@ -181,9 +181,8 @@ template<int dim, typename Meas> void WavePI<dim, Meas>::initialize_mesh() {
    deallog << "Number of active cells: " << triangulation->n_active_cells() << std::endl;
    deallog << "Number of degrees of freedom in the first spatial mesh: " << mesh->get_dof_handler(0)->n_dofs()
          << std::endl;
-   deallog << "cell diameters: minimal = " << dealii::GridTools::minimal_cell_diameter(*triangulation)
-         << std::endl;
-   deallog << "                maximal = " << dealii::GridTools::maximal_cell_diameter(*triangulation)
+   deallog << "cell diameters: minimal = " << dealii::GridTools::minimal_cell_diameter(*triangulation);
+   deallog << ", maximal = " << dealii::GridTools::maximal_cell_diameter(*triangulation)
          << std::endl;
    deallog << "dt: " << cfg->dt << std::endl;
 }

@@ -171,20 +171,15 @@ class PointMeasure: public Measure<DiscretizedFunction<dim>, MeasuredValues<dim>
             const AssemblyCopyData &copy_data) const;
 
       void local_add_contributions(const std::vector<std::pair<size_t, double>> &jobs,
-            const Vector<double> &u, double time, const typename DoFHandler<dim>::active_cell_iterator &cell,
-            AssemblyScratchData &scratch_data, AssemblyCopyData &copy_data) const;
+            const std::vector<Vector<double>> &shapes, const Vector<double> &u, double time,
+            const typename DoFHandler<dim>::active_cell_iterator &cell, AssemblyScratchData &scratch_data,
+            AssemblyCopyData &copy_data) const;
 
       /**
        * collect jobs so that we have to go through the mesh only once
        * for each time a list of sensor numbers and factors
        */
       std::vector<std::vector<std::pair<size_t, double>>> compute_jobs() const;
-
-      /**
-       * Same as `compute_jobs`, but for the adjoint.
-       * (i.e. does not take the time discretization into account)
-       */
-      std::vector<std::vector<std::pair<size_t, double>>> compute_jobs_adjoint() const;
 
 };
 
