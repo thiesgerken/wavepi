@@ -115,8 +115,8 @@ void MeasuredValues<dim>::write_pvd(std::string path, std::string filename, std:
          << "<Collection>";
 
    for (size_t ti = 0; ti < times.size(); ti++) {
-      fpvd << "<DataSet timestep=\"" << times[ti] << "\" group=\"\" part=\"0\" file=\"" << filename
-            << "-" << Utilities::to_string(ti, 4) << ".vts\"/>" << std::endl;
+      fpvd << "<DataSet timestep=\"" << times[ti] << "\" group=\"\" part=\"0\" file=\"" << filename << "-"
+            << Utilities::to_string(ti, 4) << ".vts\"/>" << std::endl;
 
       std::ofstream fvts(path + filename + "-" + Utilities::to_string(ti, 4) + ".vts",
             std::ios::out | std::ios::trunc);

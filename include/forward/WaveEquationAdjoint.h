@@ -76,7 +76,7 @@ class WaveEquationAdjoint: public WaveEquationBase<dim> {
        * Deinitialize matrices and vectors.
        * This function should be called after computations to have minimal memory requirements when this object is not currently in use.
        */
-      void cleanup() ;
+      void cleanup();
 
       DiscretizedFunction<dim> apply_R_transpose(const DiscretizedFunction<dim>& u);
 

@@ -43,7 +43,8 @@ class L2WaveProblem: public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Mea
       L2WaveProblem(WaveEquation<dim>& weq, std::vector<std::shared_ptr<Function<dim>>> right_hand_sides,
             std::vector<std::shared_ptr<Measure<DiscretizedFunction<dim>, Measurement>>> measures,
             typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver)
-            : wave_equation(weq), adjoint_solver(adjoint_solver), right_hand_sides(right_hand_sides), measures(measures) {
+            : wave_equation(weq), adjoint_solver(adjoint_solver), right_hand_sides(right_hand_sides), measures(
+                  measures) {
          AssertThrow(right_hand_sides.size() == measures.size() && measures.size(), ExcInternalError());
       }
 

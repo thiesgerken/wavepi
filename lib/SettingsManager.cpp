@@ -351,9 +351,9 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
                measure_type = my_measure_type;
 
             AssertThrow(measure_type == my_measure_type,
-                  ExcMessage("the resulting data types must be the same for all used measurement configurations!"))
+                  ExcMessage(
+                        "the resulting data types must be the same for all used measurement configurations!"))
          }
-
 
       }
       prm->leave_subsection();

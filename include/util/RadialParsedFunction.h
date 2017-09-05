@@ -31,7 +31,6 @@ class RadialParsedFunction: public Function<dim> {
 
       virtual void set_time(double time);
 
-
    private:
       FunctionParser<1> base;
 };

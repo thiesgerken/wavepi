@@ -253,8 +253,7 @@ class OutputProgressListener: public InversionProgressListener<DiscretizedFuncti
          prm.leave_subsection();
       }
 
-      virtual bool progress(
-            InversionProgress<DiscretizedFunction<dim>, Meas, Function<dim>> state) {
+      virtual bool progress(InversionProgress<DiscretizedFunction<dim>, Meas, Function<dim>> state) {
          std::map<std::string, std::string> subs;
          subs["i"] = Utilities::int_to_string(state.iteration_number, 4);
 

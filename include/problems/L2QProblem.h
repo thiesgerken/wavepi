@@ -121,36 +121,36 @@ class L2QProblem: public L2WaveProblem<dim, Measurement> {
 
             virtual DiscretizedFunction<dim> adjoint(const DiscretizedFunction<dim>& g) {
                // L*
-                 auto tmp = std::make_shared<DiscretizedFunction<dim>>(g);
-                 tmp->set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
-                 tmp->mult_time_mass();
-                 rhs_adj->set_base_rhs(tmp);
+               auto tmp = std::make_shared<DiscretizedFunction<dim>>(g);
+               tmp->set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
+               tmp->mult_time_mass();
+               rhs_adj->set_base_rhs(tmp);
 
-                 DiscretizedFunction<dim> res(weq.get_mesh());
+               DiscretizedFunction<dim> res(weq.get_mesh());
 
-                 if (adjoint_solver == WaveEquationBase<dim>::WaveEquationBackwards) {
-                    AssertThrow((std::dynamic_pointer_cast<ZeroFunction<dim>, Function<dim>>(weq.get_param_nu()) != nullptr),
-                    ExcMessage("Wrong adjoint because ν≠0!"));
+               if (adjoint_solver == WaveEquationBase<dim>::WaveEquationBackwards) {
+                  AssertThrow((std::dynamic_pointer_cast<ZeroFunction<dim>, Function<dim>>(weq.get_param_nu()) != nullptr),
+                  ExcMessage("Wrong adjoint because ν≠0!"));
 
-                    weq.set_right_hand_side(rhs_adj);
-                    weq.set_run_direction(WaveEquation<dim>::Backward);
-                    res = weq.run();
-                    res.throw_away_derivative();
-                 } else if (adjoint_solver == WaveEquationBase<dim>::WaveEquationAdjoint)
-                 res = weq_adj.run();
-                 else
-                 Assert(false, ExcInternalError());
+                  weq.set_right_hand_side(rhs_adj);
+                  weq.set_run_direction(WaveEquation<dim>::Backward);
+                  res = weq.run();
+                  res.throw_away_derivative();
+               } else if (adjoint_solver == WaveEquationBase<dim>::WaveEquationAdjoint)
+               res = weq_adj.run();
+               else
+               Assert(false, ExcInternalError());
 
-                 res.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
-                 res.solve_time_mass();
+               res.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
+               res.solve_time_mass();
 
-                 // M*
-                 res.mult_space_time_mass();
-                 res *= -1.0;
-                 res.pointwise_multiplication(*u);
-                 res.solve_space_time_mass();
+               // M*
+               res.mult_space_time_mass();
+               res *= -1.0;
+               res.pointwise_multiplication(*u);
+               res.solve_space_time_mass();
 
-                 return res;
+               return res;
             }
 
             virtual DiscretizedFunction<dim> zero() {
