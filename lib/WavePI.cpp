@@ -9,33 +9,36 @@
 #include <deal.II/base/logstream.h>
 #include <deal.II/base/parameter_handler.h>
 #include <deal.II/base/quadrature_lib.h>
+#include <deal.II/base/utilities.h>
 #include <deal.II/fe/fe_q.h>
 #include <deal.II/grid/grid_generator.h>
-#include <deal.II/grid/grid_tools.h>
 #include <deal.II/grid/tria.h>
+#include <deal.II/grid/grid_tools.h>
 
 #include <forward/AdaptiveMesh.h>
-#include <forward/L2RightHandSide.h>
 
 #include <inversion/InversionProgress.h>
 #include <inversion/NonlinearLandweber.h>
 #include <inversion/Regularization.h>
 #include <inversion/REGINN.h>
 
+#include <measurements/GridPointMeasure.h>
+#include <measurements/MeasuredValues.h>
+
 #include <problems/L2AProblem.h>
 #include <problems/L2CProblem.h>
 #include <problems/L2NuProblem.h>
 #include <problems/L2QProblem.h>
 
-#include <util/GridTools.h>
+#include <stddef.h>
+#include <tgmath.h>
 
+#include <util/GridTools.h>
 #include <WavePI.h>
 
-#include <tgmath.h>
-#include <ccomplex>
 #include <cmath>
 #include <iostream>
-#include <vector>
+#include <string>
 
 namespace wavepi {
 
@@ -45,10 +48,16 @@ using namespace wavepi::inversion;
 using namespace wavepi::problems;
 using namespace wavepi::util;
 
-template<int dim> WavePI<dim>::WavePI(std::shared_ptr<SettingsManager> cfg)
+template<int dim, typename Meas> WavePI<dim, Meas>::WavePI(std::shared_ptr<SettingsManager> cfg)
       : cfg(cfg) {
+   measures.clear();
+   for (auto config_idx : cfg->configs)
+      measures.push_back(get_measure(config_idx));
 
-   rhs = std::make_shared<MacroFunctionParser<dim>>(cfg->expr_rhs, cfg->constants_for_exprs);
+   for (auto expr : cfg->exprs_rhs)
+      pulses.push_back(std::make_shared<MacroFunctionParser<dim>>(expr, cfg->constants_for_exprs));
+
+   AssertThrow(pulses.size() == measures.size(), ExcInternalError());
 
    initial_guess = std::make_shared<MacroFunctionParser<dim>>(cfg->expr_initial_guess,
          cfg->constants_for_exprs);
@@ -59,20 +68,60 @@ template<int dim> WavePI<dim>::WavePI(std::shared_ptr<SettingsManager> cfg)
    param_q = std::make_shared<MacroFunctionParser<dim>>(cfg->expr_param_q, cfg->constants_for_exprs);
 }
 
-template<> Point<1> WavePI<1>::make_point(double x, double y __attribute__((unused)),
-      double z __attribute__((unused))) {
-   return Point<1>(x);
+template<int dim, typename Meas> Point<dim> WavePI<dim, Meas>::make_point(double x, double y, double z) {
+   switch (dim) {
+      case 1:
+         return Point<dim>(x);
+      case 2:
+         return Point<dim>(x, y);
+      case 3:
+         return Point<dim>(x, y, z);
+   }
 }
 
-template<> Point<2> WavePI<2>::make_point(double x, double y, double z __attribute__((unused))) {
-   return Point<2>(x, y);
+#define get_measure_tuple(D) \
+template<> std::shared_ptr<Measure<DiscretizedFunction<D>, MeasuredValues<D>>> WavePI<D, MeasuredValues<D>>::get_measure(size_t config_idx) { \
+   cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM); \
+   cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM_DATA); \
+   cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM_DATA_I + Utilities::int_to_string(config_idx, 1)); \
+   std::shared_ptr<Measure<Param, MeasuredValues<D>>> measure; \
+   if (cfg->measures[config_idx] == SettingsManager::Measure::grid) { \
+      auto my_measure = std::make_shared<GridPointMeasure<D>>(); \
+      my_measure->get_parameters(*cfg->prm); \
+      measure = my_measure; \
+   } else \
+      AssertThrow(false, ExcInternalError()); \
+   cfg->prm->leave_subsection(); \
+   cfg->prm->leave_subsection(); \
+   cfg->prm->leave_subsection(); \
+   return measure; \
 }
 
-template<> Point<3> WavePI<3>::make_point(double x, double y, double z) {
-   return Point<3>(x, y, z);
+get_measure_tuple(1)
+get_measure_tuple(2)
+get_measure_tuple(3)
+
+#define get_measure_cont(D) \
+template<> std::shared_ptr<Measure<DiscretizedFunction<D>, DiscretizedFunction<D>>> WavePI<D, DiscretizedFunction<D>>::get_measure(size_t config_idx) { \
+   cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM); \
+   cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM_DATA); \
+   cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM_DATA_I + Utilities::int_to_string(config_idx, 1)); \
+   std::shared_ptr<Measure<Param, DiscretizedFunction<D>>> measure; \
+   if (cfg->measures[config_idx] == SettingsManager::Measure::identical) { \
+      measure = std::make_shared<IdenticalMeasure<DiscretizedFunction<D>>>(); \
+   } else \
+      AssertThrow(false, ExcInternalError()); \
+   cfg->prm->leave_subsection(); \
+   cfg->prm->leave_subsection(); \
+   cfg->prm->leave_subsection(); \
+   return measure; \
 }
 
-template<int dim> void WavePI<dim>::initialize_mesh() {
+get_measure_cont(1)
+get_measure_cont(2)
+get_measure_cont(3)
+
+template<int dim, typename Meas> void WavePI<dim, Meas>::initialize_mesh() {
    LogStream::Prefix p("initialize_mesh");
 
    auto triangulation = std::make_shared<Triangulation<dim>>();
@@ -100,53 +149,48 @@ template<int dim> void WavePI<dim>::initialize_mesh() {
    wavepi::util::GridTools::set_all_boundary_ids(*triangulation, 0);
    triangulation->refine_global(cfg->initial_refines);
 
-   //   mesh = std::make_shared<AdaptiveMesh<dim>>(times, FE_Q<dim>(fe_degree), QGauss<dim>(quad_order),
-   //         triangulation);
-
-   auto a_mesh = std::make_shared<AdaptiveMesh<dim>>(cfg->times, FE_Q<dim>(cfg->fe_degree),
+   mesh = std::make_shared<AdaptiveMesh<dim>>(cfg->times, FE_Q<dim>(cfg->fe_degree),
          QGauss<dim>(cfg->quad_order), triangulation);
 
-   mesh = a_mesh;
+   //auto a_mesh = std::make_shared<AdaptiveMesh<dim>>(cfg->times, FE_Q<dim>(cfg->fe_degree),
+   //      QGauss<dim>(cfg->quad_order), triangulation);
+   //
+   //mesh = a_mesh;
 
-   // TEST: flag some cells for refinement, and refine them in some step
-   {
-      LogStream::Prefix pd("TEST");
-      for (auto cell : triangulation->active_cell_iterators())
-         if (cell->center()[1] > 0)
-            cell->set_refine_flag();
-
-      std::vector<bool> ref;
-      std::vector<bool> coa;
-
-      triangulation->save_refine_flags(ref);
-      triangulation->save_coarsen_flags(coa);
-
-      std::vector<Patch> patches = a_mesh->get_forward_patches();
-      patches[cfg->initial_time_steps / 2].emplace_back(ref, coa);
-
-      a_mesh->set_forward_patches(patches);
-
-      mesh->get_dof_handler(0);
-   }
+   //// TEST: flag some cells for refinement, and refine them in some step
+   //{
+   //   LogStream::Prefix pd("TEST");
+   //   for (auto cell : triangulation->active_cell_iterators())
+   //      if (cell->center()[1] > 0)
+   //         cell->set_refine_flag();
+   //
+   //   std::vector<bool> ref;
+   //   std::vector<bool> coa;
+   //
+   //   triangulation->save_refine_flags(ref);
+   //   triangulation->save_coarsen_flags(coa);
+   //
+   //   std::vector<Patch> patches = a_mesh->get_forward_patches();
+   //   patches[cfg->initial_time_steps / 2].emplace_back(ref, coa);
+   //
+   //   a_mesh->set_forward_patches(patches);
+   //
+   //   mesh->get_dof_handler(0);
+   //}
 
    deallog << "Number of active cells: " << triangulation->n_active_cells() << std::endl;
    deallog << "Number of degrees of freedom in the first spatial mesh: " << mesh->get_dof_handler(0)->n_dofs()
          << std::endl;
-   deallog << "cell diameters: minimal = " << dealii::GridTools::minimal_cell_diameter(*triangulation)
-         << std::endl;
-   deallog << "                average = "
-         << 10.0 * sqrt((double ) dim) / pow(triangulation->n_active_cells(), 1.0 / dim) << std::endl;
-   deallog << "                maximal = " << dealii::GridTools::maximal_cell_diameter(*triangulation)
-         << std::endl;
+   deallog << "cell diameters: minimal = " << dealii::GridTools::minimal_cell_diameter(*triangulation);
+   deallog << ", maximal = " << dealii::GridTools::maximal_cell_diameter(*triangulation) << std::endl;
    deallog << "dt: " << cfg->dt << std::endl;
 }
 
-template<int dim> void WavePI<dim>::initialize_problem() {
+template<int dim, typename Meas> void WavePI<dim, Meas>::initialize_problem() {
    LogStream::Prefix p("initialize_problem");
 
    wave_eq = std::make_shared<WaveEquation<dim>>(mesh);
 
-   wave_eq->set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(rhs));
    wave_eq->set_param_a(param_a);
    wave_eq->set_param_c(param_c);
    wave_eq->set_param_q(param_q);
@@ -155,75 +199,51 @@ template<int dim> void WavePI<dim>::initialize_problem() {
 
    switch (cfg->problem_type) {
       case SettingsManager::ProblemType::L2Q:
-         /* Reconstruct TestQ */
+         /* Reconstruct q */
          param_exact = wave_eq->get_param_q();
-         problem = std::make_shared<L2QProblem<dim>>(*wave_eq);
+         problem = std::make_shared<L2QProblem<dim, Meas>>(*wave_eq, pulses, measures);
          break;
       case SettingsManager::ProblemType::L2C:
-         /* Reconstruct TestC */
+         /* Reconstruct c */
          param_exact = wave_eq->get_param_c();
-         problem = std::make_shared<L2CProblem<dim>>(*wave_eq);
+         problem = std::make_shared<L2CProblem<dim, Meas>>(*wave_eq, pulses, measures);
          break;
       case SettingsManager::ProblemType::L2Nu:
-         /* Reconstruct TestNu */
+         /* Reconstruct nu */
          param_exact = wave_eq->get_param_nu();
-         problem = std::make_shared<L2NuProblem<dim>>(*wave_eq);
+         problem = std::make_shared<L2NuProblem<dim, Meas>>(*wave_eq, pulses, measures);
          break;
       case SettingsManager::ProblemType::L2A:
-         /* Reconstruct TestA */
+         /* Reconstruct a */
          param_exact = wave_eq->get_param_a();
-         problem = std::make_shared<L2AProblem<dim>>(*wave_eq);
+         problem = std::make_shared<L2AProblem<dim, Meas>>(*wave_eq, pulses, measures);
          break;
       default:
          AssertThrow(false, ExcInternalError())
    }
-
-//   prm->enter_subsection(KEY_MEASUREMENTS);
-//   {
-// TODO
-//      auto measure_title = prm->get(KEY_MEASUREMENTS_TYPE);
-//
-//      std::shared_ptr<Measure<DiscretizedFunction<dim>, Measurement>> measure;
-//
-//      if (measure_title == "Grid") {
-//         auto measure1 = std::make_shared<GridPointMeasure<DiscretizedFunction<dim>, Measurement> >(mesh);
-//         measure1->get_parameters(*prm);
-//         measure = measure1;
-//      } else if (measure_title == "Identical")
-//         measure = std::make_shared<IdenticalMeasure<DiscretizedFunction<dim>>>();
-//     else if (measure_title != "None")
-//            AssertThrow(false, ExcMessage("Unknown Measure: " + measure_title));
-//
-//         if (measure)
-//       problem = std::make_shared<
-//            MeasurementProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>, Measurement>>(problem,
-//            measure);
-//   }
-//   prm->leave_subsection();
 }
 
-template<int dim> void WavePI<dim>::generate_data() {
+template<int dim, typename Meas> void WavePI<dim, Meas>::generate_data() {
    LogStream::Prefix p("generate_data");
    LogStream::Prefix pp(" ");
 
-   Sol data_exact = wave_eq->run();
-   data_exact.throw_away_derivative();
-   data_exact.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
+   DiscretizedFunction<dim> param_exact_disc(mesh, *param_exact);
+   Tuple<Meas> data_exact = problem->forward(param_exact_disc);
    double data_exact_norm = data_exact.norm();
 
    // in itself not wrong, but makes relative errors and noise levels meaningless.
    AssertThrow(data_exact_norm > 0, ExcMessage("Exact Data is zero"));
 
-   data = std::make_shared<Sol>(DiscretizedFunction<dim>::noise(data_exact, cfg->epsilon * data_exact_norm));
-   data->add(1.0, data_exact);
+   data = std::make_shared<Tuple<Meas>>(data_exact);
+   data->add(1.0, Tuple<Meas>::noise(data_exact, cfg->epsilon * data_exact_norm));
 }
 
-template<int dim> void WavePI<dim>::run() {
+template<int dim, typename Meas> void WavePI<dim, Meas>::run() {
    initialize_mesh();
    initialize_problem();
    generate_data();
 
-   std::shared_ptr<Regularization<Param, Sol, Exact>> regularization;
+   std::shared_ptr<Regularization<Param, Tuple<Meas>, Exact>> regularization;
 
    deallog.push("Initial Guess");
    auto initial_guess_discretized = std::make_shared<Param>(mesh, *initial_guess);
@@ -232,11 +252,11 @@ template<int dim> void WavePI<dim>::run() {
    cfg->prm->enter_subsection(SettingsManager::KEY_INVERSION);
    switch (cfg->method) {
       case SettingsManager::NonlinearMethod::REGINN:
-         regularization = std::make_shared<REGINN<Param, Sol, Exact> >(problem, initial_guess_discretized,
-               *cfg->prm);
+         regularization = std::make_shared<REGINN<Param, Tuple<Meas>, Exact> >(problem,
+               initial_guess_discretized, *cfg->prm);
          break;
       case SettingsManager::NonlinearMethod::NonlinearLandweber:
-         regularization = std::make_shared<NonlinearLandweber<Param, Sol, Exact> >(problem,
+         regularization = std::make_shared<NonlinearLandweber<Param, Tuple<Meas>, Exact> >(problem,
                initial_guess_discretized, *cfg->prm);
          break;
       default:
@@ -244,17 +264,23 @@ template<int dim> void WavePI<dim>::run() {
    }
    cfg->prm->leave_subsection();
 
-   regularization->add_listener(std::make_shared<GenericInversionProgressListener<Param, Sol, Exact>>("i"));
-   regularization->add_listener(std::make_shared<CtrlCProgressListener<Param, Sol, Exact>>());
-   regularization->add_listener(std::make_shared<OutputProgressListener<dim>>(*cfg->prm));
+   regularization->add_listener(
+         std::make_shared<GenericInversionProgressListener<Param, Tuple<Meas>, Exact>>("i"));
+   regularization->add_listener(std::make_shared<CtrlCProgressListener<Param, Tuple<Meas>, Exact>>());
+   regularization->add_listener(std::make_shared<OutputProgressListener<dim, Tuple<Meas>>>(*cfg->prm));
 
-   cfg->log();
+   cfg->log_parameters();
 
    regularization->invert(*data, cfg->tau * cfg->epsilon * data->norm(), param_exact);
 }
 
-template class WavePI<1> ;
-template class WavePI<2> ;
-template class WavePI<3> ;
+template class WavePI<1, DiscretizedFunction<1>> ;
+template class WavePI<1, MeasuredValues<1>> ;
+
+template class WavePI<2, DiscretizedFunction<2>> ;
+template class WavePI<2, MeasuredValues<2>> ;
+
+template class WavePI<3, DiscretizedFunction<3>> ;
+template class WavePI<3, MeasuredValues<3>> ;
 
 } /* namespace wavepi */

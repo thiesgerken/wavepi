@@ -16,6 +16,7 @@
 #include <inversion/InversionProgress.h>
 
 #include <util/Version.h>
+#include <measurements/MeasuredValues.h>
 #include <WavePI.h>
 
 #include <fstream>
@@ -40,7 +41,6 @@ int main(int argc, char * argv[]) {
             "generate config file with default values (unless [config] is specified) and exit");
       desc.add_options()("config-format", po::value<std::string>(),
             "format for --export-config. Options are Text|LaTeX|Description|XML|JSON|ShortText; default is Text.");
-
       desc.add_options()("config,c", po::value<std::string>(), "read config from this file");
 
       po::variables_map vm;
@@ -65,9 +65,8 @@ int main(int argc, char * argv[]) {
          deallog << "Loading parameter file " << vm["config"].as<std::string>() << std::endl;
 
          prm->parse_input(vm["config"].as<std::string>());
-      } else {
+      } else
          deallog << "Using default parameters" << std::endl;
-      }
 
       if (vm.count("export-config")) {
          ParameterHandler::OutputStyle style = ParameterHandler::Text;
@@ -121,14 +120,32 @@ int main(int argc, char * argv[]) {
       // deallog.log_execution_time(true);
 
       if (cfg->dimension == 1) {
-         WavePI<1> wavepi(cfg);
-         wavepi.run();
+         if (cfg->measure_type == SettingsManager::MeasureType::vector) {
+            WavePI<1, MeasuredValues<1>> wavepi(cfg);
+            wavepi.run();
+         } else if (cfg->measure_type == SettingsManager::MeasureType::discretized_function) {
+            WavePI<1, DiscretizedFunction<1>> wavepi(cfg);
+            wavepi.run();
+         } else
+            AssertThrow(false, ExcInternalError());
       } else if (cfg->dimension == 2) {
-         WavePI<2> wavepi(cfg);
-         wavepi.run();
+         if (cfg->measure_type == SettingsManager::MeasureType::vector) {
+            WavePI<2, MeasuredValues<2>> wavepi(cfg);
+            wavepi.run();
+         } else if (cfg->measure_type == SettingsManager::MeasureType::discretized_function) {
+            WavePI<2, DiscretizedFunction<2>> wavepi(cfg);
+            wavepi.run();
+         } else
+            AssertThrow(false, ExcInternalError());
       } else if (cfg->dimension == 3) {
-         WavePI<3> wavepi(cfg);
-         wavepi.run();
+         if (cfg->measure_type == SettingsManager::MeasureType::vector) {
+            WavePI<3, MeasuredValues<3>> wavepi(cfg);
+            wavepi.run();
+         } else if (cfg->measure_type == SettingsManager::MeasureType::discretized_function) {
+            WavePI<3, DiscretizedFunction<3>> wavepi(cfg);
+            wavepi.run();
+         } else
+            AssertThrow(false, ExcInternalError());
       } else
          AssertThrow(false, ExcInternalError());
 

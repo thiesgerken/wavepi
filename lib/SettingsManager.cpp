@@ -10,12 +10,14 @@
 #include <deal.II/base/utilities.h>
 
 #include <forward/DiscretizedFunction.h>
-#include <forward/Measure.h>
 #include <forward/WaveEquationBase.h>
 
 #include <inversion/InversionProgress.h>
 #include <inversion/NonlinearLandweber.h>
 #include <inversion/REGINN.h>
+
+#include <measurements/GridPointMeasure.h>
+#include <measurements/PointMeasure.h>
 
 #include <SettingsManager.h>
 
@@ -28,6 +30,7 @@ using namespace dealii;
 using namespace wavepi::forward;
 using namespace wavepi::inversion;
 using namespace wavepi::util;
+using namespace wavepi::measurements;
 
 const std::string SettingsManager::KEY_GENERAL = "general";
 const std::string SettingsManager::KEY_GENERAL_DIMENSION = "dimension";
@@ -51,20 +54,22 @@ const std::string SettingsManager::KEY_PROBLEM = "problem";
 const std::string SettingsManager::KEY_PROBLEM_TYPE = "type";
 const std::string SettingsManager::KEY_PROBLEM_EPSILON = "epsilon";
 const std::string SettingsManager::KEY_PROBLEM_CONSTANTS = "constants";
-const std::string SettingsManager::KEY_PROBLEM_NUM_RHS = "number of right hand sides";
-const std::string SettingsManager::KEY_PROBLEM_RHS = "right hand side";
 const std::string SettingsManager::KEY_PROBLEM_GUESS = "initial guess";
 const std::string SettingsManager::KEY_PROBLEM_PARAM_A = "parameter a";
 const std::string SettingsManager::KEY_PROBLEM_PARAM_Q = "parameter q";
 const std::string SettingsManager::KEY_PROBLEM_PARAM_C = "parameter c";
 const std::string SettingsManager::KEY_PROBLEM_PARAM_NU = "parameter nu";
 
+const std::string SettingsManager::KEY_PROBLEM_DATA = "data";
+const std::string SettingsManager::KEY_PROBLEM_DATA_COUNT = "number of right hand sides";
+const std::string SettingsManager::KEY_PROBLEM_DATA_RHS = "right hand sides";
+const std::string SettingsManager::KEY_PROBLEM_DATA_CONFIG = "configurations";
+const std::string SettingsManager::KEY_PROBLEM_DATA_I = "config "; // + number
+const std::string SettingsManager::KEY_PROBLEM_DATA_I_MEASURE = "measure";
+
 const std::string SettingsManager::KEY_INVERSION = "inversion";
 const std::string SettingsManager::KEY_INVERSION_TAU = "tau";
 const std::string SettingsManager::KEY_INVERSION_METHOD = "method";
-
-const std::string SettingsManager::KEY_MEASUREMENTS = "measurements";
-const std::string SettingsManager::KEY_MEASUREMENTS_TYPE = "measure";
 
 void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) {
    prm->enter_subsection(KEY_GENERAL);
@@ -89,7 +94,7 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
    prm->enter_subsection(KEY_MESH);
    {
       prm->declare_entry(KEY_MESH_END_TIME, "6", Patterns::Double(0), "time horizon T");
-      prm->declare_entry(KEY_MESH_INITIAL_REFINES, "4", Patterns::Integer(0),
+      prm->declare_entry(KEY_MESH_INITIAL_REFINES, "5", Patterns::Integer(0),
             "refines of the (initial) spatial grid");
       prm->declare_entry(KEY_MESH_INITIAL_TIME_STEPS, "256", Patterns::Integer(2),
             "(initial) number of time steps");
@@ -99,7 +104,7 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
          prm->declare_entry(KEY_MESH_SHAPE_GENERATOR, "hyper_cube",
                Patterns::Selection("hyper_cube|hyper_L|hyper_ball|cheese"),
                "generator for the triangulation");
-         prm->declare_entry(KEY_MESH_SHAPE_OPTIONS, "left=-5.0, right=5.0", Patterns::Anything(),
+         prm->declare_entry(KEY_MESH_SHAPE_OPTIONS, "left=-1.0, right=1.0", Patterns::Anything(),
                "options for the generator, in the form `var1=value1, var2=value2, ...`.\n Available options: left, right for hyper_cube and hyper_L, center_{x,y,z} and radius for hyper_cube, scale for cheese.");
       }
       prm->leave_subsection();
@@ -115,16 +120,33 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
       prm->declare_entry(KEY_PROBLEM_CONSTANTS, "", Patterns::Anything(),
             "constants for the function declarations,\nin the form `var1=value1, var2=value2, ...`.");
 
-      // prm->declare_entry(KEY_PROBLEM_NUM_RHS, "1", Patterns::Integer(1), "number of right hand sides");
-      prm->declare_entry(KEY_PROBLEM_RHS, "if(norm{x|y|z} < 0.2, sin(t), 0.0)", Patterns::Anything(),
-            "right hand side");
-
       prm->declare_entry(KEY_PROBLEM_GUESS, "0.5", Patterns::Anything(), "initial guess");
 
       prm->declare_entry(KEY_PROBLEM_PARAM_A, "1.0", Patterns::Anything(), "parameter a");
       prm->declare_entry(KEY_PROBLEM_PARAM_Q, "0.0", Patterns::Anything(), "parameter q");
       prm->declare_entry(KEY_PROBLEM_PARAM_C, "2.0", Patterns::Anything(), "parameter c");
       prm->declare_entry(KEY_PROBLEM_PARAM_NU, "0.0", Patterns::Anything(), "parameter ν");
+
+      prm->enter_subsection(KEY_PROBLEM_DATA);
+      {
+         prm->declare_entry(KEY_PROBLEM_DATA_COUNT, "1", Patterns::Integer(1), "Number of right hand sides");
+
+         prm->declare_entry(KEY_PROBLEM_DATA_CONFIG, "0", Patterns::Anything(),
+               "configuration to use for which right hand side, separated by semicolons");
+         prm->declare_entry(KEY_PROBLEM_DATA_RHS, "if(norm{x|y|z} < 0.2, sin(t), 0.0)", Patterns::Anything(),
+               "right hand sides, separated by semicolons");
+
+         for (size_t i = 0; i < num_configurations; i++) {
+            prm->enter_subsection(KEY_PROBLEM_DATA_I + Utilities::int_to_string(i, 1));
+
+            GridPointMeasure<2>::declare_parameters(*prm);
+            prm->declare_entry(KEY_PROBLEM_DATA_I_MEASURE, "Grid", Patterns::Selection("Identical|Grid"),
+                  "type of measurements");
+
+            prm->leave_subsection();
+         }
+      }
+      prm->leave_subsection();
    }
    prm->leave_subsection();
 
@@ -141,17 +163,8 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
    }
    prm->leave_subsection();
 
-   prm->enter_subsection(KEY_MEASUREMENTS);
-   {
-      prm->declare_entry(KEY_MEASUREMENTS_TYPE, "None", Patterns::Selection("None|Identical|Grid"),
-            "type of measurements (none and identical are theoretically the same, here for test purposes)");
-
-      GridPointMeasure<2>::declare_parameters(*prm);
-   }
-   prm->leave_subsection();
-
    WaveEquationBase<2>::declare_parameters(*prm);
-   OutputProgressListener<2>::declare_parameters(*prm);
+   OutputProgressListener<2, Tuple<DiscretizedFunction<2>>>::declare_parameters(*prm);
 }
 
 void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
@@ -278,12 +291,72 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
          constants_for_exprs[this_c[0]] = tmp;
       }
 
-      expr_rhs = prm->get(KEY_PROBLEM_RHS);
       expr_initial_guess = prm->get(KEY_PROBLEM_GUESS);
       expr_param_a = prm->get(KEY_PROBLEM_PARAM_A);
       expr_param_nu = prm->get(KEY_PROBLEM_PARAM_NU);
       expr_param_c = prm->get(KEY_PROBLEM_PARAM_C);
       expr_param_q = prm->get(KEY_PROBLEM_PARAM_Q);
+
+      prm->enter_subsection(KEY_PROBLEM_DATA);
+      {
+         num_rhs = prm->get_integer(KEY_PROBLEM_DATA_COUNT);
+         exprs_rhs = Utilities::split_string_list(prm->get(KEY_PROBLEM_DATA_RHS), ';');
+
+         configs.clear();
+         measures.clear();
+
+         try {
+            for (auto is : Utilities::split_string_list(prm->get(KEY_PROBLEM_DATA_CONFIG), ';')) {
+               size_t ci = std::stoi(is);
+               AssertThrow(ci < num_configurations, ExcIndexRange(ci, 0, num_configurations));
+               configs.push_back(ci);
+            }
+         } catch (std::invalid_argument &e) {
+            AssertThrow(false, ExcMessage("could not parse configurations: " + std::string(e.what())));
+         }
+
+         AssertThrow(num_rhs == exprs_rhs.size(),
+               ExcMessage("number of right hand sides != number of expressions given"));
+         AssertThrow(num_rhs == configs.size(),
+               ExcMessage("number of right hand sides != number of configurations given"));
+
+         std::vector<MeasureType> measure_types;
+
+         for (size_t i = 0; i < num_configurations; i++) {
+            prm->enter_subsection(KEY_PROBLEM_DATA_I + Utilities::int_to_string(i, 1));
+
+            auto measure_desc = prm->get(KEY_PROBLEM_DATA_I_MEASURE);
+            MeasureType my_measure_type;
+
+            if (measure_desc == "Identical") {
+               measures.push_back(Measure::identical);
+               my_measure_type = MeasureType::discretized_function;
+            } else if (measure_desc == "Grid") {
+               measures.push_back(Measure::grid);
+               my_measure_type = MeasureType::vector;
+            } else
+               AssertThrow(false, ExcMessage("Unknown Measure: " + measure_desc));
+
+            measure_types.push_back(my_measure_type);
+
+            GridPointMeasure<2>::declare_parameters(*prm);
+
+            prm->leave_subsection();
+         }
+
+         for (size_t i = 0; i < num_rhs; i++) {
+            auto my_measure_type = measure_types[configs[i]];
+
+            if (!i)
+               measure_type = my_measure_type;
+
+            AssertThrow(measure_type == my_measure_type,
+                  ExcMessage(
+                        "the resulting data types must be the same for all used measurement configurations!"))
+         }
+
+      }
+      prm->leave_subsection();
    }
    prm->leave_subsection();
 
@@ -304,7 +377,7 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
    prm->leave_subsection();
 }
 
-void SettingsManager::log() {
+void SettingsManager::log_parameters() {
    unsigned int prev_console = deallog.depth_console(100);
    unsigned int prev_file = deallog.depth_file(100);
 

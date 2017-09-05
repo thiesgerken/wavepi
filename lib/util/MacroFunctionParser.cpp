@@ -14,21 +14,27 @@ namespace util {
 
 template<int dim>
 MacroFunctionParser<dim>::MacroFunctionParser(const std::vector<std::string> & expressions,
-      const std::map<std::string, double> & constants) {
+      const std::map<std::string, double> & constants, bool last_is_time) {
    std::vector<std::string> exprs;
 
    for (auto expr : expressions)
       exprs.push_back(replace(expr));
 
-   this->initialize(FunctionParser<dim>::default_variable_names() + ",t", exprs, constants, true);
+   if (!last_is_time)
+      this->initialize(FunctionParser<dim>::default_variable_names() + ",t", exprs, constants, true);
+   else
+      this->initialize(FunctionParser<dim - 1>::default_variable_names() + ",t", exprs, constants, false);
 }
 
 template<int dim>
 MacroFunctionParser<dim>::MacroFunctionParser(const std::string & expression,
-      const std::map<std::string, double> & constants) {
+      const std::map<std::string, double> & constants, bool last_is_time) {
    auto expr = replace(expression);
 
-   this->initialize(FunctionParser<dim>::default_variable_names() + ",t", expr, constants, true);
+   if (!last_is_time)
+      this->initialize(FunctionParser<dim>::default_variable_names() + ",t", expr, constants, true);
+   else
+      this->initialize(FunctionParser<dim - 1>::default_variable_names() + ",t", expr, constants, false);
 }
 
 template<int dim>

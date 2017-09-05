@@ -96,9 +96,18 @@ class DiscretizedFunction: public Function<dim> {
       void solve_time_mass();
       bool norm_uses_mass_matrix() const;
 
-      // fill this function with random values
-      void rand();
+      /**
+       * Create a new `DiscretizedFunction` filled with random nodal values between -1 and 1.
+       *
+       * @param like Template to take mesh sizes from
+       */
+      static DiscretizedFunction<dim> noise(const DiscretizedFunction<dim>& like);
 
+      /**
+       * Create a new `DiscretizedFunction` filled with random nodal values between -1 and 1, and scale it s.t. the norm of the return value is `norm`.
+       *
+       * @param like Template to take mesh sizes from
+       */
       static DiscretizedFunction<dim> noise(const DiscretizedFunction<dim>& like, double norm);
 
       void write_pvd(std::string path, std::string filename, std::string name, std::string name_deriv) const;
@@ -117,6 +126,16 @@ class DiscretizedFunction: public Function<dim> {
       }
 
       inline const Vector<double>& get_function_coefficient(size_t idx) const {
+         return function_coefficients[idx];
+      }
+
+      inline Vector<double>& get_derivative_coefficient(size_t idx) {
+         Assert(store_derivative, ExcInvalidState());
+
+         return derivative_coefficients[idx];
+      }
+
+      inline Vector<double>& get_function_coefficient(size_t idx) {
          return function_coefficients[idx];
       }
 
@@ -145,7 +164,7 @@ class DiscretizedFunction: public Function<dim> {
        */
       double absolute_error(Function<dim>& other, double* norm_out) const;
 
-      std::shared_ptr<SpaceTimeMesh<dim> > get_mesh() const;
+      std::shared_ptr<SpaceTimeMesh<dim>> get_mesh() const;
 
    private:
       Norm norm_type = L2L2_Trapezoidal_Mass; // L2L2_Vector

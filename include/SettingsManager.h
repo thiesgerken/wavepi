@@ -46,8 +46,6 @@ class SettingsManager {
       static const std::string KEY_PROBLEM_TYPE;
       static const std::string KEY_PROBLEM_EPSILON;
       static const std::string KEY_PROBLEM_CONSTANTS;
-      static const std::string KEY_PROBLEM_NUM_RHS;
-      static const std::string KEY_PROBLEM_RHS;
       static const std::string KEY_PROBLEM_GUESS;
       static const std::string KEY_PROBLEM_PARAM_A;
       static const std::string KEY_PROBLEM_PARAM_Q;
@@ -58,8 +56,12 @@ class SettingsManager {
       static const std::string KEY_INVERSION_METHOD;
       static const std::string KEY_INVERSION_TAU;
 
-      static const std::string KEY_MEASUREMENTS;
-      static const std::string KEY_MEASUREMENTS_TYPE;
+      static const std::string KEY_PROBLEM_DATA;
+      static const std::string KEY_PROBLEM_DATA_COUNT;
+      static const std::string KEY_PROBLEM_DATA_RHS;
+      static const std::string KEY_PROBLEM_DATA_CONFIG;
+      static const std::string KEY_PROBLEM_DATA_I;
+      static const std::string KEY_PROBLEM_DATA_I_MEASURE;
 
       /**
        * possible problems
@@ -80,6 +82,20 @@ class SettingsManager {
        */
       enum class MeshShape {
          hyper_cube = 1, hyper_L = 2, hyper_ball = 3, cheese = 4
+      };
+
+      /**
+       * possible measurement operators
+       */
+      enum class Measure {
+         identical = 1, grid = 2
+      };
+
+      /**
+       * possible measurement types
+       */
+      enum class MeasureType {
+         discretized_function = 1, vector = 2
       };
 
       std::shared_ptr<ParameterHandler> prm;
@@ -110,7 +126,14 @@ class SettingsManager {
       std::string expr_param_nu;
       std::string expr_param_a;
       std::string expr_param_c;
-      std::string expr_rhs;
+
+      size_t num_rhs;
+      std::vector<std::string> exprs_rhs;
+      std::vector<size_t> configs;
+
+      static const size_t num_configurations = 2;
+      std::vector<Measure> measures;
+      MeasureType measure_type;
 
       std::map<std::string, double> shape_options;
       MeshShape shape;
@@ -129,7 +152,7 @@ class SettingsManager {
       /**
        * Write all parameters to `deallog`.
        */
-      void log();
+      void log_parameters();
 
 };
 

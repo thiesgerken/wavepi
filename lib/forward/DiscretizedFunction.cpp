@@ -294,24 +294,25 @@ DiscretizedFunction<dim>& DiscretizedFunction<dim>::operator*=(const double fact
 }
 
 template<int dim>
-void DiscretizedFunction<dim>::rand() {
-   Assert(!store_derivative, ExcInternalError ());
-   Assert(mesh, ExcNotInitialized());
+DiscretizedFunction<dim> DiscretizedFunction<dim>::noise(const DiscretizedFunction<dim>& like) {
+   Assert(!like.store_derivative, ExcInternalError ());
+   Assert(like.mesh, ExcNotInitialized());
+
+   DiscretizedFunction<dim> res(like.mesh);
 
    std::default_random_engine generator;
-   std::uniform_real_distribution<double> distribution(0, 1);
+   std::uniform_real_distribution<double> distribution(-1, 1);
 
-   for (size_t i = 0; i < mesh->length(); i++)
-      for (size_t j = 0; j < function_coefficients[i].size(); j++)
-         function_coefficients[i][j] = distribution(generator);
+   for (size_t i = 0; i < res.mesh->length(); i++)
+      for (size_t j = 0; j < res.function_coefficients[i].size(); j++)
+         res.function_coefficients[i][j] = distribution(generator);
+
+   return res;
 }
 
 template<int dim>
 DiscretizedFunction<dim> DiscretizedFunction<dim>::noise(const DiscretizedFunction<dim>& like, double norm) {
-   DiscretizedFunction<dim> result(like);
-
-   result.throw_away_derivative(); // to be on the safe side
-   result.rand();
+   DiscretizedFunction<dim> result = noise(like);
    result *= norm / result.norm();
 
    return result;
