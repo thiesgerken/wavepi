@@ -2,11 +2,9 @@ stages:
   - build
   - test
 
-job:
+build:
   tags:
     - dealii
-
-build:
   stage: build
   script:
     - mkdir -p build
@@ -15,6 +13,8 @@ build:
     - make
 
 test:
+  tags:
+    - dealii
   stage: test
   script:
     - mkdir -p build
