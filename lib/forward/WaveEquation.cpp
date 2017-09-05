@@ -112,7 +112,10 @@ void WaveEquation<dim>::init_system(size_t first_idx) {
    //   VectorTools::project(*dof_handler, constraints, QGauss<dim>(3), *initial_values_u, old_solution_u);
    //   VectorTools::project(*dof_handler, constraints, QGauss<dim>(3), *initial_values_v, old_solution_v);
    VectorTools::interpolate(*dof_handler, *initial_values_u, solution_u);
+   mesh->get_constraint_matrix(first_idx)->distribute(solution_u);
+
    VectorTools::interpolate(*dof_handler, *initial_values_v, solution_v);
+   mesh->get_constraint_matrix(first_idx)->distribute(solution_v);
 }
 
 template<int dim>

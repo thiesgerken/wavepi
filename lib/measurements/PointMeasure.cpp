@@ -98,6 +98,7 @@ template<int dim> MeasuredValues<dim> PointMeasure<dim>::evaluate(const Discreti
 
          interp_shape = 0.0;
          VectorTools::interpolate(*dof, wrapper, interp_shape);
+         mesh->get_constraint_matrix(ji)->distribute(interp_shape);
 
          res[jobs[ji][k].first] += jobs[ji][k].second
                * mesh->get_mass_matrix(ji)->matrix_scalar_product(interp_shape,
@@ -132,6 +133,7 @@ template<int dim> DiscretizedFunction<dim> PointMeasure<dim>::adjoint(
 
          // interpolate makes sense if the forward measurement operator also uses the interpolation.
          VectorTools::interpolate(*dof_handler, wrapper, tmp);
+         mesh->get_constraint_matrix(ji)->distribute(tmp);
 
          res.get_function_coefficient(ji).add(jobs[ji][i].second * measurements[sensor_idx], tmp);
       }

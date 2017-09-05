@@ -72,6 +72,8 @@ DiscretizedFunction<dim>::DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>
       function.set_time(mesh->get_time(i));
 
       VectorTools::interpolate(*dof_handler, function, tmp);
+      mesh->get_constraint_matrix(i)->distribute(tmp);
+
       function_coefficients.push_back(std::move(tmp));
    }
 }
