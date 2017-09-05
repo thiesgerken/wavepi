@@ -2,6 +2,10 @@ stages:
   - build
   - test
 
+job:
+  tags:
+    - dealii
+
 build:
   stage: build
   script:
