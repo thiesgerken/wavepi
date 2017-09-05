@@ -12,6 +12,22 @@
 
 namespace wavepi {
 namespace inversion {
+using namespace dealii;
+
+struct LinearProblemStats {
+   public:
+      int calls_forward;
+      int calls_adjoint;
+
+      double time_forward;
+      double time_adjoint;
+
+      int calls_measure_forward;
+      int calls_measure_adjoint;
+
+      double time_measure_forward;
+      double time_measure_adjoint;
+};
 
 template<typename Param, typename Sol>
 class LinearProblem: public InverseProblem<Param, Sol> {
@@ -21,9 +37,18 @@ class LinearProblem: public InverseProblem<Param, Sol> {
 
       virtual Param adjoint(const Sol& g) = 0;
 
-      // linear methods often do not use an initial guess, but start with zero
+      /**
+       * Linear methods often do not use an initial guess, and want to start with zero.
+       */
       virtual Param zero() = 0;
 
+      /**
+       * If supported, return statistics for the calls made to this class.
+       * Otherwise, return `nullptr`, like the default implementation does.
+       */
+      virtual std::shared_ptr<LinearProblemStats> get_statistics() {
+         return nullptr;
+      }
 };
 
 } /* namespace inversion */

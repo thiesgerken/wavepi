@@ -272,6 +272,24 @@ template<int dim, typename Meas> void WavePI<dim, Meas>::run() {
    cfg->log_parameters();
 
    regularization->invert(*data, cfg->tau * cfg->epsilon * data->norm(), param_exact);
+
+   if (problem->get_statistics()) {
+      auto stats = problem->get_statistics();
+      LogStream::Prefix p("stats");
+
+      deallog << "forward              : " << stats->calls_forward << " calls, average "
+            << stats->time_forward / stats->calls_forward << " s per call" << std::endl;
+      deallog << "linearization forward: " << stats->calls_linearization_forward << " calls, average "
+            << stats->time_linearization_forward / stats->calls_linearization_forward << " s per call"
+            << std::endl;
+      deallog << "linearization adjoint: " << stats->calls_linearization_adjoint << " calls, average "
+            << stats->time_linearization_adjoint / stats->calls_linearization_adjoint << " s per call"
+            << std::endl;
+      deallog << "measure forward      : " << stats->calls_measure_forward << " calls, average "
+            << stats->time_measure_forward / stats->calls_measure_forward << " s per call" << std::endl;
+      deallog << "measure adjoint      : " << stats->calls_measure_adjoint << " calls, average "
+            << stats->time_measure_adjoint / stats->calls_measure_adjoint << " s per call" << std::endl;
+   }
 }
 
 template class WavePI<1, DiscretizedFunction<1>> ;
