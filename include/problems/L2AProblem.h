@@ -1,5 +1,5 @@
 /*
- * L2CProblem.h
+ * L2AProblem.h
  *
  *  Created on: 27.07.2017
  *      Author: thies
@@ -33,6 +33,9 @@ using namespace wavepi::inversion;
 template<int dim, typename Measurement>
 class L2AProblem: public L2WaveProblem<dim, Measurement> {
    public:
+      using L2WaveProblem<dim, Measurement>::derivative;
+      using L2WaveProblem<dim, Measurement>::forward;
+
       virtual ~L2AProblem() = default;
 
       L2AProblem(WaveEquation<dim>& weq, std::vector<std::shared_ptr<Function<dim>>> right_hand_sides,
@@ -48,9 +51,6 @@ class L2AProblem: public L2WaveProblem<dim, Measurement> {
       }
 
    protected:
-      using L2WaveProblem<dim, Measurement>::derivative;
-      using L2WaveProblem<dim, Measurement>::forward;
-
       virtual std::unique_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>> derivative(
             size_t i) {
          return std::make_unique<L2AProblem<dim, Measurement>::Linearization>(this->wave_equation,

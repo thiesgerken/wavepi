@@ -199,22 +199,22 @@ template<int dim, typename Meas> void WavePI<dim, Meas>::initialize_problem() {
 
    switch (cfg->problem_type) {
       case SettingsManager::ProblemType::L2Q:
-         /* Reconstruct TestQ */
+         /* Reconstruct q */
          param_exact = wave_eq->get_param_q();
-//         problem = std::make_shared < L2QProblem < dim >> (*wave_eq); // TODO
+         problem = std::make_shared<L2QProblem<dim, Meas>>(*wave_eq, pulses, measures);
          break;
       case SettingsManager::ProblemType::L2C:
-         /* Reconstruct TestC */
+         /* Reconstruct c */
          param_exact = wave_eq->get_param_c();
-//         problem = std::make_shared < L2CProblem < dim >> (*wave_eq); // TODO
+         problem = std::make_shared<L2CProblem<dim, Meas>>(*wave_eq, pulses, measures);
          break;
       case SettingsManager::ProblemType::L2Nu:
-         /* Reconstruct TestNu */
+         /* Reconstruct nu */
          param_exact = wave_eq->get_param_nu();
-//         problem = std::make_shared < L2NuProblem < dim >> (*wave_eq); // TODO
+         problem = std::make_shared<L2NuProblem<dim, Meas>>(*wave_eq, pulses, measures);
          break;
       case SettingsManager::ProblemType::L2A:
-         /* Reconstruct TestA */
+         /* Reconstruct a */
          param_exact = wave_eq->get_param_a();
          problem = std::make_shared<L2AProblem<dim, Meas>>(*wave_eq, pulses, measures);
          break;

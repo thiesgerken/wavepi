@@ -37,6 +37,13 @@ class Tuple {
             : elements(n) {
       }
 
+      /**
+       * Construct a tuple consisting of one given element
+       */
+      explicit Tuple(const T& t)
+            : elements(1, t) {
+      }
+
       Tuple(Tuple&& o)
             : elements(std::move(o.elements)) {
       }

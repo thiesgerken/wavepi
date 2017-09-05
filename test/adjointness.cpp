@@ -5,18 +5,12 @@
  *      Author: thies
  */
 
-#include <gtest/gtest.h>
-
-#include <deal.II/base/numbers.h>
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/function.h>
 #include <deal.II/base/logstream.h>
 #include <deal.II/base/numbers.h>
 #include <deal.II/base/point.h>
-#include <deal.II/base/quadrature.h>
 #include <deal.II/base/quadrature_lib.h>
-#include <deal.II/base/timer.h>
-#include <deal.II/dofs/dof_handler.h>
 #include <deal.II/fe/fe_q.h>
 #include <deal.II/grid/grid_generator.h>
 #include <deal.II/grid/tria.h>
@@ -27,18 +21,26 @@
 #include <forward/SpaceTimeMesh.h>
 #include <forward/WaveEquation.h>
 #include <forward/WaveEquationAdjoint.h>
+#include <forward/WaveEquationBase.h>
 
+#include <gtest/gtest.h>
+
+#include <measurements/Measure.h>
 #include <problems/L2QProblem.h>
+#include <problems/L2WaveProblem.h>
 
-#include <util/GridTools.h>
-
-#include <bits/std_abs.h>
 #include <stddef.h>
+
+#include <util/Tuple.h>
+#include <util/GridTools.h>
+#include <util/MacroFunctionParser.h>
+
+#include <cmath>
 #include <iostream>
-#include <fstream>
+#include <map>
 #include <memory>
+#include <string>
 #include <vector>
-#include <functional>
 
 namespace {
 
@@ -384,54 +386,66 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
 
    // test concatenation of both (if they are implemented as above)
    DiscretizedFunction<dim> estimate(mesh);
-   L2QProblem<dim> problem(wave_eq, adjoint_solver);
+
+   std::vector<std::shared_ptr<Measure<DiscretizedFunction<dim>, DiscretizedFunction<dim>>>> measures;
+   measures.push_back(std::make_shared<IdenticalMeasure<DiscretizedFunction<dim>>>());
+
+   std::map<std::string, double> consts;
+   std::vector<std::shared_ptr<Function<dim>>> pulses;
+   pulses.push_back(std::make_shared<MacroFunctionParser<dim>>("if(norm{x|y|z} < 0.2, sin(t), 0.0", consts));
+
+   L2QProblem<dim, DiscretizedFunction<dim>> problem(wave_eq, pulses, measures, adjoint_solver);
    auto data_current = problem.forward(estimate);
    auto A = problem.derivative(estimate);
 
+   Tuple<DiscretizedFunction<dim>> Tf (*f);
+   Tuple<DiscretizedFunction<dim>> Tg (*g);
+   Tuple<DiscretizedFunction<dim>> Tz (*z);
+
    auto Af(A->forward(*f));
-   auto Aadjf(A->adjoint(*f));
+   auto Aadjf(A->adjoint(Tf));
    EXPECT_GT(Af.norm(), 0.0);
    EXPECT_GT(Aadjf.norm(), 0.0);
 
    auto Ag(A->forward(*g));
-   auto Aadjg(A->adjoint(*g));
+   auto Aadjg(A->adjoint(Tg));
    EXPECT_GT(Ag.norm(), 0.0);
    EXPECT_GT(Aadjg.norm(), 0.0);
 
    auto Az(A->forward(*z));
-   auto Aadjz(A->adjoint(*z));
+   auto Aadjz(A->adjoint(Tz));
    EXPECT_GT(Az.norm(), 0.0);
    EXPECT_GT(Aadjz.norm(), 0.0);
 
-   double dot_Af_f = Af * (*f);
+   double dot_Af_f = Af * (Tf);
    double dot_f_Aadjf = (*f) * Aadjf;
    double Aff_err = std::abs(dot_Af_f - dot_f_Aadjf) / (std::abs(dot_Af_f) + 1e-300);
 
    deallog << std::scientific << "(Af, f) = " << dot_Af_f << ", (f, A*f) = " << dot_f_Aadjf
          << ", rel. error = " << Aff_err << std::endl;
 
-   double dot_Ag_g = Ag * (*g);
+   double dot_Ag_g = Ag * (Tg);
    double dot_g_Aadjg = (*g) * Aadjg;
    double Agg_err = std::abs(dot_Ag_g - dot_g_Aadjg) / (std::abs(dot_Ag_g) + 1e-300);
 
    deallog << std::scientific << "(Ag, g) = " << dot_Ag_g << ", (g, A*g) = " << dot_g_Aadjg
          << ", rel. error = " << Agg_err << std::endl;
 
-   double dot_Ag_f = Ag * (*f);
+   double dot_Ag_f = Ag * (Tf);
    double dot_g_Aadjf = (*g) * Aadjf;
    double Agf_err = std::abs(dot_Ag_f - dot_g_Aadjf) / (std::abs(dot_Ag_f) + 1e-300);
 
    deallog << std::scientific << "(Ag, f) = " << dot_Ag_f << ", (g, A*f) = " << dot_g_Aadjf
          << ", rel. error = " << Agf_err << std::endl;
 
-   double dot_Af_g = Af * (*g);
+   double dot_Af_g = Af * (Tg);
    double dot_f_Aadjg = (*f) * Aadjg;
    double Afg_err = std::abs(dot_Af_g - dot_f_Aadjg) / (std::abs(dot_Af_g) + 1e-300);
 
    deallog << std::scientific << "(Af, g) = " << dot_Af_g << ", (f, A*g) = " << dot_f_Aadjg
          << ", rel. error = " << Afg_err << std::endl;
 
-   double dot_Az_z = Az * (*z);
+   double dot_Az_z = Az * (Tz);
    double dot_z_Aadjz = (*z) * Aadjz;
    double Azz_err = std::abs(dot_Az_z - dot_z_Aadjz) / (std::abs(dot_Az_z) + 1e-300);
 
