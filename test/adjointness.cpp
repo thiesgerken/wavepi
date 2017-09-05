@@ -392,7 +392,7 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
 
    std::map<std::string, double> consts;
    std::vector<std::shared_ptr<Function<dim>>> pulses;
-   pulses.push_back(std::make_shared<MacroFunctionParser<dim>>("if(norm{x|y|z} < 0.2, sin(t), 0.0", consts));
+   pulses.push_back(std::make_shared<MacroFunctionParser<dim>>("if(norm{x|y|z} < 0.2, sin(t), 0.0)", consts));
 
    L2QProblem<dim, DiscretizedFunction<dim>> problem(wave_eq, pulses, measures, adjoint_solver);
    auto data_current = problem.forward(estimate);
