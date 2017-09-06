@@ -29,50 +29,35 @@ namespace wavepi {
 namespace forward {
 using namespace dealii;
 
-// Patch = list of consecutive grid refinements (first item in the pair) and coarsenings (second item)
+/**
+ * Patch = list of consecutive grid refinements (first item in the pair) and coarsenings (second item)
+ */
 typedef std::vector<std::pair<std::vector<bool>, std::vector<bool>>> Patch;
 
+/**
+ * Mesh that is adaptive in time and space
+ */
 template<int dim>
 class AdaptiveMesh: public SpaceTimeMesh<dim> {
    public:
 
       virtual ~AdaptiveMesh() = default;
 
-      // The FiniteElement is used for the construction of DoFHandlers.
-      // The Quadrature is only used for the mass matrix.
       AdaptiveMesh(std::vector<double> times, FE_Q<dim> fe, Quadrature<dim> quad,
             std::shared_ptr<Triangulation<dim>> tria);
 
-      // in some cases one does not need a whole DoFHandler, only the number of degrees of freedom.
-      // (e.g. in empty vector creation)
       virtual size_t n_dofs(size_t idx);
 
-      // get a mass matrix for the selected time index.
-      // If this is not in storage (yet), then the result of get_dof_handler is used to create one
-      // Might invalidate the last return value of get_dof_handler!
       virtual std::shared_ptr<SparseMatrix<double>> get_mass_matrix(size_t idx);
 
-      // If this is not in storage (yet), then the result of get_dof_handler is used to create one
-      // Might invalidate the last return value of get_dof_handler!
       virtual std::shared_ptr<SparsityPattern> get_sparsity_pattern(size_t idx);
 
-      // get a ConstraintMatrix (for hanging nodes) for the selected time_index. It might become invalid when this function is called again with a different time_index.
-      // has to decide, whether getting a new dof_handler from the initial triangulation and advancing it until time_index is smarter
-      // than reusing the current working_dof_handler and moving it.
       virtual std::shared_ptr<ConstraintMatrix> get_constraint_matrix(size_t idx);
 
-      // get a dof_handler for the selected time_index. It might become invalid when this function is called again with a different time_index.
-      // has to decide, whether getting a new dof_handler from the initial triangulation and advancing it until time_index is smarter
-      // than reusing the current working_dof_handler and moving it.
       virtual std::shared_ptr<DoFHandler<dim> > get_dof_handler(size_t idx);
 
-      // get a triangulation for the selected time_index. It might become invalid when this function is called again with a different time_index.
-      // has to decide, whether getting a new triangulation from the initial triangulation and advancing it until time_index is smarter
-      // than reusing the current triangulation and moving it.
       virtual std::shared_ptr<Triangulation<dim> > get_triangulation(size_t idx);
 
-      // takes some vectors defined on the mesh of time step source_time_index and interpolates them onto the mesh for target_time_index,
-      // changing the given Vectors. Also returns an appropriate DoFHandler for target_time_index (invalidating all other DoFHandlers)
       virtual std::shared_ptr<DoFHandler<dim> > transfer(size_t source_time_index, size_t target_time_index,
             std::initializer_list<Vector<double>*> vectors);
 
@@ -82,18 +67,27 @@ class AdaptiveMesh: public SpaceTimeMesh<dim> {
          return false;
       }
 
-      // refine / coarsen this Adaptive Mesh.
-      // `refine_intervals`: list of time intervals that should be refined
-      // `coarsen_time_points`: list of time indices that should be deleted
-      // `refine_trias`: for each spatial mesh in the old AdaptiveMesh, a list of cells that should be refined
-      // `coarsen_trias`: for each spatial mesh in the old AdaptiveMesh, a list of cells that should be coarsened
-      // `interpolate_vectors`: vectors that you want to take with you to the new mesh (other ones will have invalid content after this action)
+      /**
+       * refine / coarsen this Adaptive Mesh.
+       *
+       * @param refine_intervals list of time intervals that should be refined
+       * @param coarsen_time_points list of time indices that should be deleted
+       * @param refine_trias for each spatial mesh in the old AdaptiveMesh, a list of cells that should be refined
+       * @param coarsen_trias for each spatial mesh in the old AdaptiveMesh, a list of cells that should be coarsened
+       * @param interpolate_vectors vectors that you want to take with you to the new mesh (other ones will have invalid content after this action)
+       */
       void refine_and_coarsen(std::vector<size_t> refine_intervals, std::vector<size_t> coarsen_time_points,
             std::vector<std::vector<bool>> refine_trias, std::vector<std::vector<bool>> coarsen_trias,
             std::initializer_list<DiscretizedFunction<dim>*> interpolate_vectors);
 
+      /**
+       * Getter for how the mesh is advanced from one time step to the next.
+       */
       const std::vector<Patch>& get_forward_patches() const;
 
+      /**
+       * Setter for how the mesh is advanced from one time step to the next.
+       */
       void set_forward_patches(const std::vector<Patch>& forward_patches);
 
    private:

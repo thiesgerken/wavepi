@@ -25,6 +25,10 @@
 #include <vector>
 
 namespace wavepi {
+
+/**
+ * Measurement operators (and adjoints) as well as the needed structure to have measurements.
+ */
 namespace measurements {
 
 using namespace dealii;

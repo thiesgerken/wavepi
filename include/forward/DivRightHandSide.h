@@ -25,16 +25,20 @@ namespace wavepi {
 namespace forward {
 using namespace dealii;
 
-// implements the H^{-1} function f=div(a \nabla u) as a possible right hand side,
-// this means <f,v> = (-a\nabla u, \nabla v) [note the sign!]
+/**
+ * implements the H^{-1} function f=div(a \nabla u) as a possible right hand side,
+ * this means $`<f,v> = (-a\nabla u, \nabla v)`$ (note the sign)
+ */
 template<int dim>
 class DivRightHandSide: public RightHandSide<dim> {
    public:
 
       virtual ~DivRightHandSide() = default;
 
-      // optimization is used only when a _and_ u are discretized
-      // if u is continuous, then u has to have an implementation of gradient
+      /**
+       * optimization is used only when a _and_ u are discretized
+       *  if u is continuous, then u has to have an implementation of gradient
+       */
       DivRightHandSide(std::shared_ptr<Function<dim>> a, std::shared_ptr<Function<dim>> u);
 
       virtual void create_right_hand_side(const DoFHandler<dim> &dof_handler, const Quadrature<dim> &q,

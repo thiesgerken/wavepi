@@ -27,6 +27,10 @@
 #include <vector>
 
 namespace wavepi {
+
+/**
+ * Collection of inverse problems that we want to look at.
+ */
 namespace problems {
 
 using namespace dealii;

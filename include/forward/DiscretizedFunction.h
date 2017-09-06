@@ -26,6 +26,10 @@ namespace wavepi {
 namespace forward {
 using namespace dealii;
 
+/**
+ * Essentially, a `std::vector<dealii::Vector<double>>`,
+ * representing a function that is pointwise discretized in time and FE-discretized in space.
+ */
 template<int dim>
 class DiscretizedFunction: public Function<dim> {
    public:

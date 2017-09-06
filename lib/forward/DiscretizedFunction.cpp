@@ -143,23 +143,100 @@ DiscretizedFunction<dim> DiscretizedFunction<dim>::calculate_derivative() const 
 
    DiscretizedFunction<dim> result(mesh, false);
 
+   /* implementation for constant mesh */
+   /*
+    for (size_t i = 0; i < mesh->length(); i++) {
+    if (i == 0) {
+    AssertThrow(function_coefficients[i + 1].size() == function_coefficients[i].size(),
+    ExcNotImplemented());
+
+    result.function_coefficients[i] = function_coefficients[i + 1];
+    result.function_coefficients[i] -= function_coefficients[i];
+    result.function_coefficients[i] /= mesh->get_time(i + 1) - mesh->get_time(i);
+    } else if (i == mesh->length() - 1) {
+    result.function_coefficients[i] = function_coefficients[i];
+    result.function_coefficients[i] -= function_coefficients[i - 1];
+    result.function_coefficients[i] /= mesh->get_time(i) - mesh->get_time(i - 1);
+    } else {
+    result.function_coefficients[i] = function_coefficients[i + 1];
+    result.function_coefficients[i] -= function_coefficients[i - 1];
+    result.function_coefficients[i] /= mesh->get_time(i + 1) - mesh->get_time(i - 1);
+    }
+    }
+    */
+
+   /* naive, but working implementation for non-constant mesh */
+   /*
+    for (size_t i = 0; i < mesh->length(); i++) {
+    if (i == 0) {
+    Vector<double> next_coefficients = function_coefficients[i + 1];
+    mesh->transfer(i + 1, i, { &next_coefficients });
+
+    result.function_coefficients[i] = next_coefficients;
+    result.function_coefficients[i] -= function_coefficients[i];
+    result.function_coefficients[i] /= mesh->get_time(i + 1) - mesh->get_time(i);
+    } else if (i == mesh->length() - 1) {
+    Vector<double> last_coefficients = function_coefficients[i - 1];
+    mesh->transfer(i - 1, i, { &last_coefficients });
+
+    result.function_coefficients[i] = function_coefficients[i];
+    result.function_coefficients[i] -= last_coefficients;
+    result.function_coefficients[i] /= mesh->get_time(i) - mesh->get_time(i - 1);
+    } else {
+    Vector<double> last_coefficients = function_coefficients[i - 1];
+    Vector<double> next_coefficients = function_coefficients[i + 1];
+
+    mesh->transfer(i - 1, i, { &last_coefficients });
+    mesh->transfer(i + 1, i, { &next_coefficients });
+
+    result.function_coefficients[i] = next_coefficients;
+    result.function_coefficients[i] -= last_coefficients;
+    result.function_coefficients[i] /= mesh->get_time(i + 1) - mesh->get_time(i - 1);
+    }
+    }
+    */
+
+   /* better: forward- and backward sweep */
+
+   // forward sweep
    for (size_t i = 0; i < mesh->length(); i++) {
       if (i == 0) {
-         // TODO: get DoFHandlers and so on to do this, maybe even go back to the theory and check what is appropriate here
-         AssertThrow(function_coefficients[i + 1].size() == function_coefficients[i].size(),
-               ExcNotImplemented());
-
-         result.function_coefficients[i] = function_coefficients[i + 1];
-         result.function_coefficients[i] -= function_coefficients[i];
-         result.function_coefficients[i] /= mesh->get_time(i + 1) - mesh->get_time(i);
+         result.function_coefficients[i].equ(-1.0 / (mesh->get_time(i + 1) - mesh->get_time(i)),
+               function_coefficients[i]);
       } else if (i == mesh->length() - 1) {
+         Vector<double> last_coefficients = function_coefficients[i - 1];
+         mesh->transfer(i - 1, i, { &last_coefficients });
+
          result.function_coefficients[i] = function_coefficients[i];
-         result.function_coefficients[i] -= function_coefficients[i - 1];
+         result.function_coefficients[i] -= last_coefficients;
          result.function_coefficients[i] /= mesh->get_time(i) - mesh->get_time(i - 1);
       } else {
-         result.function_coefficients[i] = function_coefficients[i + 1];
-         result.function_coefficients[i] -= function_coefficients[i - 1];
-         result.function_coefficients[i] /= mesh->get_time(i + 1) - mesh->get_time(i - 1);
+         Vector<double> last_coefficients = function_coefficients[i - 1];
+         mesh->transfer(i - 1, i, { &last_coefficients });
+
+         result.function_coefficients[i].equ(-1.0 / (mesh->get_time(i + 1) - mesh->get_time(i - 1)),
+               last_coefficients);
+      }
+   }
+
+   // backward sweep
+   for (size_t j = 0; j < mesh->length(); j++) {
+      size_t i = mesh->length() - 1 - j;
+
+      if (i == 0) {
+         Vector<double> next_coefficients = function_coefficients[i + 1];
+         mesh->transfer(i + 1, i, { &next_coefficients });
+
+         result.function_coefficients[i].add(1.0 / (mesh->get_time(i + 1) - mesh->get_time(i)),
+               next_coefficients);
+      } else if (i == mesh->length() - 1) {
+         // nothing to be done
+      } else {
+         Vector<double> next_coefficients = function_coefficients[i + 1];
+         mesh->transfer(i + 1, i, { &next_coefficients });
+
+         result.function_coefficients[i].add(1.0 / (mesh->get_time(i + 1) - mesh->get_time(i - 1)),
+               next_coefficients);
       }
    }
 
@@ -190,10 +267,10 @@ template<int dim>
 DiscretizedFunction<dim> DiscretizedFunction<dim>::calculate_derivative_transpose() const {
    Assert(mesh, ExcNotInitialized());
 
-   // why would you want to calculate it in this case?
+// why would you want to calculate it in this case?
    Assert(!store_derivative, ExcInternalError());
 
-   // because of the special cases
+// because of the special cases
    Assert(mesh->length() > 3, ExcInternalError());
 
    DiscretizedFunction<dim> result(mesh, false);
@@ -587,9 +664,9 @@ void DiscretizedFunction<dim>::l2l2_mass_solve_time_mass() {
 
 template<int dim>
 double DiscretizedFunction<dim>::l2l2_vec_dot(const DiscretizedFunction<dim> & V) const {
-   // remember to sync this implementation with l2_norm and all l2 adjoints!
-   // uses vector l2 norm in time and vector l2 norm in space
-   // (only approx to L2(0,T, L2) inner product if spatial and temporal grid is uniform!
+// remember to sync this implementation with l2_norm and all l2 adjoints!
+// uses vector l2 norm in time and vector l2 norm in space
+// (only approx to L2(0,T, L2) inner product if spatial and temporal grid is uniform!
    double result = 0;
 
    for (size_t i = 0; i < mesh->length(); i++) {
@@ -605,9 +682,9 @@ double DiscretizedFunction<dim>::l2l2_vec_dot(const DiscretizedFunction<dim> & V
 
 template<int dim>
 double DiscretizedFunction<dim>::l2l2_vec_norm() const {
-   // remember to sync this implementation with l2_norm and all l2 adjoints!
-   // uses vector l2 norm in time and vector l2 norm in space
-   // (only approx to L2(0,T, L2) inner product if spatial and temporal grid is uniform!
+// remember to sync this implementation with l2_norm and all l2 adjoints!
+// uses vector l2 norm in time and vector l2 norm in space
+// (only approx to L2(0,T, L2) inner product if spatial and temporal grid is uniform!
    double result = 0;
 
    for (size_t i = 0; i < mesh->length(); i++) {
@@ -620,11 +697,11 @@ double DiscretizedFunction<dim>::l2l2_vec_norm() const {
 
 template<int dim>
 double DiscretizedFunction<dim>::l2l2_mass_dot(const DiscretizedFunction<dim> & V) const {
-   // remember to sync this implementation with l2_norm and all l2 adjoints!
-   // uses trapezoidal rule in time and vector l2 norm in space
+// remember to sync this implementation with l2_norm and all l2 adjoints!
+// uses trapezoidal rule in time and vector l2 norm in space
    double result = 0.0;
 
-   // trapezoidal rule in time:
+// trapezoidal rule in time:
    for (size_t i = 0; i < mesh->length(); i++) {
       Assert(function_coefficients[i].size() == V.function_coefficients[i].size(),
             ExcDimensionMismatch (function_coefficients[i].size() , V.function_coefficients[i].size()));
@@ -639,46 +716,46 @@ double DiscretizedFunction<dim>::l2l2_mass_dot(const DiscretizedFunction<dim> & 
          result += doti / 2 * (std::abs(mesh->get_time(i + 1) - mesh->get_time(i)));
    }
 
-   // assume that both functions are linear in time (consistent with crank-nicolson!)
-   // and integrate that exactly (Simpson rule)
-   // problem when mesh changes in time!
-   //   for (size_t i = 0; i < mesh->length(); i++) {
-   //      Assert(function_coefficients[i].size() == V.function_coefficients[i].size(),
-   //            ExcDimensionMismatch (function_coefficients[i].size() , V.function_coefficients[i].size()));
-   //
-   //      double doti = mesh->get_mass_matrix(i)->matrix_scalar_product(function_coefficients[i],
-   //            V.function_coefficients[i]);
-   //
-   //      if (i > 0)
-   //         result += doti / 3 * (std::abs(mesh->get_time(i) - mesh->get_time(i - 1)));
-   //
-   //      if (i < mesh->length() - 1)
-   //         result += doti / 3 * (std::abs(mesh->get_time(i+1) - mesh->get_time(i)));
-   //   }
-   //
-   //   for (size_t i = 0; i < mesh->length() - 1; i++) {
-   //      Assert(function_coefficients[i].size() == V.function_coefficients[i+1].size(),
-   //            ExcDimensionMismatch (function_coefficients[i].size() , V.function_coefficients[i+1].size()));
-   //      Assert(function_coefficients[i+1].size() == V.function_coefficients[i].size(),
-   //             ExcDimensionMismatch (function_coefficients[i+1].size() , V.function_coefficients[i].size()));
-   //
-   //      double dot1 = mesh->get_mass_matrix(i)->matrix_scalar_product(function_coefficients[i],
-   //            V.function_coefficients[i + 1]);
-   //      double dot2 = mesh->get_mass_matrix(i + 1)->matrix_scalar_product(function_coefficients[i + 1],
-   //            V.function_coefficients[i]);
-   //
-   //      result += (dot1 + dot2) / 6 * (std::abs(mesh->get_time(i+1) - mesh->get_time(i)));
-   //   }
+// assume that both functions are linear in time (consistent with crank-nicolson!)
+// and integrate that exactly (Simpson rule)
+// problem when mesh changes in time!
+//   for (size_t i = 0; i < mesh->length(); i++) {
+//      Assert(function_coefficients[i].size() == V.function_coefficients[i].size(),
+//            ExcDimensionMismatch (function_coefficients[i].size() , V.function_coefficients[i].size()));
+//
+//      double doti = mesh->get_mass_matrix(i)->matrix_scalar_product(function_coefficients[i],
+//            V.function_coefficients[i]);
+//
+//      if (i > 0)
+//         result += doti / 3 * (std::abs(mesh->get_time(i) - mesh->get_time(i - 1)));
+//
+//      if (i < mesh->length() - 1)
+//         result += doti / 3 * (std::abs(mesh->get_time(i+1) - mesh->get_time(i)));
+//   }
+//
+//   for (size_t i = 0; i < mesh->length() - 1; i++) {
+//      Assert(function_coefficients[i].size() == V.function_coefficients[i+1].size(),
+//            ExcDimensionMismatch (function_coefficients[i].size() , V.function_coefficients[i+1].size()));
+//      Assert(function_coefficients[i+1].size() == V.function_coefficients[i].size(),
+//             ExcDimensionMismatch (function_coefficients[i+1].size() , V.function_coefficients[i].size()));
+//
+//      double dot1 = mesh->get_mass_matrix(i)->matrix_scalar_product(function_coefficients[i],
+//            V.function_coefficients[i + 1]);
+//      double dot2 = mesh->get_mass_matrix(i + 1)->matrix_scalar_product(function_coefficients[i + 1],
+//            V.function_coefficients[i]);
+//
+//      result += (dot1 + dot2) / 6 * (std::abs(mesh->get_time(i+1) - mesh->get_time(i)));
+//   }
 
    return result;
 }
 
 template<int dim>
 double DiscretizedFunction<dim>::l2l2_mass_norm() const {
-   // remember to sync this implementation with l2_dot and all l2 adjoints!
+// remember to sync this implementation with l2_dot and all l2 adjoints!
    double result = 0;
 
-   // trapezoidal rule in time:
+// trapezoidal rule in time:
    for (size_t i = 0; i < mesh->length(); i++) {
       double nrm2 = mesh->get_mass_matrix(i)->matrix_norm_square(function_coefficients[i]);
 
@@ -689,25 +766,25 @@ double DiscretizedFunction<dim>::l2l2_mass_norm() const {
          result += nrm2 / 2 * (std::abs(mesh->get_time(i + 1) - mesh->get_time(i)));
    }
 
-   // assume that function is linear in time (consistent with crank-nicolson!)
-   // and integrate that exactly (Simpson rule)
-   // problem when mesh changes in time!
-   //   for (size_t i = 0; i < mesh->length(); i++) {
-   //      double nrm2 = mesh->get_mass_matrix(i)->matrix_norm_square(function_coefficients[i]);
-   //
-   //      if (i > 0)
-   //         result += nrm2 / 3 * (std::abs(mesh->get_time(i) - mesh->get_time(i - 1)));
-   //
-   //      if (i < mesh->length() - 1)
-   //         result += nrm2 / 3 * (std::abs(mesh->get_time(i+1) - mesh->get_time(i)));
-   //   }
-   //
-   //   for (size_t i = 0; i < mesh->length() - 1; i++) {
-   //      double tmp = mesh->get_mass_matrix(i)->matrix_scalar_product(function_coefficients[i],
-   //            function_coefficients[i + 1]);
-   //
-   //      result += tmp / 3 * (std::abs(mesh->get_time(i+1) - mesh->get_time(i)));
-   //   }
+// assume that function is linear in time (consistent with crank-nicolson!)
+// and integrate that exactly (Simpson rule)
+// problem when mesh changes in time!
+//   for (size_t i = 0; i < mesh->length(); i++) {
+//      double nrm2 = mesh->get_mass_matrix(i)->matrix_norm_square(function_coefficients[i]);
+//
+//      if (i > 0)
+//         result += nrm2 / 3 * (std::abs(mesh->get_time(i) - mesh->get_time(i - 1)));
+//
+//      if (i < mesh->length() - 1)
+//         result += nrm2 / 3 * (std::abs(mesh->get_time(i+1) - mesh->get_time(i)));
+//   }
+//
+//   for (size_t i = 0; i < mesh->length() - 1; i++) {
+//      double tmp = mesh->get_mass_matrix(i)->matrix_scalar_product(function_coefficients[i],
+//            function_coefficients[i + 1]);
+//
+//      result += tmp / 3 * (std::abs(mesh->get_time(i+1) - mesh->get_time(i)));
+//   }
 
    return std::sqrt(result);
 }

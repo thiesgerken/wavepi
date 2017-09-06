@@ -25,15 +25,19 @@ namespace wavepi {
 namespace forward {
 using namespace dealii;
 
-// implements a ↦ (-(∇u⋅∇a, φ_i))_i as a possible right hand side
+/**
+ * implements a ↦ (-(∇u⋅∇a, φ_i))_i as a possible right hand side
+ */
 template<int dim>
 class DivRightHandSideAdjoint: public RightHandSide<dim> {
    public:
 
       virtual ~DivRightHandSideAdjoint() = default;
 
-      // optimization is used only when a _and_ u are discretized
-      // if u is continuous, then u has to have an implementation of gradient
+      /**
+       * optimization is used only when a _and_ u are discretized
+       * if u is continuous, then u has to have an implementation of gradient
+       */
       DivRightHandSideAdjoint(std::shared_ptr<Function<dim>> a, std::shared_ptr<Function<dim>> u);
 
       virtual void create_right_hand_side(const DoFHandler<dim> &dof_handler, const Quadrature<dim> &q,

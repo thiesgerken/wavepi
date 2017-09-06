@@ -19,14 +19,18 @@ namespace wavepi {
 namespace forward {
 using namespace dealii;
 
-// Element of the dual space of H^1_0, represented by L^2 scalar products (f1, v) + (f2, nabla v)
+/**
+ * Element of the dual space of $`H^1_0`$, represented by $`L^2`$ scalar products $`(f_1, v) + (f_2, \nabla v)`$.
+ */
 template<int dim>
 class DistributionRightHandSide: public RightHandSide<dim> {
    public:
 
       virtual ~DistributionRightHandSide() = default;
 
-      // either of the functions may be zero
+      /**
+       * Either of the functions may be `nullptr`
+       */
       DistributionRightHandSide(Function<dim>* f1, Function<dim>* f2);
 
       virtual void create_right_hand_side(const DoFHandler<dim> &dof_handler, const Quadrature<dim> &q,
