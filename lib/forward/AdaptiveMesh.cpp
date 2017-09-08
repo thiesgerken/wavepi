@@ -367,6 +367,7 @@ void AdaptiveMesh<dim>::refine_and_coarsen(std::vector<size_t> refine_intervals,
       std::vector<size_t> coarsen_time_points, std::vector<std::vector<bool>> refine_trias,
       std::vector<std::vector<bool>> coarsen_trias,
       std::initializer_list<DiscretizedFunction<dim>*> interpolate_vectors) {
+   // TODO: implement refine_and_coarsen
    AssertThrow(false, ExcNotImplemented());
 }
 
