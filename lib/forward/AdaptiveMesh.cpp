@@ -124,9 +124,7 @@ template<int dim> std::shared_ptr<SparsityPattern> AdaptiveMesh<dim>::get_sparsi
       get_dof_handler(idx);
 
       DynamicSparsityPattern dsp(working_dof_handler->n_dofs(), working_dof_handler->n_dofs());
-      DoFTools::make_sparsity_pattern(*working_dof_handler, dsp);
-
-      constraints[idx]->condense(dsp);
+      DoFTools::make_sparsity_pattern(*working_dof_handler, dsp, *constraints[idx]);
 
       sparsity_patterns[idx] = std::make_shared<SparsityPattern>();
       sparsity_patterns[idx]->copy_from(dsp);
@@ -171,6 +169,15 @@ std::shared_ptr<DoFHandler<dim> > AdaptiveMesh<dim>::transfer(size_t source_time
 }
 
 template<int dim>
+bool AdaptiveMesh<dim>::any(const std::vector<bool> &v) const {
+   for (auto b : v)
+      if (b)
+         return true;
+
+   return false;
+}
+
+template<int dim>
 void AdaptiveMesh<dim>::patch(const Patch &patch, std::vector<Vector<double>*> &vectors) {
    for (auto p : patch) {
       auto cells_to_refine = p.first;
@@ -188,12 +195,12 @@ void AdaptiveMesh<dim>::patch(const Patch &patch, std::vector<Vector<double>*> &
          working_triangulation->execute_coarsening_and_refinement();
 
          working_dof_handler->distribute_dofs(fe);
-      } else if (cells_to_coarsen.size() == 0) {
+      } else if (!any(cells_to_coarsen)) {
+         // TODO: Test this function as well
          SolutionTransfer<dim, Vector<double>> trans(*working_dof_handler);
 
          working_triangulation->load_refine_flags(cells_to_refine);
          working_triangulation->prepare_coarsening_and_refinement();
-
          trans.prepare_for_pure_refinement();
 
          working_triangulation->execute_coarsening_and_refinement();
@@ -213,9 +220,7 @@ void AdaptiveMesh<dim>::patch(const Patch &patch, std::vector<Vector<double>*> &
 
          working_triangulation->load_refine_flags(cells_to_refine);
          working_triangulation->load_coarsen_flags(cells_to_coarsen);
-
          working_triangulation->prepare_coarsening_and_refinement();
-
          trans.prepare_for_coarsening_and_refinement(all_in);
 
          working_triangulation->execute_coarsening_and_refinement();
@@ -250,11 +255,19 @@ void AdaptiveMesh<dim>::transfer(size_t target_idx, std::vector<Vector<double>*>
       for (size_t idx = working_time_idx; idx < target_idx; idx++) {
          patch(forward_patches[idx], vectors);
          working_time_idx++;
+
+         // TODO: hanging node constraints!
+//         for (size_t i = 0; i < vectors.size(); i++)
+//            get_constraint_matrix(working_time_idx)->distribute(*vectors[i]);
       }
    else if (working_time_idx > target_idx)
       for (ssize_t idx = working_time_idx; idx > (ssize_t) target_idx; idx--) {
          patch(backward_patches[idx - 1], vectors);
          working_time_idx--;
+
+         // TODO: hanging node constraints!
+//         for (size_t i = 0; i < vectors.size(); i++)
+//            get_constraint_matrix(working_time_idx)->distribute(*vectors[i]);
       }
 }
 

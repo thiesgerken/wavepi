@@ -5,9 +5,7 @@
  *      Author: thies
  */
 
-#include <gtest/gtest.h>
-
-#include <deal.II/base/numbers.h>
+//#include <bits/std_abs.h>
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/function.h>
 #include <deal.II/base/logstream.h>
@@ -16,35 +14,31 @@
 #include <deal.II/base/quadrature.h>
 #include <deal.II/base/quadrature_lib.h>
 #include <deal.II/base/timer.h>
-#include <deal.II/dofs/dof_handler.h>
+//#include <deal.II/dofs/dof_handler.h>
 #include <deal.II/fe/fe_q.h>
 #include <deal.II/grid/grid_generator.h>
 #include <deal.II/grid/tria.h>
-
+#include <forward/AdaptiveMesh.h>
 #include <forward/ConstantMesh.h>
 #include <forward/DiscretizedFunction.h>
 #include <forward/L2RightHandSide.h>
 #include <forward/SpaceTimeMesh.h>
 #include <forward/WaveEquation.h>
-#include <forward/WaveEquationAdjoint.h>
-
-#include <problems/L2QProblem.h>
-
-#include <util/GridTools.h>
-
-#include <bits/std_abs.h>
+//#include <forward/WaveEquationAdjoint.h>
+#include <gtest/gtest.h>
+//#include <problems/L2QProblem.h>
 #include <stddef.h>
+#include <util/GridTools.h>
+//#include <fstream>
+//#include <functional>
 #include <iostream>
-#include <fstream>
 #include <memory>
 #include <vector>
-#include <functional>
 
 namespace {
 
 using namespace dealii;
 using namespace wavepi::forward;
-using namespace wavepi::problems;
 using namespace wavepi::util;
 
 template<int dim>
@@ -355,27 +349,10 @@ class SeparationAnsatz: public Function<dim> {
 };
 
 template<int dim>
-void run_reference_test(int fe_order, int quad_order, int refines, Point<dim, int> k, Point<2> constants,
-      double t_end, int steps, bool expect = true, bool save = false) {
-   auto triangulation = std::make_shared<Triangulation<dim>>();
-   GridGenerator::hyper_cube(*triangulation, 0.0, numbers::PI);
-   wavepi::util::GridTools::set_all_boundary_ids(*triangulation, 0);
-   triangulation->refine_global(refines);
-
-   double t_start = 0.0, dt = t_end / steps;
-   std::vector<double> times;
-
-   for (size_t i = 0; t_start + i * dt <= t_end; i++)
-      times.push_back(t_start + i * dt);
-
-   FE_Q<dim> fe(fe_order);
-   Quadrature<dim> quad = QGauss<dim>(quad_order); // exact in poly degree 2n-1 (needed: fe_dim^3)
-
-   std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, fe, quad,
-         triangulation);
-
-   deallog << std::endl << "----------  n_dofs / timestep: " << mesh->get_dof_handler(0)->n_dofs();
-   deallog << ", n_steps: " << times.size() << "  ----------" << std::endl;
+void run_reference_test(std::shared_ptr<SpaceTimeMesh<dim>> mesh, Point<dim, int> k, Point<2> constants,
+      bool expect = true, bool save = false) {
+   deallog << std::endl << "----------  n_dofs(0): " << mesh->get_dof_handler(0)->n_dofs();
+   deallog << ", n_steps: " << mesh->get_times().size() << "  ----------" << std::endl;
 
    WaveEquation<dim> wave_eq(mesh);
 
@@ -410,20 +387,21 @@ void run_reference_test(int fe_order, int quad_order, int refines, Point<dim, in
       EXPECT_LT(err_v, 1e-1);
    }
 
+   if (save) {
+      solu.write_pvd("./", "solu", "u");
+      refu.write_pvd("./", "refu", "uref");
+
+      DiscretizedFunction<dim> tmp(solu);
+      tmp -= refu;
+      tmp.write_pvd("./", "diff", "udiff");
+   }
+
    deallog << std::scientific << "forward : rerr(u) = " << err_u << ", rerr(v) = " << err_v << std::endl;
 
    wave_eq.set_run_direction(WaveEquation<dim>::Backward);
    solu = wave_eq.run();
    solv = solu.derivative();
    solu.throw_away_derivative();
-
-   refu = DiscretizedFunction<dim>(mesh, *u);
-   refv = DiscretizedFunction<dim>(mesh, *v);
-
-   if (save) {
-      solu.write_pvd("./", "solu", "u");
-      refu.write_pvd("./", "refu", "u");
-   }
 
    tmp = solu;
    tmp -= refu;
@@ -441,6 +419,84 @@ void run_reference_test(int fe_order, int quad_order, int refines, Point<dim, in
    deallog << std::scientific << "backward: rerr(u) = " << err_u << ", rerr(v) = " << err_v << std::endl
          << std::endl;
 }
+}
+
+template<int dim>
+void run_reference_test_constant(int fe_order, int quad_order, int refines, Point<dim, int> k,
+      Point<2> constants, double t_end, int steps, bool expect = true, bool save = false) {
+   auto triangulation = std::make_shared<Triangulation<dim>>();
+   GridGenerator::hyper_cube(*triangulation, 0.0, numbers::PI);
+   wavepi::util::GridTools::set_all_boundary_ids(*triangulation, 0);
+   triangulation->refine_global(refines);
+
+   double t_start = 0.0, dt = t_end / steps;
+   std::vector<double> times;
+
+   for (size_t i = 0; t_start + i * dt <= t_end; i++)
+      times.push_back(t_start + i * dt);
+
+   FE_Q<dim> fe(fe_order);
+   Quadrature<dim> quad = QGauss<dim>(quad_order); // exact in poly degree 2n-1 (needed: fe_dim^3)
+
+   std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, fe, quad,
+         triangulation);
+
+   run_reference_test<dim>(mesh, k, constants, expect, save);
+}
+
+template<int dim>
+void run_reference_test_adaptive(int fe_order, int quad_order, int refines, Point<dim, int> k,
+      Point<2> constants, double t_end, int steps, bool expect = true, bool save = false) {
+   auto triangulation = std::make_shared<Triangulation<dim>>();
+   GridGenerator::hyper_cube(*triangulation, 0.0, numbers::PI);
+   wavepi::util::GridTools::set_all_boundary_ids(*triangulation, 0);
+   triangulation->refine_global(refines);
+
+   double t_start = 0.0, dt = t_end / steps;
+   std::vector<double> times;
+
+   for (size_t i = 0; t_start + i * dt <= t_end; i++)
+      times.push_back(t_start + i * dt);
+
+   FE_Q<dim> fe(fe_order);
+   Quadrature<dim> quad = QGauss<dim>(quad_order); // exact in poly degree 2n-1 (needed: fe_dim^3)
+
+   auto mesh = std::make_shared<AdaptiveMesh<dim>>(times, fe, quad, triangulation);
+
+   // flag some cells for refinement, and refine them in some step
+   for (auto cell : triangulation->active_cell_iterators())
+      if (cell->center()[1] > numbers::PI / 2)
+         cell->set_refine_flag();
+
+   std::vector<bool> ref;
+   std::vector<bool> coa;
+
+   triangulation->save_refine_flags(ref);
+   triangulation->save_coarsen_flags(coa);
+
+   std::vector<Patch> patches = mesh->get_forward_patches();
+   patches[steps / 4].emplace_back(ref, coa);
+   mesh->set_forward_patches(patches);
+
+  triangulation =  mesh->get_triangulation(steps / 4 + 1);
+
+   // flag some cells for coarsening, and coarsen them in some step
+   for (auto cell : triangulation->active_cell_iterators())
+      if (cell->center()[1] > numbers::PI / 2)
+         cell->set_coarsen_flag();
+
+   ref.resize(0);
+   coa.resize(0);
+
+   triangulation->save_refine_flags(ref);
+   triangulation->save_coarsen_flags(coa);
+
+   patches[steps * 3 / 4].emplace_back(ref, coa);
+
+   mesh->set_forward_patches(patches);
+   mesh->get_dof_handler(0);
+
+   run_reference_test<dim>(mesh, k, constants, expect, save);
 }
 
 TEST(WaveEquationTest, DiscretizedParameters1DFE1) {
@@ -465,38 +521,50 @@ TEST(WaveEquationTest, DiscretizedParameters3DFE1) {
 
 TEST(WaveEquationTest, ReferenceTest1DFE1) {
    for (int steps = 128; steps <= 1024; steps *= 2)
-      run_reference_test<1>(1, 3, 10, Point<1, int>(2), Point<2>(1.0, 1.5), 2 * numbers::PI, steps,
+      run_reference_test_constant<1>(1, 3, 10, Point<1, int>(2), Point<2>(1.0, 1.5), 2 * numbers::PI, steps,
             steps >= 64);
 
    for (int refine = 9; refine >= 1; refine--)
-      run_reference_test<1>(1, 3, refine, Point<1, int>(2), Point<2>(1.0, 1.5), 2 * numbers::PI, 1024, false);
+      run_reference_test_constant<1>(1, 3, refine, Point<1, int>(2), Point<2>(1.0, 1.5), 2 * numbers::PI,
+            1024, false);
 }
 
 TEST(WaveEquationTest, ReferenceTest1DFE2) {
    for (int steps = 16; steps <= 128; steps *= 2)
-      run_reference_test<1>(2, 4, 7, Point<1, int>(2), Point<2>(1.0, 1.5), 2 * numbers::PI, steps,
+      run_reference_test_constant<1>(2, 4, 7, Point<1, int>(2), Point<2>(1.0, 1.5), 2 * numbers::PI, steps,
             steps >= 64);
 
    for (int refine = 6; refine >= 1; refine--)
-      run_reference_test<1>(2, 4, refine, Point<1, int>(2), Point<2>(1.0, 1.5), 2 * numbers::PI, 128, false);
+      run_reference_test_constant<1>(2, 4, refine, Point<1, int>(2), Point<2>(1.0, 1.5), 2 * numbers::PI, 128,
+            false);
 }
 
 TEST(WaveEquationTest, ReferenceTest2DFE1) {
    for (int steps = 16; steps <= 256; steps *= 2)
-      run_reference_test<2>(1, 3, 6, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, steps,
+      run_reference_test_constant<2>(1, 3, 6, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, steps,
             steps >= 64);
 
    for (int refine = 5; refine >= 1; refine--)
-      run_reference_test<2>(1, 3, refine, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, 256,
-            false);
+      run_reference_test_constant<2>(1, 3, refine, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI,
+            256, false);
+}
+
+TEST(WaveEquationTest, ReferenceTestAdaptive2DFE1) {
+   for (int steps = 16; steps <= 256; steps *= 2)
+      run_reference_test_adaptive<2>(1, 3, 5, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, steps,
+            steps >= 64, steps == 256);
+
+   for (int refine = 5; refine >= 1; refine--)
+      run_reference_test_adaptive<2>(1, 3, refine, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI,
+            256, false);
 }
 
 TEST(WaveEquationTest, ReferenceTest3DFE1) {
    for (int steps = 8; steps <= 32; steps *= 2)
-      run_reference_test<3>(1, 3, 3, Point<3, int>(1, 2, 3), Point<2>(0.7, 1.2), 2 * numbers::PI, steps,
-            steps >= 32);
+      run_reference_test_constant<3>(1, 3, 3, Point<3, int>(1, 2, 3), Point<2>(0.7, 1.2), 2 * numbers::PI,
+            steps, steps >= 32);
 
    for (int refine = 2; refine >= 0; refine--)
-      run_reference_test<3>(1, 3, refine, Point<3, int>(1, 2, 3), Point<2>(0.7, 1.2), 2 * numbers::PI, 32,
-            false);
+      run_reference_test_constant<3>(1, 3, refine, Point<3, int>(1, 2, 3), Point<2>(0.7, 1.2),
+            2 * numbers::PI, 32, false);
 }

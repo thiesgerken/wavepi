@@ -167,6 +167,11 @@ class AdaptiveMesh: public SpaceTimeMesh<dim> {
        * `working_time_idx` has to be zero upon calling this function, and will be `this->length-1` afterwards.
        */
       void generate_backward_patches();
+
+      /**
+       * Utility function, checks whether any entry of the given vector is `true`.
+       */
+      bool any(const std::vector<bool> &v) const;
 };
 
 } /* namespace forward */
