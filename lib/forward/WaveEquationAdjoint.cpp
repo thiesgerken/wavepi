@@ -287,6 +287,7 @@ void WaveEquationAdjoint<dim>::assemble_u(size_t i) {
       system_matrix.add(theta * theta, matrix_A);
    }
 
+   // needed, because hanging node constraints are not already built into the sparsity pattern
    constraints->condense(system_matrix, system_rhs_u);
 
    std::map<types::global_dof_index, double> boundary_values;
@@ -409,7 +410,8 @@ void WaveEquationAdjoint<dim>::assemble_v(size_t i) {
       system_matrix.add(theta, matrix_B);
    }
 
-   constraints->condense(system_matrix, system_rhs_v);
+   // needed, because hanging node constraints are not already built into the sparsity pattern
+    constraints->condense(system_matrix, system_rhs_v);
 
    std::map<types::global_dof_index, double> boundary_values;
    VectorTools::interpolate_boundary_values(*dof_handler, 0, *this->zero, boundary_values);

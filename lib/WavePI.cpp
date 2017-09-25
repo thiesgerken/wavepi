@@ -39,6 +39,7 @@
 #include <cmath>
 #include <iostream>
 #include <string>
+#include <fstream>
 
 namespace wavepi {
 

@@ -20,6 +20,7 @@
 
 #include <cmath>
 #include <memory>
+#include <tgmath.h>
 
 namespace wavepi {
 namespace forward {

@@ -28,13 +28,13 @@ template<int dim>
 AdaptiveMesh<dim>::AdaptiveMesh(std::vector<double> times, FE_Q<dim> fe, Quadrature<dim> quad,
       std::shared_ptr<Triangulation<dim>> tria)
       : SpaceTimeMesh<dim>(times, fe, quad), initial_triangulation(tria) {
-   forward_patches = std::vector<Patch>(this->length() - 1);
-   backward_patches = std::vector<Patch>(this->length() - 1);
+   forward_patches = std::vector < Patch > (this->length() - 1);
+   backward_patches = std::vector < Patch > (this->length() - 1);
 
-   vector_sizes = std::vector<size_t>(this->length(), 0);
-   sparsity_patterns = std::vector<std::shared_ptr<SparsityPattern>>(this->length());
-   mass_matrices = std::vector<std::shared_ptr<SparseMatrix<double>>>(this->length());
-   constraints = std::vector<std::shared_ptr<ConstraintMatrix>>(this->length());
+   vector_sizes = std::vector < size_t > (this->length(), 0);
+   sparsity_patterns = std::vector < std::shared_ptr < SparsityPattern >> (this->length());
+   mass_matrices = std::vector < std::shared_ptr<SparseMatrix<double>> > (this->length());
+   constraints = std::vector < std::shared_ptr < ConstraintMatrix >> (this->length());
 
    working_time_idx = 0;
 
@@ -47,10 +47,10 @@ AdaptiveMesh<dim>::AdaptiveMesh(std::vector<double> times, FE_Q<dim> fe, Quadrat
 
 template<int dim>
 void AdaptiveMesh<dim>::reset() {
-   vector_sizes = std::vector<size_t>(this->length(), 0);
-   mass_matrices = std::vector<std::shared_ptr<SparseMatrix<double>>>(this->length());
-   sparsity_patterns = std::vector<std::shared_ptr<SparsityPattern>>(this->length());
-   constraints = std::vector<std::shared_ptr<ConstraintMatrix>>(this->length());
+   vector_sizes = std::vector < size_t > (this->length(), 0);
+   mass_matrices = std::vector < std::shared_ptr<SparseMatrix<double>> > (this->length());
+   sparsity_patterns = std::vector < std::shared_ptr < SparsityPattern >> (this->length());
+   constraints = std::vector < std::shared_ptr < ConstraintMatrix >> (this->length());
 
    working_time_idx = 0;
 
@@ -124,7 +124,7 @@ template<int dim> std::shared_ptr<SparsityPattern> AdaptiveMesh<dim>::get_sparsi
       get_dof_handler(idx);
 
       DynamicSparsityPattern dsp(working_dof_handler->n_dofs(), working_dof_handler->n_dofs());
-      DoFTools::make_sparsity_pattern(*working_dof_handler, dsp, *constraints[idx]);
+      DoFTools::make_sparsity_pattern(*working_dof_handler, dsp, *constraints[idx], true);
 
       sparsity_patterns[idx] = std::make_shared<SparsityPattern>();
       sparsity_patterns[idx]->copy_from(dsp);
@@ -196,7 +196,6 @@ void AdaptiveMesh<dim>::patch(const Patch &patch, std::vector<Vector<double>*> &
 
          working_dof_handler->distribute_dofs(fe);
       } else if (!any(cells_to_coarsen)) {
-         // TODO: Test this function as well
          SolutionTransfer<dim, Vector<double>> trans(*working_dof_handler);
 
          working_triangulation->load_refine_flags(cells_to_refine);
@@ -256,18 +255,26 @@ void AdaptiveMesh<dim>::transfer(size_t target_idx, std::vector<Vector<double>*>
          patch(forward_patches[idx], vectors);
          working_time_idx++;
 
-         // TODO: hanging node constraints!
-//         for (size_t i = 0; i < vectors.size(); i++)
-//            get_constraint_matrix(working_time_idx)->distribute(*vectors[i]);
+         // hanging node constraints
+         // (only needed if we coarsened any cells)
+         // is this even required after each patch element? would require a lot more ConstraintMatrices ...
+         // commented out because constraining in WaveEquation results in reflections from the 'refinement boundary'
+         // the solution fullfills the constraints because of distribute calls in WaveEquation and WaveEquationAdjoint.
+         // for (size_t i = 0; i < vectors.size(); i++)
+         //   get_constraint_matrix(working_time_idx)->distribute(*vectors[i]);
       }
    else if (working_time_idx > target_idx)
       for (ssize_t idx = working_time_idx; idx > (ssize_t) target_idx; idx--) {
          patch(backward_patches[idx - 1], vectors);
          working_time_idx--;
 
-         // TODO: hanging node constraints!
-//         for (size_t i = 0; i < vectors.size(); i++)
-//            get_constraint_matrix(working_time_idx)->distribute(*vectors[i]);
+         // hanging node constraints!
+         // (only needed if we coarsened any cells)
+         // is this even required after each patch element? would require a lot more ConstraintMatrices ...
+         // commented out because constraining in WaveEquation results in reflections from the 'refinement boundary'
+         // the solution fullfills the constraints because of distribute calls in WaveEquation and WaveEquationAdjoint.
+         // for (size_t i = 0; i < vectors.size(); i++)
+         //   get_constraint_matrix(working_time_idx)->distribute(*vectors[i]);
       }
 }
 
@@ -326,8 +333,8 @@ void AdaptiveMesh<dim>::generate_backward_patches() {
 
          // Save cell ids of cells to be refined,
          // and parents of cells that will be coarsened (will appear multiple times!)
-         std::list<CellId> ids_to_refine;
-         std::list<CellId> ids_to_coarsen;
+         std::list < CellId > ids_to_refine;
+         std::list < CellId > ids_to_coarsen;
 
          for (auto cell : working_triangulation->active_cell_iterators())
             if (cell->coarsen_flag_set())

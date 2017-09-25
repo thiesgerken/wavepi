@@ -30,6 +30,10 @@
 #include <map>
 #include <string>
 
+#include <deal.II/base/data_out_base.h>
+#include <fstream>
+#include <deal.II/numerics/data_out.h>
+
 namespace wavepi {
 namespace forward {
 using namespace dealii;
@@ -221,6 +225,20 @@ void WaveEquation<dim>::assemble_u_pre(double time_step) {
    tmp_u.add((1.0 - theta) * time_step, solution_v_old);
 
    system_rhs_u.add(theta * (1.0 - theta) * time_step * time_step, rhs_old);
+
+   /* <-- TODO: DEBUG */
+   static int i = 0;
+   i++;
+   DataOut<dim> data_out;
+
+   data_out.attach_dof_handler(*dof_handler);
+   data_out.add_data_vector(system_rhs_u, "system_rhs_u_pre");
+   data_out.build_patches();
+
+   std::ofstream output(("./system_rhs_u_pre" + Utilities::int_to_string(i, 4) + ".vtu").c_str());
+   AssertThrow(output, ExcInternalError());
+   data_out.write_vtu(output);
+   /* DEBUG --> */
 }
 
 // everything until this point of assembling for u depends on the old mesh and the old matrices
@@ -228,6 +246,20 @@ void WaveEquation<dim>::assemble_u_pre(double time_step) {
 
 template<int dim>
 void WaveEquation<dim>::assemble_u(double time_step) {
+   /* <-- TODO: DEBUG */
+   static int i = 0;
+   i++;
+   DataOut<dim> data_out;
+
+   data_out.attach_dof_handler(*dof_handler);
+   data_out.add_data_vector(system_rhs_u, "system_rhs_u_post");
+   data_out.build_patches();
+
+   std::ofstream output(("./system_rhs_u_post" + Utilities::int_to_string(i, 4) + ".vtu").c_str());
+   AssertThrow(output, ExcInternalError());
+   data_out.write_vtu(output);
+   /* DEBUG --> */
+
    Vector<double> tmp(solution_u.size());
 
    system_rhs_u.add(theta * theta * time_step * time_step, rhs);
@@ -242,6 +274,7 @@ void WaveEquation<dim>::assemble_u(double time_step) {
    system_matrix.add(theta * time_step, matrix_B);
    system_matrix.add(theta * theta * time_step * time_step, matrix_A);
 
+   // needed, because hanging node constraints are not already built into the sparsity pattern
    constraints->condense(system_matrix, system_rhs_u);
 
    std::map<types::global_dof_index, double> boundary_values;
@@ -262,6 +295,20 @@ void WaveEquation<dim>::assemble_v_pre(double time_step) {
    system_rhs_v.add(-1.0 * (1.0 - theta) * time_step, tmp);
 
    system_rhs_v.add((1.0 - theta) * time_step, rhs_old);
+
+   /* <-- TODO: DEBUG */
+   static int i = 0;
+   i++;
+   DataOut<dim> data_out;
+
+   data_out.attach_dof_handler(*dof_handler);
+   data_out.add_data_vector(system_rhs_v, "system_rhs_v_pre");
+   data_out.build_patches();
+
+   std::ofstream output(("./system_rhs_v_pre" + Utilities::int_to_string(i, 4) + ".vtu").c_str());
+   AssertThrow(output, ExcInternalError());
+   data_out.write_vtu(output);
+   /* DEBUG --> */
 }
 
 // everything until this point depends on the old mesh and the old matrices
@@ -269,6 +316,20 @@ void WaveEquation<dim>::assemble_v_pre(double time_step) {
 
 template<int dim>
 void WaveEquation<dim>::assemble_v(double time_step) {
+   /* <-- TODO: DEBUG */
+   static int i = 0;
+   i++;
+   DataOut<dim> data_out;
+
+   data_out.attach_dof_handler(*dof_handler);
+   data_out.add_data_vector(system_rhs_v, "system_rhs_v_post");
+   data_out.build_patches();
+
+   std::ofstream output(("./system_rhs_v_post" + Utilities::int_to_string(i, 4) + ".vtu").c_str());
+   AssertThrow(output, ExcInternalError());
+   data_out.write_vtu(output);
+   /* DEBUG --> */
+
    Vector<double> tmp(solution_u.size());
 
    system_rhs_v.add(theta * time_step, rhs);
@@ -279,6 +340,7 @@ void WaveEquation<dim>::assemble_v(double time_step) {
    system_matrix.copy_from(matrix_C);
    system_matrix.add(theta * time_step, matrix_B);
 
+   // needed, because hanging node constraints are not already built into the sparsity pattern
    constraints->condense(system_matrix, system_rhs_v);
 
    std::map<types::global_dof_index, double> boundary_values;
