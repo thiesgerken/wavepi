@@ -51,16 +51,38 @@ class DemoC: public Function<dim> {
    public:
       static const Point<dim> center;
 
-      double value(const Point<dim> &p, const unsigned int component = 0) const {
+      virtual ~DemoC() = default;
+
+      virtual double value(const Point<dim> &p, const unsigned int component = 0) const {
          Assert(component == 0, ExcIndexRange(component, 0, 1));
          if (p.distance(center) < 2)
-            return 1.0 / (4.0 + (1.0 - std::pow(p.distance(center)/2, 4)) * 3.0*std::sin(this->get_time() / 2.5 * numbers::PI));
+            return 1.0
+                  / (4.0
+                        + (1.0 - std::pow(p.distance(center) / 2, 4)) * 12.0
+                              * std::pow(std::sin(this->get_time() / 2.5 * numbers::PI), 2));
          else
             return 1.0 / (4.0 + 0.0);
       }
 };
 
-template<> const Point<2> DemoF<2>::center = Point<2>(0.0, 0.0);
+template<int dim>
+class DemoWaveSpeed: public Function<dim> {
+   public:
+      DemoC<dim> base;
+
+      virtual ~DemoWaveSpeed() = default;
+
+      virtual double value(const Point<dim> &p, const unsigned int component = 0) const {
+         return 1.0 / std::sqrt(base.value(p, component));
+      }
+
+      virtual void set_time(double t) {
+         Function<dim>::set_time(t);
+         base.set_time(t);
+      }
+};
+
+template<> const Point<2> DemoF<2>::center = Point<2>(1.0, 0.0);
 template<> const Point<2> DemoC<2>::center = Point<2>(0.0, 2.5);
 
 template<int dim>
@@ -75,7 +97,7 @@ void demo() {
    auto triangulation = std::make_shared<Triangulation<dim>>();
    GridGenerator::hyper_cube(*triangulation, -5.0, 5.0);
    wavepi::util::GridTools::set_all_boundary_ids(*triangulation, 0);
-   triangulation->refine_global(5);
+   triangulation->refine_global(6);
 
    double t_end = 10;
    int steps = t_end * 64;
@@ -101,6 +123,10 @@ void demo() {
    auto sol = wave_eq.run();
    sol.write_pvd("./", "demo_u", "u");
    demo_c->write_pvd("./", "demo_c", "c");
+
+   DemoWaveSpeed<dim> demo_wave_speed_cont;
+   auto demo_wave_speed = std::make_shared<DiscretizedFunction<dim>>(mesh, demo_wave_speed_cont);
+   demo_wave_speed->write_pvd("./", "demo_wave_speed", "wave speed");
 }
 
 int main(int argc, char * argv[]) {
