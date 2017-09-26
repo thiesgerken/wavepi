@@ -5,7 +5,7 @@
  *      Author: thies
  */
 
-#include <bits/exception.h>
+#include <exception>
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/function.h>
 #include <deal.II/base/logstream.h>
