@@ -51,7 +51,7 @@ class WaveEquationBase {
       // (too much coupling going on, evaluating the polynomial is actually cheaper)
       // in that case, you should turn of the specialization.
       inline bool is_special_assembly_recommended() const {
-         return !(mesh->get_quadrature().size() >= std::pow(2, dim) && dim >= 3);
+         return mesh->get_quadrature().size() < (1 << dim) || dim < 3;
       }
 
       inline bool using_special_assembly() {
