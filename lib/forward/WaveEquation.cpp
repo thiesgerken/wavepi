@@ -226,6 +226,12 @@ void WaveEquation<dim>::assemble_u_pre(double time_step) {
 
    system_rhs_u.add(theta * (1.0 - theta) * time_step * time_step, rhs_old);
 
+   // system_rhs_u contains
+   // theta * X^n_2 = theta (1-theta) * dt^2 (F^n - B^n V^n - A^n U^n) + theta * dt * C^n V^n
+
+   // tmp_u contains
+   // X^n_1 = U^n + (1-theta) * dt V^n
+
    /* <-- TODO: DEBUG */
    static int i = 0;
    i++;
@@ -270,9 +276,15 @@ void WaveEquation<dim>::assemble_u(double time_step) {
    matrix_B.vmult(tmp, tmp_u);
    system_rhs_u.add(theta * time_step, tmp);
 
+   // system_rhs_u contains
+   // theta * \bar X^n_2 + theta^2 dt^2 F^{n+1} + (C^{n+1} + theta * dt * B^{n+1}) \bar X^n_1
+
    system_matrix.copy_from(matrix_C);
    system_matrix.add(theta * time_step, matrix_B);
    system_matrix.add(theta * theta * time_step * time_step, matrix_A);
+
+   // system_matrix contains
+   // theta^2 * dt^2 A^{n+1} + theta * dt * B^{n+1} + C^{n+1}
 
    // needed, because hanging node constraints are not already built into the sparsity pattern
    constraints->condense(system_matrix, system_rhs_u);
@@ -295,6 +307,9 @@ void WaveEquation<dim>::assemble_v_pre(double time_step) {
    system_rhs_v.add(-1.0 * (1.0 - theta) * time_step, tmp);
 
    system_rhs_v.add((1.0 - theta) * time_step, rhs_old);
+
+   // system_rhs_v contains
+   // X^n_2 = (1-theta) * dt * (F^n - B^n V^n - A^n U^n) + C^n V^n
 
    /* <-- TODO: DEBUG */
    static int i = 0;
@@ -337,8 +352,14 @@ void WaveEquation<dim>::assemble_v(double time_step) {
    matrix_A.vmult(tmp, solution_u);
    system_rhs_v.add(-1.0 * theta * time_step, tmp);
 
+   // system_rhs_v contains
+   // \bar X^n_2 + theta * dt * F^{n+1} - theta * dt * A^{n+1} U^{n+1}
+
    system_matrix.copy_from(matrix_C);
    system_matrix.add(theta * time_step, matrix_B);
+
+   // system_matrix contains
+   // theta * dt * B^{n+1} + C^{n+1}
 
    // needed, because hanging node constraints are not already built into the sparsity pattern
    constraints->condense(system_matrix, system_rhs_v);
