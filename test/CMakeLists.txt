@@ -13,6 +13,5 @@ if (GTEST_FOUND)
     TARGET_LINK_LIBRARIES(wavepi_test GTest::GTest GTest::Main wavepi_forward wavepi_inversion wavepi_util) 
     
     include(GoogleTest)
-    #gtest_add_tests(target      wavepi_test)
     gtest_discover_tests(wavepi_test)
 endif()
