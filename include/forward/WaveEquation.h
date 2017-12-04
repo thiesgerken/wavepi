@@ -81,8 +81,7 @@ class WaveEquation: public WaveEquationBase<dim> {
       void next_step(double time);
 
       // assembling steps of u and v that need to happen on the old mesh
-      void assemble_u_pre(double time_step);
-      void assemble_v_pre(double time_step);
+      void assemble_pre(double time_step);
 
       // move on to the mesh of the current time step,
       // interpolating system_rhs_[u,v] and tmp_u on the next mesh
@@ -129,9 +128,11 @@ class WaveEquation: public WaveEquationBase<dim> {
 
       // space for linear systems and their right hand sides
       SparseMatrix<double> system_matrix;
-      Vector<double> system_rhs_u;
-      Vector<double> system_rhs_v;
-      Vector<double> tmp_u; // stuff that assemble_u_pre wants to pass on to assemble_u
+      Vector<double> system_rhs;
+
+      // stuff that assemble_pre wants to pass on to assemble_u and assemble_v
+      Vector<double> system_tmp1; // X^n_1
+      Vector<double> system_tmp2; // X^n_2
 
       // DoFHandler for the current time step
       std::shared_ptr<DoFHandler<dim>> dof_handler;

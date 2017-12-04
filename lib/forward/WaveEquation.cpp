@@ -92,9 +92,10 @@ void WaveEquation<dim>::init_system(size_t first_idx) {
 
    solution_u.reinit(dof_handler->n_dofs());
    solution_v.reinit(dof_handler->n_dofs());
-   system_rhs_u.reinit(dof_handler->n_dofs());
-   system_rhs_v.reinit(dof_handler->n_dofs());
-   tmp_u.reinit(dof_handler->n_dofs());
+   system_rhs.reinit(dof_handler->n_dofs());
+   system_rhs.reinit(dof_handler->n_dofs());
+   system_tmp1.reinit(dof_handler->n_dofs());
+   system_tmp2.reinit(dof_handler->n_dofs());
 
    double time = mesh->get_time(first_idx);
 
@@ -138,10 +139,11 @@ void WaveEquation<dim>::cleanup() {
    solution_u_old.reinit(0);
    solution_v_old.reinit(0);
 
-   system_rhs_u.reinit(0);
-   system_rhs_v.reinit(0);
+   system_rhs.reinit(0);
+   system_rhs.reinit(0);
 
-   tmp_u.reinit(0);
+   system_tmp1.reinit(0);
+   system_tmp2.reinit(0);
 
    rhs.reinit(0);
    rhs_old.reinit(0);
@@ -149,7 +151,7 @@ void WaveEquation<dim>::cleanup() {
 
 template<int dim>
 void WaveEquation<dim>::next_mesh(size_t source_idx, size_t target_idx) {
-   dof_handler = mesh->transfer(source_idx, target_idx, { &system_rhs_u, &system_rhs_v, &tmp_u });
+   dof_handler = mesh->transfer(source_idx, target_idx, {&system_tmp1, &system_tmp2});
    sparsity_pattern = mesh->get_sparsity_pattern(target_idx);
    constraints = mesh->get_constraint_matrix(target_idx);
 
@@ -158,6 +160,7 @@ void WaveEquation<dim>::next_mesh(size_t source_idx, size_t target_idx) {
    matrix_C.reinit(*sparsity_pattern);
 
    system_matrix.reinit(*sparsity_pattern);
+   system_rhs.reinit(dof_handler->n_dofs());
 
    rhs.reinit(dof_handler->n_dofs());
 
@@ -209,115 +212,100 @@ void WaveEquation<dim>::assemble_matrices() {
 }
 
 template<int dim>
-void WaveEquation<dim>::assemble_u_pre(double time_step) {
+void WaveEquation<dim>::assemble_pre(double time_step) {
    Vector<double> tmp(solution_u_old.size());
 
    matrix_C_old.vmult(tmp, solution_v_old);
-   system_rhs_u.equ(theta * time_step, tmp);
+   system_tmp2.equ(1.0 / time_step, tmp);
 
    matrix_B_old.vmult(tmp, solution_v_old);
-   system_rhs_u.add(-1.0 * theta * (1.0 - theta) * time_step * time_step, tmp);
+   system_tmp2.add(-1.0 * (1.0 - theta), tmp);
 
    matrix_A_old.vmult(tmp, solution_u_old);
-   system_rhs_u.add(-1.0 * theta * (1.0 - theta) * time_step * time_step, tmp);
+   system_tmp2.add(-1.0 * (1.0 - theta), tmp);
 
-   tmp_u = solution_u_old;
-   tmp_u.add((1.0 - theta) * time_step, solution_v_old);
+   system_tmp2.add((1.0 - theta), rhs_old);
 
-   system_rhs_u.add(theta * (1.0 - theta) * time_step * time_step, rhs_old);
+   // system_tmp2 contains
+   // X^n_2 = (1-theta) * (F^n - B^n V^n - A^n U^n) + 1.0 / dt * C^n V^n
 
-   // system_rhs_u contains
-   // theta * dt^2 * X^n_2 = theta (1-theta) * dt^2 (F^n - B^n V^n - A^n U^n) + theta * dt * C^n V^n
+   system_tmp1 = solution_u_old;
+   system_tmp1 *= 1.0 / time_step;
+   system_tmp1.add((1.0 - theta), solution_v_old);
 
-   // tmp_u contains
-   // dt * X^n_1 = U^n + (1-theta) * dt V^n
+   // system_tmp1 contains
+   // X^n_1 = 1/dt U^n + (1-theta) V^n
 }
 
 // everything until this point of assembling for u depends on the old mesh and the old matrices
-// -> interp system_rhs_u and tmp_u to the new grid and calculate new matrices on new grid
+// -> interp system_rhs and tmp_u to the new grid and calculate new matrices on new grid
 
 template<int dim>
 void WaveEquation<dim>::assemble_u(double time_step) {
    Vector<double> tmp(solution_u.size());
 
-   system_rhs_u.add(theta * theta * time_step * time_step, rhs);
+   system_rhs.equ(theta, system_tmp2);
+   system_rhs.add(theta * theta, rhs);
 
-   matrix_C.vmult(tmp, tmp_u);
-   system_rhs_u.add(1.0, tmp);
+   matrix_C.vmult(tmp, system_tmp1);
+   system_rhs.add(1.0 / time_step, tmp);
 
-   matrix_B.vmult(tmp, tmp_u);
-   system_rhs_u.add(theta * time_step, tmp);
+   matrix_B.vmult(tmp, system_tmp1);
+   system_rhs.add(theta, tmp);
 
-   // system_rhs_u contains
-   // theta * dt^2 * \bar X^n_2 + theta^2 dt^2 F^{n+1} + (C^{n+1} + theta * dt * B^{n+1}) \bar X^n_1
+   // system_rhs contains
+   // theta * \bar X^n_2 + theta^2 F^{n+1} + (1/dt C^{n+1} + theta * B^{n+1}) \bar X^n_1
 
    system_matrix.copy_from(matrix_C);
-   system_matrix.add(theta * time_step, matrix_B);
-   system_matrix.add(theta * theta * time_step * time_step, matrix_A);
+   system_matrix *= 1.0 / (time_step * time_step);
+   system_matrix.add(theta / time_step, matrix_B);
+   system_matrix.add(theta * theta, matrix_A);
 
    // system_matrix contains
-   // theta^2 * dt^2 A^{n+1} + theta * dt * B^{n+1} + C^{n+1}
+   // theta^2 * A^{n+1} + theta * B^{n+1} + 1/dt^2 C^{n+1}
 
    // needed, because hanging node constraints are not already built into the sparsity pattern
-   constraints->condense(system_matrix, system_rhs_u);
+   constraints->condense(system_matrix, system_rhs);
 
    std::map<types::global_dof_index, double> boundary_values;
    VectorTools::interpolate_boundary_values(*dof_handler, 0, *boundary_values_u, boundary_values);
-   MatrixTools::apply_boundary_values(boundary_values, system_matrix, solution_u, system_rhs_u);
+   MatrixTools::apply_boundary_values(boundary_values, system_matrix, solution_u, system_rhs);
 }
-
-template<int dim>
-void WaveEquation<dim>::assemble_v_pre(double time_step) {
-   Vector<double> tmp(solution_u_old.size());
-
-   matrix_C_old.vmult(system_rhs_v, solution_v_old);
-
-   matrix_B_old.vmult(tmp, solution_v_old);
-   system_rhs_v.add(-1.0 * (1.0 - theta) * time_step, tmp);
-
-   matrix_A_old.vmult(tmp, solution_u_old);
-   system_rhs_v.add(-1.0 * (1.0 - theta) * time_step, tmp);
-
-   system_rhs_v.add((1.0 - theta) * time_step, rhs_old);
-
-   // system_rhs_v contains
-   // dt * X^n_2 = (1-theta) * dt * (F^n - B^n V^n - A^n U^n) + C^n V^n
-}
-
-// everything until this point depends on the old mesh and the old matrices
-// -> interp system_rhs_v to the new grid and calculate new matrices on new grid
 
 template<int dim>
 void WaveEquation<dim>::assemble_v(double time_step) {
    Vector<double> tmp(solution_u.size());
 
-   system_rhs_v.add(theta * time_step, rhs);
+   system_rhs.equ(1.0, system_tmp2);
+   system_rhs.add(theta, rhs);
 
    matrix_A.vmult(tmp, solution_u);
-   system_rhs_v.add(-1.0 * theta * time_step, tmp);
+   system_rhs.add(-1.0 * theta, tmp);
 
-   // system_rhs_v contains
-   // dt * \bar X^n_2 + theta * dt * F^{n+1} - theta * dt * A^{n+1} U^{n+1}
+   // system_rhs contains
+   // \bar X^n_2 + theta * F^{n+1} - theta * A^{n+1} U^{n+1}
 
    system_matrix.copy_from(matrix_C);
-   system_matrix.add(theta * time_step, matrix_B);
+   system_matrix *= 1.0 / time_step;
+
+   system_matrix.add(time_step, matrix_B);
 
    // system_matrix contains
-   // theta * dt * B^{n+1} + C^{n+1}
+   // theta * B^{n+1} + 1/dt C^{n+1}
 
    // needed, because hanging node constraints are not already built into the sparsity pattern
-   constraints->condense(system_matrix, system_rhs_v);
+   constraints->condense(system_matrix, system_rhs);
 
    std::map<types::global_dof_index, double> boundary_values;
    VectorTools::interpolate_boundary_values(*dof_handler, 0, *boundary_values_v, boundary_values);
-   MatrixTools::apply_boundary_values(boundary_values, system_matrix, solution_v, system_rhs_v);
+   MatrixTools::apply_boundary_values(boundary_values, system_matrix, solution_v, system_rhs);
 }
 
 template<int dim>
 void WaveEquation<dim>::solve_u() {
    LogStream::Prefix p("solve_u");
 
-   double norm_rhs = system_rhs_u.l2_norm();
+   double norm_rhs = system_rhs.l2_norm();
 
    SolverControl solver_control(2000, this->tolerance * norm_rhs);
    SolverCG<> cg(solver_control);
@@ -327,7 +315,7 @@ void WaveEquation<dim>::solve_u() {
    // precondition.initialize (system_matrix, PreconditionSSOR<SparseMatrix<double> >::AdditionalData(.6));
    PreconditionIdentity precondition = PreconditionIdentity();
 
-   cg.solve(system_matrix, solution_u, system_rhs_u, precondition);
+   cg.solve(system_matrix, solution_u, system_rhs, precondition);
    constraints->distribute(solution_u);
 
    std::ios::fmtflags f(deallog.flags(std::ios_base::scientific));
@@ -342,7 +330,7 @@ template<int dim>
 void WaveEquation<dim>::solve_v() {
    LogStream::Prefix p("solve_v");
 
-   double norm_rhs = system_rhs_v.l2_norm();
+   double norm_rhs = system_rhs.l2_norm();
 
    SolverControl solver_control(2000, this->tolerance * norm_rhs);
    SolverCG<> cg(solver_control);
@@ -350,7 +338,7 @@ void WaveEquation<dim>::solve_v() {
    // See the comment in solve_u about preconditioning
    PreconditionIdentity precondition = PreconditionIdentity();
 
-   cg.solve(system_matrix, solution_v, system_rhs_v, precondition);
+   cg.solve(system_matrix, solution_v, system_rhs, precondition);
    constraints->distribute(solution_v);
 
    std::ios::fmtflags f(deallog.flags(std::ios_base::scientific));
@@ -401,8 +389,7 @@ DiscretizedFunction<dim> WaveEquation<dim>::run() {
       next_step(time);
 
       // assembling that needs to take place on the old grid
-      assemble_u_pre(dt);
-      assemble_v_pre(dt);
+      assemble_pre(dt);
 
       // set dof_handler to mesh for this time step,
       // interpolate to new mesh
