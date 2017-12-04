@@ -10,6 +10,9 @@ if (GTEST_FOUND)
         )
 
     ADD_EXECUTABLE(wavepi_test ${LIBSOURCES})
-    DEAL_II_SETUP_TARGET(wavepi_test)
-    TARGET_LINK_LIBRARIES(wavepi_test ${GTEST_BOTH_LIBRARIES} wavepi_forward wavepi_inversion wavepi_util) 
+    TARGET_LINK_LIBRARIES(wavepi_test GTest::GTest GTest::Main wavepi_forward wavepi_inversion wavepi_util) 
+    
+    include(GoogleTest)
+    #gtest_add_tests(target      wavepi_test)
+    gtest_discover_tests(wavepi_test)
 endif()

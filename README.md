@@ -46,6 +46,8 @@ Use the same command with `Debug` to go back. There are also `make` targets that
 
 This project uses [Google Test](https://github.com/google/googletest). Run the test suite using the binary `wavepi_test` (only built if `gtest` was found). You can also list all tests (`--gtest_list_tests`) and only run a subset of them (`--gtest_filter="[filter]"`, wildcards are allowed). Currently, a few of the tests should fail (L2 Adjoint to the wave equation by integrating backwards is not as good as `WaveEquationAdjoint`, and is not even correct if $`\nu\neq 0`$).
 
+You can also run the tests using [`ctest`](https://cmake.org/cmake/help/latest/manual/ctest.1.html). Just run `ctest` in the build directory. `ctest -V` also shows test output, `ctest -N` lists all tests and `ctest -R <regex>` runs all tests that match the specified regex (use `.*` instead of `*`!).
+
 ## Remarks on the Code
 
 It is common C++ practice to put all the code of templated classes into the header file, because the compiler needs to instantiate them for every compilation unit. For classes/functions that only depend on the dimensions I ignored this and just added instances for one, two and three dimensions to increase compilation speed.  
@@ -56,7 +58,7 @@ Use `cloc` to count the lines of code in this project. To obtain meaningful resu
 
 ```shell
 cloc . --exclude-dir=build,doc
-``` 
+```
 
 ## Shell Autocompletion (ZSH)
 

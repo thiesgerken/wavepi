@@ -29,6 +29,8 @@ find_package(Boost 1.56 REQUIRED COMPONENTS
 
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
 
+enable_testing()
+    
 add_subdirectory(lib)
 add_subdirectory(src)
 add_subdirectory(test)
