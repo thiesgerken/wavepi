@@ -227,24 +227,10 @@ void WaveEquation<dim>::assemble_u_pre(double time_step) {
    system_rhs_u.add(theta * (1.0 - theta) * time_step * time_step, rhs_old);
 
    // system_rhs_u contains
-   // theta * X^n_2 = theta (1-theta) * dt^2 (F^n - B^n V^n - A^n U^n) + theta * dt * C^n V^n
+   // theta * dt^2 * X^n_2 = theta (1-theta) * dt^2 (F^n - B^n V^n - A^n U^n) + theta * dt * C^n V^n
 
    // tmp_u contains
-   // X^n_1 = U^n + (1-theta) * dt V^n
-
-   /* <-- TODO: DEBUG */
-   static int i = 0;
-   i++;
-   DataOut<dim> data_out;
-
-   data_out.attach_dof_handler(*dof_handler);
-   data_out.add_data_vector(system_rhs_u, "system_rhs_u_pre");
-   data_out.build_patches();
-
-   std::ofstream output(("./system_rhs_u_pre" + Utilities::int_to_string(i, 4) + ".vtu").c_str());
-   AssertThrow(output, ExcInternalError());
-   data_out.write_vtu(output);
-   /* DEBUG --> */
+   // dt * X^n_1 = U^n + (1-theta) * dt V^n
 }
 
 // everything until this point of assembling for u depends on the old mesh and the old matrices
@@ -252,20 +238,6 @@ void WaveEquation<dim>::assemble_u_pre(double time_step) {
 
 template<int dim>
 void WaveEquation<dim>::assemble_u(double time_step) {
-   /* <-- TODO: DEBUG */
-   static int i = 0;
-   i++;
-   DataOut<dim> data_out;
-
-   data_out.attach_dof_handler(*dof_handler);
-   data_out.add_data_vector(system_rhs_u, "system_rhs_u_post");
-   data_out.build_patches();
-
-   std::ofstream output(("./system_rhs_u_post" + Utilities::int_to_string(i, 4) + ".vtu").c_str());
-   AssertThrow(output, ExcInternalError());
-   data_out.write_vtu(output);
-   /* DEBUG --> */
-
    Vector<double> tmp(solution_u.size());
 
    system_rhs_u.add(theta * theta * time_step * time_step, rhs);
@@ -277,7 +249,7 @@ void WaveEquation<dim>::assemble_u(double time_step) {
    system_rhs_u.add(theta * time_step, tmp);
 
    // system_rhs_u contains
-   // theta * \bar X^n_2 + theta^2 dt^2 F^{n+1} + (C^{n+1} + theta * dt * B^{n+1}) \bar X^n_1
+   // theta * dt^2 * \bar X^n_2 + theta^2 dt^2 F^{n+1} + (C^{n+1} + theta * dt * B^{n+1}) \bar X^n_1
 
    system_matrix.copy_from(matrix_C);
    system_matrix.add(theta * time_step, matrix_B);
@@ -309,21 +281,7 @@ void WaveEquation<dim>::assemble_v_pre(double time_step) {
    system_rhs_v.add((1.0 - theta) * time_step, rhs_old);
 
    // system_rhs_v contains
-   // X^n_2 = (1-theta) * dt * (F^n - B^n V^n - A^n U^n) + C^n V^n
-
-   /* <-- TODO: DEBUG */
-   static int i = 0;
-   i++;
-   DataOut<dim> data_out;
-
-   data_out.attach_dof_handler(*dof_handler);
-   data_out.add_data_vector(system_rhs_v, "system_rhs_v_pre");
-   data_out.build_patches();
-
-   std::ofstream output(("./system_rhs_v_pre" + Utilities::int_to_string(i, 4) + ".vtu").c_str());
-   AssertThrow(output, ExcInternalError());
-   data_out.write_vtu(output);
-   /* DEBUG --> */
+   // dt * X^n_2 = (1-theta) * dt * (F^n - B^n V^n - A^n U^n) + C^n V^n
 }
 
 // everything until this point depends on the old mesh and the old matrices
@@ -331,20 +289,6 @@ void WaveEquation<dim>::assemble_v_pre(double time_step) {
 
 template<int dim>
 void WaveEquation<dim>::assemble_v(double time_step) {
-   /* <-- TODO: DEBUG */
-   static int i = 0;
-   i++;
-   DataOut<dim> data_out;
-
-   data_out.attach_dof_handler(*dof_handler);
-   data_out.add_data_vector(system_rhs_v, "system_rhs_v_post");
-   data_out.build_patches();
-
-   std::ofstream output(("./system_rhs_v_post" + Utilities::int_to_string(i, 4) + ".vtu").c_str());
-   AssertThrow(output, ExcInternalError());
-   data_out.write_vtu(output);
-   /* DEBUG --> */
-
    Vector<double> tmp(solution_u.size());
 
    system_rhs_v.add(theta * time_step, rhs);
@@ -353,7 +297,7 @@ void WaveEquation<dim>::assemble_v(double time_step) {
    system_rhs_v.add(-1.0 * theta * time_step, tmp);
 
    // system_rhs_v contains
-   // \bar X^n_2 + theta * dt * F^{n+1} - theta * dt * A^{n+1} U^{n+1}
+   // dt * \bar X^n_2 + theta * dt * F^{n+1} - theta * dt * A^{n+1} U^{n+1}
 
    system_matrix.copy_from(matrix_C);
    system_matrix.add(theta * time_step, matrix_B);
