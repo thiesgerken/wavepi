@@ -427,13 +427,6 @@ void run_reference_test_constant(int fe_order, int quad_order, int refines, Poin
    wavepi::util::GridTools::set_all_boundary_ids(*triangulation, 0);
    triangulation->refine_global(refines);
 
-   // flag some cells for refinement, and refine them in some step
-    for (auto cell : triangulation->active_cell_iterators())
-       if (cell->center()[1] > numbers::PI / 2)
-          cell->set_refine_flag();
-
-    triangulation->execute_coarsening_and_refinement();
-
    double t_start = 0.0, dt = t_end / steps;
    std::vector<double> times;
 
@@ -470,7 +463,7 @@ void run_reference_test_adaptive(int fe_order, int quad_order, int refines, Poin
 
    // flag some cells for refinement, and refine them in some step
    for (auto cell : triangulation->active_cell_iterators())
-      if (cell->center()[1] > numbers::PI / 2)
+      if (cell->center()[0] > numbers::PI / 2)
          cell->set_refine_flag();
 
    std::vector<bool> ref;
@@ -512,7 +505,7 @@ void run_reference_test_refined(int fe_order, int quad_order, int refines, Point
    wavepi::util::GridTools::set_all_boundary_ids(*triangulation, 0);
    triangulation->refine_global(refines);
 
-   // flag some cells for refinement, and refine them in some step
+   // flag some cells for refinement and refine them
    for (auto cell : triangulation->active_cell_iterators())
       if (cell->center()[1] > numbers::PI / 2)
          cell->set_refine_flag();
@@ -576,7 +569,7 @@ TEST(WaveEquationTest, ReferenceTest1DFE2) {
 TEST(WaveEquationTest, ReferenceTest2DFE1) {
    for (int steps = 16; steps <= 256; steps *= 2)
       run_reference_test_constant<2>(1, 3, 6, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, steps,
-            steps >= 64);
+            steps >= 64, steps == 256);
 
    for (int refine = 5; refine >= 1; refine--)
       run_reference_test_constant<2>(1, 3, refine, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI,
