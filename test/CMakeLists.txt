@@ -13,5 +13,8 @@ if (GTEST_FOUND)
     TARGET_LINK_LIBRARIES(wavepi_test GTest::GTest GTest::Main wavepi_forward wavepi_inversion wavepi_util) 
     
     include(GoogleTest)
-    gtest_discover_tests(wavepi_test)
+    
+    if(${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.10)
+      gtest_discover_tests(wavepi_test)
+    endif()
 endif()
