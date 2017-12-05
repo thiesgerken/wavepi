@@ -140,7 +140,7 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
             prm->enter_subsection(KEY_PROBLEM_DATA_I + Utilities::int_to_string(i, 1));
 
             GridPointMeasure<2>::declare_parameters(*prm);
-            prm->declare_entry(KEY_PROBLEM_DATA_I_MEASURE, "Grid", Patterns::Selection("Identical|Grid"),
+            prm->declare_entry(KEY_PROBLEM_DATA_I_MEASURE, "Identical", Patterns::Selection("Identical|Grid"),
                   "type of measurements");
 
             prm->leave_subsection();

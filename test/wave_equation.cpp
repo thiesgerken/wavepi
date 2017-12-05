@@ -472,26 +472,13 @@ void run_reference_test_adaptive(int fe_order, int quad_order, int refines, Poin
    triangulation->save_refine_flags(ref);
    triangulation->save_coarsen_flags(coa);
 
+   for (auto cell : triangulation->active_cell_iterators())
+      cell->clear_refine_flag();
+
    std::vector<Patch> patches = mesh->get_forward_patches();
    patches[steps / 4].emplace_back(ref, coa);
    mesh->set_forward_patches(patches);
 
-  triangulation =  mesh->get_triangulation(steps / 4 + 1);
-
-   // flag some cells for coarsening, and coarsen them in some step
-   for (auto cell : triangulation->active_cell_iterators())
-      if (cell->center()[1] > numbers::PI / 2)
-         cell->set_coarsen_flag();
-
-   ref.resize(0);
-   coa.resize(0);
-
-   triangulation->save_refine_flags(ref);
-   triangulation->save_coarsen_flags(coa);
-
-   patches[steps * 3 / 4].emplace_back(ref, coa);
-
-   mesh->set_forward_patches(patches);
    mesh->get_dof_handler(0);
 
    run_reference_test<dim>(mesh, k, constants, expect, save);
