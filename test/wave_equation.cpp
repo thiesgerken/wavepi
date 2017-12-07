@@ -556,7 +556,7 @@ TEST(WaveEquationTest, ReferenceTest1DFE2) {
 TEST(WaveEquationTest, ReferenceTest2DFE1) {
    for (int steps = 16; steps <= 256; steps *= 2)
       run_reference_test_constant<2>(1, 3, 6, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, steps,
-            steps >= 64, steps == 256);
+            steps >= 64);
 
    for (int refine = 5; refine >= 1; refine--)
       run_reference_test_constant<2>(1, 3, refine, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI,
@@ -565,7 +565,7 @@ TEST(WaveEquationTest, ReferenceTest2DFE1) {
 
 TEST(WaveEquationTest, ReferenceTestAdaptive2DFE1) {
    run_reference_test_adaptive<2>(1, 3, 4, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, 256,
-            true, true);
+            true);
 
 //   for (int steps = 16; steps <= 256; steps *= 2)
 //      run_reference_test_adaptive<2>(1, 3, 5, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, steps,
@@ -578,7 +578,7 @@ TEST(WaveEquationTest, ReferenceTestAdaptive2DFE1) {
 
 TEST(WaveEquationTest, ReferenceTestRefined2DFE1) {
    run_reference_test_refined<2>(1, 3, 4, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, 256,
-            true, true);
+            true);
 
 //   for (int steps = 16; steps <= 256; steps *= 2)
 //      run_reference_test_adaptive<2>(1, 3, 5, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, steps,
