@@ -105,7 +105,12 @@ int main(int argc, char * argv[]) {
          auto params = sstream.str();
 
          // delete the first two lines of params
-         params.erase(params.begin(), params.begin() + params.find("\n", params.find("\n")+1));
+         params.erase(params.begin(), params.begin() + params.find("\n", params.find("\n") + 1));
+
+         // delete double new lines
+         for (size_t pos = params.rfind("\n\n\n"); pos != std::string::npos;
+               pos = params.rfind("\n\n\n", pos - 1))
+            params.erase(params.begin() + pos, params.begin() + pos + 1);
 
          std::cout << params;
 
