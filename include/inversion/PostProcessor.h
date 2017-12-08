@@ -107,11 +107,11 @@ class BoundEnforcingPostProcessor: public PostProcessor<DiscretizedFunction<dim>
             }
 
          if (est_min < lower_bound)
-            deallog << "Adjusted lower bound of the estimate from " << est_min << " to " << lower_bound
+            deallog << "Adjusted lower bound of estimate from " << est_min << " to " << lower_bound
                   << std::endl;
 
          if (est_max > upper_bound)
-            deallog << "Adjusted upper bound of the estimate from " << est_max << " to " << upper_bound
+            deallog << "Adjusted upper bound of estimate from " << est_max << " to " << upper_bound
                   << std::endl;
       }
 

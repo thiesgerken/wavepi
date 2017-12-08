@@ -76,7 +76,7 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
    {
       prm->declare_entry(KEY_GENERAL_DIMENSION, "2", Patterns::Integer(1, 3), "problem dimension");
       prm->declare_entry(KEY_GENERAL_FE_DEGREE, "1", Patterns::Integer(1, 4),
-            "polynomial degree of finite elements");
+            "polynomial degree of finite elements. Note that bound checking is currently only implemented for linear elements.");
       prm->declare_entry(KEY_GENERAL_QUAD_ORDER, "3", Patterns::Integer(1, 20),
             "order of quadrature (QGauss, exact in polynomials of degree ≤ 2n-1, use at least finite element degree + 1) ");
    }
