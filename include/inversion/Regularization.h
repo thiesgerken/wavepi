@@ -9,6 +9,7 @@
 #define INVERSION_REGULARIZATION_H_
 
 #include <inversion/InversionProgress.h>
+#include <inversion/PostProcessor.h>
 
 #include <climits>
 #include <list>
@@ -83,6 +84,14 @@ class Regularization {
          progress_listeners.push_back(listener);
       }
 
+      void remove_post_processor(std::shared_ptr<PostProcessor<Param>> processor) {
+         post_processors.remove(processor);
+      }
+
+      void add_post_processor(std::shared_ptr<PostProcessor<Param>> processor) {
+         post_processors.push_back(processor);
+      }
+
    protected:
       int max_iterations = INT_MAX;
       bool abort_increasing_discrepancy = false; // abort if the discrepancy is not decreasing anymore?
@@ -97,8 +106,14 @@ class Regularization {
          return continue_iteration;
       }
 
+      void post_process(int iteration_number, Param* current_estimate, double norm_current_estimate) {
+         for (auto processor : post_processors)
+            processor->post_process(iteration_number, current_estimate, norm_current_estimate);
+      }
+
    private:
       std::list<std::shared_ptr<InversionProgressListener<Param, Sol, Exact>>> progress_listeners;
+      std::list<std::shared_ptr<PostProcessor<Param>>> post_processors;
 
 };
 

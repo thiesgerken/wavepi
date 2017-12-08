@@ -14,5 +14,6 @@ fi
 
 mkdir $1
 cd $1
-../../build/wavepi -c ../$1.cfg
+cp ../$1.cfg wavepi.cfg
+../../build/wavepi -c wavepi.cfg
 cd ..

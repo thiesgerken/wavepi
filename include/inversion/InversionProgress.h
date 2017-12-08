@@ -446,19 +446,19 @@ class BoundCheckProgressListener: public InversionProgressListener<DiscretizedFu
       }
 
       static void declare_parameters(ParameterHandler &prm) {
-         prm.enter_subsection("output");
+         prm.enter_subsection("constraints");
          {
-            prm.declare_entry("lower bound", "-inf", Patterns::Double(),
+            prm.declare_entry("lower bound", "-1e300", Patterns::Double(),
                   "lower bound for reconstructed parameter");
 
-            prm.declare_entry("upper bound", "inf", Patterns::Double(),
+            prm.declare_entry("upper bound", "1e300", Patterns::Double(),
                   "upper bound for reconstructed parameter");
          }
          prm.leave_subsection();
       }
 
       void get_parameters(ParameterHandler &prm) {
-         prm.enter_subsection("estimate bounds");
+         prm.enter_subsection("constraints");
          {
             lower_bound = prm.get_double("lower bound");
             upper_bound = prm.get_double("upper bound");
@@ -483,10 +483,10 @@ class BoundCheckProgressListener: public InversionProgressListener<DiscretizedFu
          deallog << est_min << " <= estimate <= " << est_max << std::endl;
 
          if (est_min < lower_bound)
-            deallog << "Estimate violates the constraint estimate >= " << lower_bound << std::endl;
+            deallog << "constraint estimate >= " << lower_bound << " violated" << std::endl;
 
          if (est_max > upper_bound)
-            deallog << "Estimate violates the constraint estimate <= " << upper_bound << std::endl;
+            deallog << "constraint estimate <= " << upper_bound << " violated" << std::endl;
 
          return est_min >= lower_bound && est_max <= upper_bound;
       }

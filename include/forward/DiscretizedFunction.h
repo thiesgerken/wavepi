@@ -167,6 +167,25 @@ class DiscretizedFunction: public Function<dim> {
       double relative_error(const DiscretizedFunction<dim>& other) const;
 
       /**
+       * returns the value of the smallest coefficent (!) over all time steps
+       *
+       * note that for P1-elements this is also the smallest function value, whereas for higher order elements, it might not be.
+       */
+      double min_value() const;
+
+      /**
+       * returns the value of the biggest coefficent (!) over all time steps
+       *
+       * note that for P1-elements this is also the biggest function value, whereas for higher order elements, it might not be.
+       */
+      double max_value() const;
+
+      /**
+       * calculates `min_value` and `max_value` simultaneously
+       */
+      void min_max_value(double* min_out, double* max_out) const;
+
+      /**
        * Calculate the absolute error to a given continuous function.
        * Used the norm specified by `set_norm`.
        *

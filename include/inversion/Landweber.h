@@ -84,14 +84,23 @@ class Landweber: public LinearRegularization<Param, Sol, Exact> {
             // $`c_{k+1} = c_k + \omega A^* (g - A c_k)`$
             estimate.add(omega, adj);
 
-            // calculate new residual and discrepancy for next step
+            double norm_estimate = estimate.norm();
+
+            // post-processing
+            deallog.push("post_processing");
+            this->post_process(k, &estimate, norm_estimate);
+            deallog.pop();
+
+            // calculate new residual and discrepancy
+            deallog.push("finish_step");
             residual = data;
             Sol data_current = this->problem->forward(estimate);
             residual -= data_current;
             double discrepancy_last = discrepancy;
             discrepancy = residual.norm();
+            deallog.pop();
 
-            status = InversionProgress<Param, Sol, Exact>(k, &estimate, estimate.norm(), &residual,
+            status = InversionProgress<Param, Sol, Exact>(k, &estimate, norm_estimate, &residual,
                   discrepancy, target_discrepancy, &data, norm_data, exact_param, false);
 
             if (!this->progress(status))

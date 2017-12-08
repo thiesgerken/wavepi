@@ -272,6 +272,8 @@ template<int dim, typename Meas> void WavePI<dim, Meas>::run() {
    regularization->add_listener(std::make_shared<OutputProgressListener<dim, Tuple<Meas>>>(*cfg->prm));
    regularization->add_listener(std::make_shared<BoundCheckProgressListener<dim, Tuple<Meas>>>(*cfg->prm));
 
+   regularization->add_post_processor(std::make_shared<BoundEnforcingPostProcessor<dim>>(*cfg->prm));
+
    cfg->log_parameters();
 
    regularization->invert(*data, cfg->tau * cfg->epsilon * data->norm(), param_exact);

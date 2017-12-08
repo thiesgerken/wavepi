@@ -165,6 +165,7 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
 
    WaveEquationBase<2>::declare_parameters(*prm);
    OutputProgressListener<2, Tuple<DiscretizedFunction<2>>>::declare_parameters(*prm);
+   BoundCheckProgressListener<2, Tuple<DiscretizedFunction<2>>>::declare_parameters(*prm);
 }
 
 void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {

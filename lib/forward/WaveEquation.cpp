@@ -151,7 +151,7 @@ void WaveEquation<dim>::cleanup() {
 
 template<int dim>
 void WaveEquation<dim>::next_mesh(size_t source_idx, size_t target_idx) {
-   dof_handler = mesh->transfer(source_idx, target_idx, {&system_tmp1, &system_tmp2});
+   dof_handler = mesh->transfer(source_idx, target_idx, { &system_tmp1, &system_tmp2 });
    sparsity_pattern = mesh->get_sparsity_pattern(target_idx);
    constraints = mesh->get_constraint_matrix(target_idx);
 
@@ -358,6 +358,31 @@ DiscretizedFunction<dim> WaveEquation<dim>::run() {
 
    Timer timer, assembly_timer;
    timer.start();
+
+   // bound checking for a and c (if possible)
+   // (should not take long compared to the rest and can be very tricky to find out otherwise
+   //    -> do it even in release mode)
+   if (this->param_c_disc) {
+      double cmin, cmax;
+      this->param_c_disc->min_max_value(&cmin, &cmax);
+
+      std::stringstream bound_str;
+      bound_str << cmin << " <= c <= " << cmax;
+
+      AssertThrow(cmax * cmin >= 0, ExcMessage("C is not coercive, " + bound_str.str()));
+      AssertThrow(!(cmax > 0 && cmin < 1e-3),
+            ExcMessage("C is not coercive (c_min < 1e-3), " + bound_str.str()));
+      AssertThrow(!(cmin < 0 && cmax > -1e-3),
+            ExcMessage("C is not negative definite (c_max > -1e-3), " + bound_str.str()));
+
+      if (cmax < 0 && cmin < 0)
+         deallog << "warning: C is negative definite, " + bound_str.str() << std::endl;
+   }
+
+   if (this->param_a_disc) {
+      double amin = this->param_a_disc->min_value();
+      AssertThrow(amin >= 1e-3, ExcMessage("A is not coercive, a_min = " + std::to_string(amin) + " < 1e-3"));
+   }
 
    // this is going to be the result
    DiscretizedFunction<dim> u(mesh, true);

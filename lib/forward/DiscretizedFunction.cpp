@@ -1001,6 +1001,45 @@ std::shared_ptr<SpaceTimeMesh<dim> > DiscretizedFunction<dim>::get_mesh() const 
 }
 
 template<int dim>
+void DiscretizedFunction<dim>::min_max_value(double* min_out, double* max_out) const {
+   *min_out = std::numeric_limits<double>::infinity();
+   *max_out = -std::numeric_limits<double>::infinity();
+
+   for (size_t i = 0; i < this->length(); i++)
+      for (size_t j = 0; j < function_coefficients[i].size(); j++) {
+         if (*min_out > function_coefficients[i][j])
+            *min_out = function_coefficients[i][j];
+
+         if (*max_out < function_coefficients[i][j])
+            *max_out = function_coefficients[i][j];
+      }
+}
+
+template<int dim>
+double DiscretizedFunction<dim>::min_value() const {
+   double tmp = std::numeric_limits<double>::infinity();
+
+   for (size_t i = 0; i < this->length(); i++)
+      for (size_t j = 0; j < function_coefficients[i].size(); j++)
+         if (tmp > function_coefficients[i][j])
+            tmp = function_coefficients[i][j];
+
+   return tmp;
+}
+
+template<int dim>
+double DiscretizedFunction<dim>::max_value() const {
+   double tmp = -std::numeric_limits<double>::infinity();
+
+   for (size_t i = 0; i < this->length(); i++)
+      for (size_t j = 0; j < function_coefficients[i].size(); j++)
+         if (tmp < function_coefficients[i][j])
+            tmp = function_coefficients[i][j];
+
+   return tmp;
+}
+
+template<int dim>
 double DiscretizedFunction<dim>::relative_error(const DiscretizedFunction<dim>& other) const {
    DiscretizedFunction<dim> tmp(*this);
    tmp -= other;

@@ -145,18 +145,24 @@ class REGINN: public NewtonRegularization<Param, Sol, Exact> {
             }
 
             estimate += step;
+            double norm_estimate = estimate.norm();
+
+            // post-processing
+            deallog.push("post_processing");
+            this->post_process(i, &estimate, norm_estimate);
+            deallog.pop();
 
             // calculate new residual and discrepancy
-            deallog.push("post_step");
+            deallog.push("finish_step");
             residual = data;
             data_current = this->problem->forward(estimate);
             residual -= data_current;
             double discrepancy_last = discrepancy;
             discrepancy = residual.norm();
-
             deallog.pop();
-            status = InversionProgress<Param, Sol, Exact>(i, &estimate, estimate.norm(), &residual,
-                  discrepancy, target_discrepancy, &data, norm_data, exact_param, false);
+
+            status = InversionProgress<Param, Sol, Exact>(i, &estimate, norm_estimate, &residual, discrepancy,
+                  target_discrepancy, &data, norm_data, exact_param, false);
 
             if (!this->progress(status))
                break;
