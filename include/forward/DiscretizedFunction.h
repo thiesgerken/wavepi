@@ -143,6 +143,21 @@ class DiscretizedFunction: public Function<dim> {
          return function_coefficients[idx];
       }
 
+      inline const Vector<double>& operator[](size_t idx) const {
+         return function_coefficients[idx];
+      }
+
+      inline Vector<double>& operator[](size_t idx) {
+         return function_coefficients[idx];
+      }
+
+      /**
+       * returns the number of time steps in this function (short hand for this->get_mesh()->length())
+       */
+      inline size_t length() const {
+         return function_coefficients.size();
+      }
+
       // get / set what `norm()` and `*` do.
       Norm get_norm() const;
       void set_norm(Norm norm);

@@ -16,6 +16,7 @@
 #include <deal.II/grid/grid_tools.h>
 
 #include <forward/AdaptiveMesh.h>
+#include <forward/ConstantMesh.h>
 
 #include <inversion/InversionProgress.h>
 #include <inversion/NonlinearLandweber.h>
@@ -150,7 +151,7 @@ template<int dim, typename Meas> void WavePI<dim, Meas>::initialize_mesh() {
    wavepi::util::GridTools::set_all_boundary_ids(*triangulation, 0);
    triangulation->refine_global(cfg->initial_refines);
 
-   mesh = std::make_shared<AdaptiveMesh<dim>>(cfg->times, FE_Q<dim>(cfg->fe_degree),
+   mesh = std::make_shared<ConstantMesh<dim>>(cfg->times, FE_Q<dim>(cfg->fe_degree),
          QGauss<dim>(cfg->quad_order), triangulation);
 
    //auto a_mesh = std::make_shared<AdaptiveMesh<dim>>(cfg->times, FE_Q<dim>(cfg->fe_degree),
@@ -269,6 +270,7 @@ template<int dim, typename Meas> void WavePI<dim, Meas>::run() {
          std::make_shared<GenericInversionProgressListener<Param, Tuple<Meas>, Exact>>("i"));
    regularization->add_listener(std::make_shared<CtrlCProgressListener<Param, Tuple<Meas>, Exact>>());
    regularization->add_listener(std::make_shared<OutputProgressListener<dim, Tuple<Meas>>>(*cfg->prm));
+   regularization->add_listener(std::make_shared<BoundCheckProgressListener<dim, Tuple<Meas>>>(*cfg->prm));
 
    cfg->log_parameters();
 

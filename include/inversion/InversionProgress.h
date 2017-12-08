@@ -429,6 +429,91 @@ class OutputProgressListener: public InversionProgressListener<DiscretizedFuncti
       }
 };
 
+template<int dim, typename Meas>
+class BoundCheckProgressListener: public InversionProgressListener<DiscretizedFunction<dim>, Meas,
+      Function<dim>> {
+   public:
+
+      virtual ~BoundCheckProgressListener() = default;
+
+      BoundCheckProgressListener(double lower_bound = -std::numeric_limits<double>::infinity(), double upper_bound =
+            std::numeric_limits<double>::infinity())
+            : lower_bound(lower_bound), upper_bound(upper_bound) {
+      }
+
+      BoundCheckProgressListener(ParameterHandler &prm) {
+         get_parameters(prm);
+      }
+
+      static void declare_parameters(ParameterHandler &prm) {
+         prm.enter_subsection("output");
+         {
+            prm.declare_entry("lower bound", "-inf", Patterns::Double(),
+                  "lower bound for reconstructed parameter");
+
+            prm.declare_entry("upper bound", "inf", Patterns::Double(),
+                  "upper bound for reconstructed parameter");
+         }
+         prm.leave_subsection();
+      }
+
+      void get_parameters(ParameterHandler &prm) {
+         prm.enter_subsection("estimate bounds");
+         {
+            lower_bound = prm.get_double("lower bound");
+            upper_bound = prm.get_double("upper bound");
+         }
+         prm.leave_subsection();
+      }
+
+      virtual bool progress(InversionProgress<DiscretizedFunction<dim>, Meas, Function<dim>> state) {
+         double est_min = std::numeric_limits<double>::infinity();
+         double est_max = -std::numeric_limits<double>::infinity();
+
+         for (size_t i = 0; i < state.current_estimate->length(); i++)
+            for (size_t j = 0; j < (*state.current_estimate)[i].size(); j++) {
+
+               if (est_min > (*state.current_estimate)[i][j])
+                  est_min = (*state.current_estimate)[i][j];
+
+               if (est_max < (*state.current_estimate)[i][j])
+                  est_max =(*state.current_estimate)[i][j];
+            }
+
+         deallog << est_min << " <= estimate <= " << est_max << std::endl;
+
+         if (est_min < lower_bound)
+            deallog << "Estimate violates the constraint estimate >= " << lower_bound << std::endl;
+
+         if (est_max > upper_bound)
+            deallog << "Estimate violates the constraint estimate <= " << upper_bound << std::endl;
+
+         return est_min >= lower_bound && est_max <= upper_bound;
+      }
+
+      double get_lower_bound() const {
+         return lower_bound;
+      }
+
+      void set_lower_bound(double lower_bound) {
+         this->lower_bound = lower_bound;
+      }
+
+      double get_upper_bound() const {
+         return upper_bound;
+      }
+
+      void set_upper_bound(double upper_bound) {
+         this->upper_bound = upper_bound;
+      }
+
+   private:
+
+      double lower_bound;
+      double upper_bound;
+
+};
+
 } /* namespace inversion */
 } /* namespace wavepi */
 
