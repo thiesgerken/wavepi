@@ -72,6 +72,12 @@ const std::string SettingsManager::KEY_INVERSION_TAU = "tau";
 const std::string SettingsManager::KEY_INVERSION_METHOD = "method";
 
 void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) {
+   OutputProgressListener<2, Tuple<DiscretizedFunction<2>>>::declare_parameters(*prm);
+   StatOutputProgressListener<Tuple<DiscretizedFunction<2>>, Tuple<DiscretizedFunction<2>>>::declare_parameters(
+         *prm);
+   WaveEquationBase<2>::declare_parameters(*prm);
+   BoundCheckProgressListener<2, Tuple<DiscretizedFunction<2>>>::declare_parameters(*prm);
+
    prm->enter_subsection(KEY_GENERAL);
    {
       prm->declare_entry(KEY_GENERAL_DIMENSION, "2", Patterns::Integer(1, 3), "problem dimension");
@@ -162,10 +168,6 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
             *prm);
    }
    prm->leave_subsection();
-
-   WaveEquationBase<2>::declare_parameters(*prm);
-   OutputProgressListener<2, Tuple<DiscretizedFunction<2>>>::declare_parameters(*prm);
-   BoundCheckProgressListener<2, Tuple<DiscretizedFunction<2>>>::declare_parameters(*prm);
 }
 
 void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {

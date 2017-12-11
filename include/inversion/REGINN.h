@@ -38,7 +38,7 @@ template<typename Param, typename Sol, typename Exact>
 class REGINN: public NewtonRegularization<Param, Sol, Exact> {
    public:
 
-      virtual ~ REGINN() = default;
+      virtual ~REGINN() = default;
 
       REGINN(std::shared_ptr<NonlinearProblem<Param, Sol>> problem, std::shared_ptr<Param> initial_guess,
             std::shared_ptr<LinearRegularization<Param, Sol, Exact>> linear_solver,
@@ -63,9 +63,11 @@ class REGINN: public NewtonRegularization<Param, Sol, Exact> {
             prm.declare_entry("tolerance choice", "Rieder", Patterns::Selection("Rieder|Constant"),
                   "algorithm that chooses the target discrepancies for the linear subproblems");
 
-            RiederToleranceChoice::declare_parameters(prm);
+            ToleranceChoice::declare_parameters(prm);
+                 RiederToleranceChoice::declare_parameters(prm);
             ConstantToleranceChoice::declare_parameters(prm);
             Landweber<Param, Sol, Exact>::declare_parameters(prm);
+            InnerStatOutputProgressListener<Param, Sol, Exact>::declare_parameters(prm);
          }
          prm.leave_subsection();
       }
@@ -84,6 +86,9 @@ class REGINN: public NewtonRegularization<Param, Sol, Exact> {
             else
                AssertThrow(false, ExcInternalError());
 
+            inner_stats = std::make_shared<InnerStatOutputProgressListener<Param, Sol, Exact>>(prm);
+
+            linear_solver->add_listener(inner_stats);
             linear_solver->add_listener(
                   std::make_shared<GenericInversionProgressListener<Param, Sol, Exact>>("k"));
             linear_solver->add_listener(std::make_shared<CtrlCProgressListener<Param, Sol, Exact>>());
@@ -137,6 +142,7 @@ class REGINN: public NewtonRegularization<Param, Sol, Exact> {
 
             auto linear_status = std::make_shared<InversionProgress<Param, Sol, Exact>>(status);
             linear_solver->set_problem(this->problem->derivative(estimate));
+            inner_stats->set_iteration(i);
             Param step = linear_solver->invert(residual, linear_target_discrepancy, linear_status);
 
             if (linear_status->current_discrepancy > linear_target_discrepancy) {
@@ -188,6 +194,7 @@ class REGINN: public NewtonRegularization<Param, Sol, Exact> {
       std::shared_ptr<Param> initial_guess;
       std::shared_ptr<LinearRegularization<Param, Sol, Exact>> linear_solver;
       std::shared_ptr<ToleranceChoice> tol_choice;
+      std::shared_ptr<InnerStatOutputProgressListener<Param, Sol, Exact>> inner_stats;
 };
 
 } /* namespace inversion */

@@ -44,6 +44,8 @@ void RiederToleranceChoice::get_parameters(ParameterHandler &prm) {
       beta = prm.get_double("beta");
    }
    prm.leave_subsection();
+
+   ToleranceChoice::get_parameters(prm);
 }
 
 double RiederToleranceChoice::calculate_tolerance() const {

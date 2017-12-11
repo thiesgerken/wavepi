@@ -32,6 +32,8 @@ void ConstantToleranceChoice::get_parameters(ParameterHandler &prm) {
       tol = prm.get_double("tol");
    }
    prm.leave_subsection();
+
+   ToleranceChoice::get_parameters(prm);
 }
 
 double ConstantToleranceChoice::calculate_tolerance() const {

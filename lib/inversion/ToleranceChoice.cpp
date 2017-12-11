@@ -8,6 +8,7 @@
 #include <inversion/ToleranceChoice.h>
 
 #include <deal.II/base/exceptions.h>
+#include <fstream>
 
 namespace wavepi {
 namespace inversion {
@@ -32,11 +33,55 @@ double ToleranceChoice::get_tolerance() {
    return tol;
 }
 
+void ToleranceChoice::declare_parameters(ParameterHandler &prm) {
+   prm.declare_entry("tolerance output", "history_reginn", Patterns::Anything(),
+         "output of tolerances and linear steps (csv and gnuplot)");
+}
+
+void ToleranceChoice::get_parameters(ParameterHandler &prm) {
+   tolerance_prefix = prm.get("tolerance output");
+}
+
 void ToleranceChoice::add_iteration(double new_discrepancy, int steps) {
    AssertThrow(discrepancies.size() == previous_tolerances.size() - 1, ExcInternalError());
 
    discrepancies.push_back(new_discrepancy);
    required_steps.push_back(steps);
+
+   if (!tolerance_prefix.size())
+      return;
+
+   std::ofstream csv_file(tolerance_prefix + ".csv", std::ios::out | std::ios::app);
+
+   if (!csv_file)
+      return;
+
+   if (csv_file.tellp() == 0) {
+      csv_file << "Tolerance,Required Steps" << std::endl;
+
+      std::ofstream gplot_file(tolerance_prefix + ".gplot", std::ios::out | std::ios::trunc);
+      gplot_file << "set xlabel 'Iteration'" << std::endl;
+      gplot_file << "set grid" << std::endl;
+      gplot_file << "set term png size 1200,500" << std::endl;
+      gplot_file << "set output '" << tolerance_prefix << ".png'" << std::endl;
+      gplot_file << "set datafile separator ','" << std::endl;
+      gplot_file << "set key outside" << std::endl;
+
+      gplot_file << "plot for [col=1:2] '" << tolerance_prefix
+            << ".csv' using 0:col with linespoints title columnheader" << std::endl;
+
+      gplot_file << "set term svg size 1200,500 name 'REGINN'" << std::endl;
+      gplot_file << "set output '" << tolerance_prefix << ".svg'" << std::endl;
+      gplot_file << "replot" << std::endl;
+   }
+
+   csv_file << previous_tolerances[previous_tolerances.size() - 1] << ","
+         << required_steps[required_steps.size() - 1];
+   csv_file << std::endl;
+   csv_file.close();
+
+   std::string cmd = "cat " + tolerance_prefix + ".gplot | gnuplot > /dev/null";
+   std::system(cmd.c_str());
 }
 
 } /* namespace problems */

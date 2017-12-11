@@ -4,7 +4,8 @@ SET(LIBSOURCES
   GridTools.cpp 
   MacroFunctionParser.cpp 
   RadialParsedFunction.cpp 
-  SpaceTimeGrid.cpp)
+  SpaceTimeGrid.cpp
+  Helpers.cpp)
         
 find_program(GIT_SCM git DOC "Git version control")
 mark_as_advanced(GIT_SCM)

@@ -1,6 +1,17 @@
 # Example problems
 
-* [`problem_c_1.cfg`](problem_c_1.cfg): Reconstruct a constant $`c`$ from field with $`1\%`$ noise
-* [`problem_c_2.cfg`](problem_c_2.cfg): Reconstruct a constant $`c`$ from field with $`0.1\%`$ noise
-* [`problem_c_3.cfg`](problem_c_3.cfg): Reconstruct a constant $`c`$ from field with $`0.01\%`$ noise
-* [`problem_c_4.cfg`](problem_c_4.cfg): Reconstruct a constant $`c`$ from field with $`0.001\%`$ noise
+## [`problem_c_1.cfg`](problem_c_1.cfg)
+
+Tries to reconstruct a constant $`c = 2`$ from field with $`1\%`$ noise using $`L^2`$-Norms in time and space.
+Initial guess is $`c = 0.5`$.
+Very difficult problem because of bad setting (no real wave that travels through domain?)
+REGINN fails to reconstruct anything meaningful and is caught inside an endless loop (due to enforcement of lower bound)
+
+## [`problem_c_2.cfg`](problem_c_2.cfg)
+
+Tries to reconstruct a constant $`c = 1.5`$ from field with $`1\%`$ noise using $`L^2`$-Norms in time and space.
+Initial guess is $`c = 1.0`$. In contrast to [`problem_c_1.cfg`](problem_c_1.cfg), better right hand side and domain is used.
+
+* strong oscillations in discrepancy (due to enforcement of lower bound), decreases very slowly (if at all), caught at about $`20\%`$.
+* after some time, discrepancy increases and estimate becomes very large (~100)
+* estimate does not look good (oscillations, error does not decrease at all).

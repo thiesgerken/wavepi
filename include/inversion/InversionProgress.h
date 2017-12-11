@@ -16,10 +16,12 @@
 #include <deal.II/base/parameter_handler.h>
 
 #include <forward/DiscretizedFunction.h>
+#include <util/Helpers.h>
 
 #include <signal.h>
 #include <stddef.h>
 #include <cstdio>
+#include <fstream>
 #include <cstring>
 #include <iterator>
 #include <map>
@@ -31,6 +33,7 @@ namespace wavepi {
 namespace inversion {
 using namespace dealii;
 using namespace wavepi::forward;
+using namespace wavepi::util;
 
 template<typename Param, typename Sol, typename Exact = Param>
 struct InversionProgress {
@@ -257,10 +260,10 @@ class OutputProgressListener: public InversionProgressListener<DiscretizedFuncti
          std::map<std::string, std::string> subs;
          subs["i"] = Utilities::int_to_string(state.iteration_number, 4);
 
-         std::string dest = replace(destination_prefix, subs);
+         std::string dest = Helpers::replace(destination_prefix, subs);
 
          if (save_exact && state.iteration_number == 0 && state.exact_param) {
-            std::string filename = replace(filename_exact, subs);
+            std::string filename = Helpers::replace(filename_exact, subs);
 
             boost::filesystem::create_directories(dest);
             deallog << "Saving exact parameter in " << dest << std::endl;
@@ -271,7 +274,7 @@ class OutputProgressListener: public InversionProgressListener<DiscretizedFuncti
          }
 
          if (save_data && state.iteration_number == 0) {
-            std::string filename = replace(filename_data, subs);
+            std::string filename = Helpers::replace(filename_data, subs);
 
             boost::filesystem::create_directories(dest);
             deallog << "Saving data in " << dest << std::endl;
@@ -281,7 +284,7 @@ class OutputProgressListener: public InversionProgressListener<DiscretizedFuncti
 
          if ((interval > 0 && state.iteration_number % interval == 0) || (save_last && state.finished)) {
             if (save_residual) {
-               std::string filename = replace(filename_residual, subs);
+               std::string filename = Helpers::replace(filename_residual, subs);
 
                boost::filesystem::create_directories(dest);
                deallog << "Saving current residual in " << dest << std::endl;
@@ -290,7 +293,7 @@ class OutputProgressListener: public InversionProgressListener<DiscretizedFuncti
             }
 
             if (save_estimate) {
-               std::string filename = replace(filename_estimate, subs);
+               std::string filename = Helpers::replace(filename_estimate, subs);
 
                boost::filesystem::create_directories(dest);
                deallog << "Saving current estimate in " << dest << std::endl;
@@ -403,30 +406,6 @@ class OutputProgressListener: public InversionProgressListener<DiscretizedFuncti
 
       // interval <= 0 -> no interval-based output
       int interval;
-
-      std::string replace(std::string const &in, std::map<std::string, std::string> const &subst) {
-         std::ostringstream out;
-         size_t pos = 0;
-         for (;;) {
-            size_t subst_pos = in.find("{{", pos);
-            size_t end_pos = in.find("}}", subst_pos);
-            if (end_pos == std::string::npos)
-               break;
-
-            out.write(&*in.begin() + pos, subst_pos - pos);
-
-            subst_pos += strlen("{{");
-            std::map<std::string, std::string>::const_iterator subst_it = subst.find(
-                  in.substr(subst_pos, end_pos - subst_pos));
-
-            AssertThrow(subst_it != subst.end(), ExcMessage("undefined substitution"))
-
-            out << subst_it->second;
-            pos = end_pos + strlen("}}");
-         }
-         out << in.substr(pos, std::string::npos);
-         return out.str();
-      }
 };
 
 template<int dim, typename Meas>
@@ -436,8 +415,8 @@ class BoundCheckProgressListener: public InversionProgressListener<DiscretizedFu
 
       virtual ~BoundCheckProgressListener() = default;
 
-      BoundCheckProgressListener(double lower_bound = -std::numeric_limits<double>::infinity(), double upper_bound =
-            std::numeric_limits<double>::infinity())
+      BoundCheckProgressListener(double lower_bound = -std::numeric_limits<double>::infinity(),
+            double upper_bound = std::numeric_limits<double>::infinity())
             : lower_bound(lower_bound), upper_bound(upper_bound) {
       }
 
@@ -477,7 +456,7 @@ class BoundCheckProgressListener: public InversionProgressListener<DiscretizedFu
                   est_min = (*state.current_estimate)[i][j];
 
                if (est_max < (*state.current_estimate)[i][j])
-                  est_max =(*state.current_estimate)[i][j];
+                  est_max = (*state.current_estimate)[i][j];
             }
 
          deallog << est_min << " <= estimate <= " << est_max << std::endl;
@@ -512,6 +491,163 @@ class BoundCheckProgressListener: public InversionProgressListener<DiscretizedFu
       double lower_bound;
       double upper_bound;
 
+};
+
+template<typename Param, typename Sol, typename Exact = Param>
+class StatOutputProgressListener: public InversionProgressListener<Param, Sol, Exact> {
+   public:
+
+      virtual ~StatOutputProgressListener() = default;
+
+      StatOutputProgressListener(std::string file_prefix)
+            : file_prefix(file_prefix) {
+      }
+
+      StatOutputProgressListener(ParameterHandler &prm) {
+         get_parameters(prm);
+      }
+
+      static void declare_parameters(ParameterHandler &prm) {
+         prm.enter_subsection("output");
+         {
+            prm.declare_entry("statistics", "history", Patterns::Anything(),
+                  "Output file for rdisc, (r)norm and (r)error (if available) of estimate. If not empty, this will result in [file].csv and [file].svg.");
+         }
+         prm.leave_subsection();
+      }
+
+      virtual void get_parameters(ParameterHandler &prm) {
+         prm.enter_subsection("output");
+         {
+            file_prefix = prm.get("statistics");
+         }
+         prm.leave_subsection();
+      }
+
+      virtual bool progress(InversionProgress<Param, Sol, Exact> state) {
+         if (!file_prefix.size() || state.finished)
+            return true;
+
+         std::ofstream csv_file(file_prefix + ".csv", std::ios::out | std::ios::app);
+
+         if (!csv_file)
+            return true;
+
+         if (csv_file.tellp() == 0) {
+            int num_cols;
+
+            if (state.norm_exact_param > 0) {
+               csv_file << "Iteration,rel. Discrepancy,rel. Norm,rel. Error" << std::endl;
+               num_cols = 4;
+            } else {
+               csv_file << "Iteration,rel. Discrepancy,Norm" << std::endl;
+               num_cols = 3;
+            }
+
+            std::ofstream gplot_file(file_prefix + ".gplot", std::ios::out | std::ios::trunc);
+            gplot_file << "set xlabel 'Iteration'" << std::endl;
+            gplot_file << "set grid" << std::endl;
+            gplot_file << "set term png size 1200,500" << std::endl;
+            gplot_file << "set output '" << file_prefix << ".png'" << std::endl;
+            gplot_file << "set datafile separator ','" << std::endl;
+            gplot_file << "set key outside" << std::endl;
+
+            gplot_file << "plot for [col=2:" << num_cols << "] '" << file_prefix
+                  << ".csv' using 1:col with linespoints title columnheader" << std::endl;
+
+            gplot_file << "set term svg size 1200,500 name 'History'" << std::endl;
+            gplot_file << "set output '" << file_prefix << ".svg'" << std::endl;
+            gplot_file << "replot" << std::endl;
+         }
+
+         double norm_exact_param = state.norm_exact_param > 0 ? state.norm_exact_param : 1.0;
+         csv_file << state.iteration_number << "," << state.current_discrepancy / state.norm_data << ",";
+         csv_file << state.norm_current_estimate / norm_exact_param;
+
+         if (state.norm_exact_param > 0)
+            csv_file << "," << state.current_error / norm_exact_param;
+
+         csv_file << std::endl;
+         csv_file.close();
+
+         std::string cmd = "cat " + file_prefix + ".gplot | gnuplot > /dev/null";
+         std::system(cmd.c_str());
+
+         return true;
+      }
+
+      const std::string& get_file_prefix() const {
+         return file_prefix;
+      }
+
+      void set_file_prefix(const std::string& file_prefix) {
+         this->file_prefix = file_prefix;
+      }
+
+   protected:
+      std::string file_prefix = "stats";
+};
+
+template<typename Param, typename Sol, typename Exact = Param>
+class InnerStatOutputProgressListener: public StatOutputProgressListener<Param, Sol, Exact> {
+   public:
+
+      virtual ~InnerStatOutputProgressListener() = default;
+
+      InnerStatOutputProgressListener(std::string file_prefix)
+            : StatOutputProgressListener<Param, Sol, Exact>(file_prefix) {
+      }
+
+      InnerStatOutputProgressListener(ParameterHandler &prm)
+            : StatOutputProgressListener<Param, Sol, Exact>("") {
+         get_parameters(prm);
+      }
+
+      static void declare_parameters(ParameterHandler &prm) {
+         prm.enter_subsection("inner output");
+         {
+            prm.declare_entry("interval", "10", Patterns::Integer(0),
+                  "output every n iterations, or never if n == 0.");
+
+            prm.declare_entry("destination", "./step-{{i}}/", Patterns::DirectoryName(),
+                  "output path for step {{i}}; has to end with a slash");
+         }
+         prm.leave_subsection();
+      }
+
+      virtual void get_parameters(ParameterHandler &prm) {
+         prm.enter_subsection("inner output");
+         {
+            interval = prm.get_integer("interval");
+            destination_prefix = prm.get("destination");
+         }
+         prm.leave_subsection();
+      }
+
+      int get_iteration() const {
+         return outer_iteration;
+      }
+
+      void set_iteration(int outer_iteration) {
+         this->outer_iteration = outer_iteration;
+
+         if (interval > 0 && outer_iteration % interval == 0) {
+            std::map<std::string, std::string> subs;
+            subs["i"] = Utilities::int_to_string(outer_iteration, 4);
+
+            std::string dest = Helpers::replace(destination_prefix, subs);
+
+            boost::filesystem::create_directories(dest);
+            this->set_file_prefix(dest + "stats");
+         } else {
+            this->set_file_prefix("");
+         }
+      }
+
+   private:
+      int outer_iteration = 0;
+      int interval = 10;
+      std::string destination_prefix = "./step-{{i}}/";
 };
 
 } /* namespace inversion */

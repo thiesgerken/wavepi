@@ -9,9 +9,12 @@
 #define INCLUDE_INVERSION_TOLERANCECHOICE_H_
 
 #include <vector>
+#include <deal.II/base/parameter_handler.h>
 
 namespace wavepi {
 namespace inversion {
+
+using namespace dealii;
 
 class ToleranceChoice {
    public:
@@ -27,11 +30,17 @@ class ToleranceChoice {
       // add a new iteration to the history
       void add_iteration(double new_residual, int steps);
 
+      static void declare_parameters(ParameterHandler &prm);
+
+      virtual void get_parameters(ParameterHandler &prm);
+
    protected:
       // previous values. Note that they will have the same size when calculate_tolerance is called.
       std::vector<double> previous_tolerances;
       std::vector<int> required_steps;
       std::vector<double> discrepancies;
+
+      std::string tolerance_prefix;
 
       double target_discrepancy;
       double initial_discrepancy;

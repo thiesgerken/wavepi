@@ -79,8 +79,8 @@ class BoundEnforcingPostProcessor: public PostProcessor<DiscretizedFunction<dim>
          prm.leave_subsection();
       }
 
-      virtual void post_process(int iteration_number, DiscretizedFunction<dim>* current_estimate,
-            double norm_current_estimate) {
+      virtual void post_process(int iteration_number __attribute__((unused)), DiscretizedFunction<dim>* current_estimate,
+            double norm_current_estimate __attribute__((unused))) {
          if (lower_bound <= -1e100 && upper_bound >= 1e100)
             return;
 
