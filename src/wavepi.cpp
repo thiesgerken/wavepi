@@ -112,6 +112,11 @@ int main(int argc, char * argv[]) {
                pos = params.rfind("\n\n\n", pos - 1))
             params.erase(params.begin() + pos, params.begin() + pos + 1);
 
+         // delete double new lines after "end"
+         for (size_t pos = params.rfind("end\n"); pos != std::string::npos;
+               pos = params.rfind("end\n", pos - 1))
+            params.erase(params.begin() + pos + 3, params.begin() + pos + 4);
+
          std::cout << params;
 
          return 1;
