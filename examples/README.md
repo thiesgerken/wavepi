@@ -15,3 +15,7 @@ Initial guess is $`c = 1.0`$. In contrast to [`problem_c_1.cfg`](problem_c_1.cfg
 * strong oscillations in discrepancy (due to enforcement of lower bound), decreases very slowly (if at all), caught at about $`20\%`$.
 * after some time, discrepancy increases and estimate becomes very large (~100)
 * estimate does not look good (oscillations, error does not decrease at all).
+
+## [`problem_c_3.cfg`](problem_c_3.cfg)
+
+Like [`problem_c_2.cfg`](problem_c_2.cfg), but with 5 instead of 6 initial global refines.

@@ -126,8 +126,8 @@ DiscretizedFunction<dim>& DiscretizedFunction<dim>::operator=(const DiscretizedF
 
 template<int dim>
 DiscretizedFunction<dim> DiscretizedFunction<dim>::derivative() const {
-   Assert(store_derivative, ExcInternalError());
-   Assert(mesh, ExcNotInitialized());
+   AssertThrow(store_derivative, ExcInternalError());
+   AssertThrow(mesh, ExcNotInitialized());
 
    DiscretizedFunction<dim> result(mesh, false);
    result.function_coefficients = this->derivative_coefficients;
@@ -137,9 +137,9 @@ DiscretizedFunction<dim> DiscretizedFunction<dim>::derivative() const {
 
 template<int dim>
 DiscretizedFunction<dim> DiscretizedFunction<dim>::calculate_derivative() const {
-   Assert(mesh, ExcNotInitialized());
-   Assert(mesh->length() > 1, ExcInternalError());
-   Assert(!store_derivative, ExcInternalError()); // why would you want to calculate it in this case?
+   AssertThrow(mesh, ExcNotInitialized());
+   AssertThrow(mesh->length() > 1, ExcInternalError());
+   AssertThrow(!store_derivative, ExcInternalError()); // why would you want to calculate it in this case?
 
    DiscretizedFunction<dim> result(mesh, false);
 
@@ -265,45 +265,45 @@ double DiscretizedFunction<dim>::absolute_error(Function<dim>& other, double* no
 
 template<int dim>
 DiscretizedFunction<dim> DiscretizedFunction<dim>::calculate_derivative_transpose() const {
-   Assert(mesh, ExcNotInitialized());
+   AssertThrow(mesh, ExcNotInitialized());
 
    // because of the special cases
-   Assert(mesh->length() > 3, ExcInternalError());
+   AssertThrow(mesh->length() > 3, ExcInternalError());
 
    DiscretizedFunction<dim> result(mesh, false);
 
    /* implementation for constant mesh */
-   // /*
-   for (size_t i = 0; i < mesh->length(); i++) {
-      auto dest = &result.function_coefficients[i];
+   /*
+    for (size_t i = 0; i < mesh->length(); i++) {
+    auto dest = &result.function_coefficients[i];
 
-      if (i < mesh->length() - 1)
-         AssertThrow(function_coefficients[i + 1].size() == function_coefficients[i].size(),
-               ExcNotImplemented());
+    if (i < mesh->length() - 1)
+    AssertThrow(function_coefficients[i + 1].size() == function_coefficients[i].size(),
+    ExcNotImplemented());
 
-      if (i == 0) {
-         *dest = function_coefficients[i + 1];
-         dest->sadd(-1.0 / (mesh->get_time(i + 2) - mesh->get_time(i)),
-               -1.0 / (mesh->get_time(i + 1) - mesh->get_time(i)), function_coefficients[i]);
-      } else if (i == 1) {
-         *dest = function_coefficients[i + 1];
-         dest->sadd(-1.0 / (mesh->get_time(i + 2) - mesh->get_time(i)),
-               1.0 / (mesh->get_time(i) - mesh->get_time(i - 1)), function_coefficients[i - 1]);
-      } else if (i == mesh->length() - 1) {
-         *dest = function_coefficients[i];
-         dest->sadd(1.0 / (mesh->get_time(i) - mesh->get_time(i - 1)),
-               1.0 / (mesh->get_time(i) - mesh->get_time(i - 2)), function_coefficients[i - 1]);
-      } else if (i == mesh->length() - 2) {
-         *dest = function_coefficients[i + 1];
-         dest->sadd(-1.0 / (mesh->get_time(i + 1) - mesh->get_time(i)),
-               1.0 / (mesh->get_time(i) - mesh->get_time(i - 2)), function_coefficients[i - 1]);
-      } else {
-         *dest = function_coefficients[i + 1];
-         dest->sadd(-1.0 / (mesh->get_time(i + 2) - mesh->get_time(i)),
-               1.0 / (mesh->get_time(i) - mesh->get_time(i - 2)), function_coefficients[i - 1]);
-      }
-   }
-   // */
+    if (i == 0) {
+    *dest = function_coefficients[i + 1];
+    dest->sadd(-1.0 / (mesh->get_time(i + 2) - mesh->get_time(i)),
+    -1.0 / (mesh->get_time(i + 1) - mesh->get_time(i)), function_coefficients[i]);
+    } else if (i == 1) {
+    *dest = function_coefficients[i + 1];
+    dest->sadd(-1.0 / (mesh->get_time(i + 2) - mesh->get_time(i)),
+    1.0 / (mesh->get_time(i) - mesh->get_time(i - 1)), function_coefficients[i - 1]);
+    } else if (i == mesh->length() - 1) {
+    *dest = function_coefficients[i];
+    dest->sadd(1.0 / (mesh->get_time(i) - mesh->get_time(i - 1)),
+    1.0 / (mesh->get_time(i) - mesh->get_time(i - 2)), function_coefficients[i - 1]);
+    } else if (i == mesh->length() - 2) {
+    *dest = function_coefficients[i + 1];
+    dest->sadd(-1.0 / (mesh->get_time(i + 1) - mesh->get_time(i)),
+    1.0 / (mesh->get_time(i) - mesh->get_time(i - 2)), function_coefficients[i - 1]);
+    } else {
+    *dest = function_coefficients[i + 1];
+    dest->sadd(-1.0 / (mesh->get_time(i + 2) - mesh->get_time(i)),
+    1.0 / (mesh->get_time(i) - mesh->get_time(i - 2)), function_coefficients[i - 1]);
+    }
+    }
+    */
 
    /* naive, but working implementation for non-constant mesh */
    /*for (size_t i = 0; i < mesh->length(); i++) {
@@ -350,60 +350,58 @@ DiscretizedFunction<dim> DiscretizedFunction<dim>::calculate_derivative_transpos
     */
 
    /* better: forward- and backward sweep */
-   /*
-    // forward sweep
-    for (size_t i = 0; i < mesh->length(); i++) {
-    auto& dest = result.function_coefficients[i];
+   // forward sweep
+   for (size_t i = 0; i < mesh->length(); i++) {
+      auto& dest = result.function_coefficients[i];
 
-    if (i == 0) {
-    dest.add(-1.0 / (mesh->get_time(i + 1) - mesh->get_time(i)), function_coefficients[i]);
-    } else if (i == 1) {
-    Vector<double> tmp = function_coefficients[i - 1];
-    mesh->transfer(i - 1, i, { &tmp });
-    dest.add(1.0 / (mesh->get_time(i) - mesh->get_time(i - 1)), tmp);
-    } else if (i == mesh->length() - 1) {
-    Vector<double> tmp = function_coefficients[i - 1];
-    mesh->transfer(i - 1, i, { &tmp });
-    dest.add(1.0 / (mesh->get_time(i) - mesh->get_time(i - 2)), tmp);
+      if (i == 0) {
+         dest.add(-1.0 / (mesh->get_time(i + 1) - mesh->get_time(i)), function_coefficients[i]);
+      } else if (i == 1) {
+         Vector<double> tmp = function_coefficients[i - 1];
+         mesh->transfer(i - 1, i, { &tmp });
+         dest.add(1.0 / (mesh->get_time(i) - mesh->get_time(i - 1)), tmp);
+      } else if (i == mesh->length() - 1) {
+         Vector<double> tmp = function_coefficients[i - 1];
+         mesh->transfer(i - 1, i, { &tmp });
+         dest.add(1.0 / (mesh->get_time(i) - mesh->get_time(i - 2)), tmp);
 
-    dest.add(1.0 / (mesh->get_time(i) - mesh->get_time(i - 1)), function_coefficients[i]);
-    } else if (i == mesh->length() - 2) {
-    Vector<double> tmp = function_coefficients[i - 1];
-    mesh->transfer(i - 1, i, { &tmp });
-    dest.add(1.0 / (mesh->get_time(i) - mesh->get_time(i - 2)), tmp);
-    } else {
-    Vector<double> tmp = function_coefficients[i - 1];
-    mesh->transfer(i - 1, i, { &tmp });
-    dest.add(1.0 / (mesh->get_time(i) - mesh->get_time(i - 2)), tmp);
-    }
-    }
+         dest.add(1.0 / (mesh->get_time(i) - mesh->get_time(i - 1)), function_coefficients[i]);
+      } else if (i == mesh->length() - 2) {
+         Vector<double> tmp = function_coefficients[i - 1];
+         mesh->transfer(i - 1, i, { &tmp });
+         dest.add(1.0 / (mesh->get_time(i) - mesh->get_time(i - 2)), tmp);
+      } else {
+         Vector<double> tmp = function_coefficients[i - 1];
+         mesh->transfer(i - 1, i, { &tmp });
+         dest.add(1.0 / (mesh->get_time(i) - mesh->get_time(i - 2)), tmp);
+      }
+   }
 
-    // backward sweep
-    for (size_t j = 0; j < mesh->length(); j++) {
-    size_t i = mesh->length() - 1 - j;
-    auto& dest = result.function_coefficients[i];
+   // backward sweep
+   for (size_t j = 0; j < mesh->length(); j++) {
+      size_t i = mesh->length() - 1 - j;
+      auto& dest = result.function_coefficients[i];
 
-    if (i == 0) {
-    Vector<double> tmp = function_coefficients[i + 1];
-    mesh->transfer(i + 1, i, { &tmp });
-    dest.add(-1.0 / (mesh->get_time(i + 2) - mesh->get_time(i)), tmp);
-    } else if (i == 1) {
-    Vector<double> tmp = function_coefficients[i + 1];
-    mesh->transfer(i + 1, i, { &tmp });
-    dest.add(-1.0 / (mesh->get_time(i + 2) - mesh->get_time(i)), tmp);
-    } else if (i == mesh->length() - 1) {
-    // nothing to be done
-    } else if (i == mesh->length() - 2) {
-    Vector<double> tmp = function_coefficients[i + 1];
-    mesh->transfer(i + 1, i, { &tmp });
-    dest.add(-1.0 / (mesh->get_time(i + 1) - mesh->get_time(i)), tmp);
-    } else {
-    Vector<double> tmp = function_coefficients[i + 1];
-    mesh->transfer(i + 1, i, { &tmp });
-    dest.add(-1.0 / (mesh->get_time(i + 2) - mesh->get_time(i)), tmp);
-    }
-    }
-    */
+      if (i == 0) {
+         Vector<double> tmp = function_coefficients[i + 1];
+         mesh->transfer(i + 1, i, { &tmp });
+         dest.add(-1.0 / (mesh->get_time(i + 2) - mesh->get_time(i)), tmp);
+      } else if (i == 1) {
+         Vector<double> tmp = function_coefficients[i + 1];
+         mesh->transfer(i + 1, i, { &tmp });
+         dest.add(-1.0 / (mesh->get_time(i + 2) - mesh->get_time(i)), tmp);
+      } else if (i == mesh->length() - 1) {
+         // nothing to be done
+      } else if (i == mesh->length() - 2) {
+         Vector<double> tmp = function_coefficients[i + 1];
+         mesh->transfer(i + 1, i, { &tmp });
+         dest.add(-1.0 / (mesh->get_time(i + 1) - mesh->get_time(i)), tmp);
+      } else {
+         Vector<double> tmp = function_coefficients[i + 1];
+         mesh->transfer(i + 1, i, { &tmp });
+         dest.add(-1.0 / (mesh->get_time(i + 2) - mesh->get_time(i)), tmp);
+      }
+   }
 
    return result;
 }

@@ -160,7 +160,7 @@ class L2CProblem: public L2WaveProblem<dim, Measurement> {
                */
 
                // analytical adjoint
-               res = res.derivative();
+               res = res.calculate_derivative();
                res.pointwise_multiplication(u->derivative());
 
                return res;
