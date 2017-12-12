@@ -525,13 +525,17 @@ class StatOutputProgressListener: public InversionProgressListener<Param, Sol, E
       }
 
       virtual bool progress(InversionProgress<Param, Sol, Exact> state) {
+         LogStream::Prefix p = LogStream::Prefix("StatOutput");
+
          if (!file_prefix.size() || state.finished)
             return true;
 
          std::ofstream csv_file(file_prefix + ".csv", std::ios::out | std::ios::app);
 
-         if (!csv_file)
+         if (!csv_file) {
+            deallog << "Could not open " + file_prefix + ".csv" + " for output!" << std::endl;
             return true;
+         }
 
          if (csv_file.tellp() == 0) {
             int num_cols;
@@ -545,19 +549,23 @@ class StatOutputProgressListener: public InversionProgressListener<Param, Sol, E
             }
 
             std::ofstream gplot_file(file_prefix + ".gplot", std::ios::out | std::ios::trunc);
-            gplot_file << "set xlabel 'Iteration'" << std::endl;
-            gplot_file << "set grid" << std::endl;
-            gplot_file << "set term png size 1200,500" << std::endl;
-            gplot_file << "set output '" << file_prefix << ".png'" << std::endl;
-            gplot_file << "set datafile separator ','" << std::endl;
-            gplot_file << "set key outside" << std::endl;
 
-            gplot_file << "plot for [col=2:" << num_cols << "] '" << file_prefix
-                  << ".csv' using 1:col with linespoints title columnheader" << std::endl;
+            if (gplot_file) {
+               gplot_file << "set xlabel 'Iteration'" << std::endl;
+               gplot_file << "set grid" << std::endl;
+               gplot_file << "set term png size 1200,500" << std::endl;
+               gplot_file << "set output '" << file_prefix << ".png'" << std::endl;
+               gplot_file << "set datafile separator ','" << std::endl;
+               gplot_file << "set key outside" << std::endl;
 
-            gplot_file << "set term svg size 1200,500 name 'History'" << std::endl;
-            gplot_file << "set output '" << file_prefix << ".svg'" << std::endl;
-            gplot_file << "replot" << std::endl;
+               gplot_file << "plot for [col=2:" << num_cols << "] '" << file_prefix
+                     << ".csv' using 1:col with linespoints title columnheader" << std::endl;
+
+               gplot_file << "set term svg size 1200,500 name 'History'" << std::endl;
+               gplot_file << "set output '" << file_prefix << ".svg'" << std::endl;
+               gplot_file << "replot" << std::endl;
+            } else
+               deallog << "Could not open " + file_prefix + ".gplot" + " for output!" << std::endl;
          }
 
          double norm_exact_param = state.norm_exact_param > 0 ? state.norm_exact_param : 1.0;
@@ -571,7 +579,8 @@ class StatOutputProgressListener: public InversionProgressListener<Param, Sol, E
          csv_file.close();
 
          std::string cmd = "cat " + file_prefix + ".gplot | gnuplot > /dev/null 2>&1";
-         std::system(cmd.c_str());
+         if (std::system(cmd.c_str()) != 0)
+            deallog << "gnuplot exited with status code != 0 " << std::endl;
 
          return true;
       }
@@ -613,7 +622,7 @@ class InnerStatOutputProgressListener: public StatOutputProgressListener<Param, 
                   "output path for step {{i}}; has to end with a slash");
 
             prm.declare_entry("statistics", "stats", Patterns::FileName(),
-                             "output file for statistics (no extension). You can also use {{i}} here.");
+                  "output file for statistics (no extension). You can also use {{i}} here.");
 
          }
          prm.leave_subsection();

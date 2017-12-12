@@ -7,6 +7,7 @@
 
 #include <inversion/ToleranceChoice.h>
 
+#include <deal.II/base/logstream.h>
 #include <deal.II/base/exceptions.h>
 #include <fstream>
 
@@ -43,6 +44,8 @@ void ToleranceChoice::get_parameters(ParameterHandler &prm) {
 }
 
 void ToleranceChoice::add_iteration(double new_discrepancy, int steps) {
+   LogStream::Prefix p = LogStream::Prefix("ToleranceChoice");
+
    AssertThrow(discrepancies.size() == previous_tolerances.size() - 1, ExcInternalError());
 
    discrepancies.push_back(new_discrepancy);
@@ -53,26 +56,32 @@ void ToleranceChoice::add_iteration(double new_discrepancy, int steps) {
 
    std::ofstream csv_file(tolerance_prefix + ".csv", std::ios::out | std::ios::app);
 
-   if (!csv_file)
+   if (!csv_file) {
+      deallog << "Could not open " + tolerance_prefix + ".csv" + " for output!" << std::endl;
       return;
+   }
 
    if (csv_file.tellp() == 0) {
       csv_file << "Tolerance,Required Steps" << std::endl;
 
       std::ofstream gplot_file(tolerance_prefix + ".gplot", std::ios::out | std::ios::trunc);
-      gplot_file << "set xlabel 'Iteration'" << std::endl;
-      gplot_file << "set grid" << std::endl;
-      gplot_file << "set term png size 1200,500" << std::endl;
-      gplot_file << "set output '" << tolerance_prefix << ".png'" << std::endl;
-      gplot_file << "set datafile separator ','" << std::endl;
-      gplot_file << "set key outside" << std::endl;
 
-      gplot_file << "plot for [col=1:2] '" << tolerance_prefix
-            << ".csv' using 0:col with linespoints title columnheader" << std::endl;
+      if (gplot_file) {
+         gplot_file << "set xlabel 'Iteration'" << std::endl;
+         gplot_file << "set grid" << std::endl;
+         gplot_file << "set term png size 1200,500" << std::endl;
+         gplot_file << "set output '" << tolerance_prefix << ".png'" << std::endl;
+         gplot_file << "set datafile separator ','" << std::endl;
+         gplot_file << "set key outside" << std::endl;
 
-      gplot_file << "set term svg size 1200,500 name 'REGINN'" << std::endl;
-      gplot_file << "set output '" << tolerance_prefix << ".svg'" << std::endl;
-      gplot_file << "replot" << std::endl;
+         gplot_file << "plot for [col=1:2] '" << tolerance_prefix
+               << ".csv' using 0:col with linespoints title columnheader" << std::endl;
+
+         gplot_file << "set term svg size 1200,500 name 'REGINN'" << std::endl;
+         gplot_file << "set output '" << tolerance_prefix << ".svg'" << std::endl;
+         gplot_file << "replot" << std::endl;
+      } else
+         deallog << "Could not open " + tolerance_prefix + ".gplot" + " for output!" << std::endl;
    }
 
    csv_file << previous_tolerances[previous_tolerances.size() - 1] << ","
@@ -81,7 +90,9 @@ void ToleranceChoice::add_iteration(double new_discrepancy, int steps) {
    csv_file.close();
 
    std::string cmd = "cat " + tolerance_prefix + ".gplot | gnuplot > /dev/null";
-   std::system(cmd.c_str());
+   if (std::system(cmd.c_str()) != 0)
+      deallog << "gnuplot exited with status code != 0 " << std::endl;
+
 }
 
 } /* namespace problems */
