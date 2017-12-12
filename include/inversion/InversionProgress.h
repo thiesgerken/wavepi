@@ -700,6 +700,9 @@ class WatchdogProgressListener: public InversionProgressListener<Param, Sol, Exa
       }
 
       virtual bool progress(InversionProgress<Param, Sol, Exact> state) {
+         if (state.finished)
+            return true;
+
          if (state.iteration_number == 0)
             discrepancies.clear();
 
