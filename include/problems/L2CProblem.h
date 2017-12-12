@@ -150,18 +150,18 @@ class L2CProblem: public L2WaveProblem<dim, Measurement> {
                // M*
 
                // numerical adjoint
-               /*
                res.mult_space_time_mass();
                res.throw_away_derivative();
                res = res.calculate_derivative_transpose();
                res *= -1;
                res.pointwise_multiplication(u->derivative());
                res.solve_space_time_mass();
-               */
 
-               // analytical adjoint
+               // analytical adjoint (does not work ?! space_time_mass missing?)
+               /*
                res = res.calculate_derivative();
                res.pointwise_multiplication(u->derivative());
+               */
 
                return res;
             }
