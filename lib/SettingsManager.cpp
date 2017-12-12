@@ -73,6 +73,7 @@ const std::string SettingsManager::KEY_INVERSION_METHOD = "method";
 
 void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) {
    OutputProgressListener<2, Tuple<DiscretizedFunction<2>>>::declare_parameters(*prm);
+   WatchdogProgressListener<Tuple<DiscretizedFunction<2>>, Tuple<DiscretizedFunction<2>>>::declare_parameters(*prm);
    StatOutputProgressListener<Tuple<DiscretizedFunction<2>>, Tuple<DiscretizedFunction<2>>>::declare_parameters(
          *prm);
    WaveEquationBase<2>::declare_parameters(*prm);

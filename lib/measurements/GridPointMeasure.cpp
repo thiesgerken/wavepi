@@ -37,13 +37,13 @@ void GridPointMeasure<dim>::declare_parameters(ParameterHandler &prm) {
    prm.enter_subsection("GridPointMeasure");
    {
       prm.declare_entry("points x", "-1:10:1", Patterns::Anything(),
-            "points for the grid in x-direction. Format: '[lower bound]:[number of points]:[upper bound]'.\n Lower bound and upper bound are exclusive.");
+            "points for the grid in x-direction. Format: '[lb]:[n_points]:[ub]'. Lower bound and upper bound are exclusive.");
       prm.declare_entry("points y", "-1:10:1", Patterns::Anything(),
-            "points for the grid in y-direction. Format: '[lower bound]:[number of points]:[upper bound]'.\n Lower bound and upper bound are exclusive.");
+            "points for the grid in y-direction. Format: '[lb]:[n_points]:[ub]'. Lower bound and upper bound are exclusive.");
       prm.declare_entry("points z", "-1:10:1", Patterns::Anything(),
-            "points for the grid in z-direction. Format: '[lower bound]:[number of points]:[upper bound]'.\n Lower bound and upper bound are exclusive.");
+            "points for the grid in z-direction. Format: '[lb]:[n_points]:[ub]'. Lower bound and upper bound are exclusive.");
       prm.declare_entry("points t", "0:10:6", Patterns::Anything(),
-            "points for the grid in time. Format: '[lower bound]:[number of points]:[upper bound]'.\n Upper bound is inclusive, lower bound is exclusive iff it equals 0.0.");
+            "points for the grid in time. Format: '[lower bound]:[n_points]:[ub]'. Upper bound is inclusive, lower bound is exclusive iff it equals 0.0.");
 
       PointMeasure<dim>::declare_parameters(prm);
    }

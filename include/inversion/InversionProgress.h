@@ -607,10 +607,14 @@ class InnerStatOutputProgressListener: public StatOutputProgressListener<Param, 
          prm.enter_subsection("inner output");
          {
             prm.declare_entry("interval", "10", Patterns::Integer(0),
-                  "output every n iterations, or never if n == 0.");
+                  "output stats of inner iteration every n outer iterations, or never if n == 0.");
 
             prm.declare_entry("destination", "./step-{{i}}/", Patterns::DirectoryName(),
                   "output path for step {{i}}; has to end with a slash");
+
+            prm.declare_entry("statistics", "stats", Patterns::FileName(),
+                             "output file for statistics (no extension). You can also use {{i}} here.");
+
          }
          prm.leave_subsection();
       }
@@ -620,6 +624,7 @@ class InnerStatOutputProgressListener: public StatOutputProgressListener<Param, 
          {
             interval = prm.get_integer("interval");
             destination_prefix = prm.get("destination");
+            file_name = prm.get("statistics");
          }
          prm.leave_subsection();
       }
@@ -631,14 +636,15 @@ class InnerStatOutputProgressListener: public StatOutputProgressListener<Param, 
       void set_iteration(int outer_iteration) {
          this->outer_iteration = outer_iteration;
 
-         if (interval > 0 && outer_iteration % interval == 0) {
+         if (interval > 0 && outer_iteration % interval == 0 && file_name.size() > 0) {
             std::map<std::string, std::string> subs;
             subs["i"] = Utilities::int_to_string(outer_iteration, 4);
 
             std::string dest = Helpers::replace(destination_prefix, subs);
+            std::string f = Helpers::replace(file_name, subs);
 
             boost::filesystem::create_directories(dest);
-            this->set_file_prefix(dest + "stats");
+            this->set_file_prefix(dest + f);
          } else {
             this->set_file_prefix("");
          }
@@ -646,8 +652,119 @@ class InnerStatOutputProgressListener: public StatOutputProgressListener<Param, 
 
    private:
       int outer_iteration = 0;
+
+      // params
       int interval = 10;
       std::string destination_prefix = "./step-{{i}}/";
+      std::string file_name = "stats";
+};
+
+template<typename Param, typename Sol, typename Exact = Param>
+class WatchdogProgressListener: public InversionProgressListener<Param, Sol, Exact> {
+   public:
+
+      virtual ~WatchdogProgressListener() = default;
+
+      WatchdogProgressListener() = default;
+
+      WatchdogProgressListener(ParameterHandler &prm) {
+         get_parameters(prm);
+      }
+
+      static void declare_parameters(ParameterHandler &prm) {
+         prm.enter_subsection("watchdog");
+         {
+            prm.declare_entry("discrepancy threshold", "10.0", Patterns::Double(),
+                  "threshold for discrepancy: abort if it exceeds this factor times the initial discrepancy. Set to ≤ 1 to disable.");
+
+            prm.declare_entry("discrepancy slope threshold", "0.0", Patterns::Double(),
+                  "threshold for slope of discrepancy.");
+            prm.declare_entry("discrepancy slope percentage", "0.25", Patterns::Double(),
+                  "fraction of discrepancies that should be used to get slope. Set to ≤ 0 to disable slope checking.");
+            prm.declare_entry("discrepancy slope min values", "25", Patterns::Integer(),
+                  "enable slope checking only if computed from at least this many entries");
+         }
+         prm.leave_subsection();
+      }
+
+      virtual void get_parameters(ParameterHandler &prm) {
+         prm.enter_subsection("watchdog");
+         {
+            initial_disc_factor = prm.get_double("discrepancy threshold");
+
+            disc_max_slope = prm.get_double("discrepancy slope threshold");
+            disc_slope_percentage = prm.get_double("discrepancy slope percentage");
+            disc_slope_min_values = prm.get_integer("discrepancy slope min values");
+         }
+         prm.leave_subsection();
+      }
+
+      virtual bool progress(InversionProgress<Param, Sol, Exact> state) {
+         if (state.iteration_number == 0)
+            discrepancies.clear();
+
+         LogStream::Prefix p = LogStream::Prefix("Watchdog");
+
+         discrepancies.push_back(state.current_discrepancy);
+
+         if (initial_disc_factor > 1 && state.current_discrepancy > initial_disc_factor * discrepancies[0]) {
+            deallog << "current discrepancy > " << initial_disc_factor << " ⋅ initial discrepancy"
+                  << std::endl;
+            deallog << "Aborting Iteration!" << std::endl;
+            return false;
+         }
+
+         if (disc_slope_percentage > 0
+               && disc_slope_percentage * discrepancies.size() >= disc_slope_min_values) {
+            int n_discs = disc_slope_percentage * discrepancies.size();
+
+            double avg_i = 0;
+            double avg_disc = 0;
+
+            for (size_t i = discrepancies.size() - 1 - n_discs; i < discrepancies.size(); i++) {
+               avg_i += i / n_discs; // one could calculate this one explicitly, but what gain is in that?
+               avg_disc += discrepancies[i] / n_discs;
+            }
+
+            double var_i = 0;
+            double slope = 0;
+
+            for (size_t i = discrepancies.size() - 1 - n_discs; i < discrepancies.size(); i++) {
+               var_i += (i - avg_i) * (i - avg_i);
+               slope += (i - avg_i) * (discrepancies[i] - avg_disc);
+            }
+
+            slope /= var_i;
+            double b = avg_disc - slope * avg_i;
+
+            auto prev_prec = deallog.precision(1);
+            deallog << "disc(i) ~ " << slope << " ⋅ i + " << b << " (computed over " << n_discs << " entries)"
+                  << std::endl;
+            deallog.precision(prev_prec);
+
+            if (slope > disc_max_slope) {
+               deallog << "slope is too large; Aborting Iteration!" << std::endl;
+               return false;
+            }
+         }
+
+         return true;
+      }
+
+   protected:
+      std::vector<double> discrepancies;
+
+      // threshold for discrepancy: abort if it exceeds this factor times the initial discrepancy.
+      // set to <= 1 to disable.
+      double initial_disc_factor = 10;
+
+      // abort, if the slope of the discrepancy is greater than disc_max_slope.
+      // slop is calculated on the last disc_slope_percentage * n entries, if these are more than disc_slope_min_values.
+      // set disc_slope_percentage to <= 0 to disable.
+      double disc_max_slope = 0.0;
+      double disc_slope_percentage = 0.1;
+      int disc_slope_min_values = 25;
+
 };
 
 } /* namespace inversion */

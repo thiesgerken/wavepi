@@ -227,7 +227,7 @@ template<int dim, typename Meas> void WavePI<dim, Meas>::initialize_problem() {
 
 template<int dim, typename Meas> void WavePI<dim, Meas>::generate_data() {
    LogStream::Prefix p("generate_data");
-   LogStream::Prefix pp(" ");
+   LogStream::Prefix pp("run"); // make logs of forward operator appear in the right level
 
    DiscretizedFunction<dim> param_exact_disc(mesh, *param_exact);
    Tuple<Meas> data_exact = problem->forward(param_exact_disc);
@@ -272,6 +272,7 @@ template<int dim, typename Meas> void WavePI<dim, Meas>::run() {
    regularization->add_listener(std::make_shared<OutputProgressListener<dim, Tuple<Meas>>>(*cfg->prm));
    regularization->add_listener(std::make_shared<BoundCheckProgressListener<dim, Tuple<Meas>>>(*cfg->prm));
    regularization->add_listener(std::make_shared<StatOutputProgressListener<Param, Tuple<Meas>, Exact>>(*cfg->prm));
+   regularization->add_listener(std::make_shared<WatchdogProgressListener<Param, Tuple<Meas>, Exact>>(*cfg->prm));
 
    regularization->add_post_processor(std::make_shared<BoundEnforcingPostProcessor<dim>>(*cfg->prm));
 
