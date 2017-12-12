@@ -187,9 +187,7 @@ class CtrlCProgressListener: public InversionProgressListener<Param, Sol, Exact>
             printf("\nCaught signal %d. Issuing a hard-abort.\n", s);
 
             AssertThrow(false, ExcMessage("Aborting computation due to signal"))
-         }
-
-         else {
+         } else {
             printf("\nCaught signal %d. Issuing a soft-abort.\n", s);
 
             abort = true;
@@ -690,7 +688,7 @@ class WatchdogProgressListener: public InversionProgressListener<Param, Sol, Exa
                   "threshold for slope of discrepancy.");
             prm.declare_entry("discrepancy slope percentage", "0.25", Patterns::Double(),
                   "fraction of discrepancies that should be used to get slope. Set to ≤ 0 to disable slope checking.");
-            prm.declare_entry("discrepancy slope min values", "25", Patterns::Integer(),
+            prm.declare_entry("discrepancy slope min values", "40", Patterns::Integer(),
                   "enable slope checking only if computed from at least this many entries");
          }
          prm.leave_subsection();
