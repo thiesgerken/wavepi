@@ -570,7 +570,7 @@ class StatOutputProgressListener: public InversionProgressListener<Param, Sol, E
          csv_file << std::endl;
          csv_file.close();
 
-         std::string cmd = "cat " + file_prefix + ".gplot | gnuplot > /dev/null";
+         std::string cmd = "cat " + file_prefix + ".gplot | gnuplot > /dev/null 2>&1";
          std::system(cmd.c_str());
 
          return true;
