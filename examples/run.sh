@@ -15,5 +15,5 @@ fi
 mkdir $1
 cd $1
 cp ../$1.cfg wavepi.cfg
-../../build/wavepi -c wavepi.cfg | tee cout.log
+../../build/wavepi -c wavepi.cfg
 cd ..
