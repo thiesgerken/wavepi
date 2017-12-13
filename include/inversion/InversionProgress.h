@@ -220,7 +220,9 @@ class OutputProgressListener: public InversionProgressListener<DiscretizedFuncti
          prm.enter_subsection("output");
          {
             prm.declare_entry("interval", "10", Patterns::Integer(0),
-                  "output every n iterations, or never if n == 0.");
+                  "output every n iterations, or never by this rule if n == 0.");
+            prm.declare_entry("discrepancy decrease", "0.5", Patterns::Double(),
+                  "output if the discrepancy decreased by at least this factor since the last output. Set to ≤ 0 to disable this rule.");
             prm.declare_entry("last", "true", Patterns::Bool(), "output the last iteration before exit");
 
             prm.declare_entry("data", "true", Patterns::Bool(),
@@ -241,6 +243,8 @@ class OutputProgressListener: public InversionProgressListener<DiscretizedFuncti
          prm.enter_subsection("output");
          {
             interval = prm.get_integer("interval");
+            discrepancy_factor = prm.get_double("discrepancy decrease");
+
             save_last = prm.get_bool("last");
 
             save_data = prm.get_bool("data");
@@ -280,7 +284,14 @@ class OutputProgressListener: public InversionProgressListener<DiscretizedFuncti
             state.data->write_pvd(dest, filename, "data");
          }
 
-         if ((interval > 0 && state.iteration_number % interval == 0) || (save_last && state.finished)) {
+         if (state.iteration_number == 0)
+            discrepancy_min = state.current_discrepancy;
+
+         if ((interval > 0 && state.iteration_number % interval == 0) || (save_last && state.finished)
+               || (discrepancy_factor > 0 && state.current_discrepancy < discrepancy_factor * discrepancy_min)) {
+
+            discrepancy_min = std::min(state.current_discrepancy, discrepancy_min);
+
             if (save_residual) {
                std::string filename = Helpers::replace(filename_residual, subs);
 
@@ -383,6 +394,22 @@ class OutputProgressListener: public InversionProgressListener<DiscretizedFuncti
          this->save_data = save_data;
       }
 
+      double get_discrepancy_factor() const {
+         return discrepancy_factor;
+      }
+
+      void set_discrepancy_factor(double discrepancy_factor) {
+         this->discrepancy_factor = discrepancy_factor;
+      }
+
+      const std::string& get_filename_data() const {
+         return filename_data;
+      }
+
+      void set_filename_data(const std::string& filename_data = "data") {
+         this->filename_data = filename_data;
+      }
+
    private:
 
       // all of these have support for expansion of {{i}} for the iteration index.
@@ -404,6 +431,12 @@ class OutputProgressListener: public InversionProgressListener<DiscretizedFuncti
 
       // interval <= 0 -> no interval-based output
       int interval;
+
+      // <= 0 -> no discrepancy-based output
+      double discrepancy_factor;
+
+      // the minimal discrepancy of an iteration that has been written to disk.
+      double discrepancy_min = 0;
 };
 
 template<int dim, typename Meas>
