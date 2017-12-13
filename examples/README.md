@@ -23,3 +23,11 @@ Like [`problem_c_2.cfg`](problem_c_2.cfg), but with 5 instead of 6 initial globa
 ## [`problem_a_1.cfg`](problem_a_1.cfg)
 
 Like [`problem_c_2.cfg`](problem_c_2.cfg), but for $`a`$.
+
+## [`problem_q_1.cfg`](problem_q_1.cfg)
+
+Like [`problem_c_2.cfg`](problem_c_2.cfg), but for $`q`$.
+
+## [`problem_nu_1.cfg`](problem_nu_1.cfg)
+
+Like [`problem_c_2.cfg`](problem_c_2.cfg), but for $`\nu`$.
