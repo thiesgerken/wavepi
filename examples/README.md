@@ -19,3 +19,7 @@ Initial guess is $`c = 1.0`$. In contrast to [`problem_c_1.cfg`](problem_c_1.cfg
 ## [`problem_c_3.cfg`](problem_c_3.cfg)
 
 Like [`problem_c_2.cfg`](problem_c_2.cfg), but with 5 instead of 6 initial global refines.
+
+## [`problem_a_1.cfg`](problem_a_1.cfg)
+
+Like [`problem_c_2.cfg`](problem_c_2.cfg), but for $`a`$.
