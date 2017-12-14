@@ -89,7 +89,7 @@ void ToleranceChoice::add_iteration(double new_discrepancy, int steps) {
    csv_file << std::endl;
    csv_file.close();
 
-   std::string cmd = "cat " + tolerance_prefix + ".gplot | gnuplot > /dev/null";
+   std::string cmd = "cat " + tolerance_prefix + ".gplot | gnuplot > /dev/null 2>&1";
    if (std::system(cmd.c_str()) != 0)
       deallog << "gnuplot exited with status code != 0 " << std::endl;
 }
