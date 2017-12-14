@@ -55,7 +55,8 @@ double RiederToleranceChoice::calculate_tolerance() const {
 
    if (k < 2)
       tol_tilde = tol_start;
-   else if (required_steps[k - 1] >= required_steps[k - 2])
+   else if (required_steps[k - 1] >= required_steps[k - 2] && required_steps[k - 2] > 5)
+      // last condition in else if is new: do not regard less than 5 inner iterations as an increase
       tol_tilde = 1
             - std::pow((double) required_steps[k - 2] / required_steps[k - 1], beta)
                   * (1 - previous_tolerances[k - 1]);
