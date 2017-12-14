@@ -31,3 +31,11 @@ Like [`problem_c_2.cfg`](problem_c_2.cfg), but for $`q`$.
 ## [`problem_nu_1.cfg`](problem_nu_1.cfg)
 
 Like [`problem_c_2.cfg`](problem_c_2.cfg), but for $`\nu`$.
+
+## [`problem_c_4.cfg`](problem_c_4.cfg)
+
+Like [`problem_c_2.cfg`](problem_c_2.cfg), but with higher `max_tol` and Fibonacci maximum iteration choice
+
+## [`problem_c_5.cfg`](problem_c_5.cfg)
+
+Like [`problem_c_2.cfg`](problem_c_2.cfg), but with higher `max_tol`.

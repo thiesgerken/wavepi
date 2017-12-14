@@ -12,7 +12,7 @@ if [[ -d $1 ]]; then
  exit 2
 fi
 
-mkdir $1
+mkdir -p $1
 cd $1
 cp ../$1.cfg wavepi.cfg
 ../../build/wavepi --export -c wavepi.cfg > wavepi_exported.cfg
