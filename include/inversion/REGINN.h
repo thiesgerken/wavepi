@@ -152,7 +152,6 @@ class REGINN: public NewtonRegularization<Param, Sol, Exact> {
 
          // TODO: safeguarding for linear problem
          // TODO: safeguarding for nonlin problem
-         // TODO: new tolerance choice
 
          for (int i = 1; discrepancy > target_discrepancy; i++) {
             double theta = tol_choice->get_tolerance();

@@ -27,9 +27,9 @@ RiederToleranceChoice::RiederToleranceChoice(ParameterHandler &prm) {
 void RiederToleranceChoice::declare_parameters(ParameterHandler &prm) {
    prm.enter_subsection("RiederToleranceChoice");
    {
-      prm.declare_entry("tol start", "0.7", Patterns::Double(0, 1), "rel. starting tolerance");
-      prm.declare_entry("tol max", "0.95", Patterns::Double(0, 1), "rel. maximum tolerance");
-      prm.declare_entry("zeta", "0.9", Patterns::Double(0, 1), "factor to decrease tolerance by");
+      prm.declare_entry("tol start", "0.9", Patterns::Double(0, 1), "rel. starting tolerance");
+      prm.declare_entry("tol max", "0.999", Patterns::Double(0, 1), "rel. maximum tolerance");
+      prm.declare_entry("zeta", "0.95", Patterns::Double(0, 1), "factor to decrease tolerance by");
       prm.declare_entry("beta", "1.0", Patterns::Double(0), "allowed speed of iteration numbers");
    }
    prm.leave_subsection();
