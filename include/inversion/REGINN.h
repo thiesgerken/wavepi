@@ -170,10 +170,10 @@ class REGINN: public NewtonRegularization<Param, Sol, Exact> {
             Param step = linear_solver->invert(residual, linear_target_discrepancy, linear_status);
 
             if (linear_status->current_discrepancy > linear_target_discrepancy) {
-               deallog << "Linear solver did not achieve the desired discrepancy";
+               deallog << "Linear solver did not achieve desired discrepancy";
 
                if (linear_status->iteration_number >= linear_max_iter)
-                  deallog << " due to my iteration limit." << std::endl;
+                  deallog << " due to max_iter." << std::endl;
                else {
                   deallog << "." << std::endl << "  Aborting REGINN!" << std::endl;
                   break;

@@ -21,7 +21,8 @@ FibonacciMaxIterChoice::FibonacciMaxIterChoice(ParameterHandler &prm) {
 void FibonacciMaxIterChoice::declare_parameters(ParameterHandler &prm) {
    prm.enter_subsection("FibonacciMaxIterChoice");
    {
-      prm.declare_entry("initial max iter", "1", Patterns::Integer(), "maximum iteration count for the first inner iteration");
+      prm.declare_entry("initial max iter", "1", Patterns::Integer(),
+            "maximum iteration count for the first inner iteration");
    }
    prm.leave_subsection();
 }
@@ -35,12 +36,14 @@ void FibonacciMaxIterChoice::get_parameters(ParameterHandler &prm) {
 }
 
 int FibonacciMaxIterChoice::calculate_max_iter() const {
-   if (previous_max_iters.size() == 0)
-   return initial_max_iter;
-   if (previous_max_iters.size() == 1)
-     return 2*initial_max_iter;
+   if (required_steps.size() == 0)
+      return initial_max_iter;
 
-   return previous_max_iters[previous_max_iters.size() - 1] + previous_max_iters[previous_max_iters.size() - 2];
+   if (required_steps.size() == 1)
+      return 2 * initial_max_iter;
+
+   return required_steps[required_steps.size() - 1]
+         + required_steps[required_steps.size() - 2];
 }
 
 } /* namespace inversion */
