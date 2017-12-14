@@ -12,19 +12,17 @@
 #include <deal.II/base/logstream.h>
 #include <deal.II/base/parameter_handler.h>
 
-#include <forward/DiscretizedFunction.h>
-
 #include <inversion/ConjugateGradients.h>
+#include <inversion/ConstantMaxIterChoice.h>
 #include <inversion/ConstantToleranceChoice.h>
+#include <inversion/FibonacciMaxIterChoice.h>
 #include <inversion/GradientDescent.h>
 #include <inversion/InversionProgress.h>
 #include <inversion/Landweber.h>
 #include <inversion/LinearRegularization.h>
 #include <inversion/NewtonRegularization.h>
 #include <inversion/NonlinearProblem.h>
-#include <inversion/Regularization.h>
 #include <inversion/RiederToleranceChoice.h>
-#include <inversion/ToleranceChoice.h>
 
 #include <iostream>
 #include <memory>
@@ -62,12 +60,19 @@ class REGINN: public NewtonRegularization<Param, Sol, Exact> {
                   "regularization method for the linear subproblems");
             prm.declare_entry("tolerance choice", "Rieder", Patterns::Selection("Rieder|Constant"),
                   "algorithm that chooses the target discrepancies for the linear subproblems");
+            prm.declare_entry("maximum iteration choice", "Constant",
+                  Patterns::Selection("Fibonacci|Constant"),
+                  "algorithm that chooses the maximum iteration counts for the linear subproblems");
 
             ToleranceChoice::declare_parameters(prm);
-                 RiederToleranceChoice::declare_parameters(prm);
+            RiederToleranceChoice::declare_parameters(prm);
             ConstantToleranceChoice::declare_parameters(prm);
+            FibonacciMaxIterChoice::declare_parameters(prm);
+            ConstantMaxIterChoice::declare_parameters(prm);
             Landweber<Param, Sol, Exact>::declare_parameters(prm);
             InnerStatOutputProgressListener<Param, Sol, Exact>::declare_parameters(prm);
+            WatchdogProgressListener<Param, Sol, Exact>::declare_parameters(prm, true, "linear watchdog", true);
+
          }
          prm.leave_subsection();
       }
@@ -89,6 +94,11 @@ class REGINN: public NewtonRegularization<Param, Sol, Exact> {
             inner_stats = std::make_shared<InnerStatOutputProgressListener<Param, Sol, Exact>>(prm);
 
             linear_solver->add_listener(inner_stats);
+
+            inner_watchdog = std::make_shared<WatchdogProgressListener<Param, Sol, Exact>>(prm, true,
+                  "linear watchdog");
+            linear_solver->add_listener(inner_watchdog);
+
             linear_solver->add_listener(
                   std::make_shared<GenericInversionProgressListener<Param, Sol, Exact>>("k"));
             linear_solver->add_listener(std::make_shared<CtrlCProgressListener<Param, Sol, Exact>>());
@@ -99,6 +109,15 @@ class REGINN: public NewtonRegularization<Param, Sol, Exact> {
                tol_choice = std::make_shared<RiederToleranceChoice>(prm);
             else if (stol_choice == "Constant")
                tol_choice = std::make_shared<ConstantToleranceChoice>(prm);
+            else
+               AssertThrow(false, ExcInternalError());
+
+            std::string smax_iter_choice = prm.get("maximum iteration choice");
+
+            if (smax_iter_choice == "Fibonacci")
+               max_iter_choice = std::make_shared<FibonacciMaxIterChoice>(prm);
+            else if (smax_iter_choice == "Constant")
+               max_iter_choice = std::make_shared<ConstantMaxIterChoice>(prm);
             else
                AssertThrow(false, ExcInternalError());
          }
@@ -113,6 +132,7 @@ class REGINN: public NewtonRegularization<Param, Sol, Exact> {
          AssertThrow(problem, ExcInternalError());
          AssertThrow(linear_solver, ExcInternalError());
          AssertThrow(tol_choice, ExcInternalError());
+         AssertThrow(max_iter_choice, ExcInternalError());
 
          Param estimate(*initial_guess);
 
@@ -121,7 +141,6 @@ class REGINN: public NewtonRegularization<Param, Sol, Exact> {
          residual -= data_current;
 
          double discrepancy = residual.norm();
-         double initial_discrepancy = discrepancy;
          double norm_data = data.norm();
 
          tol_choice->reset(target_discrepancy, discrepancy);
@@ -131,23 +150,34 @@ class REGINN: public NewtonRegularization<Param, Sol, Exact> {
                target_discrepancy, &data, norm_data, exact_param, false);
          this->progress(status);
 
-         for (int i = 1;
-               discrepancy > target_discrepancy
-                     && (!this->abort_discrepancy_doubles || discrepancy < 2 * initial_discrepancy)
-                     && i <= this->max_iterations; i++) {
+         // TODO: safeguarding for linear problem
+         // TODO: safeguarding for nonlin problem
+         // TODO: new tolerance choice
 
+         for (int i = 1; discrepancy > target_discrepancy; i++) {
             double theta = tol_choice->get_tolerance();
-            double linear_target_discrepancy = discrepancy * theta;
-            deallog << "Solving linear problem using rtol=" << theta << std::endl;
+            int linear_max_iter = max_iter_choice->get_max_iter();
+
+            deallog << "Solving linear problem using rtol=" << theta << " and max_iter=" << linear_max_iter
+                  << std::endl;
 
             auto linear_status = std::make_shared<InversionProgress<Param, Sol, Exact>>(status);
             linear_solver->set_problem(this->problem->derivative(estimate));
             inner_stats->set_iteration(i);
+            inner_watchdog->set_max_iter(linear_max_iter);
+
+            double linear_target_discrepancy = discrepancy * theta;
             Param step = linear_solver->invert(residual, linear_target_discrepancy, linear_status);
 
             if (linear_status->current_discrepancy > linear_target_discrepancy) {
-               deallog << "Linear solver did not converge to desired discrepancy!" << std::endl;
-               break;
+               deallog << "Linear solver did not achieve the desired discrepancy";
+
+               if (linear_status->iteration_number >= linear_max_iter)
+                  deallog << " due to my iteration limit." << std::endl;
+               else {
+                  deallog << "." << std::endl << "  Aborting REGINN!" << std::endl;
+                  break;
+               }
             }
 
             estimate += step;
@@ -163,7 +193,6 @@ class REGINN: public NewtonRegularization<Param, Sol, Exact> {
             residual = data;
             data_current = this->problem->forward(estimate);
             residual -= data_current;
-            double discrepancy_last = discrepancy;
             discrepancy = residual.norm();
             deallog.pop();
 
@@ -173,10 +202,8 @@ class REGINN: public NewtonRegularization<Param, Sol, Exact> {
             if (!this->progress(status))
                break;
 
-            if (discrepancy_last < discrepancy && this->abort_increasing_discrepancy)
-               break;
-
             tol_choice->add_iteration(discrepancy, linear_status->iteration_number);
+            max_iter_choice->add_iteration(discrepancy, linear_status->iteration_number);
          }
 
          status.finished = true;
@@ -194,7 +221,9 @@ class REGINN: public NewtonRegularization<Param, Sol, Exact> {
       std::shared_ptr<Param> initial_guess;
       std::shared_ptr<LinearRegularization<Param, Sol, Exact>> linear_solver;
       std::shared_ptr<ToleranceChoice> tol_choice;
+      std::shared_ptr<MaxIterChoice> max_iter_choice;
       std::shared_ptr<InnerStatOutputProgressListener<Param, Sol, Exact>> inner_stats;
+      std::shared_ptr<WatchdogProgressListener<Param, Sol, Exact>> inner_watchdog;
 };
 
 } /* namespace inversion */

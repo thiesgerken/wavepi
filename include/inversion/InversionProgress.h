@@ -118,6 +118,13 @@ class InversionProgressListener {
       // should return false, if you want the inversion to abort
       virtual bool progress(InversionProgress<Param, Sol, Exact> state) = 0;
 
+      bool get_last_return_value() const {
+         return last_return_value;
+      }
+
+   protected:
+      bool last_return_value = true;
+
 };
 
 template<typename Param, typename Sol, typename Exact = Param>
@@ -175,7 +182,7 @@ class CtrlCProgressListener: public InversionProgressListener<Param, Sol, Exact>
       }
 
       virtual bool progress(InversionProgress<Param, Sol, Exact> state __attribute((unused))) {
-         return !abort;
+         return this->last_return_value = !abort;
       }
 
    private:
@@ -208,8 +215,8 @@ class OutputProgressListener: public InversionProgressListener<DiscretizedFuncti
 
       virtual ~OutputProgressListener() = default;
 
-      OutputProgressListener(int interval)
-            : interval(interval) {
+      OutputProgressListener(int interval, double discrepancy_factor)
+            : interval(interval), discrepancy_factor(discrepancy_factor) {
       }
 
       OutputProgressListener(ParameterHandler &prm) {
@@ -286,6 +293,8 @@ class OutputProgressListener: public InversionProgressListener<DiscretizedFuncti
 
          if (state.iteration_number == 0)
             discrepancy_min = state.current_discrepancy;
+
+         // TODO: output on signal (HUP ?)
 
          if ((interval > 0 && state.iteration_number % interval == 0) || (save_last && state.finished)
                || (discrepancy_factor > 0 && state.current_discrepancy < discrepancy_factor * discrepancy_min)) {
@@ -498,7 +507,7 @@ class BoundCheckProgressListener: public InversionProgressListener<DiscretizedFu
          if (est_max > upper_bound)
             deallog << "constraint estimate <= " << upper_bound << " violated" << std::endl;
 
-         return est_min >= lower_bound && est_max <= upper_bound;
+         return this->last_return_value = (est_min >= lower_bound && est_max <= upper_bound);
       }
 
       double get_lower_bound() const {
@@ -708,11 +717,15 @@ class WatchdogProgressListener: public InversionProgressListener<Param, Sol, Exa
       WatchdogProgressListener() = default;
 
       WatchdogProgressListener(ParameterHandler &prm) {
-         get_parameters(prm);
+         get_parameters(prm, false);
       }
 
-      static void declare_parameters(ParameterHandler &prm) {
-         prm.enter_subsection("watchdog");
+      WatchdogProgressListener(ParameterHandler &prm, bool disable_max_iter, std::string section_name) {
+         get_parameters(prm, disable_max_iter, section_name);
+      }
+
+      static void declare_parameters(ParameterHandler &prm, bool disable_max_iter = false, std::string section_name = "watchdog", bool default_increasing = false) {
+         prm.enter_subsection(section_name);
          {
             prm.declare_entry("discrepancy threshold", "10.0", Patterns::Double(),
                   "threshold for discrepancy: abort if it exceeds this factor times the initial discrepancy. Set to ≤ 1 to disable.");
@@ -723,25 +736,38 @@ class WatchdogProgressListener: public InversionProgressListener<Param, Sol, Exa
                   "fraction of discrepancies that should be used to get slope. Set to ≤ 0 to disable slope checking.");
             prm.declare_entry("discrepancy slope min values", "40", Patterns::Integer(),
                   "enable slope checking only if computed from at least this many entries");
+
+            prm.declare_entry("discrepancy increasing", default_increasing ? "true" : "false", Patterns::Bool(),
+                  "abort if discrepancy increases");
+
+            if (!disable_max_iter)
+               prm.declare_entry("maximum iteration count", "0", Patterns::Integer(),
+                     "maximal number of iterations (for iterative methods). Set to ≤ 0 to disable.");
          }
          prm.leave_subsection();
       }
 
-      virtual void get_parameters(ParameterHandler &prm) {
-         prm.enter_subsection("watchdog");
+      virtual void get_parameters(ParameterHandler &prm, bool disable_max_iter = false, std::string section_name = "watchdog") {
+         prm.enter_subsection(section_name);
          {
             initial_disc_factor = prm.get_double("discrepancy threshold");
 
             disc_max_slope = prm.get_double("discrepancy slope threshold");
             disc_slope_percentage = prm.get_double("discrepancy slope percentage");
             disc_slope_min_values = prm.get_integer("discrepancy slope min values");
+
+            disc_increasing = prm.get_bool("discrepancy increasing");
+
+            if (!disable_max_iter)
+               max_iter = prm.get_integer("maximum iteration count");
          }
+
          prm.leave_subsection();
       }
 
       virtual bool progress(InversionProgress<Param, Sol, Exact> state) {
          if (state.finished)
-            return true;
+            return this->last_return_value = true;
 
          if (state.iteration_number == 0)
             discrepancies.clear();
@@ -750,11 +776,24 @@ class WatchdogProgressListener: public InversionProgressListener<Param, Sol, Exa
 
          discrepancies.push_back(state.current_discrepancy);
 
+         if (disc_increasing && discrepancies.size() > 1
+               && discrepancies[discrepancies.size() - 2] < state.current_discrepancy) {
+            deallog << "current discrepancy > last discrepancy" << std::endl;
+            deallog << "Aborting Iteration!" << std::endl;
+            return this->last_return_value = false;
+         }
+
+         if (max_iter > 0 && state.iteration_number >= max_iter) {
+            deallog << "Iteration number exceeds maximum iteration count" << std::endl;
+            deallog << "Aborting Iteration!" << std::endl;
+            return this->last_return_value = false;
+         }
+
          if (initial_disc_factor > 1 && state.current_discrepancy > initial_disc_factor * discrepancies[0]) {
             deallog << "current discrepancy > " << initial_disc_factor << " ⋅ initial discrepancy"
                   << std::endl;
             deallog << "Aborting Iteration!" << std::endl;
-            return false;
+            return this->last_return_value = false;
          }
 
          if (disc_slope_percentage > 0
@@ -787,11 +826,63 @@ class WatchdogProgressListener: public InversionProgressListener<Param, Sol, Exa
 
             if (slope > disc_max_slope) {
                deallog << "slope is too large; Aborting Iteration!" << std::endl;
-               return false;
+               return this->last_return_value = false;
             }
          }
 
-         return true;
+         return this->last_return_value = true;
+      }
+
+      bool get_disc_increasing() const {
+         return disc_increasing;
+      }
+
+      void set_disc_increasing(bool disc_increasing = false) {
+         this->disc_increasing = disc_increasing;
+      }
+
+      double get_disc_max_slope() const {
+         return disc_max_slope;
+      }
+
+      void set_disc_max_slope(double disc_max_slope = 0.0) {
+         this->disc_max_slope = disc_max_slope;
+      }
+
+      int get_disc_slope_min_values() const {
+         return disc_slope_min_values;
+      }
+
+      void set_disc_slope_min_values(int disc_slope_min_values = 25) {
+         this->disc_slope_min_values = disc_slope_min_values;
+      }
+
+      double get_disc_slope_percentage() const {
+         return disc_slope_percentage;
+      }
+
+      void set_disc_slope_percentage(double disc_slope_percentage = 0.1) {
+         this->disc_slope_percentage = disc_slope_percentage;
+      }
+
+      const std::vector<double>& get_discrepancies() const {
+         return discrepancies;
+      }
+
+      double get_initial_disc_factor() const {
+         return initial_disc_factor;
+      }
+
+      void set_initial_disc_factor(double initial_disc_factor = 10) {
+         this->initial_disc_factor = initial_disc_factor;
+      }
+
+      int get_max_iter() const {
+         return max_iter;
+      }
+
+      void set_max_iter(int max_iter = 0) {
+         this->max_iter = max_iter;
       }
 
    protected:
@@ -807,6 +898,9 @@ class WatchdogProgressListener: public InversionProgressListener<Param, Sol, Exa
       double disc_max_slope = 0.0;
       double disc_slope_percentage = 0.1;
       int disc_slope_min_values = 25;
+
+      bool disc_increasing = false;
+      int max_iter = 0;
 
 };
 

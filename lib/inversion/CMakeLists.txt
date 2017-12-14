@@ -3,6 +3,9 @@ SET(LIBSOURCES
         ToleranceChoice.cpp
         ConstantToleranceChoice.cpp
         RiederToleranceChoice.cpp
+        MaxIterChoice.cpp
+        ConstantMaxIterChoice.cpp
+        FibonacciMaxIterChoice.cpp     
    )
     
 add_library(wavepi_inversion ${LIBSOURCES})

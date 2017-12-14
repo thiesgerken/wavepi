@@ -70,7 +70,6 @@ class NonlinearLandweber: public NewtonRegularization<Param, Sol, Exact> {
          residual -= data_current;
 
          double discrepancy = residual.norm();
-         double initial_discrepancy = discrepancy;
          double norm_data = data.norm();
 
          deallog.pop();
@@ -78,10 +77,7 @@ class NonlinearLandweber: public NewtonRegularization<Param, Sol, Exact> {
                target_discrepancy, &data, norm_data, exact_param, false);
          this->progress(status);
 
-         for (int i = 1;
-               discrepancy > target_discrepancy
-                     && (!this->abort_discrepancy_doubles || discrepancy < 2 * initial_discrepancy)
-                     && i <= this->max_iterations; i++) {
+         for (int i = 1; discrepancy > target_discrepancy; i++) {
             std::unique_ptr<LinearProblem<Param, Sol>> lp = this->problem->derivative(estimate);
 
             Param adj = lp->adjoint(residual);
@@ -93,16 +89,12 @@ class NonlinearLandweber: public NewtonRegularization<Param, Sol, Exact> {
             residual = data;
             data_current = this->problem->forward(estimate);
             residual -= data_current;
-            double discrepancy_last = discrepancy;
             discrepancy = residual.norm();
 
             status = InversionProgress<Param, Sol, Exact>(i, &estimate, estimate.norm(), &residual,
                   discrepancy, target_discrepancy, &data, norm_data, exact_param, false);
 
             if (!this->progress(status))
-               break;
-
-            if (discrepancy_last < discrepancy && this->abort_increasing_discrepancy)
                break;
          }
 

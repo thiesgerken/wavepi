@@ -31,16 +31,16 @@ class Landweber: public LinearRegularization<Param, Sol, Exact> {
       Landweber(double omega)
             : omega(omega) {
          // should generate decreasing residuals
-         this->abort_discrepancy_doubles = true;
-         this->abort_increasing_discrepancy = true;
+//         this->abort_discrepancy_doubles = true;
+//         this->abort_increasing_discrepancy = true;
       }
 
       Landweber(ParameterHandler &prm) {
          get_parameters(prm);
 
          // should generate decreasing residuals
-         this->abort_discrepancy_doubles = true;
-         this->abort_increasing_discrepancy = true;
+//         this->abort_discrepancy_doubles = true;
+//         this->abort_increasing_discrepancy = true;
       }
 
       static void declare_parameters(ParameterHandler &prm) {
@@ -68,17 +68,13 @@ class Landweber: public LinearRegularization<Param, Sol, Exact> {
          Sol residual(data);
 
          double discrepancy = residual.norm();
-         double initial_discrepancy = discrepancy;
          double norm_data = data.norm();
 
          InversionProgress<Param, Sol, Exact> status(0, &estimate, estimate.norm(), &residual, discrepancy,
                target_discrepancy, &data, norm_data, exact_param, false);
          this->progress(status);
 
-         for (int k = 1;
-               discrepancy > target_discrepancy
-                     && (!this->abort_discrepancy_doubles || discrepancy < 2 * initial_discrepancy)
-                     && k <= this->max_iterations; k++) {
+         for (int k = 1; discrepancy > target_discrepancy; k++) {
             Param adj = this->problem->adjoint(residual);
 
             // $`c_{k+1} = c_k + \omega A^* (g - A c_k)`$
@@ -96,17 +92,13 @@ class Landweber: public LinearRegularization<Param, Sol, Exact> {
             residual = data;
             Sol data_current = this->problem->forward(estimate);
             residual -= data_current;
-            double discrepancy_last = discrepancy;
             discrepancy = residual.norm();
             deallog.pop();
 
-            status = InversionProgress<Param, Sol, Exact>(k, &estimate, norm_estimate, &residual,
-                  discrepancy, target_discrepancy, &data, norm_data, exact_param, false);
+            status = InversionProgress<Param, Sol, Exact>(k, &estimate, norm_estimate, &residual, discrepancy,
+                  target_discrepancy, &data, norm_data, exact_param, false);
 
             if (!this->progress(status))
-               break;
-
-            if (discrepancy_last < discrepancy && this->abort_increasing_discrepancy)
                break;
          }
 

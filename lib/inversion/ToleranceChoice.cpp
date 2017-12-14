@@ -92,7 +92,6 @@ void ToleranceChoice::add_iteration(double new_discrepancy, int steps) {
    std::string cmd = "cat " + tolerance_prefix + ".gplot | gnuplot > /dev/null";
    if (std::system(cmd.c_str()) != 0)
       deallog << "gnuplot exited with status code != 0 " << std::endl;
-
 }
 
 } /* namespace problems */

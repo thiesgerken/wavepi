@@ -30,12 +30,6 @@ class ConjugateGradients: public LinearRegularization<Param, Sol, Exact> {
 
       virtual ~ConjugateGradients() = default;
 
-      ConjugateGradients() {
-         // cgls should generate decreasing residuals
-         this->abort_discrepancy_doubles = true;
-         this->abort_increasing_discrepancy = true;
-      }
-
       virtual Param invert(const Sol& data, double target_discrepancy, std::shared_ptr<Exact> exact_param,
             std::shared_ptr<InversionProgress<Param, Sol, Exact>> status_out) {
          LogStream::Prefix prefix("CGLS");
@@ -49,7 +43,6 @@ class ConjugateGradients: public LinearRegularization<Param, Sol, Exact> {
 
          double norm_d = d.norm();
          double discrepancy = residual.norm();
-         double initial_discrepancy = discrepancy;
          double norm_data = data.norm();
 
          InversionProgress<Param, Sol, Exact> status(0, &estimate, estimate.norm(), &residual, discrepancy,
@@ -57,9 +50,7 @@ class ConjugateGradients: public LinearRegularization<Param, Sol, Exact> {
          this->progress(status);
 
          for (int k = 1;
-               discrepancy > target_discrepancy
-                     && (!this->abort_discrepancy_doubles || discrepancy < 2 * initial_discrepancy)
-                     && k <= this->max_iterations; k++) {
+               discrepancy > target_discrepancy; k++) {
             Sol q(this->problem->forward(p)); // q_k
 
             double alpha = square(norm_d / q.norm()); // α_k
@@ -74,17 +65,12 @@ class ConjugateGradients: public LinearRegularization<Param, Sol, Exact> {
 
             estimate.add(alpha, p);
             residual.add(-1.0 * alpha, q);
-
-            double discrepancy_last = discrepancy;
             discrepancy = residual.norm();
 
             status = InversionProgress<Param, Sol, Exact>(k, &estimate, estimate.norm(), &residual,
                   discrepancy, target_discrepancy, &data, norm_data, exact_param, false);
 
             if (!this->progress(status))
-               break;
-
-            if (discrepancy_last < discrepancy && this->abort_increasing_discrepancy)
                break;
 
             // saves one evaluation of the adjoint if we are finished

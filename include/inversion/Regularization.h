@@ -52,30 +52,6 @@ class Regularization {
          return invert(data, target_discrepancy, nullptr, nullptr);
       }
 
-      int get_max_iterations() const {
-         return max_iterations;
-      }
-
-      void set_max_iterations(int max_iterations) {
-         this->max_iterations = max_iterations;
-      }
-
-      bool get_abort_discrepancy_doubles() const {
-         return abort_discrepancy_doubles;
-      }
-
-      void set_abort_discrepancy_doubles(bool abort_discrepancy_doubles) {
-         this->abort_discrepancy_doubles = abort_discrepancy_doubles;
-      }
-
-      bool get_abort_increasing_discrepancy() const {
-         return abort_increasing_discrepancy;
-      }
-
-      void set_abort_increasing_discrepancy(bool abort_increasing_discrepancy) {
-         this->abort_increasing_discrepancy = abort_increasing_discrepancy;
-      }
-
       void remove_listener(std::shared_ptr<InversionProgressListener<Param, Sol, Exact>> listener) {
          progress_listeners.remove(listener);
       }
@@ -93,10 +69,6 @@ class Regularization {
       }
 
    protected:
-      int max_iterations = INT_MAX;
-      bool abort_increasing_discrepancy = false; // abort if the discrepancy is not decreasing anymore?
-      bool abort_discrepancy_doubles = false; // abort if the discrepancy is higher than twice the start discrepancy?
-
       bool progress(InversionProgress<Param, Sol, Exact> state) {
          bool continue_iteration = true;
 
