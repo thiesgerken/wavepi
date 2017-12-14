@@ -11,7 +11,7 @@ This is a work in progress, cf. [issue tracker](https://git.thiesgerken.de/thies
 ## Dependencies
 
  * `cmake   >= 2.8.8`
- * `deal-ii >= 8.5.0` 
+ * `deal-ii >= 8.5.0`
  * `boost   >= 1.56 `
  * `gtest   >= 1.8.0` (optional)
 
@@ -40,7 +40,7 @@ Change Build type to release (no assertions, typically runs 10 times faster):
 cmake -DCMAKE_BUILD_TYPE=Release ..
 ```
 
-Use the same command with `Debug` to go back. There are also `make` targets that switch the build type. 
+Use the same command with `Debug` to go back. There are also `make` targets that switch the build type.
 
 ## Tests
 
@@ -50,14 +50,14 @@ When using `CMake >= 3.10`, one can also run the tests using [`ctest`](https://c
 
 ## Remarks on the Code
 
-It is common C++ practice to put all the code of templated classes into the header file, because the compiler needs to instantiate them for every compilation unit. For classes/functions that only depend on the dimensions I ignored this and just added instances for one, two and three dimensions to increase compilation speed.  
+It is common C++ practice to put all the code of templated classes into the header file, because the compiler needs to instantiate them for every compilation unit. For classes/functions that only depend on the dimensions I ignored this and just added instances for one, two and three dimensions to increase compilation speed.
 
 ## Code size
 
 Use `cloc` to count the lines of code in this project. To obtain meaningful results, exclude the build directory (assumed to be in `build`) and `doc`:
 
 ```shell
-cloc . --exclude-dir=build,doc
+cloc . --exclude-dir=build,doc,examples
 ```
 
 ## Shell Autocompletion (ZSH)
@@ -71,4 +71,4 @@ fpath=($HOME/.zsh-completions $fpath)
 # enable autocomplete function
 autoload -U compinit
 compinit
-``` 
+```
