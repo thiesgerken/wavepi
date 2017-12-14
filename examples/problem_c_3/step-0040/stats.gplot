@@ -1,0 +1,10 @@
+set xlabel 'Iteration'
+set grid
+set term png size 1200,500
+set output './step-0040/stats.png'
+set datafile separator ','
+set key outside
+plot for [col=2:3] './step-0040/stats.csv' using 1:col with linespoints title columnheader
+set term svg size 1200,500 name 'History'
+set output './step-0040/stats.svg'
+replot
