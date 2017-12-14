@@ -1,0 +1,6 @@
+JobId thies-laptop Tue Dec 12 13:52:29 2017
+wavepi 6225f88f-dirty
+initialize_mesh::Number of active cells: 4096
+initialize_mesh::Number of degrees of freedom in the first spatial mesh: 4225
+initialize_mesh::cell diameters: minimal = 0.0442, maximal = 0.0442
+initialize_mesh::dt: 0.0235

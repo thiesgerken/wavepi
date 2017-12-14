@@ -1,0 +1,10 @@
+set xlabel 'Iteration'
+set grid
+set term png size 1200,500
+set output 'history.png'
+set datafile separator ','
+set key outside
+plot for [col=2:4] 'history.csv' using 1:col with linespoints title columnheader
+set term svg size 1200,500 name 'History'
+set output 'history.svg'
+replot

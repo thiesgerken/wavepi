@@ -1,1 +1,3 @@
-problem*[0123456789]
+*.vtu
+*.pvd
+wavepi.log
