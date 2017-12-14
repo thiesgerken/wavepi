@@ -591,17 +591,30 @@ class StatOutputProgressListener: public InversionProgressListener<Param, Sol, E
             std::ofstream gplot_file(file_prefix + ".gplot", std::ios::out | std::ios::trunc);
 
             if (gplot_file) {
-               gplot_file << "set xlabel 'Iteration'" << std::endl;
-               gplot_file << "set grid" << std::endl;
-               gplot_file << "set term png size 1200,500" << std::endl;
+               int w = 1600;
+               int h = 700;
+
+               gplot_file << "set term png size " << w << "," << h << std::endl;
                gplot_file << "set output '" << file_prefix << ".png'" << std::endl;
+               gplot_file << "set grid" << std::endl;
                gplot_file << "set datafile separator ','" << std::endl;
+
+               gplot_file << "stats '"<< file_prefix << ".csv' using 1 name 'x' nooutput" << std::endl;
+               gplot_file << "stats '"<< file_prefix << ".csv' using 2 name 'y' nooutput" << std::endl;
+
+               gplot_file << "set xtics ceil(x_max/20)" << std::endl;
+               gplot_file << "set ytics ceil(y_max/15 * 10)/10.0" << std::endl;
+
+               gplot_file << "set yrange [0:*]" << std::endl;
+               gplot_file << "set xrange [0:*]" << std::endl;
+
                gplot_file << "set key outside" << std::endl;
+               gplot_file << "set xlabel 'Iteration'" << std::endl;
 
                gplot_file << "plot for [col=2:" << num_cols << "] '" << file_prefix
                      << ".csv' using 1:col with linespoints title columnheader" << std::endl;
 
-               gplot_file << "set term svg size 1200,500 name 'History'" << std::endl;
+               gplot_file << "set term svg size " << w << "," << h << " name 'History'" << std::endl;
                gplot_file << "set output '" << file_prefix << ".svg'" << std::endl;
                gplot_file << "replot" << std::endl;
             } else
@@ -724,7 +737,8 @@ class WatchdogProgressListener: public InversionProgressListener<Param, Sol, Exa
          get_parameters(prm, disable_max_iter, section_name);
       }
 
-      static void declare_parameters(ParameterHandler &prm, bool disable_max_iter = false, std::string section_name = "watchdog", bool default_increasing = false) {
+      static void declare_parameters(ParameterHandler &prm, bool disable_max_iter = false,
+            std::string section_name = "watchdog", bool default_increasing = false) {
          prm.enter_subsection(section_name);
          {
             prm.declare_entry("discrepancy threshold", "10.0", Patterns::Double(),
@@ -737,8 +751,8 @@ class WatchdogProgressListener: public InversionProgressListener<Param, Sol, Exa
             prm.declare_entry("discrepancy slope min values", "40", Patterns::Integer(),
                   "enable slope checking only if computed from at least this many entries");
 
-            prm.declare_entry("discrepancy increasing", default_increasing ? "true" : "false", Patterns::Bool(),
-                  "abort if discrepancy increases");
+            prm.declare_entry("discrepancy increasing", default_increasing ? "true" : "false",
+                  Patterns::Bool(), "abort if discrepancy increases");
 
             if (!disable_max_iter)
                prm.declare_entry("maximum iteration count", "0", Patterns::Integer(),
@@ -747,7 +761,8 @@ class WatchdogProgressListener: public InversionProgressListener<Param, Sol, Exa
          prm.leave_subsection();
       }
 
-      virtual void get_parameters(ParameterHandler &prm, bool disable_max_iter = false, std::string section_name = "watchdog") {
+      virtual void get_parameters(ParameterHandler &prm, bool disable_max_iter = false,
+            std::string section_name = "watchdog") {
          prm.enter_subsection(section_name);
          {
             initial_disc_factor = prm.get_double("discrepancy threshold");
