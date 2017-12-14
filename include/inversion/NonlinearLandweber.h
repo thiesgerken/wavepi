@@ -84,11 +84,11 @@ class NonlinearLandweber: public NewtonRegularization<Param, Sol, Exact> {
 
             // $`c_{k+1} = c_k + \omega (S' c_k)^* (g - S c_k)`$
             estimate.add(omega, adj);
-            double norm_estimate = estimate.norm()
+            double norm_estimate = estimate.norm();
 
             // post-processing
             deallog.push("post_processing");
-            this->post_process(i, &estimate, )norm_estimate;
+            this->post_process(i, &estimate, norm_estimate);
             deallog.pop();
 
             // calculate new residual and discrepancy for next step
