@@ -43,3 +43,7 @@ Like [`problem_c_2.cfg`](problem_c_2.cfg), but with higher `max_tol`.
 ## [`problem_c_6.cfg`](problem_c_6.cfg)
 
 Like [`problem_c_4.cfg`](problem_c_4.cfg), but with 5 instead of 6 initial global refines.
+
+## [`problem_c_7.cfg`](problem_c_7.cfg)
+
+Like [`problem_c_4.cfg`](problem_c_4.cfg), but with safeguarding for cg.
