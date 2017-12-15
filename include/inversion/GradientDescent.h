@@ -27,12 +27,6 @@ class GradientDescent: public LinearRegularization<Param, Sol, Exact> {
 
       virtual ~GradientDescent() = default;
 
-//      GradientDescent() {
-//         // should generate decreasing residuals
-//         this->abort_discrepancy_doubles = true;
-//         this->abort_increasing_discrepancy = true;
-//      }
-
       using Regularization<Param, Sol, Exact>::invert;
 
       virtual Param invert(const Sol& data, double target_discrepancy, std::shared_ptr<Exact> exact_param,

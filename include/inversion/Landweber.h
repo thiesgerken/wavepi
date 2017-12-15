@@ -30,17 +30,10 @@ class Landweber: public LinearRegularization<Param, Sol, Exact> {
 
       Landweber(double omega)
             : omega(omega) {
-         // should generate decreasing residuals
-//         this->abort_discrepancy_doubles = true;
-//         this->abort_increasing_discrepancy = true;
       }
 
       Landweber(ParameterHandler &prm) {
          get_parameters(prm);
-
-         // should generate decreasing residuals
-//         this->abort_discrepancy_doubles = true;
-//         this->abort_increasing_discrepancy = true;
       }
 
       static void declare_parameters(ParameterHandler &prm) {

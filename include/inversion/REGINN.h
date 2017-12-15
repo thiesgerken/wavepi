@@ -70,8 +70,10 @@ class REGINN: public NewtonRegularization<Param, Sol, Exact> {
             FibonacciMaxIterChoice::declare_parameters(prm);
             ConstantMaxIterChoice::declare_parameters(prm);
             Landweber<Param, Sol, Exact>::declare_parameters(prm);
+            ConjugateGradients<Param, Sol, Exact>::declare_parameters(prm);
             InnerStatOutputProgressListener<Param, Sol, Exact>::declare_parameters(prm);
-            WatchdogProgressListener<Param, Sol, Exact>::declare_parameters(prm, true, "linear watchdog", true);
+            WatchdogProgressListener<Param, Sol, Exact>::declare_parameters(prm, true, "linear watchdog",
+                  true);
 
          }
          prm.leave_subsection();
@@ -83,7 +85,7 @@ class REGINN: public NewtonRegularization<Param, Sol, Exact> {
             std::string slinear_solver = prm.get("linear solver");
 
             if (slinear_solver == "ConjugateGradients")
-               linear_solver = std::make_shared<ConjugateGradients<Param, Sol, Exact>>();
+               linear_solver = std::make_shared<ConjugateGradients<Param, Sol, Exact>>(prm);
             else if (slinear_solver == "GradientDescent")
                linear_solver = std::make_shared<GradientDescent<Param, Sol, Exact>>();
             else if (slinear_solver == "Landweber")
@@ -149,9 +151,6 @@ class REGINN: public NewtonRegularization<Param, Sol, Exact> {
          InversionProgress<Param, Sol, Exact> status(0, &estimate, estimate.norm(), &residual, discrepancy,
                target_discrepancy, &data, norm_data, exact_param, false);
          this->progress(status);
-
-         // TODO: safeguarding for linear problem
-         // TODO: safeguarding for nonlin problem
 
          for (int i = 1; discrepancy > target_discrepancy; i++) {
             double theta = tol_choice->get_tolerance();

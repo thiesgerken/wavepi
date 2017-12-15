@@ -30,6 +30,31 @@ class ConjugateGradients: public LinearRegularization<Param, Sol, Exact> {
 
       virtual ~ConjugateGradients() = default;
 
+      ConjugateGradients(bool use_safeguarding)
+            : use_safeguarding(use_safeguarding) {
+      }
+
+      ConjugateGradients(ParameterHandler &prm) {
+         get_parameters(prm);
+      }
+
+      static void declare_parameters(ParameterHandler &prm) {
+         prm.enter_subsection("ConjugateGradients");
+         {
+            prm.declare_entry("safeguarding", "true", Patterns::Bool(),
+                  "interpolate between the last two iterates such that the target discrepancy is exactly reached");
+         }
+         prm.leave_subsection();
+      }
+
+      void get_parameters(ParameterHandler &prm) {
+         prm.enter_subsection("ConjugateGradients");
+         {
+            use_safeguarding = prm.get_bool("safeguarding");
+         }
+         prm.leave_subsection();
+      }
+
       virtual Param invert(const Sol& data, double target_discrepancy, std::shared_ptr<Exact> exact_param,
             std::shared_ptr<InversionProgress<Param, Sol, Exact>> status_out) {
          LogStream::Prefix prefix("CGLS");
@@ -49,8 +74,7 @@ class ConjugateGradients: public LinearRegularization<Param, Sol, Exact> {
                target_discrepancy, &data, norm_data, exact_param, false);
          this->progress(status);
 
-         for (int k = 1;
-               discrepancy > target_discrepancy; k++) {
+         for (int k = 1; discrepancy > target_discrepancy; k++) {
             Sol q(this->problem->forward(p)); // q_k
 
             double alpha = square(norm_d / q.norm()); // α_k
@@ -65,6 +89,8 @@ class ConjugateGradients: public LinearRegularization<Param, Sol, Exact> {
 
             estimate.add(alpha, p);
             residual.add(-1.0 * alpha, q);
+
+            double last_discrepancy = discrepancy;
             discrepancy = residual.norm();
 
             status = InversionProgress<Param, Sol, Exact>(k, &estimate, estimate.norm(), &residual,
@@ -73,9 +99,21 @@ class ConjugateGradients: public LinearRegularization<Param, Sol, Exact> {
             if (!this->progress(status))
                break;
 
-            // saves one evaluation of the adjoint if we are finished
-            if (discrepancy <= target_discrepancy)
+            // check now to save one evaluation of the adjoint if we are finished
+            if (discrepancy <= target_discrepancy) {
+               if (use_safeguarding) {
+                  double lambda = compute_safeguarding_factor(last_discrepancy, discrepancy,
+                        alpha * q.dot(residual) + discrepancy * discrepancy, target_discrepancy);
+
+                  estimate.add(-lambda * alpha, p);
+                  residual.add(lambda * alpha, q);
+                  discrepancy = residual.norm();
+
+                  deallog << "safeguarding: λ=" << lambda << " ⇒ rdisc =" << discrepancy / norm_data << std::endl;
+               }
+
                break;
+            }
 
             d = this->problem->adjoint(residual);
 
@@ -102,6 +140,42 @@ class ConjugateGradients: public LinearRegularization<Param, Sol, Exact> {
       }
 
    private:
+
+      bool use_safeguarding = true;
+
+      /**
+       * for iterates $x_k$ and $x_{k+1}$, compute $\lambda$ s.t. $\lambda x_k + (1-\lambda) x_{k+1}$ has discrepancy `target`
+       * ($\lambda \approx 0$ => use mostly $x_{k+1}$
+       *
+       * @param disc discrepancy for $x_k$, has to be > target
+       * @param disc_new discrepancy for $x_{k+1}$, has to be ≤ target
+       * @param res_dot scalar product between residuals, i.e. $(g-Ax_{k+1}, g-Ax_k)$
+       * @param target desired discrepancy
+       */
+      static double compute_safeguarding_factor(double disc, double disc_new, double res_dot, double target) {
+         AssertThrow(disc > target && disc_new <= target,
+               ExcMessage("compute_safeguarding_factor: discrepancies not over- and under target"));
+
+         double a = disc * disc + disc_new * disc_new - 2 * res_dot;
+
+         double p = 2 * (res_dot - disc_new * disc_new) / a;
+         double q = (disc_new * disc_new - target * target) / a;
+
+         AssertThrow(p * p / 4 >= q, ExcMessage("compute_safeguarding_factor: cannot get real solutions"));
+
+         double rad = std::sqrt(p * p / 4 - q);
+         double x1 = -p / 2 + rad;
+         double x2 = -p / 2 - rad;
+
+         if (0 >= x1 && x1 <= 1)
+            return x1;
+
+         if (0 >= x2 && x2 <= 1)
+            return x2;
+
+         AssertThrow(false, ExcMessage("compute_safeguarding_factor: cannot get solutions between 0 and 1"));
+         return 0;
+      }
 
       static inline double square(const double x) {
          return x * x;

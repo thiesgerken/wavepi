@@ -158,6 +158,10 @@ class DiscretizedFunction: public Function<dim> {
          return function_coefficients.size();
       }
 
+      inline bool is_hilbert() const {
+         return true;
+      }
+
       // get / set what `norm()` and `*` do.
       Norm get_norm() const;
       void set_norm(Norm norm);
