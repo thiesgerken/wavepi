@@ -24,6 +24,7 @@ Modifications:
 * [`problem_c_4.cfg`](problem_c_4.cfg): higher `max_tol` and Fibonacci maximum iteration choice
 * [`problem_c_5.cfg`](problem_c_5.cfg): higher `max_tol`
 * [`problem_c_7.cfg`](problem_c_7.cfg): higher `max_tol`, Fibonacci maximum iteration choice and safeguarding for cg
+* [`problem_c_8.cfg`](problem_c_7.cfg): higher `max_tol`, Fibonacci maximum iteration choice, safeguarding for cg, two right hand sides
 
 ## Reconstruction of constant $`q`$
 

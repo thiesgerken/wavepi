@@ -297,7 +297,7 @@ void run_discretized_test(int fe_order, int quad_order, int refines) {
 
    deallog << "rel. error between disguised discrete and discrete (q disguised): " << std::scientific
          << err_disguised_vs_disc_except_q << std::endl;
-   EXPECT_LT(err_disguised_vs_disc_except_q, 1e-7);
+   EXPECT_LT(err_disguised_vs_disc_except_q, 1e-6);
 
    tmp = sol_disc_except_a;
    tmp -= sol_disguised;
@@ -305,7 +305,7 @@ void run_discretized_test(int fe_order, int quad_order, int refines) {
 
    deallog << "rel. error between disguised discrete and discrete (a disguised): " << std::scientific
          << err_disguised_vs_disc_except_a << std::endl;
-   EXPECT_LT(err_disguised_vs_disc_except_a, 1e-7);
+   EXPECT_LT(err_disguised_vs_disc_except_a, 1e-6);
 
    tmp = sol_disc;
    tmp -= sol_disguised;
@@ -313,7 +313,7 @@ void run_discretized_test(int fe_order, int quad_order, int refines) {
 
    deallog << "rel. error between disguised discrete and full discrete: " << std::scientific
          << err_disguised_vs_disc << std::endl << std::endl;
-   EXPECT_LT(err_disguised_vs_disc, 1e-7);
+   EXPECT_LT(err_disguised_vs_disc, 1e-6);
 }
 
 // product of sines in space to have dirichlet b.c. in [0,pi], times a sum of sine and cosine in time.
@@ -393,8 +393,6 @@ void run_reference_test(std::shared_ptr<SpaceTimeMesh<dim>> mesh, Point<dim, int
 
    deallog << std::scientific << "forward : rerr(u) = " << err_u << ", rerr(v) = " << err_v << std::endl;
 
-   // TODO: debug
-   /*
    wave_eq.set_run_direction(WaveEquation<dim>::Backward);
    solu = wave_eq.run();
    solv = solu.derivative();
@@ -415,7 +413,6 @@ void run_reference_test(std::shared_ptr<SpaceTimeMesh<dim>> mesh, Point<dim, int
 
    deallog << std::scientific << "backward: rerr(u) = " << err_u << ", rerr(v) = " << err_v << std::endl
          << std::endl;
-         */
 }
 }
 
