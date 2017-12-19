@@ -139,8 +139,8 @@ class GenericInversionProgressListener: public InversionProgressListener<Param, 
 
       virtual bool progress(InversionProgress<Param, Sol, Exact> state) {
          if (!state.finished) {
-            deallog << counter_variable << "=" << state.iteration_number << ": rdisc="
-                  << state.current_discrepancy / state.norm_data;
+            deallog << counter_variable << "=" << std::left << std::setfill(' ') << std::setw(2)
+                  << state.iteration_number << ": rdisc=" << state.current_discrepancy / state.norm_data;
 
             if (state.norm_exact_param > 0.0) {
                deallog << ", rnorm=" << state.norm_current_estimate / state.norm_exact_param << ", rerr="
@@ -499,13 +499,13 @@ class BoundCheckProgressListener: public InversionProgressListener<DiscretizedFu
                   est_max = (*state.current_estimate)[i][j];
             }
 
-         deallog << est_min << " <= estimate <= " << est_max << std::endl;
+         deallog << est_min << " ≤ estimate ≤ " << est_max << std::endl;
 
          if (est_min < lower_bound)
-            deallog << "constraint estimate >= " << lower_bound << " violated" << std::endl;
+            deallog << "constraint estimate ≥ " << lower_bound << " violated" << std::endl;
 
          if (est_max > upper_bound)
-            deallog << "constraint estimate <= " << upper_bound << " violated" << std::endl;
+            deallog << "constraint estimate ≤ " << upper_bound << " violated" << std::endl;
 
          return this->last_return_value = (est_min >= lower_bound && est_max <= upper_bound);
       }
@@ -599,8 +599,8 @@ class StatOutputProgressListener: public InversionProgressListener<Param, Sol, E
                gplot_file << "set grid" << std::endl;
                gplot_file << "set datafile separator ','" << std::endl;
 
-               gplot_file << "stats '"<< file_prefix << ".csv' using 1 name 'x' nooutput" << std::endl;
-               gplot_file << "stats '"<< file_prefix << ".csv' using 2 name 'y' nooutput" << std::endl;
+               gplot_file << "stats '" << file_prefix << ".csv' using 1 name 'x' nooutput" << std::endl;
+               gplot_file << "stats '" << file_prefix << ".csv' using 2 name 'y' nooutput" << std::endl;
 
                gplot_file << "set xtics ceil(x_max/20)" << std::endl;
                gplot_file << "set ytics ceil(y_max/15 * 10)/10.0" << std::endl;
@@ -632,7 +632,7 @@ class StatOutputProgressListener: public InversionProgressListener<Param, Sol, E
          csv_file.close();
 
          std::string cmd = "cat " + file_prefix + ".gplot | gnuplot > /dev/null 2>&1";
-         if (std::system(cmd.c_str()) != 0)
+         if (std::system(cmd.c_str()) != 0 && state.iteration_number > 0)
             deallog << "gnuplot exited with status code != 0 " << std::endl;
 
          return true;

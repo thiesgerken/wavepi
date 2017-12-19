@@ -173,7 +173,7 @@ int main(int argc, char * argv[]) {
          } else
             AssertThrow(false, ExcInternalError());
       } else
-         AssertThrow(false, ExcInternalError());
+         AssertThrow(false, ExcMessage("not built for dimension " + std::to_string(cfg->dimension)));
 
       // deallog.timestamp();
    } catch (std::exception &exc) {

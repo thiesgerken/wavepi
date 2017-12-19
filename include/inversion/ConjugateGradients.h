@@ -65,9 +65,14 @@ class ConjugateGradients: public LinearRegularization<Param, Sol, Exact> {
 
          Param p(this->problem->adjoint(residual)); // p_{k+1}
          Param d(p); // d_k
+         Sol q(this->problem->forward(p)); // q_k
+
+         // needs to be outside of the iteration
+         double alpha = 0;
 
          double norm_d = d.norm();
          double discrepancy = residual.norm();
+         double last_discrepancy = discrepancy;
          double norm_data = data.norm();
 
          InversionProgress<Param, Sol, Exact> status(0, &estimate, estimate.norm(), &residual, discrepancy,
@@ -75,9 +80,7 @@ class ConjugateGradients: public LinearRegularization<Param, Sol, Exact> {
          this->progress(status);
 
          for (int k = 1; discrepancy > target_discrepancy; k++) {
-            Sol q(this->problem->forward(p)); // q_k
-
-            double alpha = square(norm_d / q.norm()); // α_k
+            alpha = square(norm_d / q.norm()); // α_k
 
             {
                LogStream::Prefix pp("info");
@@ -90,7 +93,7 @@ class ConjugateGradients: public LinearRegularization<Param, Sol, Exact> {
             estimate.add(alpha, p);
             residual.add(-1.0 * alpha, q);
 
-            double last_discrepancy = discrepancy;
+            last_discrepancy = discrepancy;
             discrepancy = residual.norm();
 
             status = InversionProgress<Param, Sol, Exact>(k, &estimate, estimate.norm(), &residual,
@@ -99,21 +102,9 @@ class ConjugateGradients: public LinearRegularization<Param, Sol, Exact> {
             if (!this->progress(status))
                break;
 
-            // check now to save one evaluation of the adjoint if we are finished
-            if (discrepancy <= target_discrepancy) {
-               if (use_safeguarding) {
-                  double lambda = compute_safeguarding_factor(last_discrepancy, discrepancy,
-                        alpha * q.dot(residual) + discrepancy * discrepancy, target_discrepancy);
-
-                  estimate.add(-lambda * alpha, p);
-                  residual.add(lambda * alpha, q);
-                  discrepancy = residual.norm();
-
-                  deallog << "safeguarding: λ=" << lambda << " ⇒ rdisc =" << discrepancy / norm_data << std::endl;
-               }
-
+            // abort now to save one evaluation of the adjoint and forward operator if we are finished
+            if (discrepancy <= target_discrepancy)
                break;
-            }
 
             d = this->problem->adjoint(residual);
 
@@ -128,6 +119,20 @@ class ConjugateGradients: public LinearRegularization<Param, Sol, Exact> {
             }
 
             p.sadd(beta, 1.0, d);
+            q = this->problem->forward(p);
+
+         }
+
+         // safe guarding if target is reached
+         if (discrepancy <= target_discrepancy && use_safeguarding) {
+            double lambda = compute_safeguarding_factor(last_discrepancy, discrepancy,
+                  alpha * q.dot(residual) + discrepancy * discrepancy, target_discrepancy);
+
+            estimate.add(-lambda * alpha, p);
+            residual.add(lambda * alpha, q);
+            discrepancy = residual.norm();
+
+            deallog << "Safeguarding: λ=" << lambda << " ⇒ rdisc=" << discrepancy / norm_data << std::endl;
          }
 
          status.finished = true;
@@ -167,10 +172,10 @@ class ConjugateGradients: public LinearRegularization<Param, Sol, Exact> {
          double x1 = -p / 2 + rad;
          double x2 = -p / 2 - rad;
 
-         if (0 >= x1 && x1 <= 1)
+         if (0 <= x1 && x1 <= 1)
             return x1;
 
-         if (0 >= x2 && x2 <= 1)
+         if (0 <= x2 && x2 <= 1)
             return x2;
 
          AssertThrow(false, ExcMessage("compute_safeguarding_factor: cannot get solutions between 0 and 1"));

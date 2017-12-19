@@ -202,6 +202,8 @@ class REGINN: public NewtonRegularization<Param, Sol, Exact> {
 
             tol_choice->add_iteration(discrepancy, linear_status->iteration_number);
             max_iter_choice->add_iteration(discrepancy, linear_status->iteration_number);
+
+            std::cout << std::endl;
          }
 
          status.finished = true;
