@@ -558,8 +558,10 @@ double DiscretizedFunction<dim>::norm() const {
          return norm_vector();
       case Norm::L2L2:
          return norm_l2l2();
+      case Norm::H1L2:
+         return norm_h1l2();
       default:
-         AssertThrow(false, ExcMessage("norm_type == invalid"))
+         AssertThrow(false, ExcMessage("norm_type == Invalid"))
    }
 
    Assert(false, ExcInternalError ());
@@ -577,6 +579,8 @@ double DiscretizedFunction<dim>::operator*(const DiscretizedFunction<dim> & V) c
          return dot_vector(V);
       case Norm::L2L2:
          return dot_l2l2(V);
+      case Norm::H1L2:
+         return dot_h1l2(V);
       default:
          AssertThrow(false, ExcMessage("norm_type == Invalid"))
    }
@@ -617,6 +621,9 @@ void DiscretizedFunction<dim>::dot_transform() {
       case Norm::L2L2:
          dot_transform_l2l2();
          return;
+      case Norm::H1L2:
+         dot_transform_h1l2();
+         return;
       default:
          AssertThrow(false, ExcMessage("norm_type == Invalid"))
    }
@@ -634,6 +641,9 @@ void DiscretizedFunction<dim>::dot_transform_inverse() {
          return;
       case Norm::L2L2:
          dot_transform_inverse_l2l2();
+         return;
+      case Norm::H1L2:
+         dot_transform_inverse_h1l2();
          return;
       default:
          AssertThrow(false, ExcMessage("norm_type == Invalid"))
@@ -653,6 +663,9 @@ void DiscretizedFunction<dim>::dot_solve_mass_and_transform() {
       case Norm::L2L2:
          dot_solve_mass_and_transform_l2l2();
          return;
+      case Norm::H1L2:
+         dot_solve_mass_and_transform_h1l2();
+         return;
       default:
          AssertThrow(false, ExcMessage("norm_type == Invalid"))
    }
@@ -670,6 +683,9 @@ void DiscretizedFunction<dim>::dot_mult_mass_and_transform_inverse() {
          return;
       case Norm::L2L2:
          dot_mult_mass_and_transform_inverse_l2l2();
+         return;
+      case Norm::H1L2:
+         dot_mult_mass_and_transform_inverse_h1l2();
          return;
       default:
          AssertThrow(false, ExcMessage("norm_type == Invalid"))
@@ -880,6 +896,37 @@ double DiscretizedFunction<dim>::norm_l2l2() const {
    //   }
 
    return std::sqrt(result);
+}
+
+template<int dim> void DiscretizedFunction<dim>::dot_transform_h1l2() {
+   AssertThrow(false, ExcNotImplemented())
+   // TODO
+}
+
+template<int dim> void DiscretizedFunction<dim>::dot_transform_inverse_h1l2() {
+   AssertThrow(false, ExcNotImplemented())
+   // TODO
+}
+
+template<int dim> void DiscretizedFunction<dim>::dot_solve_mass_and_transform_h1l2() {
+   AssertThrow(false, ExcNotImplemented())
+   // TODO
+}
+
+template<int dim> void DiscretizedFunction<dim>::dot_mult_mass_and_transform_inverse_h1l2() {
+   AssertThrow(false, ExcNotImplemented())
+   // TODO
+}
+
+template<int dim> double DiscretizedFunction<dim>::dot_h1l2(const DiscretizedFunction<dim> & V) const {
+   AssertThrow(false, ExcNotImplemented())
+   // TODO
+}
+
+template<int dim>
+double DiscretizedFunction<dim>::norm_h1l2() const {
+   AssertThrow(false, ExcNotImplemented())
+   // TODO
 }
 
 template<int dim>

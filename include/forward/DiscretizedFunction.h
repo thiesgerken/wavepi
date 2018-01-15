@@ -552,6 +552,20 @@ class DiscretizedFunction: public Function<dim> {
 
       /**
        * @}
+       *
+       * @name Functions for `Norm::H1L2`
+       */
+
+      double norm_h1l2() const;
+      double dot_h1l2(const DiscretizedFunction<dim> & V) const;
+
+      void dot_transform_h1l2();
+      void dot_transform_inverse_h1l2();
+      void dot_solve_mass_and_transform_h1l2();
+      void dot_mult_mass_and_transform_inverse_h1l2();
+
+      /**
+       * @}
        */
 };
 } /* namespace forward */
