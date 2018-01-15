@@ -262,14 +262,14 @@ void run_space_time_mass_test(int fe_order, int quad_order, int refines, int n_s
    q.set_norm(norm);
 
    auto mstq(q);
-   mstq.mult_space_time_mass();
-   mstq.solve_space_time_mass();
+   mstq.dot_transform();
+   mstq.dot_transform_inverse();
    mstq -= q;
    double err_mstq = mstq.norm() / q.norm();
 
    auto mtq(q);
-   mtq.mult_time_mass();
-   mtq.solve_time_mass();
+   mtq.dot_solve_mass_and_transform();
+   mtq.dot_mult_mass_and_transform_inverse();
    mtq -= q;
    double err_mtq = mtq.norm() / q.norm();
 
@@ -281,14 +281,14 @@ void run_space_time_mass_test(int fe_order, int quad_order, int refines, int n_s
    g.set_norm(norm);
 
    auto mstg(g);
-   mstg.mult_space_time_mass();
-   mstg.solve_space_time_mass();
+   mstg.dot_transform();
+   mstg.dot_transform_inverse();
    mstg -= g;
    double err_mstg = mstg.norm() / g.norm();
 
    auto mtg(g);
-   mtg.mult_time_mass();
-   mtg.solve_time_mass();
+   mtg.dot_solve_mass_and_transform();
+   mtg.dot_mult_mass_and_transform_inverse();
    mtg -= g;
    double err_mtg = mtg.norm() / g.norm();
 
@@ -300,14 +300,14 @@ void run_space_time_mass_test(int fe_order, int quad_order, int refines, int n_s
    f.set_norm(norm);
 
    auto mstf(f);
-   mstf.mult_space_time_mass();
-   mstf.solve_space_time_mass();
+   mstf.dot_transform();
+   mstf.dot_transform_inverse();
    mstf -= f;
    double err_mstf = mstf.norm() / f.norm();
 
    auto mtf(f);
-   mtf.mult_time_mass();
-   mtf.solve_time_mass();
+   mtf.dot_solve_mass_and_transform();
+   mtf.dot_mult_mass_and_transform_inverse();
    mtf -= f;
    double err_mtf = mtf.norm() / f.norm();
 

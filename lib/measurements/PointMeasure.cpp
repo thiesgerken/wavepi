@@ -102,7 +102,7 @@ template<int dim> MeasuredValues<dim> PointMeasure<dim>::evaluate(const Discreti
 
          res[jobs[ji][k].first] += jobs[ji][k].second
                * mesh->get_mass_matrix(ji)->matrix_scalar_product(interp_shape,
-                     field.get_function_coefficient(ji));
+                     field[ji]);
       }
    }
 
@@ -135,12 +135,12 @@ template<int dim> DiscretizedFunction<dim> PointMeasure<dim>::adjoint(
          VectorTools::interpolate(*dof_handler, wrapper, tmp);
          mesh->get_constraint_matrix(ji)->distribute(tmp);
 
-         res.get_function_coefficient(ji).add(jobs[ji][i].second * measurements[sensor_idx], tmp);
+         res[ji].add(jobs[ji][i].second * measurements[sensor_idx], tmp);
       }
    }
 
    res.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
-   res.solve_time_mass();
+   res.dot_mult_mass_and_transform_inverse();
 
    return res;
 }

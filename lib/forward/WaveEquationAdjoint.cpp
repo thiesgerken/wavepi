@@ -541,21 +541,21 @@ DiscretizedFunction<dim> WaveEquationAdjoint<dim>::apply_R_transpose(const Discr
       Vector<double> tmp;
 
       if (i != mesh->length() - 1) {
-         tmp.reinit(u.get_function_coefficient(i + 1).size());
+         tmp.reinit(u[i + 1].size());
 
-         tmp.equ(theta * (1 - theta), u.get_function_coefficient(i + 1));
-         tmp.add(1 - theta, u.get_derivative_coefficient(i + 1));
+         tmp.equ(theta * (1 - theta), u[i + 1]);
+         tmp.add(1 - theta, u.get_derivative_coefficients(i + 1));
 
          dof_handler = mesh->transfer(i + 1, i, { &tmp });
       } else
-         tmp.reinit(u.get_function_coefficient(i).size());
+         tmp.reinit(u[i].size());
 
       if (i != 0) {
-         tmp.add(theta * theta, u.get_function_coefficient(i));
-         tmp.add(theta, u.get_derivative_coefficient(i));
+         tmp.add(theta * theta, u[i]);
+         tmp.add(theta, u.get_derivative_coefficients(i));
       }
 
-      res.set(i, tmp);
+      res[i] = tmp;
    }
 
    return res;

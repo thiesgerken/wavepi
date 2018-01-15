@@ -407,31 +407,6 @@ DiscretizedFunction<dim> DiscretizedFunction<dim>::calculate_derivative_transpos
 }
 
 template<int dim>
-void DiscretizedFunction<dim>::set(size_t i, const Vector<double>& u, const Vector<double>& v) {
-   Assert(mesh, ExcNotInitialized());
-   Assert(store_derivative, ExcInternalError());
-   Assert(i >= 0 && i < mesh->length(), ExcIndexRange(i, 0, mesh->length()));
-   Assert(function_coefficients[i].size() == u.size(),
-         ExcDimensionMismatch(function_coefficients[i].size(), u.size()));
-   Assert(derivative_coefficients[i].size() == v.size(),
-         ExcDimensionMismatch(derivative_coefficients[i].size(), v.size()));
-
-   function_coefficients[i] = u;
-   derivative_coefficients[i] = v;
-}
-
-template<int dim>
-void DiscretizedFunction<dim>::set(size_t i, const Vector<double>& u) {
-   Assert(mesh, ExcNotInitialized());
-   Assert(!store_derivative, ExcInternalError());
-   Assert(i >= 0 && i < mesh->length(), ExcIndexRange(i, 0, mesh->length()));
-   Assert(function_coefficients[i].size() == u.size(),
-         ExcDimensionMismatch(function_coefficients[i].size(), u.size()));
-
-   function_coefficients[i] = u;
-}
-
-template<int dim>
 DiscretizedFunction<dim>& DiscretizedFunction<dim>::operator=(double x) {
    Assert(mesh, ExcNotInitialized());
 
@@ -580,9 +555,11 @@ double DiscretizedFunction<dim>::norm() const {
 
    switch (norm_type) {
       case L2L2_Vector:
-         return l2l2_vec_norm();
+         return norm_l2l2_vector();
       case L2L2_Trapezoidal_Mass:
-         return l2l2_mass_norm();
+         return norm_l2l2_mass();
+      default:
+         AssertThrow(false, ExcMessage("norm_type == invalid"))
    }
 
    Assert(false, ExcInternalError ());
@@ -597,9 +574,11 @@ double DiscretizedFunction<dim>::operator*(const DiscretizedFunction<dim> & V) c
 
    switch (norm_type) {
       case L2L2_Vector:
-         return l2l2_vec_dot(V);
+         return dot_l2l2_vector(V);
       case L2L2_Trapezoidal_Mass:
-         return l2l2_mass_dot(V);
+         return dot_l2l2_mass(V);
+      default:
+         AssertThrow(false, ExcMessage("norm_type == invalid"))
    }
 
    Assert(false, ExcInternalError ());
@@ -612,82 +591,99 @@ double DiscretizedFunction<dim>::dot(const DiscretizedFunction<dim> & V) const {
 }
 
 template<int dim>
-void DiscretizedFunction<dim>::mult_space_time_mass() {
+bool DiscretizedFunction<dim>::is_hilbert() const {
+   return norm_type != Invalid;
+}
+
+template<int dim> void DiscretizedFunction<dim>::dot_transform_l2l2_vector() {
+}
+template<int dim> void DiscretizedFunction<dim>::dot_transform_inverse_l2l2_vector() {
+}
+template<int dim> void DiscretizedFunction<dim>::dot_solve_mass_and_transform_l2l2_vector() {
+   solve_mass();
+}
+template<int dim> void DiscretizedFunction<dim>::dot_mult_mass_and_transform_inverse_l2l2_vector() {
+   mult_mass();
+}
+
+template<int dim>
+void DiscretizedFunction<dim>::dot_transform() {
    Assert(mesh, ExcNotInitialized());
 
    switch (norm_type) {
       case L2L2_Vector:
+         dot_transform_l2l2_vector();
          return;
       case L2L2_Trapezoidal_Mass:
-         l2l2_mass_mult_space_time_mass();
+         dot_transform_l2l2_mass();
          return;
+      default:
+         AssertThrow(false, ExcMessage("norm_type == invalid"))
+         ;
    }
 
    Assert(false, ExcInternalError ());
 }
 
 template<int dim>
-void DiscretizedFunction<dim>::solve_space_time_mass() {
+void DiscretizedFunction<dim>::dot_transform_inverse() {
    Assert(mesh, ExcNotInitialized());
 
    switch (norm_type) {
       case L2L2_Vector:
+         dot_transform_inverse_l2l2_vector();
          return;
       case L2L2_Trapezoidal_Mass:
-         l2l2_mass_solve_space_time_mass();
+         dot_transform_inverse_l2l2_mass();
          return;
+      default:
+         AssertThrow(false, ExcMessage("norm_type == invalid"))
+         ;
    }
 
    Assert(false, ExcInternalError ());
 }
 
 template<int dim>
-void DiscretizedFunction<dim>::mult_time_mass() {
+void DiscretizedFunction<dim>::dot_solve_mass_and_transform() {
    Assert(mesh, ExcNotInitialized());
 
    switch (norm_type) {
       case L2L2_Vector:
+         dot_solve_mass_and_transform_l2l2_vector();
          return;
       case L2L2_Trapezoidal_Mass:
-         l2l2_mass_mult_time_mass();
+         dot_solve_mass_and_transform_l2l2_mass();
          return;
+      default:
+         AssertThrow(false, ExcMessage("norm_type == invalid"))
+         ;
    }
 
    Assert(false, ExcInternalError ());
 }
 
 template<int dim>
-void DiscretizedFunction<dim>::solve_time_mass() {
+void DiscretizedFunction<dim>::dot_mult_mass_and_transform_inverse() {
    Assert(mesh, ExcNotInitialized());
 
    switch (norm_type) {
       case L2L2_Vector:
+         dot_mult_mass_and_transform_inverse_l2l2_vector();
          return;
       case L2L2_Trapezoidal_Mass:
-         l2l2_mass_solve_time_mass();
+         dot_mult_mass_and_transform_inverse_l2l2_mass();
          return;
+      default:
+         AssertThrow(false, ExcMessage("norm_type == invalid"))
+         ;
    }
 
    Assert(false, ExcInternalError ());
 }
 
 template<int dim>
-bool DiscretizedFunction<dim>::norm_uses_mass_matrix() const {
-   Assert(mesh, ExcNotInitialized());
-
-   switch (norm_type) {
-      case L2L2_Vector:
-         return false;
-      case L2L2_Trapezoidal_Mass:
-         return true;
-   }
-
-   Assert(false, ExcInternalError ());
-   return false;
-}
-
-template<int dim>
-void DiscretizedFunction<dim>::l2l2_mass_mult_space_time_mass() {
+void DiscretizedFunction<dim>::mult_mass() {
    Assert(!store_derivative, ExcInternalError ());
 
    for (size_t i = 0; i < mesh->length(); i++) {
@@ -695,12 +691,18 @@ void DiscretizedFunction<dim>::l2l2_mass_mult_space_time_mass() {
       mesh->get_mass_matrix(i)->vmult(tmp, function_coefficients[i]);
       function_coefficients[i] = tmp;
    }
-
-   l2l2_mass_mult_time_mass();
 }
 
 template<int dim>
-void DiscretizedFunction<dim>::l2l2_mass_mult_time_mass() {
+void DiscretizedFunction<dim>::dot_transform_l2l2_mass() {
+   Assert(!store_derivative, ExcInternalError ());
+
+   mult_mass();
+   dot_solve_mass_and_transform_l2l2_mass();
+}
+
+template<int dim>
+void DiscretizedFunction<dim>::dot_solve_mass_and_transform_l2l2_mass() {
    Assert(!store_derivative, ExcInternalError ());
 
    for (size_t i = 0; i < mesh->length(); i++) {
@@ -717,10 +719,10 @@ void DiscretizedFunction<dim>::l2l2_mass_mult_time_mass() {
 }
 
 template<int dim>
-void DiscretizedFunction<dim>::l2l2_mass_solve_space_time_mass() {
+void DiscretizedFunction<dim>::solve_mass() {
    Assert(!store_derivative, ExcInternalError ());
 
-   LogStream::Prefix p("solve_space_time_mass");
+   LogStream::Prefix p("solve_mass");
    Timer timer;
    timer.start();
 
@@ -737,13 +739,19 @@ void DiscretizedFunction<dim>::l2l2_mass_solve_space_time_mass() {
       function_coefficients[i] = tmp;
    }
 
-   l2l2_mass_solve_time_mass();
-
-   deallog << "solved space-time-mass matrix in " << timer.wall_time() << "s" << std::endl;
+   deallog << "solved space-time-mass matrices in " << timer.wall_time() << "s" << std::endl;
 }
 
 template<int dim>
-void DiscretizedFunction<dim>::l2l2_mass_solve_time_mass() {
+void DiscretizedFunction<dim>::dot_transform_inverse_l2l2_mass() {
+   Assert(!store_derivative, ExcInternalError ());
+
+   solve_mass();
+   dot_mult_mass_and_transform_inverse_l2l2_mass();
+}
+
+template<int dim>
+void DiscretizedFunction<dim>::dot_mult_mass_and_transform_inverse_l2l2_mass() {
    Assert(!store_derivative, ExcInternalError ());
 
    for (size_t i = 0; i < mesh->length(); i++) {
@@ -761,10 +769,7 @@ void DiscretizedFunction<dim>::l2l2_mass_solve_time_mass() {
 }
 
 template<int dim>
-double DiscretizedFunction<dim>::l2l2_vec_dot(const DiscretizedFunction<dim> & V) const {
-// remember to sync this implementation with l2_norm and all l2 adjoints!
-// uses vector l2 norm in time and vector l2 norm in space
-// (only approx to L2(0,T, L2) inner product if spatial and temporal grid is uniform!
+double DiscretizedFunction<dim>::dot_l2l2_vector(const DiscretizedFunction<dim> & V) const {
    double result = 0;
 
    for (size_t i = 0; i < mesh->length(); i++) {
@@ -779,10 +784,7 @@ double DiscretizedFunction<dim>::l2l2_vec_dot(const DiscretizedFunction<dim> & V
 }
 
 template<int dim>
-double DiscretizedFunction<dim>::l2l2_vec_norm() const {
-// remember to sync this implementation with l2_norm and all l2 adjoints!
-// uses vector l2 norm in time and vector l2 norm in space
-// (only approx to L2(0,T, L2) inner product if spatial and temporal grid is uniform!
+double DiscretizedFunction<dim>::norm_l2l2_vector() const {
    double result = 0;
 
    for (size_t i = 0; i < mesh->length(); i++) {
@@ -794,12 +796,10 @@ double DiscretizedFunction<dim>::l2l2_vec_norm() const {
 }
 
 template<int dim>
-double DiscretizedFunction<dim>::l2l2_mass_dot(const DiscretizedFunction<dim> & V) const {
-// remember to sync this implementation with l2_norm and all l2 adjoints!
-// uses trapezoidal rule in time and vector l2 norm in space
+double DiscretizedFunction<dim>::dot_l2l2_mass(const DiscretizedFunction<dim> & V) const {
    double result = 0.0;
 
-// trapezoidal rule in time:
+   // trapezoidal rule in time:
    for (size_t i = 0; i < mesh->length(); i++) {
       Assert(function_coefficients[i].size() == V.function_coefficients[i].size(),
             ExcDimensionMismatch (function_coefficients[i].size() , V.function_coefficients[i].size()));
@@ -814,46 +814,45 @@ double DiscretizedFunction<dim>::l2l2_mass_dot(const DiscretizedFunction<dim> & 
          result += doti / 2 * (std::abs(mesh->get_time(i + 1) - mesh->get_time(i)));
    }
 
-// assume that both functions are linear in time (consistent with crank-nicolson!)
-// and integrate that exactly (Simpson rule)
-// problem when mesh changes in time!
-//   for (size_t i = 0; i < mesh->length(); i++) {
-//      Assert(function_coefficients[i].size() == V.function_coefficients[i].size(),
-//            ExcDimensionMismatch (function_coefficients[i].size() , V.function_coefficients[i].size()));
-//
-//      double doti = mesh->get_mass_matrix(i)->matrix_scalar_product(function_coefficients[i],
-//            V.function_coefficients[i]);
-//
-//      if (i > 0)
-//         result += doti / 3 * (std::abs(mesh->get_time(i) - mesh->get_time(i - 1)));
-//
-//      if (i < mesh->length() - 1)
-//         result += doti / 3 * (std::abs(mesh->get_time(i+1) - mesh->get_time(i)));
-//   }
-//
-//   for (size_t i = 0; i < mesh->length() - 1; i++) {
-//      Assert(function_coefficients[i].size() == V.function_coefficients[i+1].size(),
-//            ExcDimensionMismatch (function_coefficients[i].size() , V.function_coefficients[i+1].size()));
-//      Assert(function_coefficients[i+1].size() == V.function_coefficients[i].size(),
-//             ExcDimensionMismatch (function_coefficients[i+1].size() , V.function_coefficients[i].size()));
-//
-//      double dot1 = mesh->get_mass_matrix(i)->matrix_scalar_product(function_coefficients[i],
-//            V.function_coefficients[i + 1]);
-//      double dot2 = mesh->get_mass_matrix(i + 1)->matrix_scalar_product(function_coefficients[i + 1],
-//            V.function_coefficients[i]);
-//
-//      result += (dot1 + dot2) / 6 * (std::abs(mesh->get_time(i+1) - mesh->get_time(i)));
-//   }
+   // assume that both functions are linear in time (consistent with crank-nicolson!)
+   // and integrate that exactly (Simpson rule)
+   // problem when mesh changes in time!
+   //   for (size_t i = 0; i < mesh->length(); i++) {
+   //      Assert(function_coefficients[i].size() == V.function_coefficients[i].size(),
+   //            ExcDimensionMismatch (function_coefficients[i].size() , V.function_coefficients[i].size()));
+   //
+   //      double doti = mesh->get_mass_matrix(i)->matrix_scalar_product(function_coefficients[i],
+   //            V.function_coefficients[i]);
+   //
+   //      if (i > 0)
+   //         result += doti / 3 * (std::abs(mesh->get_time(i) - mesh->get_time(i - 1)));
+   //
+   //      if (i < mesh->length() - 1)
+   //         result += doti / 3 * (std::abs(mesh->get_time(i+1) - mesh->get_time(i)));
+   //   }
+   //
+   //   for (size_t i = 0; i < mesh->length() - 1; i++) {
+   //      Assert(function_coefficients[i].size() == V.function_coefficients[i+1].size(),
+   //            ExcDimensionMismatch (function_coefficients[i].size() , V.function_coefficients[i+1].size()));
+   //      Assert(function_coefficients[i+1].size() == V.function_coefficients[i].size(),
+   //             ExcDimensionMismatch (function_coefficients[i+1].size() , V.function_coefficients[i].size()));
+   //
+   //      double dot1 = mesh->get_mass_matrix(i)->matrix_scalar_product(function_coefficients[i],
+   //            V.function_coefficients[i + 1]);
+   //      double dot2 = mesh->get_mass_matrix(i + 1)->matrix_scalar_product(function_coefficients[i + 1],
+   //            V.function_coefficients[i]);
+   //
+   //      result += (dot1 + dot2) / 6 * (std::abs(mesh->get_time(i+1) - mesh->get_time(i)));
+   //   }
 
    return result;
 }
 
 template<int dim>
-double DiscretizedFunction<dim>::l2l2_mass_norm() const {
-// remember to sync this implementation with l2_dot and all l2 adjoints!
+double DiscretizedFunction<dim>::norm_l2l2_mass() const {
    double result = 0;
 
-// trapezoidal rule in time:
+   // trapezoidal rule in time:
    for (size_t i = 0; i < mesh->length(); i++) {
       double nrm2 = mesh->get_mass_matrix(i)->matrix_norm_square(function_coefficients[i]);
 
@@ -864,25 +863,25 @@ double DiscretizedFunction<dim>::l2l2_mass_norm() const {
          result += nrm2 / 2 * (std::abs(mesh->get_time(i + 1) - mesh->get_time(i)));
    }
 
-// assume that function is linear in time (consistent with crank-nicolson!)
-// and integrate that exactly (Simpson rule)
-// problem when mesh changes in time!
-//   for (size_t i = 0; i < mesh->length(); i++) {
-//      double nrm2 = mesh->get_mass_matrix(i)->matrix_norm_square(function_coefficients[i]);
-//
-//      if (i > 0)
-//         result += nrm2 / 3 * (std::abs(mesh->get_time(i) - mesh->get_time(i - 1)));
-//
-//      if (i < mesh->length() - 1)
-//         result += nrm2 / 3 * (std::abs(mesh->get_time(i+1) - mesh->get_time(i)));
-//   }
-//
-//   for (size_t i = 0; i < mesh->length() - 1; i++) {
-//      double tmp = mesh->get_mass_matrix(i)->matrix_scalar_product(function_coefficients[i],
-//            function_coefficients[i + 1]);
-//
-//      result += tmp / 3 * (std::abs(mesh->get_time(i+1) - mesh->get_time(i)));
-//   }
+   // assume that function is linear in time (consistent with crank-nicolson!)
+   // and integrate that exactly (Simpson rule)
+   // problem when mesh changes in time!
+   //   for (size_t i = 0; i < mesh->length(); i++) {
+   //      double nrm2 = mesh->get_mass_matrix(i)->matrix_norm_square(function_coefficients[i]);
+   //
+   //      if (i > 0)
+   //         result += nrm2 / 3 * (std::abs(mesh->get_time(i) - mesh->get_time(i - 1)));
+   //
+   //      if (i < mesh->length() - 1)
+   //         result += nrm2 / 3 * (std::abs(mesh->get_time(i+1) - mesh->get_time(i)));
+   //   }
+   //
+   //   for (size_t i = 0; i < mesh->length() - 1; i++) {
+   //      double tmp = mesh->get_mass_matrix(i)->matrix_scalar_product(function_coefficients[i],
+   //            function_coefficients[i + 1]);
+   //
+   //      result += tmp / 3 * (std::abs(mesh->get_time(i+1) - mesh->get_time(i)));
+   //   }
 
    return std::sqrt(result);
 }

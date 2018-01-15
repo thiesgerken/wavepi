@@ -29,126 +29,367 @@ using namespace dealii;
 /**
  * Essentially, a `std::vector<dealii::Vector<double>>`,
  * representing a function that is pointwise discretized in time and FE-discretized in space.
+ * It can be equipped with different norms and scalar products.
  */
 template<int dim>
 class DiscretizedFunction: public Function<dim> {
    public:
+      /**
+       * possible norm settings
+       */
       enum Norm {
-         L2L2_Vector, L2L2_Trapezoidal_Mass
+         /**
+          * Invalid norm setting. This is the default setting for newly constructed objects.
+          */
+         Invalid = 0,
+
+         /**
+          * 2-norm on the underlying vectors.
+          * Fast, but only a crude approximation (even in case of uniform space-time grids and P1-elements)
+          */
+         L2L2_Vector,
+
+         /**
+          * L^2([0,T], L^2(\Omega)) norm, using the trapezoidal rule in time (approximation)
+          * and the mass matrix in space (exact)
+          */
+         L2L2_Trapezoidal_Mass
       };
 
       virtual ~DiscretizedFunction() = default;
 
+      /**
+       * @name Constructors and Assignment operators
+       * @{
+       *
+       */
+
+      /**
+       * copy constructor
+       */
       DiscretizedFunction(const DiscretizedFunction& that);
+
+      /**
+       * move constructor
+       */
       DiscretizedFunction(DiscretizedFunction&& that);
 
+      /**
+       * Creates a new discretized function and initializes it with zeroes.
+       *
+       * @param mesh the mesh you want this function to be attached to
+       * @param store_derivative true iff this function should also track the derivative of the function.
+       */
       DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>> mesh, bool store_derivative);
+
+      /**
+       * Creates a new discretized function from a given (possibly continuous) function.
+       * The resulting object will _not_ keep track of the coefficients of its derivative.
+       *
+       * @param mesh the mesh you want this function to be attached to
+       * @param function the function that should be interpolated by this object
+       */
       DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>> mesh, Function<dim>& function);
+
+      /**
+       * Creates a new discretized function and initializes it with zeroes.
+       * The resulting object will _not_ keep track of the coefficients of its derivative.
+       *
+       * @param mesh the mesh you want this function to be attached to
+       */
       DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>> mesh);
 
-      void set(size_t i, const Vector<double>& u, const Vector<double>& v);
-      void set(size_t i, const Vector<double>& u);
-
+      /**
+       * move assignment
+       */
       DiscretizedFunction<dim>& operator=(DiscretizedFunction<dim> && V);
+
+      /**
+       * copy assignment
+       */
       DiscretizedFunction<dim>& operator=(const DiscretizedFunction<dim> & V);
 
-      // works only for x = 0
+      /**
+       * set all function (and if needed derivative) coefficients to 0
+       *
+       * @param x has to be zero.
+       */
       DiscretizedFunction<dim>& operator=(double x);
 
+      /**
+       * @}
+       *
+       * @name Vector space operations
+       */
+
+      /**
+       * perform this <- this + V
+       */
       DiscretizedFunction<dim>& operator+=(const DiscretizedFunction<dim>& V);
+
+      /**
+       * perform this <- this - V
+       */
       DiscretizedFunction<dim>& operator-=(const DiscretizedFunction<dim>& V);
 
+      /**
+       * perform this <- factor * this
+       */
       DiscretizedFunction<dim>& operator*=(const double factor);
+
+      /**
+       * perform this <- factor^{-1} * this
+       */
       DiscretizedFunction<dim>& operator/=(const double factor);
 
+      /**
+       * perform this <- this + a*V
+       */
+      void add(const double a, const DiscretizedFunction<dim>& V);
+
+      /**
+       * perform this <- s*this + a*V
+       */
+      void sadd(const double s, const double a, const DiscretizedFunction<dim>& V);
+
+      /**
+       * @}
+       *
+       * @name Derivative access
+       */
+
+      /**
+       * @returns `store_derivative`
+       */
       inline bool has_derivative() const {
          return store_derivative;
       }
 
-      // some functions complain if one operand has a derivative and the other doesn't
-      // also you might want to conserve memory
+      /**
+       * some functions complain if one operand has a derivative and the other doesn't
+       */
       void throw_away_derivative();
 
-      // returns a DiscretizedFunction with the first time derivative of this one
+      /**
+       * Creates a DiscretizedFunction with the first time derivative of this one.
+       * Works only if `has_derivative` is true.
+       */
       DiscretizedFunction<dim> derivative() const;
 
-      // calculate the first time derivative using finite differences (one-sided at begin/end and central everywhere else)
+      /**
+       * Approximate the first time derivative using finite differences
+       * (one-sided at begin/end and central everywhere else)
+       * Throws an error if this function keeps track of its derivative.
+       */
       DiscretizedFunction<dim> calculate_derivative() const;
 
-      // calculate the adjoint (w.r.t. vector norms / dot products!) of what calculate_derivative does
-      // for constant time step size this is equivalent to g -> -g' in inner nodes (-> partial integration)
+      /**
+       * calculate the transpose (i.e. adjoint using vector norms / dot products) of what `calculate_derivative` does.
+       * For constant time step size this is equivalent to g -> -g' in inner nodes (-> partial integration!).
+       */
       DiscretizedFunction<dim> calculate_derivative_transpose() const;
 
-      void add(const double a, const DiscretizedFunction<dim>& V);
+      /**
+       * @}
+       *
+       * @name Banach- and Hilbert space operations
+       */
 
-      // scale by s and add a*V
-      void sadd(const double s, const double a, const DiscretizedFunction<dim>& V);
+      /**
+       * returns the current norm setting.
+       */
+      Norm get_norm() const;
 
-      void pointwise_multiplication(const DiscretizedFunction<dim>& V);
+      /**
+       * equip this object with a given norm setting
+       */
+      void set_norm(Norm norm);
 
-      // depending on the norm setting
+      /**
+       * returns this object's norm, or throws an error if the norm is set to `Invalid`.
+       */
       double norm() const;
 
-      // depending on the norm setting
-      double operator*(const DiscretizedFunction<dim> & V) const;
+      /**
+       * returns the scalar product between this object and another one.
+       * Throws an error if the norm is set to `Invalid`, does not define a scalar product
+       * or the norms of both functions do not match.
+       */
       double dot(const DiscretizedFunction<dim> & V) const;
 
-      // depending on the norm setting
-      void mult_space_time_mass();
-      void solve_space_time_mass();
-      void mult_time_mass();
-      void solve_time_mass();
-      bool norm_uses_mass_matrix() const;
+      /**
+       * alias for `dot`.
+       */
+      double operator*(const DiscretizedFunction<dim> & V) const;
 
       /**
-       * Create a new `DiscretizedFunction` filled with random nodal values between -1 and 1.
-       *
-       * @param like Template to take mesh sizes from
+       * returns whether the used norm also defines a scalar product.
        */
-      static DiscretizedFunction<dim> noise(const DiscretizedFunction<dim>& like);
+      bool is_hilbert() const;
 
       /**
-       * Create a new `DiscretizedFunction` filled with random nodal values between -1 and 1, and scale it s.t. the norm of the return value is `norm`.
-       *
-       * @param like Template to take mesh sizes from
+       * relative error (using this object's norm settings).
+       * if `this->norm() == 0` this function returns the absolute error.
        */
-      static DiscretizedFunction<dim> noise(const DiscretizedFunction<dim>& like, double norm);
+      double relative_error(const DiscretizedFunction<dim>& other) const;
 
-      void write_pvd(std::string path, std::string filename, std::string name, std::string name_deriv) const;
-      void write_pvd(std::string path, std::string filename, std::string name) const;
+      /**
+       * Calculate the absolute error to a given continuous function.
+       * Used the norm specified by `set_norm`.
+       *
+       * @param other The other function.
+       */
+      double absolute_error(Function<dim>& other) const;
 
-      double value(const Point<dim> &p, const unsigned int component = 0) const;
-      Tensor<1, dim, double> gradient(const Point<dim> &p, const unsigned int component) const;
+      /**
+       * Calculate the absolute error to a given continuous function.
+       * Used the norm specified by `set_norm`.
+       *
+       * @param other The other function.
+       * @param norm_out `double` that is filled with the norm of `other`, or `nullptr`.
+       */
+      double absolute_error(Function<dim>& other, double* norm_out) const;
 
-      double get_time_index() const;
-      void set_time(const double new_time);
+      // TODO: find good names
 
-      inline const Vector<double>& get_derivative_coefficient(size_t idx) const {
+      /**
+       * applies the matrix M (spd), which describes the used scalar product, i.e.
+       * `this->dot(y) = y^t * M * this` (regarding this and y as long vectors)
+       * to this function, that is `this <- B * this`.
+       *
+       * This function is useful for computing the adjoint A^* of a linear operator A from its transpose A^t:
+       * `x^t A^t M y = (A x, y) = (x, A^* y) = x^t M A^* y` for all `x` and `y`,
+       * hence `A^t M = M A^*`, that is `A^* = M^{-1} A^t M`.
+       *
+       * For the standard vector norm (`L2L2_Vector`) of the coefficients, `M` is equal to the identity.
+       * To get an approximation to the L^2([0,T], L^2(\Omega)) norm (`L2L2_Trapezoidal_Mass`),
+       * `M` is a diagonal block matrix consisting of the mass matrix for every time step and a factor to account for the trapezoidal rule.
+       */
+      void dot_transform();
+
+      /**
+       * applies the inverse to `dot_transform`, i.e. it applies `M^{-1}`.
+       */
+      void dot_transform_inverse();
+
+      /**
+       * same as `dot_transform`, but applies the inverse mass matrix to every time step beforehand.
+       * This allows for some optimization where M is also built using the mass matrices, e.g. for `L2L2_Trapezoidal_Mass`.
+       * In that case only the factors for the trapezoidal rule have to be taken into account.
+       */
+      void dot_solve_mass_and_transform();
+
+      /**
+       * same as `dot_transform_inverse`, but applies the mass matrix to every time step beforehand.
+       * This allows for some optimization where M is also built using the mass matrices, e.g. for `L2L2_Trapezoidal_Mass`.
+       * In that case only the inverted factors for the trapezoidal rule have to be taken into account.
+       */
+      void dot_mult_mass_and_transform_inverse();
+
+      /**
+       * @}
+       *
+       * @name Access to coefficients
+       */
+
+      /**
+       * Read access to function coefficients
+       *
+       * @param idx the time index
+       */
+      inline const Vector<double>& get_function_coefficients(size_t idx) const {
+         Assert(idx >= 0 && idx < mesh->length(), ExcIndexRange(idx, 0, mesh->length()));
+
+         return function_coefficients[idx];
+      }
+
+      /**
+       * Read access to derivative coefficients
+       *
+       * @param idx the time index
+       */
+      inline const Vector<double>& get_derivative_coefficients(size_t idx) const {
          Assert(store_derivative, ExcInvalidState());
+         Assert(idx >= 0 && idx < mesh->length(), ExcIndexRange(idx, 0, mesh->length()));
 
          return derivative_coefficients[idx];
       }
 
-      inline const Vector<double>& get_function_coefficient(size_t idx) const {
+      /**
+       * Read-Write access to function coefficients
+       *
+       * @param idx the time index
+       */
+      inline Vector<double>& get_function_coefficients(size_t idx) {
+         Assert(idx >= 0 && idx < mesh->length(), ExcIndexRange(idx, 0, mesh->length()));
+
          return function_coefficients[idx];
       }
 
-      inline Vector<double>& get_derivative_coefficient(size_t idx) {
+      /**
+       * Read-Write access to derivative coefficients
+       *
+       * @param idx the time index
+       */
+      inline Vector<double>& get_derivative_coefficients(size_t idx) {
          Assert(store_derivative, ExcInvalidState());
+         Assert(idx >= 0 && idx < mesh->length(), ExcIndexRange(idx, 0, mesh->length()));
 
          return derivative_coefficients[idx];
       }
 
-      inline Vector<double>& get_function_coefficient(size_t idx) {
-         return function_coefficients[idx];
-      }
-
+      /**
+       * same as `get_function_coefficients`.
+       */
       inline const Vector<double>& operator[](size_t idx) const {
+         Assert(idx >= 0 && idx < mesh->length(), ExcIndexRange(idx, 0, mesh->length()));
+
          return function_coefficients[idx];
       }
 
+      /**
+       * same as `get_function_coefficients`.
+       */
       inline Vector<double>& operator[](size_t idx) {
+         Assert(idx >= 0 && idx < mesh->length(), ExcIndexRange(idx, 0, mesh->length()));
+
          return function_coefficients[idx];
+      }
+
+      /**
+       * Write access to both function- and derivative coefficients. Must only be called if `store_derivative`.
+       *
+       * @param idx the time index
+       * @param u new function coefficients
+       * @param v new time derivative coefficients
+       */
+      inline void set(size_t idx, const Vector<double>& u, const Vector<double>& v) {
+         Assert(mesh, ExcNotInitialized());
+         Assert(store_derivative, ExcInternalError());
+         Assert(idx >= 0 && idx < mesh->length(), ExcIndexRange(idx, 0, mesh->length()));
+         Assert(function_coefficients[idx].size() == u.size(),
+               ExcDimensionMismatch(function_coefficients[idx].size(), u.size()));
+         Assert(derivative_coefficients[idx].size() == v.size(),
+               ExcDimensionMismatch(derivative_coefficients[idx].size(), v.size()));
+
+         function_coefficients[idx] = u;
+         derivative_coefficients[idx] = v;
+      }
+
+      /**
+       * Write access to function coefficients. Must only be called if `!store_derivative`.
+       *
+       * @param idx the time index
+       * @param u new function coefficients
+       */
+      inline void set_function_coefficients(size_t idx, const Vector<double>& u) {
+         Assert(mesh, ExcNotInitialized());
+         Assert(!store_derivative, ExcInternalError());
+         Assert(idx >= 0 && idx < mesh->length(), ExcIndexRange(idx, 0, mesh->length()));
+         Assert(function_coefficients[idx].size() == u.size(),
+               ExcDimensionMismatch(function_coefficients[idx].size(), u.size()));
+
+         function_coefficients[idx] = u;
       }
 
       /**
@@ -158,17 +399,36 @@ class DiscretizedFunction: public Function<dim> {
          return function_coefficients.size();
       }
 
-      inline bool is_hilbert() const {
-         return true;
-      }
+      /**
+       * returns a pointer to the underlying `SpaceTimeMesh`.
+       */
+      std::shared_ptr<SpaceTimeMesh<dim>> get_mesh() const;
 
-      // get / set what `norm()` and `*` do.
-      Norm get_norm() const;
-      void set_norm(Norm norm);
+      /**
+       * @}
+       *
+       * @name Evaluation functions
+       */
 
-      // relative error (using this object's norm settings)
-      // if this->norm() == 0 it returns the absolute error.
-      double relative_error(const DiscretizedFunction<dim>& other) const;
+      /** @copydoc dealii::Function<double>::value*/
+      virtual double value(const Point<dim> &p, const unsigned int component = 0) const;
+
+      /** @copydoc dealii::Function<double>::gradient(const double new_time) */
+      virtual Tensor<1, dim, double> gradient(const Point<dim> &p, const unsigned int component) const;
+
+      /** @copydoc dealii::FunctionTime<double>::set_time(const double new_time) */
+      virtual void set_time(const double new_time);
+
+      /**
+       * returns the time index for the current return value of `get_time`.
+       */
+      double get_time_index() const;
+
+      /**
+       * @}
+       *
+       * @name Utilities
+       */
 
       /**
        * returns the value of the smallest coefficent (!) over all time steps
@@ -190,26 +450,40 @@ class DiscretizedFunction: public Function<dim> {
       void min_max_value(double* min_out, double* max_out) const;
 
       /**
-       * Calculate the absolute error to a given continuous function.
-       * Used the norm specified by `set_norm`.
-       *
-       * @param other The other function.
+       * this <- fe-interpolation of this * V, i.e. a pointwise multiplication of all nodal values of `this` and `V`.
        */
-      double absolute_error(Function<dim>& other) const;
+      void pointwise_multiplication(const DiscretizedFunction<dim>& V);
 
       /**
-       * Calculate the absolute error to a given continuous function.
-       * Used the norm specified by `set_norm`.
-       *
-       * @param other The other function.
-       * @param norm_out `double` that is filled with the norm of `other`, or `nullptr`.
+       * pvd output  with derivative
        */
-      double absolute_error(Function<dim>& other, double* norm_out) const;
+      void write_pvd(std::string path, std::string filename, std::string name, std::string name_deriv) const;
 
-      std::shared_ptr<SpaceTimeMesh<dim>> get_mesh() const;
+      /**
+       * pvd output
+       */
+      void write_pvd(std::string path, std::string filename, std::string name) const;
+
+      /**
+       * @}
+       */
+
+      /**
+       * Create a new `DiscretizedFunction` filled with random nodal values between -1 and 1.
+       *
+       * @param like Template to take mesh sizes from
+       */
+      static DiscretizedFunction<dim> noise(const DiscretizedFunction<dim>& like);
+
+      /**
+       * Create a new `DiscretizedFunction` filled with random nodal values between -1 and 1, and scale it s.t. the norm of the return value is `norm`.
+       *
+       * @param like Template to take mesh sizes from
+       */
+      static DiscretizedFunction<dim> noise(const DiscretizedFunction<dim>& like, double norm);
 
    private:
-      Norm norm_type = L2L2_Trapezoidal_Mass; // L2L2_Vector
+      Norm norm_type = Invalid;
       bool store_derivative = false;
       size_t cur_time_idx = 0;
 
@@ -221,21 +495,51 @@ class DiscretizedFunction: public Function<dim> {
       void write_vtk(const std::string name, const std::string name_deriv, const std::string filename,
             size_t i) const;
 
-      // vector l2 norm and dot product in time and space
-      // fast, but only a crude approximation (even in case of uniform space-time grids and P1-elements)
-      double l2l2_vec_norm() const;
-      double l2l2_vec_dot(const DiscretizedFunction<dim> & V) const;
+      /**
+       * @name Functions for `L2L2_Vector`
+       */
 
-      // l2 norm and dot product in time and space
-      // through trapezoidal rule in time, mass matrix in space
-      double l2l2_mass_norm() const;
-      double l2l2_mass_dot(const DiscretizedFunction<dim> & V) const;
+      double norm_l2l2_vector() const;
+      double dot_l2l2_vector(const DiscretizedFunction<dim> & V) const;
 
-      void l2l2_mass_mult_space_time_mass();
-      void l2l2_mass_solve_space_time_mass();
+      void dot_transform_l2l2_vector();
+      void dot_transform_inverse_l2l2_vector();
+      void dot_solve_mass_and_transform_l2l2_vector();
+      void dot_mult_mass_and_transform_inverse_l2l2_vector();
 
-      void l2l2_mass_mult_time_mass();
-      void l2l2_mass_solve_time_mass();
+      /**
+       * @}
+       *
+       * @name Functions for `L2L2_Mass_Trapezoidal`
+       */
+
+      double norm_l2l2_mass() const;
+      double dot_l2l2_mass(const DiscretizedFunction<dim> & V) const;
+
+      void dot_transform_l2l2_mass();
+      void dot_transform_inverse_l2l2_mass();
+      void dot_solve_mass_and_transform_l2l2_mass();
+      void dot_mult_mass_and_transform_inverse_l2l2_mass();
+
+      /**
+       * @}
+       */
+
+      /**
+       * apply the inverse to the mass matrix for every time step
+       *
+       * (This has nothing to do with the used scalar product)
+       * TODO: make public after making sure that nobody uses this anymore
+       */
+      void solve_mass();
+
+      /**
+       * apply the mass matrix for every time step
+       *
+       * (This has nothing to do with the used scalar product)
+       * TODO: make public after making sure that nobody uses this anymore
+       */
+      void mult_mass();
 
 };
 } /* namespace forward */

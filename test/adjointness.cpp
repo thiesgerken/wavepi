@@ -215,7 +215,7 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
 
    auto f_time_mass = std::make_shared<DiscretizedFunction<dim>>(*f);
    f_time_mass->set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
-   f_time_mass->mult_time_mass();
+   f_time_mass->dot_solve_mass_and_transform();
 
    DiscretizedFunction<dim> adj_f(mesh);
    if (use_adj) {
@@ -229,7 +229,7 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
    }
 
    adj_f.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
-   adj_f.solve_time_mass();
+   adj_f.dot_mult_mass_and_transform_inverse();
    EXPECT_GT(adj_f.norm(), 0.0);
 
    TestG<dim> g_cont;
@@ -242,7 +242,7 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
 
    auto g_time_mass = std::make_shared<DiscretizedFunction<dim>>(*g);
    g_time_mass->set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
-   g_time_mass->mult_time_mass();
+   g_time_mass->dot_solve_mass_and_transform();
 
    DiscretizedFunction<dim> adj_g(mesh);
    if (use_adj) {
@@ -256,7 +256,7 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
    }
 
    adj_g.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
-   adj_g.solve_time_mass();
+   adj_g.dot_mult_mass_and_transform_inverse();
    EXPECT_GT(adj_g.norm(), 0.0);
 
    auto z = std::make_shared<DiscretizedFunction<dim>>(DiscretizedFunction<dim>::noise(*g, 1));
@@ -268,7 +268,7 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
 
    auto z_time_mass = std::make_shared<DiscretizedFunction<dim>>(*z);
    z_time_mass->set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
-   z_time_mass->mult_time_mass();
+   z_time_mass->dot_solve_mass_and_transform();
 
    DiscretizedFunction<dim> adj_z(mesh);
    if (use_adj) {
@@ -282,7 +282,7 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
    }
 
    adj_z.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
-   adj_z.solve_time_mass();
+   adj_z.dot_mult_mass_and_transform_inverse();
    EXPECT_GT(adj_z.norm(), 0.0);
 
    double dot_solf_f = sol_f * (*f);
@@ -332,21 +332,21 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
    mz.pointwise_multiplication(u);
 
    DiscretizedFunction<dim> madj_f(*f);
-   madj_f.mult_space_time_mass();
+   madj_f.dot_transform();
    madj_f.pointwise_multiplication(u);
-   madj_f.solve_space_time_mass();
+   madj_f.dot_transform_inverse();
    EXPECT_GT(madj_f.norm(), 0.0);
 
    DiscretizedFunction<dim> madj_g(*g);
-   madj_g.mult_space_time_mass();
+   madj_g.dot_transform();
    madj_g.pointwise_multiplication(u);
-   madj_g.solve_space_time_mass();
+   madj_g.dot_transform_inverse();
    EXPECT_GT(madj_g.norm(), 0.0);
 
    DiscretizedFunction<dim> madj_z(*z);
-   madj_z.mult_space_time_mass();
+   madj_z.dot_transform();
    madj_z.pointwise_multiplication(u);
-   madj_z.solve_space_time_mass();
+   madj_z.dot_transform_inverse();
    EXPECT_GT(madj_z.norm(), 0.0);
 
    double dot_mulf_f = mf * (*f);

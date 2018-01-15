@@ -125,7 +125,7 @@ class L2NuProblem: public L2WaveProblem<dim, Measurement> {
                // L*
                auto tmp = std::make_shared<DiscretizedFunction<dim>>(g);
                tmp->set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
-               tmp->mult_time_mass();
+               tmp->dot_solve_mass_and_transform();
                rhs_adj->set_base_rhs(tmp);
 
                DiscretizedFunction<dim> res(weq.get_mesh());
@@ -144,13 +144,13 @@ class L2NuProblem: public L2WaveProblem<dim, Measurement> {
                Assert(false, ExcInternalError());
 
                res.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
-               res.solve_time_mass();
+               res.dot_mult_mass_and_transform_inverse();
 
                // M*
-               res.mult_space_time_mass();
+               res.dot_transform();
                res *= -1.0;
                res.pointwise_multiplication(u->derivative());
-               res.solve_space_time_mass();
+               res.dot_transform_inverse();
 
                return res;
             }

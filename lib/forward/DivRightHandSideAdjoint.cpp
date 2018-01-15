@@ -107,8 +107,8 @@ void DivRightHandSideAdjoint<dim>::create_right_hand_side(const DoFHandler<dim> 
    auto u_d = dynamic_cast<DiscretizedFunction<dim>*>(u.get());
 
    if (a_d != nullptr && u_d != nullptr) {
-      Vector<double> ca = a_d->get_function_coefficient(a_d->get_time_index());
-      Vector<double> cu = u_d->get_function_coefficient(u_d->get_time_index());
+      Vector<double> ca = a_d->get_function_coefficients(a_d->get_time_index());
+      Vector<double> cu = u_d->get_function_coefficients(u_d->get_time_index());
 
       Assert(ca.size() == dof.n_dofs(), ExcDimensionMismatch (ca.size() , dof.n_dofs()));
       Assert(cu.size() == dof.n_dofs(), ExcDimensionMismatch (cu.size() , dof.n_dofs()));
@@ -136,7 +136,7 @@ DiscretizedFunction<dim> DivRightHandSideAdjoint<dim>::run_adjoint(std::shared_p
 
       Vector<double> tmp(dof_handler->n_dofs());
       this->create_right_hand_side(*dof_handler, mesh->get_quadrature(), tmp);
-      target.set(i, tmp);
+      target[i] = tmp;
    }
 
    return target;

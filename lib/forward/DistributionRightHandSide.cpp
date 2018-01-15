@@ -174,12 +174,12 @@ void DistributionRightHandSide<dim>::create_right_hand_side(const DoFHandler<dim
    auto f2_d = dynamic_cast<DiscretizedFunction<dim>*>(f2);
 
    if (f1_d != nullptr)
-      Assert(f1_d->get_function_coefficient(f1_d->get_time_index()).size() == dof.n_dofs(),
-            ExcDimensionMismatch (f1_d->get_function_coefficient(f1_d->get_time_index()).size() , dof.n_dofs()));
+      Assert(f1_d->get_function_coefficients(f1_d->get_time_index()).size() == dof.n_dofs(),
+            ExcDimensionMismatch (f1_d->get_function_coefficients(f1_d->get_time_index()).size() , dof.n_dofs()));
 
    if (f2_d != nullptr)
-      Assert(f2_d->get_function_coefficient(f2_d->get_time_index()).size() == dof.n_dofs(),
-            ExcDimensionMismatch (f2_d->get_function_coefficient(f2_d->get_time_index()).size() , dof.n_dofs()));
+      Assert(f2_d->get_function_coefficients(f2_d->get_time_index()).size() == dof.n_dofs(),
+            ExcDimensionMismatch (f2_d->get_function_coefficients(f2_d->get_time_index()).size() , dof.n_dofs()));
 
    if (f1_d != nullptr && f2_d != nullptr)
       WorkStream::run(dof.begin_active(), dof.end(),
@@ -190,14 +190,14 @@ void DistributionRightHandSide<dim>::create_right_hand_side(const DoFHandler<dim
    else if (f1_d == nullptr && f2_d != nullptr)
       WorkStream::run(dof.begin_active(), dof.end(),
             std::bind(&DistributionRightHandSide<dim>::local_assemble_cd, f1,
-                  std::ref(f2_d->get_function_coefficient(f2_d->get_time_index())), std::placeholders::_1,
+                  std::ref(f2_d->get_function_coefficients(f2_d->get_time_index())), std::placeholders::_1,
                   std::placeholders::_2, std::placeholders::_3),
             std::bind(&DistributionRightHandSide<dim>::copy_local_to_global, std::ref(rhs),
                   std::placeholders::_1), AssemblyScratchData(dof.get_fe(), quad), AssemblyCopyData());
    else if (f1_d != nullptr && f2_d == nullptr)
       WorkStream::run(dof.begin_active(), dof.end(),
             std::bind(&DistributionRightHandSide<dim>::local_assemble_dc,
-                  std::ref(f1_d->get_function_coefficient(f1_d->get_time_index())), f2, std::placeholders::_1,
+                  std::ref(f1_d->get_function_coefficients(f1_d->get_time_index())), f2, std::placeholders::_1,
                   std::placeholders::_2, std::placeholders::_3),
             std::bind(&DistributionRightHandSide<dim>::copy_local_to_global, std::ref(rhs),
                   std::placeholders::_1), AssemblyScratchData(dof.get_fe(), quad), AssemblyCopyData());
