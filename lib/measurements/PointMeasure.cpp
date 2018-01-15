@@ -139,7 +139,7 @@ template<int dim> DiscretizedFunction<dim> PointMeasure<dim>::adjoint(
       }
    }
 
-   res.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
+   res.set_norm(DiscretizedFunction<dim>::Norm::L2L2);
    res.dot_mult_mass_and_transform_inverse();
 
    return res;

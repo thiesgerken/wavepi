@@ -554,10 +554,10 @@ double DiscretizedFunction<dim>::norm() const {
    Assert(mesh, ExcNotInitialized());
 
    switch (norm_type) {
-      case L2L2_Vector:
-         return norm_l2l2_vector();
-      case L2L2_Trapezoidal_Mass:
-         return norm_l2l2_mass();
+      case Norm::Vector:
+         return norm_vector();
+      case Norm::L2L2:
+         return norm_l2l2();
       default:
          AssertThrow(false, ExcMessage("norm_type == invalid"))
    }
@@ -573,12 +573,12 @@ double DiscretizedFunction<dim>::operator*(const DiscretizedFunction<dim> & V) c
    Assert(norm_type == V.norm_type, ExcInternalError());
 
    switch (norm_type) {
-      case L2L2_Vector:
-         return dot_l2l2_vector(V);
-      case L2L2_Trapezoidal_Mass:
-         return dot_l2l2_mass(V);
+      case Norm::Vector:
+         return dot_vector(V);
+      case Norm::L2L2:
+         return dot_l2l2(V);
       default:
-         AssertThrow(false, ExcMessage("norm_type == invalid"))
+         AssertThrow(false, ExcMessage("norm_type == Invalid"))
    }
 
    Assert(false, ExcInternalError ());
@@ -592,17 +592,17 @@ double DiscretizedFunction<dim>::dot(const DiscretizedFunction<dim> & V) const {
 
 template<int dim>
 bool DiscretizedFunction<dim>::is_hilbert() const {
-   return norm_type != Invalid;
+   return norm_type != Norm::Invalid;
 }
 
-template<int dim> void DiscretizedFunction<dim>::dot_transform_l2l2_vector() {
+template<int dim> void DiscretizedFunction<dim>::dot_transform_vector() {
 }
-template<int dim> void DiscretizedFunction<dim>::dot_transform_inverse_l2l2_vector() {
+template<int dim> void DiscretizedFunction<dim>::dot_transform_inverse_vector() {
 }
-template<int dim> void DiscretizedFunction<dim>::dot_solve_mass_and_transform_l2l2_vector() {
+template<int dim> void DiscretizedFunction<dim>::dot_solve_mass_and_transform_vector() {
    solve_mass();
 }
-template<int dim> void DiscretizedFunction<dim>::dot_mult_mass_and_transform_inverse_l2l2_vector() {
+template<int dim> void DiscretizedFunction<dim>::dot_mult_mass_and_transform_inverse_vector() {
    mult_mass();
 }
 
@@ -611,15 +611,14 @@ void DiscretizedFunction<dim>::dot_transform() {
    Assert(mesh, ExcNotInitialized());
 
    switch (norm_type) {
-      case L2L2_Vector:
-         dot_transform_l2l2_vector();
+      case Norm::Vector:
+         dot_transform_vector();
          return;
-      case L2L2_Trapezoidal_Mass:
-         dot_transform_l2l2_mass();
+      case Norm::L2L2:
+         dot_transform_l2l2();
          return;
       default:
-         AssertThrow(false, ExcMessage("norm_type == invalid"))
-         ;
+         AssertThrow(false, ExcMessage("norm_type == Invalid"))
    }
 
    Assert(false, ExcInternalError ());
@@ -630,15 +629,14 @@ void DiscretizedFunction<dim>::dot_transform_inverse() {
    Assert(mesh, ExcNotInitialized());
 
    switch (norm_type) {
-      case L2L2_Vector:
-         dot_transform_inverse_l2l2_vector();
+      case Norm::Vector:
+         dot_transform_inverse_vector();
          return;
-      case L2L2_Trapezoidal_Mass:
-         dot_transform_inverse_l2l2_mass();
+      case Norm::L2L2:
+         dot_transform_inverse_l2l2();
          return;
       default:
-         AssertThrow(false, ExcMessage("norm_type == invalid"))
-         ;
+         AssertThrow(false, ExcMessage("norm_type == Invalid"))
    }
 
    Assert(false, ExcInternalError ());
@@ -649,15 +647,14 @@ void DiscretizedFunction<dim>::dot_solve_mass_and_transform() {
    Assert(mesh, ExcNotInitialized());
 
    switch (norm_type) {
-      case L2L2_Vector:
-         dot_solve_mass_and_transform_l2l2_vector();
+      case Norm::Vector:
+         dot_solve_mass_and_transform_vector();
          return;
-      case L2L2_Trapezoidal_Mass:
-         dot_solve_mass_and_transform_l2l2_mass();
+      case Norm::L2L2:
+         dot_solve_mass_and_transform_l2l2();
          return;
       default:
-         AssertThrow(false, ExcMessage("norm_type == invalid"))
-         ;
+         AssertThrow(false, ExcMessage("norm_type == Invalid"))
    }
 
    Assert(false, ExcInternalError ());
@@ -668,15 +665,14 @@ void DiscretizedFunction<dim>::dot_mult_mass_and_transform_inverse() {
    Assert(mesh, ExcNotInitialized());
 
    switch (norm_type) {
-      case L2L2_Vector:
-         dot_mult_mass_and_transform_inverse_l2l2_vector();
+      case Norm::Vector:
+         dot_mult_mass_and_transform_inverse_vector();
          return;
-      case L2L2_Trapezoidal_Mass:
-         dot_mult_mass_and_transform_inverse_l2l2_mass();
+      case Norm::L2L2:
+         dot_mult_mass_and_transform_inverse_l2l2();
          return;
       default:
-         AssertThrow(false, ExcMessage("norm_type == invalid"))
-         ;
+         AssertThrow(false, ExcMessage("norm_type == Invalid"))
    }
 
    Assert(false, ExcInternalError ());
@@ -694,15 +690,15 @@ void DiscretizedFunction<dim>::mult_mass() {
 }
 
 template<int dim>
-void DiscretizedFunction<dim>::dot_transform_l2l2_mass() {
+void DiscretizedFunction<dim>::dot_transform_l2l2() {
    Assert(!store_derivative, ExcInternalError ());
 
    mult_mass();
-   dot_solve_mass_and_transform_l2l2_mass();
+   dot_solve_mass_and_transform_l2l2();
 }
 
 template<int dim>
-void DiscretizedFunction<dim>::dot_solve_mass_and_transform_l2l2_mass() {
+void DiscretizedFunction<dim>::dot_solve_mass_and_transform_l2l2() {
    Assert(!store_derivative, ExcInternalError ());
 
    for (size_t i = 0; i < mesh->length(); i++) {
@@ -743,15 +739,15 @@ void DiscretizedFunction<dim>::solve_mass() {
 }
 
 template<int dim>
-void DiscretizedFunction<dim>::dot_transform_inverse_l2l2_mass() {
+void DiscretizedFunction<dim>::dot_transform_inverse_l2l2() {
    Assert(!store_derivative, ExcInternalError ());
 
    solve_mass();
-   dot_mult_mass_and_transform_inverse_l2l2_mass();
+   dot_mult_mass_and_transform_inverse_l2l2();
 }
 
 template<int dim>
-void DiscretizedFunction<dim>::dot_mult_mass_and_transform_inverse_l2l2_mass() {
+void DiscretizedFunction<dim>::dot_mult_mass_and_transform_inverse_l2l2() {
    Assert(!store_derivative, ExcInternalError ());
 
    for (size_t i = 0; i < mesh->length(); i++) {
@@ -769,7 +765,7 @@ void DiscretizedFunction<dim>::dot_mult_mass_and_transform_inverse_l2l2_mass() {
 }
 
 template<int dim>
-double DiscretizedFunction<dim>::dot_l2l2_vector(const DiscretizedFunction<dim> & V) const {
+double DiscretizedFunction<dim>::dot_vector(const DiscretizedFunction<dim> & V) const {
    double result = 0;
 
    for (size_t i = 0; i < mesh->length(); i++) {
@@ -784,7 +780,7 @@ double DiscretizedFunction<dim>::dot_l2l2_vector(const DiscretizedFunction<dim> 
 }
 
 template<int dim>
-double DiscretizedFunction<dim>::norm_l2l2_vector() const {
+double DiscretizedFunction<dim>::norm_vector() const {
    double result = 0;
 
    for (size_t i = 0; i < mesh->length(); i++) {
@@ -796,7 +792,7 @@ double DiscretizedFunction<dim>::norm_l2l2_vector() const {
 }
 
 template<int dim>
-double DiscretizedFunction<dim>::dot_l2l2_mass(const DiscretizedFunction<dim> & V) const {
+double DiscretizedFunction<dim>::dot_l2l2(const DiscretizedFunction<dim> & V) const {
    double result = 0.0;
 
    // trapezoidal rule in time:
@@ -849,7 +845,7 @@ double DiscretizedFunction<dim>::dot_l2l2_mass(const DiscretizedFunction<dim> & 
 }
 
 template<int dim>
-double DiscretizedFunction<dim>::norm_l2l2_mass() const {
+double DiscretizedFunction<dim>::norm_l2l2() const {
    double result = 0;
 
    // trapezoidal rule in time:

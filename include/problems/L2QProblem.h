@@ -113,7 +113,7 @@ class L2QProblem: public L2WaveProblem<dim, Measurement> {
                weq.set_run_direction(WaveEquation<dim>::Forward);
 
                DiscretizedFunction<dim> res = weq.run();
-               res.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
+               res.set_norm(DiscretizedFunction<dim>::Norm::L2L2);
                res.throw_away_derivative();
 
                return res;
@@ -122,7 +122,7 @@ class L2QProblem: public L2WaveProblem<dim, Measurement> {
             virtual DiscretizedFunction<dim> adjoint(const DiscretizedFunction<dim>& g) {
                // L*
                auto tmp = std::make_shared<DiscretizedFunction<dim>>(g);
-               tmp->set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
+               tmp->set_norm(DiscretizedFunction<dim>::Norm::L2L2);
                tmp->dot_solve_mass_and_transform();
                rhs_adj->set_base_rhs(tmp);
 
@@ -141,7 +141,7 @@ class L2QProblem: public L2WaveProblem<dim, Measurement> {
                else
                Assert(false, ExcInternalError());
 
-               res.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
+               res.set_norm(DiscretizedFunction<dim>::Norm::L2L2);
                res.dot_mult_mass_and_transform_inverse();
 
                // M*
@@ -155,7 +155,7 @@ class L2QProblem: public L2WaveProblem<dim, Measurement> {
 
             virtual DiscretizedFunction<dim> zero() {
                DiscretizedFunction<dim> res(q->get_mesh());
-               res.set_norm(DiscretizedFunction<dim>::L2L2_Trapezoidal_Mass);
+               res.set_norm(DiscretizedFunction<dim>::Norm::L2L2);
 
                return res;
             }

@@ -37,7 +37,7 @@ class DiscretizedFunction: public Function<dim> {
       /**
        * possible norm settings
        */
-      enum Norm {
+      enum class Norm {
          /**
           * Invalid norm setting. This is the default setting for newly constructed objects.
           */
@@ -47,13 +47,19 @@ class DiscretizedFunction: public Function<dim> {
           * 2-norm on the underlying vectors.
           * Fast, but only a crude approximation (even in case of uniform space-time grids and P1-elements)
           */
-         L2L2_Vector,
+         Vector,
 
          /**
           * L^2([0,T], L^2(\Omega)) norm, using the trapezoidal rule in time (approximation)
           * and the mass matrix in space (exact)
           */
-         L2L2_Trapezoidal_Mass
+         L2L2,
+
+         /**
+          * H^1([0,T], L^2(\Omega)) norm, using the trapezoidal rule in time (approximation)
+          * and the mass matrix in space (exact)
+          */
+         H1L2
       };
 
       virtual ~DiscretizedFunction() = default;
@@ -455,6 +461,26 @@ class DiscretizedFunction: public Function<dim> {
       void pointwise_multiplication(const DiscretizedFunction<dim>& V);
 
       /**
+       * apply the inverse to the mass matrix for every time step
+       *
+       * (This has nothing to do with the used scalar product)
+       */
+      void solve_mass();
+
+      /**
+       * apply the mass matrix for every time step
+       *
+       * (This has nothing to do with the used scalar product)
+       */
+      void mult_mass();
+
+      /**
+       * @}
+       *
+       * @name Output
+       */
+
+      /**
        * pvd output  with derivative
        */
       void write_pvd(std::string path, std::string filename, std::string name, std::string name_deriv) const;
@@ -463,6 +489,12 @@ class DiscretizedFunction: public Function<dim> {
        * pvd output
        */
       void write_pvd(std::string path, std::string filename, std::string name) const;
+
+      /**
+       * vtk output of a specified time step
+       */
+      void write_vtk(const std::string name, const std::string name_deriv, const std::string filename,
+            size_t i) const;
 
       /**
        * @}
@@ -483,7 +515,7 @@ class DiscretizedFunction: public Function<dim> {
       static DiscretizedFunction<dim> noise(const DiscretizedFunction<dim>& like, double norm);
 
    private:
-      Norm norm_type = Invalid;
+      Norm norm_type = Norm::Invalid;
       bool store_derivative = false;
       size_t cur_time_idx = 0;
 
@@ -492,55 +524,35 @@ class DiscretizedFunction: public Function<dim> {
       std::vector<Vector<double>> function_coefficients;
       std::vector<Vector<double>> derivative_coefficients;
 
-      void write_vtk(const std::string name, const std::string name_deriv, const std::string filename,
-            size_t i) const;
-
       /**
-       * @name Functions for `L2L2_Vector`
+       * @name Functions for `Norm::Vector`
        */
 
-      double norm_l2l2_vector() const;
-      double dot_l2l2_vector(const DiscretizedFunction<dim> & V) const;
+      double norm_vector() const;
+      double dot_vector(const DiscretizedFunction<dim> & V) const;
 
-      void dot_transform_l2l2_vector();
-      void dot_transform_inverse_l2l2_vector();
-      void dot_solve_mass_and_transform_l2l2_vector();
-      void dot_mult_mass_and_transform_inverse_l2l2_vector();
+      void dot_transform_vector();
+      void dot_transform_inverse_vector();
+      void dot_solve_mass_and_transform_vector();
+      void dot_mult_mass_and_transform_inverse_vector();
 
       /**
        * @}
        *
-       * @name Functions for `L2L2_Mass_Trapezoidal`
+       * @name Functions for `Norm::L2L2`
        */
 
-      double norm_l2l2_mass() const;
-      double dot_l2l2_mass(const DiscretizedFunction<dim> & V) const;
+      double norm_l2l2() const;
+      double dot_l2l2(const DiscretizedFunction<dim> & V) const;
 
-      void dot_transform_l2l2_mass();
-      void dot_transform_inverse_l2l2_mass();
-      void dot_solve_mass_and_transform_l2l2_mass();
-      void dot_mult_mass_and_transform_inverse_l2l2_mass();
+      void dot_transform_l2l2();
+      void dot_transform_inverse_l2l2();
+      void dot_solve_mass_and_transform_l2l2();
+      void dot_mult_mass_and_transform_inverse_l2l2();
 
       /**
        * @}
        */
-
-      /**
-       * apply the inverse to the mass matrix for every time step
-       *
-       * (This has nothing to do with the used scalar product)
-       * TODO: make public after making sure that nobody uses this anymore
-       */
-      void solve_mass();
-
-      /**
-       * apply the mass matrix for every time step
-       *
-       * (This has nothing to do with the used scalar product)
-       * TODO: make public after making sure that nobody uses this anymore
-       */
-      void mult_mass();
-
 };
 } /* namespace forward */
 } /* namespace wavepi */

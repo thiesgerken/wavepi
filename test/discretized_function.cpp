@@ -328,81 +328,81 @@ void run_space_time_mass_test(int fe_order, int quad_order, int refines, int n_s
 }
 
 TEST(DiscretizedFunctionTest, L2Norm1DFE1) {
-   run_dot_norm_test<1>(1, 3, 10, 128, DiscretizedFunction<1>::L2L2_Trapezoidal_Mass);
-   run_dot_norm_test<1>(1, 4, 9, 256, DiscretizedFunction<1>::L2L2_Trapezoidal_Mass);
+   run_dot_norm_test<1>(1, 3, 10, 128, DiscretizedFunction<1>::Norm::L2L2);
+   run_dot_norm_test<1>(1, 4, 9, 256, DiscretizedFunction<1>::Norm::L2L2);
 
-   run_dot_norm_test<1>(1, 3, 10, 128, DiscretizedFunction<1>::L2L2_Vector);
-   run_dot_norm_test<1>(1, 4, 9, 256, DiscretizedFunction<1>::L2L2_Vector);
+   run_dot_norm_test<1>(1, 3, 10, 128, DiscretizedFunction<1>::Norm::Vector);
+   run_dot_norm_test<1>(1, 4, 9, 256, DiscretizedFunction<1>::Norm::Vector);
 }
 TEST(DiscretizedFunctionTest, L2Norm1DFE2) {
-   run_dot_norm_test<1>(2, 4, 7, 128, DiscretizedFunction<1>::L2L2_Trapezoidal_Mass);
-   run_dot_norm_test<1>(2, 4, 7, 256, DiscretizedFunction<1>::L2L2_Trapezoidal_Mass);
+   run_dot_norm_test<1>(2, 4, 7, 128, DiscretizedFunction<1>::Norm::L2L2);
+   run_dot_norm_test<1>(2, 4, 7, 256, DiscretizedFunction<1>::Norm::L2L2);
 
-   run_dot_norm_test<1>(2, 4, 7, 128, DiscretizedFunction<1>::L2L2_Vector);
-   run_dot_norm_test<1>(2, 4, 7, 256, DiscretizedFunction<1>::L2L2_Vector);
+   run_dot_norm_test<1>(2, 4, 7, 128, DiscretizedFunction<1>::Norm::Vector);
+   run_dot_norm_test<1>(2, 4, 7, 256, DiscretizedFunction<1>::Norm::Vector);
 }
 
 TEST(DiscretizedFunctionTest, L2Norm2DFE1) {
-   run_dot_norm_test<2>(1, 3, 5, 128, DiscretizedFunction<2>::L2L2_Trapezoidal_Mass);
-   run_dot_norm_test<2>(1, 4, 4, 256, DiscretizedFunction<2>::L2L2_Trapezoidal_Mass);
+   run_dot_norm_test<2>(1, 3, 5, 128, DiscretizedFunction<2>::Norm::L2L2);
+   run_dot_norm_test<2>(1, 4, 4, 256, DiscretizedFunction<2>::Norm::L2L2);
 
-   run_dot_norm_test<2>(1, 3, 5, 128, DiscretizedFunction<2>::L2L2_Vector);
-   run_dot_norm_test<2>(1, 4, 4, 256, DiscretizedFunction<2>::L2L2_Vector);
+   run_dot_norm_test<2>(1, 3, 5, 128, DiscretizedFunction<2>::Norm::Vector);
+   run_dot_norm_test<2>(1, 4, 4, 256, DiscretizedFunction<2>::Norm::Vector);
 }
 
 TEST(DiscretizedFunctionTest, L2Norm2DFE2) {
-   run_dot_norm_test<2>(2, 4, 4, 128, DiscretizedFunction<2>::L2L2_Trapezoidal_Mass);
-   run_dot_norm_test<2>(2, 4, 4, 256, DiscretizedFunction<2>::L2L2_Trapezoidal_Mass);
+   run_dot_norm_test<2>(2, 4, 4, 128, DiscretizedFunction<2>::Norm::L2L2);
+   run_dot_norm_test<2>(2, 4, 4, 256, DiscretizedFunction<2>::Norm::L2L2);
 
-   run_dot_norm_test<2>(2, 4, 4, 128, DiscretizedFunction<2>::L2L2_Vector);
-   run_dot_norm_test<2>(2, 4, 4, 256, DiscretizedFunction<2>::L2L2_Vector);
+   run_dot_norm_test<2>(2, 4, 4, 128, DiscretizedFunction<2>::Norm::Vector);
+   run_dot_norm_test<2>(2, 4, 4, 256, DiscretizedFunction<2>::Norm::Vector);
 }
 
 TEST(DiscretizedFunctionTest, L2Norm3DFE1) {
-   run_dot_norm_test<3>(1, 3, 2, 32, DiscretizedFunction<3>::L2L2_Trapezoidal_Mass);
-   run_dot_norm_test<3>(1, 4, 1, 64, DiscretizedFunction<3>::L2L2_Trapezoidal_Mass);
+   run_dot_norm_test<3>(1, 3, 2, 32, DiscretizedFunction<3>::Norm::L2L2);
+   run_dot_norm_test<3>(1, 4, 1, 64, DiscretizedFunction<3>::Norm::L2L2);
 
-   run_dot_norm_test<3>(1, 3, 2, 32, DiscretizedFunction<3>::L2L2_Vector);
-   run_dot_norm_test<3>(1, 4, 1, 64, DiscretizedFunction<3>::L2L2_Vector);
+   run_dot_norm_test<3>(1, 3, 2, 32, DiscretizedFunction<3>::Norm::Vector);
+   run_dot_norm_test<3>(1, 4, 1, 64, DiscretizedFunction<3>::Norm::Vector);
 }
 
 TEST(DiscretizedFunctionTest, SpaceTimeMass1DFE1) {
-   run_dot_norm_test<1>(1, 3, 10, 128, DiscretizedFunction<1>::L2L2_Trapezoidal_Mass);
-   run_dot_norm_test<1>(1, 4, 9, 256, DiscretizedFunction<1>::L2L2_Trapezoidal_Mass);
+   run_dot_norm_test<1>(1, 3, 10, 128, DiscretizedFunction<1>::Norm::L2L2);
+   run_dot_norm_test<1>(1, 4, 9, 256, DiscretizedFunction<1>::Norm::L2L2);
 
-   run_dot_norm_test<1>(1, 3, 10, 128, DiscretizedFunction<1>::L2L2_Vector);
-   run_dot_norm_test<1>(1, 4, 9, 256, DiscretizedFunction<1>::L2L2_Vector);
+   run_dot_norm_test<1>(1, 3, 10, 128, DiscretizedFunction<1>::Norm::Vector);
+   run_dot_norm_test<1>(1, 4, 9, 256, DiscretizedFunction<1>::Norm::Vector);
 }
 
 TEST(DiscretizedFunctionTest, SpaceTimeMass1DFE2) {
-   run_space_time_mass_test<1>(2, 4, 7, 128, DiscretizedFunction<1>::L2L2_Trapezoidal_Mass);
-   run_space_time_mass_test<1>(2, 4, 7, 256, DiscretizedFunction<1>::L2L2_Trapezoidal_Mass);
+   run_space_time_mass_test<1>(2, 4, 7, 128, DiscretizedFunction<1>::Norm::L2L2);
+   run_space_time_mass_test<1>(2, 4, 7, 256, DiscretizedFunction<1>::Norm::L2L2);
 
-   run_space_time_mass_test<1>(2, 4, 7, 128, DiscretizedFunction<1>::L2L2_Vector);
-   run_space_time_mass_test<1>(2, 4, 7, 256, DiscretizedFunction<1>::L2L2_Vector);
+   run_space_time_mass_test<1>(2, 4, 7, 128, DiscretizedFunction<1>::Norm::Vector);
+   run_space_time_mass_test<1>(2, 4, 7, 256, DiscretizedFunction<1>::Norm::Vector);
 }
 
 TEST(DiscretizedFunctionTest, SpaceTimeMass2DFE1) {
-   run_space_time_mass_test<2>(1, 3, 5, 128, DiscretizedFunction<2>::L2L2_Trapezoidal_Mass);
-   run_space_time_mass_test<2>(1, 4, 4, 256, DiscretizedFunction<2>::L2L2_Trapezoidal_Mass);
+   run_space_time_mass_test<2>(1, 3, 5, 128, DiscretizedFunction<2>::Norm::L2L2);
+   run_space_time_mass_test<2>(1, 4, 4, 256, DiscretizedFunction<2>::Norm::L2L2);
 
-   run_space_time_mass_test<2>(1, 3, 5, 128, DiscretizedFunction<2>::L2L2_Vector);
-   run_space_time_mass_test<2>(1, 4, 4, 256, DiscretizedFunction<2>::L2L2_Vector);
+   run_space_time_mass_test<2>(1, 3, 5, 128, DiscretizedFunction<2>::Norm::Vector);
+   run_space_time_mass_test<2>(1, 4, 4, 256, DiscretizedFunction<2>::Norm::Vector);
 }
 
 TEST(DiscretizedFunctionTest, SpaceTimeMass2DFE2) {
-   run_space_time_mass_test<2>(2, 4, 4, 128, DiscretizedFunction<2>::L2L2_Trapezoidal_Mass);
-   run_space_time_mass_test<2>(2, 4, 4, 256, DiscretizedFunction<2>::L2L2_Trapezoidal_Mass);
+   run_space_time_mass_test<2>(2, 4, 4, 128, DiscretizedFunction<2>::Norm::L2L2);
+   run_space_time_mass_test<2>(2, 4, 4, 256, DiscretizedFunction<2>::Norm::L2L2);
 
-   run_space_time_mass_test<2>(2, 4, 4, 128, DiscretizedFunction<2>::L2L2_Vector);
-   run_space_time_mass_test<2>(2, 4, 4, 256, DiscretizedFunction<2>::L2L2_Vector);
+   run_space_time_mass_test<2>(2, 4, 4, 128, DiscretizedFunction<2>::Norm::Vector);
+   run_space_time_mass_test<2>(2, 4, 4, 256, DiscretizedFunction<2>::Norm::Vector);
 }
 
 TEST(DiscretizedFunctionTest, SpaceTimeMass3DFE1) {
-   run_space_time_mass_test<3>(1, 3, 2, 32, DiscretizedFunction<3>::L2L2_Trapezoidal_Mass);
-   run_space_time_mass_test<3>(1, 4, 3, 64, DiscretizedFunction<3>::L2L2_Trapezoidal_Mass);
+   run_space_time_mass_test<3>(1, 3, 2, 32, DiscretizedFunction<3>::Norm::L2L2);
+   run_space_time_mass_test<3>(1, 4, 3, 64, DiscretizedFunction<3>::Norm::L2L2);
 
-   run_space_time_mass_test<3>(1, 3, 2, 32, DiscretizedFunction<3>::L2L2_Vector);
-   run_space_time_mass_test<3>(1, 4, 3, 64, DiscretizedFunction<3>::L2L2_Vector);
+   run_space_time_mass_test<3>(1, 3, 2, 32, DiscretizedFunction<3>::Norm::Vector);
+   run_space_time_mass_test<3>(1, 4, 3, 64, DiscretizedFunction<3>::Norm::Vector);
 }
 
