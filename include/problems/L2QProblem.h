@@ -64,6 +64,7 @@ class L2QProblem: public L2WaveProblem<dim, Measurement> {
          this->wave_equation.set_run_direction(WaveEquation<dim>::Forward);
 
          DiscretizedFunction<dim> res = this->wave_equation.run();
+         res.set_norm(this->normY);
          res.throw_away_derivative();
 
          // save a copy of res
@@ -84,7 +85,8 @@ class L2QProblem: public L2WaveProblem<dim, Measurement> {
                   typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver,
                   const std::shared_ptr<DiscretizedFunction<dim>> q,
                   std::shared_ptr<DiscretizedFunction<dim>> u)
-                  : weq(weq), weq_adj(weq), adjoint_solver(adjoint_solver) {
+                  : weq(weq), weq_adj(weq), normX(q->get_norm()), normY(u->get_norm()), adjoint_solver(
+                        adjoint_solver) {
                this->q = q;
                this->u = u;
 
@@ -113,7 +115,7 @@ class L2QProblem: public L2WaveProblem<dim, Measurement> {
                weq.set_run_direction(WaveEquation<dim>::Forward);
 
                DiscretizedFunction<dim> res = weq.run();
-               res.set_norm(DiscretizedFunction<dim>::Norm::L2L2);
+               res.set_norm(this->normY);
                res.throw_away_derivative();
 
                return res;
@@ -122,7 +124,7 @@ class L2QProblem: public L2WaveProblem<dim, Measurement> {
             virtual DiscretizedFunction<dim> adjoint(const DiscretizedFunction<dim>& g) {
                // L*
                auto tmp = std::make_shared<DiscretizedFunction<dim>>(g);
-               tmp->set_norm(DiscretizedFunction<dim>::Norm::L2L2);
+               tmp->set_norm(this->normY);
                tmp->dot_solve_mass_and_transform();
                rhs_adj->set_base_rhs(tmp);
 
@@ -141,13 +143,15 @@ class L2QProblem: public L2WaveProblem<dim, Measurement> {
                else
                Assert(false, ExcInternalError());
 
-               res.set_norm(DiscretizedFunction<dim>::Norm::L2L2);
+               res.set_norm(this->normY);
                res.dot_mult_mass_and_transform_inverse();
 
                // M*
                res.dot_transform();
                res *= -1.0;
                res.pointwise_multiplication(*u);
+
+               res.set_norm(this->normX);
                res.dot_transform_inverse();
 
                return res;
@@ -155,7 +159,7 @@ class L2QProblem: public L2WaveProblem<dim, Measurement> {
 
             virtual DiscretizedFunction<dim> zero() {
                DiscretizedFunction<dim> res(q->get_mesh());
-               res.set_norm(DiscretizedFunction<dim>::Norm::L2L2);
+               res.set_norm(this->normX);
 
                return res;
             }
@@ -163,6 +167,9 @@ class L2QProblem: public L2WaveProblem<dim, Measurement> {
          private:
             WaveEquation<dim> weq;
             WaveEquationAdjoint<dim> weq_adj;
+
+            typename DiscretizedFunction<dim>::Norm normX;
+            typename DiscretizedFunction<dim>::Norm normY;
 
             typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver;
 

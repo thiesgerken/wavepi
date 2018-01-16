@@ -6,6 +6,7 @@
  */
 
 #include <boost/program_options.hpp>
+#include <boost/stacktrace.hpp>
 
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/logstream.h>

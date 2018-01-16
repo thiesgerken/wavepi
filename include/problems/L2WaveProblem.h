@@ -106,6 +106,10 @@ class L2WaveProblem: public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Mea
    protected:
       std::shared_ptr<NonlinearProblemStats> stats;
 
+      // TODO: make configurable (and rename classes?)
+      typename DiscretizedFunction<dim>::Norm normX = DiscretizedFunction<dim>::Norm::H1L2;
+      typename DiscretizedFunction<dim>::Norm normY = DiscretizedFunction<dim>::Norm::L2L2;
+
       WaveEquation<dim> wave_equation;
       typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver;
       std::vector<std::shared_ptr<Function<dim>>> right_hand_sides;

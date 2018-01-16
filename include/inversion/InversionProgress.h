@@ -294,8 +294,6 @@ class OutputProgressListener: public InversionProgressListener<DiscretizedFuncti
          if (state.iteration_number == 0)
             discrepancy_min = state.current_discrepancy;
 
-         // TODO: output on signal (HUP ?)
-
          if ((interval > 0 && state.iteration_number % interval == 0) || (save_last && state.finished)
                || (discrepancy_factor > 0 && state.current_discrepancy < discrepancy_factor * discrepancy_min)) {
 

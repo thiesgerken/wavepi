@@ -249,6 +249,10 @@ template<int dim, typename Meas> void WavePI<dim, Meas>::run() {
 
    deallog.push("Initial Guess");
    auto initial_guess_discretized = std::make_shared<Param>(mesh, *initial_guess);
+
+   // TODO: make sure that the initial guess has the right norm
+   initial_guess_discretized->set_norm(DiscretizedFunction<dim>::Norm::H1L2);
+
    deallog.pop();
 
    cfg->prm->enter_subsection(SettingsManager::KEY_INVERSION);

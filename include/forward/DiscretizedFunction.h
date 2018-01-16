@@ -256,8 +256,6 @@ class DiscretizedFunction: public Function<dim> {
        */
       double absolute_error(Function<dim>& other, double* norm_out) const;
 
-      // TODO: find good names
-
       /**
        * applies the matrix M (spd), which describes the used scalar product, i.e.
        * `this->dot(y) = y^t * M * this` (regarding this and y as long vectors)
@@ -503,14 +501,14 @@ class DiscretizedFunction: public Function<dim> {
       /**
        * Create a new `DiscretizedFunction` filled with random nodal values between -1 and 1.
        *
-       * @param like Template to take mesh sizes from
+       * @param like Template to take mesh size from
        */
       static DiscretizedFunction<dim> noise(const DiscretizedFunction<dim>& like);
 
       /**
        * Create a new `DiscretizedFunction` filled with random nodal values between -1 and 1, and scale it s.t. the norm of the return value is `norm`.
        *
-       * @param like Template to take mesh sizes from
+       * @param like Template to take mesh size and norm setting from
        */
       static DiscretizedFunction<dim> noise(const DiscretizedFunction<dim>& like, double norm);
 
@@ -518,6 +516,8 @@ class DiscretizedFunction: public Function<dim> {
       Norm norm_type = Norm::Invalid;
       bool store_derivative = false;
       size_t cur_time_idx = 0;
+
+      const double h1l2_alpha = 1.0;
 
       std::shared_ptr<SpaceTimeMesh<dim>> mesh;
 
