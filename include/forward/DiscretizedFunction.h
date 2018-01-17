@@ -47,7 +47,7 @@ class DiscretizedFunction: public Function<dim> {
           * 2-norm on the underlying vectors.
           * Fast, but only a crude approximation (even in case of uniform space-time grids and P1-elements)
           */
-         Vector,
+         Coefficients,
 
          /**
           * L^2([0,T], L^2(\Omega)) norm, using the trapezoidal rule in time (approximation)
@@ -504,6 +504,13 @@ class DiscretizedFunction: public Function<dim> {
        * @param like Template to take mesh size from
        */
       static DiscretizedFunction<dim> noise(const DiscretizedFunction<dim>& like);
+
+      /**
+       * Create a new `DiscretizedFunction` filled with random nodal values between -1 and 1.
+       *
+       * @param mesh the associated mesh
+       */
+      static DiscretizedFunction<dim> noise(std::shared_ptr<SpaceTimeMesh<dim>> mesh);
 
       /**
        * Create a new `DiscretizedFunction` filled with random nodal values between -1 and 1, and scale it s.t. the norm of the return value is `norm`.

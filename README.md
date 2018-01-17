@@ -46,7 +46,7 @@ Use the same command with `Debug` to go back. There are also `make` targets that
 
 This project uses [Google Test](https://github.com/google/googletest). Run the test suite using the binary `wavepi_test` (only built if `gtest` was found). You can also list all tests (`--gtest_list_tests`) and only run a subset of them (`--gtest_filter="[filter]"`, wildcards are allowed). Currently, a few of the tests should fail (L2 Adjoint to the wave equation by integrating backwards is not as good as `WaveEquationAdjoint`, and is not even correct if $`\nu\neq 0`$).
 
-When using `CMake >= 3.10`, one can also run the tests using [`ctest`](https://cmake.org/cmake/help/latest/manual/ctest.1.html). Just run `ctest` in the build directory. `ctest -V` also shows test output, `ctest -N` lists all tests and `ctest -R <regex>` runs all tests that match the specified regex (use `.*` instead of `*`!).
+When using `CMake >= 3.10`, one can also run the tests using [`ctest`](https://cmake.org/cmake/help/latest/manual/ctest.1.html). Just run `ctest` in the build directory. `ctest -V` also shows test output, `ctest -N` lists all tests and `ctest -R <regex>` runs all tests that match the specified regex (use `.*` instead of `*`!). If you want colors using `ctest`, run `export GTEST_COLOR=1` beforehand.
 
 ## Remarks on the Code
 
