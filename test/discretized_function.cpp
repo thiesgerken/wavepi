@@ -257,6 +257,35 @@ void run_dot_transform_inverse_test(int fe_order, int quad_order, int refines, i
    deallog << std::endl << "----------  n_dofs / timestep: " << mesh->get_dof_handler(0)->n_dofs();
    deallog << ", n_steps: " << times.size() << "  ----------" << std::endl;
 
+   double tol = 1e-08;
+
+   for (int i = 0; i < 10; i++) {
+      DiscretizedFunction<dim> x = DiscretizedFunction<dim>::noise(mesh);
+      x.set_norm(norm);
+
+      auto trans_x = x;
+      trans_x.dot_transform();
+      trans_x.dot_transform_inverse();
+      trans_x -= x;
+
+      double err_trans = trans_x.norm() / x.norm();
+
+      auto solve_trans_x = x;
+      solve_trans_x.dot_solve_mass_and_transform();
+      solve_trans_x.dot_mult_mass_and_transform_inverse();
+      solve_trans_x -= x;
+      double err_solve_trans = solve_trans_x.norm() / x.norm();
+
+      deallog << std::scientific << "‖x - dot_transform^{⁻1}(dot_transform(x))‖ / ‖x‖ = " << err_trans
+            << std::endl;
+      deallog << std::scientific
+            << "‖x - dot_mult_mass_and_transform^{-1}(dot_solve_mass_and_transform(x))‖ / ‖x‖ = "
+            << err_solve_trans << std::endl;
+
+      EXPECT_LT(err_trans, tol);
+      EXPECT_LT(err_solve_trans, tol);
+   }
+
    TestQ<dim> q_cont;
    DiscretizedFunction<dim> q(mesh, q_cont);
    q.set_norm(norm);
@@ -273,8 +302,11 @@ void run_dot_transform_inverse_test(int fe_order, int quad_order, int refines, i
    mtq -= q;
    double err_mtq = mtq.norm() / q.norm();
 
-   deallog << std::scientific << "‖q-dot_transform_inverse(dot_transform(q))‖/‖q‖ = " << err_mstq << std::endl;
-   deallog << std::scientific << "‖q-dot_mult_mass_and_transform_inverse(dot_solve_mass_and_transform(q))‖/‖q‖ = " << err_mtq << std::endl;
+   deallog << std::scientific << "‖q-dot_transform_inverse(dot_transform(q))‖/‖q‖ = " << err_mstq
+         << std::endl;
+   deallog << std::scientific
+         << "‖q-dot_mult_mass_and_transform_inverse(dot_solve_mass_and_transform(q))‖/‖q‖ = " << err_mtq
+         << std::endl;
 
    TestG<dim> g_cont;
    DiscretizedFunction<dim> g(mesh, g_cont);
@@ -314,8 +346,6 @@ void run_dot_transform_inverse_test(int fe_order, int quad_order, int refines, i
    deallog << std::scientific << "‖f-st^-1(st(f))‖/‖f‖ = " << err_mstf << std::endl;
    deallog << std::scientific << "‖f- t^-1( t(f))‖/‖f‖ = " << err_mtf << std::endl;
 
-   double tol = 1e-08;
-
    EXPECT_LT(err_mstq, tol);
    EXPECT_LT(err_mtq, tol);
    EXPECT_LT(err_mstg, tol);
@@ -349,6 +379,7 @@ void run_dot_transform_consistent_test(int fe_order, int quad_order, int refines
 
    deallog << std::endl << "----------  n_dofs / timestep: " << mesh->get_dof_handler(0)->n_dofs();
    deallog << ", n_steps: " << times.size() << "  ----------" << std::endl;
+
    for (int i = 0; i < 10; i++) {
       DiscretizedFunction<dim> x = DiscretizedFunction<dim>::noise(mesh);
       x.set_norm(norm);
@@ -356,13 +387,13 @@ void run_dot_transform_consistent_test(int fe_order, int quad_order, int refines
       DiscretizedFunction<dim> y = DiscretizedFunction<dim>::noise(mesh);
       y.set_norm(norm);
 
-      double dot_xy = x*y;
+      double dot_xy = x * y;
 
       y.dot_transform();
       x.set_norm(DiscretizedFunction<dim>::Norm::Coefficients);
       y.set_norm(DiscretizedFunction<dim>::Norm::Coefficients);
 
-      double dot_xy_via_transform = x*y;
+      double dot_xy_via_transform = x * y;
       double err = std::abs(dot_xy - dot_xy_via_transform) / (std::abs(dot_xy) + 1e-300);
 
       deallog << std::scientific << "(x, y) = " << dot_xy << ", x^t T y = " << dot_xy_via_transform
@@ -419,21 +450,9 @@ void run_derivative_transpose_test(int fe_order, int quad_order, int refines, in
 
       double tol = 1e-10;
       EXPECT_LT(err, tol);
-
-      /* Test, whether M and D commute */
-      //auto MDy = Dy;
-      //MDy.mult_mass();
-      //
-      //auto DMy = y;
-      //DMy.mult_mass();
-      //DMy = DMy.calculate_derivative();
-      //
-      //deallog << "rerr(DMy,MDy) = " << MDy.relative_error(DMy) << std::endl;
    }
 
    deallog << std::endl;
-}
-
 }
 
 template<int dim>
@@ -456,10 +475,12 @@ void run_dot_transform_inverse_tests(int fe_order, int quad_order, int refines, 
          DiscretizedFunction<dim>::Norm::Coefficients);
 
    deallog << "== norm=L2L2 ==" << std::endl;
-   run_dot_transform_inverse_test<dim>(fe_order, quad_order, refines, n_steps, DiscretizedFunction<dim>::Norm::L2L2);
+   run_dot_transform_inverse_test<dim>(fe_order, quad_order, refines, n_steps,
+         DiscretizedFunction<dim>::Norm::L2L2);
 
    deallog << "== norm=H1L2 ==" << std::endl;
-   run_dot_transform_inverse_test<dim>(fe_order, quad_order, refines, n_steps, DiscretizedFunction<dim>::Norm::H1L2);
+   run_dot_transform_inverse_test<dim>(fe_order, quad_order, refines, n_steps,
+         DiscretizedFunction<dim>::Norm::H1L2);
 }
 
 template<int dim>
@@ -469,10 +490,14 @@ void run_dot_transform_consistent_tests(int fe_order, int quad_order, int refine
          DiscretizedFunction<dim>::Norm::Coefficients);
 
    deallog << "== norm=L2L2 ==" << std::endl;
-   run_dot_transform_consistent_test<dim>(fe_order, quad_order, refines, n_steps, DiscretizedFunction<dim>::Norm::L2L2);
+   run_dot_transform_consistent_test<dim>(fe_order, quad_order, refines, n_steps,
+         DiscretizedFunction<dim>::Norm::L2L2);
 
    deallog << "== norm=H1L2 ==" << std::endl;
-   run_dot_transform_consistent_test<dim>(fe_order, quad_order, refines, n_steps, DiscretizedFunction<dim>::Norm::H1L2);
+   run_dot_transform_consistent_test<dim>(fe_order, quad_order, refines, n_steps,
+         DiscretizedFunction<dim>::Norm::H1L2);
+}
+
 }
 
 TEST(DiscretizedFunctionTest, DotNormConsistent1DFE1) {
