@@ -568,7 +568,9 @@ class StatOutputProgressListener: public InversionProgressListener<Param, Sol, E
          if (!file_prefix.size() || state.finished)
             return true;
 
-         std::ofstream csv_file(file_prefix + ".csv", std::ios::out | std::ios::app);
+         // truncate if i == 0
+         auto opts = state.iteration_number == 0 ? std::ios::trunc : std::ios::app;
+         std::ofstream csv_file(file_prefix + ".csv", std::ios::out | opts);
 
          if (!csv_file) {
             deallog << "Could not open " + file_prefix + ".csv" + " for output!" << std::endl;

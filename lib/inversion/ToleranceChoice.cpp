@@ -54,7 +54,9 @@ void ToleranceChoice::add_iteration(double new_discrepancy, int steps) {
    if (!tolerance_prefix.size())
       return;
 
-   std::ofstream csv_file(tolerance_prefix + ".csv", std::ios::out | std::ios::app);
+   // truncate if i == 0
+   auto opts = discrepancies.size() == 1 ? std::ios::trunc : std::ios::app;
+   std::ofstream csv_file(tolerance_prefix + ".csv", std::ios::out | opts);
 
    if (!csv_file) {
       deallog << "Could not open " + tolerance_prefix + ".csv" + " for output!" << std::endl;

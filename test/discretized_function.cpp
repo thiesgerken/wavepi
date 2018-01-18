@@ -276,82 +276,15 @@ void run_dot_transform_inverse_test(int fe_order, int quad_order, int refines, i
       solve_trans_x -= x;
       double err_solve_trans = solve_trans_x.norm() / x.norm();
 
-      deallog << std::scientific << "‖x - dot_transform^{⁻1}(dot_transform(x))‖ / ‖x‖ = " << err_trans
-            << std::endl;
-      deallog << std::scientific
-            << "‖x - dot_mult_mass_and_transform^{-1}(dot_solve_mass_and_transform(x))‖ / ‖x‖ = "
-            << err_solve_trans << std::endl;
+      deallog << std::scientific << "‖x - T^{-1} T x‖ / ‖x‖         = " << err_trans << std::endl;
+
+      // for our dot products T and M commute,
+      // T^{-1}M T M^{-1} = T^{-1}M M^{-1} T which should be the identity
+      deallog << std::scientific << "‖x - T^{-1}M T M^{-1} x‖ / ‖x‖ = " << err_solve_trans << std::endl;
 
       EXPECT_LT(err_trans, tol);
       EXPECT_LT(err_solve_trans, tol);
    }
-
-   TestQ<dim> q_cont;
-   DiscretizedFunction<dim> q(mesh, q_cont);
-   q.set_norm(norm);
-
-   auto mstq(q);
-   mstq.dot_transform();
-   mstq.dot_transform_inverse();
-   mstq -= q;
-   double err_mstq = mstq.norm() / q.norm();
-
-   auto mtq(q);
-   mtq.dot_solve_mass_and_transform();
-   mtq.dot_mult_mass_and_transform_inverse();
-   mtq -= q;
-   double err_mtq = mtq.norm() / q.norm();
-
-   deallog << std::scientific << "‖q-dot_transform_inverse(dot_transform(q))‖/‖q‖ = " << err_mstq
-         << std::endl;
-   deallog << std::scientific
-         << "‖q-dot_mult_mass_and_transform_inverse(dot_solve_mass_and_transform(q))‖/‖q‖ = " << err_mtq
-         << std::endl;
-
-   TestG<dim> g_cont;
-   DiscretizedFunction<dim> g(mesh, g_cont);
-   g.set_norm(norm);
-
-   auto mstg(g);
-   mstg.dot_transform();
-   mstg.dot_transform_inverse();
-   mstg -= g;
-   double err_mstg = mstg.norm() / g.norm();
-
-   auto mtg(g);
-   mtg.dot_solve_mass_and_transform();
-   mtg.dot_mult_mass_and_transform_inverse();
-   mtg -= g;
-   double err_mtg = mtg.norm() / g.norm();
-
-   deallog << std::scientific << "‖g-st^-1(st(g))‖/‖g‖ = " << err_mstg << std::endl;
-   deallog << std::scientific << "‖g- t^-1( t(g))‖/‖g‖ = " << err_mtg << std::endl;
-
-   TestF<dim> f_cont;
-   DiscretizedFunction<dim> f(mesh, f_cont);
-   f.set_norm(norm);
-
-   auto mstf(f);
-   mstf.dot_transform();
-   mstf.dot_transform_inverse();
-   mstf -= f;
-   double err_mstf = mstf.norm() / f.norm();
-
-   auto mtf(f);
-   mtf.dot_solve_mass_and_transform();
-   mtf.dot_mult_mass_and_transform_inverse();
-   mtf -= f;
-   double err_mtf = mtf.norm() / f.norm();
-
-   deallog << std::scientific << "‖f-st^-1(st(f))‖/‖f‖ = " << err_mstf << std::endl;
-   deallog << std::scientific << "‖f- t^-1( t(f))‖/‖f‖ = " << err_mtf << std::endl;
-
-   EXPECT_LT(err_mstq, tol);
-   EXPECT_LT(err_mtq, tol);
-   EXPECT_LT(err_mstg, tol);
-   EXPECT_LT(err_mtg, tol);
-   EXPECT_LT(err_mstf, tol);
-   EXPECT_LT(err_mtf, tol);
 
    deallog << std::endl;
 }
