@@ -15,9 +15,11 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <forward/Norm.h>
 
 namespace wavepi {
 using namespace dealii;
+using namespace wavepi::forward;
 
 /**
  * Manages settings for `wavepi.cpp` and class `WavePI`.
@@ -44,6 +46,9 @@ class SettingsManager {
 
       static const std::string KEY_PROBLEM;
       static const std::string KEY_PROBLEM_TYPE;
+      static const std::string KEY_PROBLEM_NORM_DOMAIN;
+      static const std::string KEY_PROBLEM_NORM_CODOMAIN;
+
       static const std::string KEY_PROBLEM_EPSILON;
       static const std::string KEY_PROBLEM_CONSTANTS;
       static const std::string KEY_PROBLEM_GUESS;
@@ -119,6 +124,8 @@ class SettingsManager {
       double tau;
       ProblemType problem_type;
       NonlinearMethod method;
+      Norm norm_domain;
+      Norm norm_codomain;
 
       std::map<std::string, double> constants_for_exprs;
       std::string expr_initial_guess;

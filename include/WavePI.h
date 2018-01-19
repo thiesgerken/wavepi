@@ -18,6 +18,8 @@
 
 #include <inversion/NonlinearProblem.h>
 
+#include <problems/WaveProblem.h>
+
 #include <measurements/Measure.h>
 #include <SettingsManager.h>
 
@@ -34,6 +36,7 @@ using namespace wavepi::forward;
 using namespace wavepi::inversion;
 using namespace wavepi::util;
 using namespace wavepi::measurements;
+using namespace wavepi::problems;
 
 template<int dim, typename Meas>
 class WavePI {
@@ -57,7 +60,7 @@ class WavePI {
       std::shared_ptr<SpaceTimeMesh<dim>> mesh;
       std::shared_ptr<WaveEquation<dim>> wave_eq;
 
-      std::shared_ptr<NonlinearProblem<Param, Tuple<Meas>>> problem;
+      std::shared_ptr<WaveProblem<dim, Meas>> problem;
 
       std::shared_ptr<Function<dim>> param_exact;
 

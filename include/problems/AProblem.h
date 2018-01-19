@@ -1,12 +1,12 @@
 /*
- * L2AProblem.h
+ * AProblem.h
  *
  *  Created on: 27.07.2017
  *      Author: thies
  */
 
-#ifndef INCLUDE_PROBLEMS_L2APROBLEM_H_
-#define INCLUDE_PROBLEMS_L2APROBLEM_H_
+#ifndef INCLUDE_PROBLEMS_APROBLEM_H_
+#define INCLUDE_PROBLEMS_APROBLEM_H_
 
 #include <forward/DiscretizedFunction.h>
 #include <forward/DivRightHandSide.h>
@@ -19,7 +19,7 @@
 #include <inversion/LinearProblem.h>
 #include <inversion/NonlinearProblem.h>
 
-#include <problems/L2WaveProblem.h>
+#include <problems/WaveProblem.h>
 
 #include <memory>
 
@@ -31,30 +31,30 @@ using namespace wavepi::forward;
 using namespace wavepi::inversion;
 
 template<int dim, typename Measurement>
-class L2AProblem: public L2WaveProblem<dim, Measurement> {
+class AProblem: public WaveProblem<dim, Measurement> {
    public:
-      using L2WaveProblem<dim, Measurement>::derivative;
-      using L2WaveProblem<dim, Measurement>::forward;
+      using WaveProblem<dim, Measurement>::derivative;
+      using WaveProblem<dim, Measurement>::forward;
 
-      virtual ~L2AProblem() = default;
+      virtual ~AProblem() = default;
 
-      L2AProblem(WaveEquation<dim>& weq, std::vector<std::shared_ptr<Function<dim>>> right_hand_sides,
+      AProblem(WaveEquation<dim>& weq, std::vector<std::shared_ptr<Function<dim>>> right_hand_sides,
             std::vector<std::shared_ptr<Measure<DiscretizedFunction<dim>, Measurement>>> measures,
             typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver)
-            : L2WaveProblem<dim, Measurement>(weq, right_hand_sides, measures, adjoint_solver), fields(
+            : WaveProblem<dim, Measurement>(weq, right_hand_sides, measures, adjoint_solver), fields(
                   measures.size()) {
       }
 
-      L2AProblem(WaveEquation<dim>& weq, std::vector<std::shared_ptr<Function<dim>>> right_hand_sides,
+      AProblem(WaveEquation<dim>& weq, std::vector<std::shared_ptr<Function<dim>>> right_hand_sides,
             std::vector<std::shared_ptr<Measure<DiscretizedFunction<dim>, Measurement>>> measures)
-            : L2WaveProblem<dim, Measurement>(weq, right_hand_sides, measures), fields(measures.size()) {
+            : WaveProblem<dim, Measurement>(weq, right_hand_sides, measures), fields(measures.size()) {
       }
 
    protected:
       virtual std::unique_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>> derivative(
             size_t i) {
-         return std::make_unique<L2AProblem<dim, Measurement>::Linearization>(this->wave_equation,
-               this->adjoint_solver, this->current_param, this->fields[i]);
+         return std::make_unique<AProblem<dim, Measurement>::Linearization>(this->wave_equation,
+               this->adjoint_solver, this->current_param, this->fields[i], this->norm_domain, this->norm_codomain);
       }
 
       virtual DiscretizedFunction<dim> forward(size_t i) {
@@ -65,7 +65,7 @@ class L2AProblem: public L2WaveProblem<dim, Measurement> {
 
          DiscretizedFunction<dim> res = this->wave_equation.run();
          res.throw_away_derivative();
-         res.set_norm(this->normY);
+         res.set_norm(this->norm_codomain);
 
          // save a copy of res
          this->fields[i] = std::make_shared<DiscretizedFunction<dim>>(res);
@@ -84,8 +84,8 @@ class L2AProblem: public L2WaveProblem<dim, Measurement> {
             Linearization(const WaveEquation<dim> &weq,
                   typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver,
                   const std::shared_ptr<DiscretizedFunction<dim>> a,
-                  std::shared_ptr<DiscretizedFunction<dim>> u)
-                  : weq(weq), weq_adj(weq), normX(a->get_norm()), normY(u->get_norm()), adjoint_solver(
+                  std::shared_ptr<DiscretizedFunction<dim>> u, Norm norm_domain, Norm norm_codomain)
+                  : weq(weq), weq_adj(weq), norm_domain(norm_domain), norm_codomain(norm_codomain), adjoint_solver(
                         adjoint_solver) {
                this->a = a;
                this->u = u;
@@ -112,7 +112,7 @@ class L2AProblem: public L2WaveProblem<dim, Measurement> {
                weq.set_run_direction(WaveEquation<dim>::Forward);
 
                DiscretizedFunction<dim> res = weq.run();
-               res.set_norm(this->normY);
+               res.set_norm(this->norm_codomain);
                res.throw_away_derivative();
 
                return res;
@@ -121,7 +121,7 @@ class L2AProblem: public L2WaveProblem<dim, Measurement> {
             virtual DiscretizedFunction<dim> adjoint(const DiscretizedFunction<dim>& g) {
                // L* : Y -> Y
                auto tmp = std::make_shared<DiscretizedFunction<dim>>(g);
-               tmp->set_norm(this->normY);
+               tmp->set_norm(this->norm_codomain);
                tmp->dot_solve_mass_and_transform();
                rhs_adj->set_base_rhs(tmp);
 
@@ -140,7 +140,7 @@ class L2AProblem: public L2WaveProblem<dim, Measurement> {
                else
                Assert(false, ExcInternalError());
 
-               res.set_norm(this->normY);
+               res.set_norm(this->norm_codomain);
                res.dot_mult_mass_and_transform_inverse();
 
                // M* : Y -> X
@@ -149,7 +149,7 @@ class L2AProblem: public L2WaveProblem<dim, Measurement> {
                m_adj->set_a(std::make_shared<DiscretizedFunction<dim>>(res));
                res = m_adj->run_adjoint(res.get_mesh());
 
-               res.set_norm(this->normX);
+               res.set_norm(this->norm_domain);
                res.dot_transform_inverse();
 
                return res;
@@ -157,7 +157,7 @@ class L2AProblem: public L2WaveProblem<dim, Measurement> {
 
             virtual DiscretizedFunction<dim> zero() {
                DiscretizedFunction<dim> res(a->get_mesh());
-               res.set_norm(this->normX);
+               res.set_norm(this->norm_domain);
 
                return res;
             }
@@ -166,8 +166,8 @@ class L2AProblem: public L2WaveProblem<dim, Measurement> {
             WaveEquation<dim> weq;
             WaveEquationAdjoint<dim> weq_adj;
 
-            typename DiscretizedFunction<dim>::Norm normX;
-            typename DiscretizedFunction<dim>::Norm normY;
+            Norm norm_domain;
+            Norm norm_codomain;
 
             typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver;
 

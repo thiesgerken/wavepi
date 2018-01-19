@@ -28,7 +28,7 @@
 #include <forward/WaveEquation.h>
 #include <forward/WaveEquationAdjoint.h>
 
-#include <problems/L2QProblem.h>
+#include <problems/QProblem.h>
 
 #include <util/GridTools.h>
 
@@ -170,7 +170,7 @@ template<> const Point<3> TestQ<3>::q_position = Point<3>(-1.0, 0.5, 0.0);
 // tests whether norm and dot product are consistent
 template<int dim>
 void run_dot_norm_test(int fe_order, int quad_order, int refines, int n_steps,
-      typename DiscretizedFunction<dim>::Norm norm) {
+      Norm norm) {
    auto triangulation = std::make_shared<Triangulation<dim>>();
    GridGenerator::hyper_cube(*triangulation, -1, 1);
    wavepi::util::GridTools::set_all_boundary_ids(*triangulation, 0);
@@ -235,8 +235,7 @@ void run_dot_norm_test(int fe_order, int quad_order, int refines, int n_steps,
 
 // tests whether mass matrix operations are inverse to each other
 template<int dim>
-void run_dot_transform_inverse_test(int fe_order, int quad_order, int refines, int n_steps,
-      typename DiscretizedFunction<dim>::Norm norm) {
+void run_dot_transform_inverse_test(int fe_order, int quad_order, int refines, int n_steps, Norm norm) {
    auto triangulation = std::make_shared<Triangulation<dim>>();
    GridGenerator::hyper_cube(*triangulation, -1, 1);
    wavepi::util::GridTools::set_all_boundary_ids(*triangulation, 0);
@@ -291,8 +290,7 @@ void run_dot_transform_inverse_test(int fe_order, int quad_order, int refines, i
 
 // tests whether dot_transform is consistent with dot
 template<int dim>
-void run_dot_transform_consistent_test(int fe_order, int quad_order, int refines, int n_steps,
-      typename DiscretizedFunction<dim>::Norm norm) {
+void run_dot_transform_consistent_test(int fe_order, int quad_order, int refines, int n_steps, Norm norm) {
    auto triangulation = std::make_shared<Triangulation<dim>>();
    GridGenerator::hyper_cube(*triangulation, -1, 1);
    wavepi::util::GridTools::set_all_boundary_ids(*triangulation, 0);
@@ -323,8 +321,8 @@ void run_dot_transform_consistent_test(int fe_order, int quad_order, int refines
       double dot_xy = x * y;
 
       y.dot_transform();
-      x.set_norm(DiscretizedFunction<dim>::Norm::Coefficients);
-      y.set_norm(DiscretizedFunction<dim>::Norm::Coefficients);
+      x.set_norm(Norm::Coefficients);
+      y.set_norm(Norm::Coefficients);
 
       double dot_xy_via_transform = x * y;
       double err = std::abs(dot_xy - dot_xy_via_transform) / (std::abs(dot_xy) + 1e-300);
@@ -363,16 +361,16 @@ void run_derivative_transpose_test(int fe_order, int quad_order, int refines, in
 
    for (int i = 0; i < 10; i++) {
       DiscretizedFunction<dim> x = DiscretizedFunction<dim>::noise(mesh);
-      x.set_norm(DiscretizedFunction<dim>::Norm::Coefficients);
+      x.set_norm(Norm::Coefficients);
 
       DiscretizedFunction<dim> y = DiscretizedFunction<dim>::noise(mesh);
-      y.set_norm(DiscretizedFunction<dim>::Norm::Coefficients);
+      y.set_norm(Norm::Coefficients);
 
       auto Dy = y.calculate_derivative();
-      Dy.set_norm(DiscretizedFunction<dim>::Norm::Coefficients);
+      Dy.set_norm(Norm::Coefficients);
 
       auto Dtx = x.calculate_derivative_transpose();
-      Dtx.set_norm(DiscretizedFunction<dim>::Norm::Coefficients);
+      Dtx.set_norm(Norm::Coefficients);
 
       double dot_x_Dy = x * Dy;
       double dot_Dtx_y = Dtx * y;
@@ -391,44 +389,37 @@ void run_derivative_transpose_test(int fe_order, int quad_order, int refines, in
 template<int dim>
 void run_dot_norm_tests(int fe_order, int quad_order, int refines, int n_steps) {
    deallog << "== norm=Vector ==" << std::endl;
-   run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps,
-         DiscretizedFunction<dim>::Norm::Coefficients);
+   run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, Norm::Coefficients);
 
    deallog << "== norm=L2L2 ==" << std::endl;
-   run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, DiscretizedFunction<dim>::Norm::L2L2);
+   run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, Norm::L2L2);
 
    deallog << "== norm=H1L2 ==" << std::endl;
-   run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, DiscretizedFunction<dim>::Norm::H1L2);
+   run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, Norm::H1L2);
 }
 
 template<int dim>
 void run_dot_transform_inverse_tests(int fe_order, int quad_order, int refines, int n_steps) {
    deallog << "== norm=Vector ==" << std::endl;
-   run_dot_transform_inverse_test<dim>(fe_order, quad_order, refines, n_steps,
-         DiscretizedFunction<dim>::Norm::Coefficients);
+   run_dot_transform_inverse_test<dim>(fe_order, quad_order, refines, n_steps, Norm::Coefficients);
 
    deallog << "== norm=L2L2 ==" << std::endl;
-   run_dot_transform_inverse_test<dim>(fe_order, quad_order, refines, n_steps,
-         DiscretizedFunction<dim>::Norm::L2L2);
+   run_dot_transform_inverse_test<dim>(fe_order, quad_order, refines, n_steps, Norm::L2L2);
 
    deallog << "== norm=H1L2 ==" << std::endl;
-   run_dot_transform_inverse_test<dim>(fe_order, quad_order, refines, n_steps,
-         DiscretizedFunction<dim>::Norm::H1L2);
+   run_dot_transform_inverse_test<dim>(fe_order, quad_order, refines, n_steps, Norm::H1L2);
 }
 
 template<int dim>
 void run_dot_transform_consistent_tests(int fe_order, int quad_order, int refines, int n_steps) {
    deallog << "== norm=Vector ==" << std::endl;
-   run_dot_transform_consistent_test<dim>(fe_order, quad_order, refines, n_steps,
-         DiscretizedFunction<dim>::Norm::Coefficients);
+   run_dot_transform_consistent_test<dim>(fe_order, quad_order, refines, n_steps, Norm::Coefficients);
 
    deallog << "== norm=L2L2 ==" << std::endl;
-   run_dot_transform_consistent_test<dim>(fe_order, quad_order, refines, n_steps,
-         DiscretizedFunction<dim>::Norm::L2L2);
+   run_dot_transform_consistent_test<dim>(fe_order, quad_order, refines, n_steps, Norm::L2L2);
 
    deallog << "== norm=H1L2 ==" << std::endl;
-   run_dot_transform_consistent_test<dim>(fe_order, quad_order, refines, n_steps,
-         DiscretizedFunction<dim>::Norm::H1L2);
+   run_dot_transform_consistent_test<dim>(fe_order, quad_order, refines, n_steps, Norm::H1L2);
 }
 
 }

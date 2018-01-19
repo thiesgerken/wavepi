@@ -68,6 +68,9 @@ int main(int argc, char * argv[]) {
       } else
          deallog << "Using default parameters" << std::endl;
 
+      auto cfg = std::make_shared<SettingsManager>();
+      cfg->get_parameters(prm);
+
       if (vm.count("export-config")) {
          ParameterHandler::OutputStyle style = ParameterHandler::Text;
 
@@ -124,9 +127,6 @@ int main(int argc, char * argv[]) {
 
       AssertThrow(vm.count("config-format") == 0,
             ExcMessage("--config-format is useless without --export-config"));
-
-      auto cfg = std::make_shared<SettingsManager>();
-      cfg->get_parameters(prm);
 
       // has to be kept in scope
       std::ofstream logout;

@@ -52,6 +52,8 @@ const std::string SettingsManager::KEY_MESH_SHAPE_OPTIONS = "options";
 
 const std::string SettingsManager::KEY_PROBLEM = "problem";
 const std::string SettingsManager::KEY_PROBLEM_TYPE = "type";
+const std::string SettingsManager::KEY_PROBLEM_NORM_DOMAIN = "norm of domain";
+const std::string SettingsManager::KEY_PROBLEM_NORM_CODOMAIN = "norm of codomain";
 const std::string SettingsManager::KEY_PROBLEM_EPSILON = "epsilon";
 const std::string SettingsManager::KEY_PROBLEM_CONSTANTS = "constants";
 const std::string SettingsManager::KEY_PROBLEM_GUESS = "initial guess";
@@ -73,7 +75,8 @@ const std::string SettingsManager::KEY_INVERSION_METHOD = "method";
 
 void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) {
    OutputProgressListener<2, Tuple<DiscretizedFunction<2>>>::declare_parameters(*prm);
-   WatchdogProgressListener<Tuple<DiscretizedFunction<2>>, Tuple<DiscretizedFunction<2>>>::declare_parameters(*prm);
+   WatchdogProgressListener<Tuple<DiscretizedFunction<2>>, Tuple<DiscretizedFunction<2>>>::declare_parameters(
+         *prm);
    StatOutputProgressListener<Tuple<DiscretizedFunction<2>>, Tuple<DiscretizedFunction<2>>>::declare_parameters(
          *prm);
    WaveEquationBase<2>::declare_parameters(*prm);
@@ -120,8 +123,14 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
 
    prm->enter_subsection(KEY_PROBLEM);
    {
-      prm->declare_entry(KEY_PROBLEM_TYPE, "L2A", Patterns::Selection("L2A|L2Q|L2Nu|L2C"),
-            "parameter that is reconstructed, and which spaces are used");
+      prm->declare_entry(KEY_PROBLEM_TYPE, "a", Patterns::Selection("a|c|q|nu|L2A|L2Q|L2Nu|L2C"),
+            "parameter that is reconstructed");
+
+      prm->declare_entry(KEY_PROBLEM_NORM_DOMAIN, "L2L2", Patterns::Selection("L2L2|H1L2|Coefficients"),
+            "norm to use for parameters (incl. the reconstruction)");
+      prm->declare_entry(KEY_PROBLEM_NORM_CODOMAIN, "L2L2", Patterns::Selection("L2L2|H1L2|Coefficients"),
+            "Set the norm to use for fields. Be aware that this has to match the norm that the measurements expect its inputs to have.");
+
       prm->declare_entry(KEY_PROBLEM_EPSILON, "1e-2", Patterns::Double(0, 1), "relative noise level ε");
 
       prm->declare_entry(KEY_PROBLEM_CONSTANTS, "", Patterns::Anything(),
@@ -269,18 +278,55 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
    {
       epsilon = prm->get_double(KEY_PROBLEM_EPSILON);
 
+      std::string norm_domain_s = prm->get(KEY_PROBLEM_NORM_DOMAIN);
+
+      if (norm_domain_s == "L2L2")
+         norm_domain = Norm::L2L2;
+      else if (norm_domain_s == "H1L2")
+         norm_domain = Norm::H1L2;
+      else if (norm_domain_s == "Coefficients")
+         norm_domain = Norm::Coefficients;
+      else
+         AssertThrow(false, ExcMessage("Cannot parse norm of domain"));
+
+      std::string norm_codomain_s = prm->get(KEY_PROBLEM_NORM_CODOMAIN);
+
+      if (norm_codomain_s == "L2L2")
+         norm_codomain = Norm::L2L2;
+      else if (norm_codomain_s == "H1L2")
+         norm_codomain = Norm::H1L2;
+      else if (norm_codomain_s == "Coefficients")
+         norm_codomain = Norm::Coefficients;
+      else
+         AssertThrow(false, ExcMessage("Cannot parse norm of codomain"));
+
       std::string problem = prm->get(KEY_PROBLEM_TYPE);
 
-      if (problem == "L2A")
+      if (problem == "L2A" || problem == "a")
          problem_type = ProblemType::L2A;
-      else if (problem == "L2Q")
+      else if (problem == "L2Q" || problem == "q")
          problem_type = ProblemType::L2Q;
-      else if (problem == "L2Nu")
+      else if (problem == "L2Nu" || problem == "nu")
          problem_type = ProblemType::L2Nu;
-      else if (problem == "L2C")
+      else if (problem == "L2C" || problem == "c")
          problem_type = ProblemType::L2C;
       else
          AssertThrow(false, ExcInternalError());
+
+      if (problem[0] == 'L' && problem[1] == '2') {
+         std::cerr << "Warning: problem_type == '" << problem
+               << "' is deprecated, spaces are set through norm_domain and norm_codomain!" << std::endl;
+
+         // change setting so that rewrite of configs yields new format
+         if (problem == "L2A")
+            prm->set(KEY_PROBLEM_TYPE, "a");
+         else if (problem == "L2Q")
+            prm->set(KEY_PROBLEM_TYPE, "q");
+         else if (problem == "L2Nu")
+            prm->set(KEY_PROBLEM_TYPE, "nu");
+         else if (problem == "L2C")
+            prm->set(KEY_PROBLEM_TYPE, "c");
+      }
 
       std::string constants_list = prm->get(KEY_PROBLEM_CONSTANTS);
       std::vector<std::string> const_listed = Utilities::split_string_list(constants_list, ',');

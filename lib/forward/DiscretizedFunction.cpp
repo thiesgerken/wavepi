@@ -409,7 +409,7 @@ DiscretizedFunction<dim> DiscretizedFunction<dim>::calculate_derivative_transpos
 
 template<int dim>
 DiscretizedFunction<dim>& DiscretizedFunction<dim>::operator=(double x) {
-   Assert(mesh, ExcNotInitialized());
+   AssertThrow(mesh, ExcNotInitialized());
 
    for (size_t i = 0; i < mesh->length(); i++) {
       function_coefficients[i] = x;
@@ -422,6 +422,7 @@ DiscretizedFunction<dim>& DiscretizedFunction<dim>::operator=(double x) {
 }
 template<int dim>
 DiscretizedFunction<dim>& DiscretizedFunction<dim>::operator+=(const DiscretizedFunction<dim> & V) {
+   AssertThrow(norm_type == V.norm_type, ExcMessage("Norms not compatible"));
    this->add(1.0, V);
 
    return *this;
@@ -429,6 +430,7 @@ DiscretizedFunction<dim>& DiscretizedFunction<dim>::operator+=(const Discretized
 
 template<int dim>
 DiscretizedFunction<dim>& DiscretizedFunction<dim>::operator-=(const DiscretizedFunction<dim> & V) {
+   AssertThrow(norm_type == V.norm_type, ExcMessage("Norms not compatible"));
    this->add(-1.0, V);
 
    return *this;
@@ -436,6 +438,8 @@ DiscretizedFunction<dim>& DiscretizedFunction<dim>::operator-=(const Discretized
 
 template<int dim>
 DiscretizedFunction<dim>& DiscretizedFunction<dim>::operator*=(const double factor) {
+   AssertThrow(mesh, ExcNotInitialized());
+
    for (size_t i = 0; i < mesh->length(); i++) {
       function_coefficients[i] *= factor;
 
@@ -515,9 +519,10 @@ void DiscretizedFunction<dim>::pointwise_multiplication(const DiscretizedFunctio
 
 template<int dim>
 void DiscretizedFunction<dim>::add(const double a, const DiscretizedFunction<dim> & V) {
-   Assert(mesh, ExcNotInitialized());
-   Assert(mesh == V.mesh, ExcInternalError ());
-   Assert(!store_derivative || (store_derivative == V.store_derivative), ExcInternalError ());
+   AssertThrow(mesh, ExcNotInitialized());
+   AssertThrow(mesh == V.mesh, ExcInternalError());
+   AssertThrow(!store_derivative || (store_derivative == V.store_derivative), ExcInternalError());
+   AssertThrow(norm_type == V.norm_type, ExcMessage("Norms not compatible"));
 
    for (size_t i = 0; i < mesh->length(); i++) {
       Assert(function_coefficients[i].size() == V.function_coefficients[i].size(),
@@ -536,9 +541,10 @@ void DiscretizedFunction<dim>::add(const double a, const DiscretizedFunction<dim
 
 template<int dim>
 void DiscretizedFunction<dim>::sadd(const double s, const double a, const DiscretizedFunction<dim> & V) {
-   Assert(mesh, ExcNotInitialized());
-   Assert(mesh == V.mesh, ExcInternalError ());
-   Assert(!store_derivative || (store_derivative == V.store_derivative), ExcInternalError ());
+   AssertThrow(mesh, ExcNotInitialized());
+   AssertThrow(mesh == V.mesh, ExcInternalError());
+   AssertThrow(!store_derivative || (store_derivative == V.store_derivative), ExcInternalError());
+   AssertThrow(norm_type == V.norm_type, ExcMessage("Norms not compatible"));
 
    for (size_t i = 0; i < mesh->length(); i++) {
       Assert(function_coefficients[i].size() == V.function_coefficients[i].size(),
@@ -572,19 +578,22 @@ double DiscretizedFunction<dim>::norm() const {
          return norm_l2l2();
       case Norm::H1L2:
          return norm_h1l2();
-      default:
+      case Norm::Invalid:
          AssertThrow(false, ExcMessage("norm_type == Invalid"))
+         break;
+      default:
+         AssertThrow(false, ExcMessage("Unknown Norm"))
    }
 
-   Assert(false, ExcInternalError ());
+   AssertThrow(false, ExcInternalError());
    return 0.0;
 }
 
 template<int dim>
 double DiscretizedFunction<dim>::operator*(const DiscretizedFunction<dim> & V) const {
-   Assert(mesh, ExcNotInitialized());
-   Assert(mesh == V.mesh, ExcInternalError ());
-   Assert(norm_type == V.norm_type, ExcInternalError());
+   AssertThrow(mesh, ExcNotInitialized());
+   AssertThrow(mesh == V.mesh, ExcInternalError());
+   AssertThrow(norm_type == V.norm_type, ExcMessage("Norms not compatible"));
 
    switch (norm_type) {
       case Norm::Coefficients:
@@ -593,11 +602,14 @@ double DiscretizedFunction<dim>::operator*(const DiscretizedFunction<dim> & V) c
          return dot_l2l2(V);
       case Norm::H1L2:
          return dot_h1l2(V);
-      default:
+      case Norm::Invalid:
          AssertThrow(false, ExcMessage("norm_type == Invalid"))
+         break;
+      default:
+         AssertThrow(false, ExcMessage("Unknown Norm"))
    }
 
-   Assert(false, ExcInternalError ());
+   AssertThrow(false, ExcInternalError());
    return 0.0;
 }
 
@@ -608,7 +620,22 @@ double DiscretizedFunction<dim>::dot(const DiscretizedFunction<dim> & V) const {
 
 template<int dim>
 bool DiscretizedFunction<dim>::is_hilbert() const {
-   return norm_type != Norm::Invalid;
+   switch (norm_type) {
+      case Norm::Coefficients:
+         return true;
+      case Norm::L2L2:
+         return true;
+      case Norm::H1L2:
+         return true;
+      case Norm::Invalid:
+         AssertThrow(false, ExcMessage("norm_type == Invalid"))
+         break;
+      default:
+         AssertThrow(false, ExcMessage("Unknown Norm"))
+   }
+
+   AssertThrow(false, ExcInternalError());
+   return false;
 }
 
 template<int dim> void DiscretizedFunction<dim>::dot_transform_vector() {
@@ -637,11 +664,14 @@ void DiscretizedFunction<dim>::dot_transform() {
       case Norm::H1L2:
          dot_transform_h1l2();
          return;
-      default:
+      case Norm::Invalid:
          AssertThrow(false, ExcMessage("norm_type == Invalid"))
+         break;
+      default:
+         AssertThrow(false, ExcMessage("Unknown Norm"))
    }
 
-   Assert(false, ExcInternalError ());
+   AssertThrow(false, ExcInternalError());
 }
 
 template<int dim>
@@ -659,11 +689,14 @@ void DiscretizedFunction<dim>::dot_transform_inverse() {
       case Norm::H1L2:
          dot_transform_inverse_h1l2();
          return;
-      default:
+      case Norm::Invalid:
          AssertThrow(false, ExcMessage("norm_type == Invalid"))
+         break;
+      default:
+         AssertThrow(false, ExcMessage("Unknown Norm"))
    }
 
-   Assert(false, ExcInternalError ());
+   AssertThrow(false, ExcInternalError());
 }
 
 template<int dim>
@@ -681,11 +714,14 @@ void DiscretizedFunction<dim>::dot_solve_mass_and_transform() {
       case Norm::H1L2:
          dot_solve_mass_and_transform_h1l2();
          return;
-      default:
+      case Norm::Invalid:
          AssertThrow(false, ExcMessage("norm_type == Invalid"))
+         break;
+      default:
+         AssertThrow(false, ExcMessage("Unknown Norm"))
    }
 
-   Assert(false, ExcInternalError ());
+   AssertThrow(false, ExcInternalError());
 }
 
 template<int dim>
@@ -703,11 +739,14 @@ void DiscretizedFunction<dim>::dot_mult_mass_and_transform_inverse() {
       case Norm::H1L2:
          dot_mult_mass_and_transform_inverse_h1l2();
          return;
-      default:
+      case Norm::Invalid:
          AssertThrow(false, ExcMessage("norm_type == Invalid"))
+         break;
+      default:
+         AssertThrow(false, ExcMessage("Unknown Norm"))
    }
 
-   Assert(false, ExcInternalError ());
+   AssertThrow(false, ExcInternalError());
 }
 
 template<int dim>
@@ -1176,7 +1215,7 @@ void DiscretizedFunction<dim>::write_vtk(const std::string name, const std::stri
    data_out.write_vtu(output);
 }
 
-template<int dim> typename DiscretizedFunction<dim>::Norm DiscretizedFunction<dim>::get_norm() const {
+template<int dim> Norm DiscretizedFunction<dim>::get_norm() const {
    return norm_type;
 }
 

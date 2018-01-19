@@ -26,10 +26,10 @@
 #include <measurements/GridPointMeasure.h>
 #include <measurements/MeasuredValues.h>
 
-#include <problems/L2AProblem.h>
-#include <problems/L2CProblem.h>
-#include <problems/L2NuProblem.h>
-#include <problems/L2QProblem.h>
+#include <problems/AProblem.h>
+#include <problems/CProblem.h>
+#include <problems/NuProblem.h>
+#include <problems/QProblem.h>
 
 #include <stddef.h>
 #include <tgmath.h>
@@ -203,26 +203,29 @@ template<int dim, typename Meas> void WavePI<dim, Meas>::initialize_problem() {
       case SettingsManager::ProblemType::L2Q:
          /* Reconstruct q */
          param_exact = wave_eq->get_param_q();
-         problem = std::make_shared<L2QProblem<dim, Meas>>(*wave_eq, pulses, measures);
+         problem = std::make_shared<QProblem<dim, Meas>>(*wave_eq, pulses, measures);
          break;
       case SettingsManager::ProblemType::L2C:
          /* Reconstruct c */
          param_exact = wave_eq->get_param_c();
-         problem = std::make_shared<L2CProblem<dim, Meas>>(*wave_eq, pulses, measures);
+         problem = std::make_shared<CProblem<dim, Meas>>(*wave_eq, pulses, measures);
          break;
       case SettingsManager::ProblemType::L2Nu:
          /* Reconstruct nu */
          param_exact = wave_eq->get_param_nu();
-         problem = std::make_shared<L2NuProblem<dim, Meas>>(*wave_eq, pulses, measures);
+         problem = std::make_shared<NuProblem<dim, Meas>>(*wave_eq, pulses, measures);
          break;
       case SettingsManager::ProblemType::L2A:
          /* Reconstruct a */
          param_exact = wave_eq->get_param_a();
-         problem = std::make_shared<L2AProblem<dim, Meas>>(*wave_eq, pulses, measures);
+         problem = std::make_shared<AProblem<dim, Meas>>(*wave_eq, pulses, measures);
          break;
       default:
          AssertThrow(false, ExcInternalError())
    }
+
+   problem->set_norm_domain(cfg->norm_domain);
+   problem->set_norm_codomain(cfg->norm_codomain);
 }
 
 template<int dim, typename Meas> void WavePI<dim, Meas>::generate_data() {
@@ -230,7 +233,9 @@ template<int dim, typename Meas> void WavePI<dim, Meas>::generate_data() {
    LogStream::Prefix pp("run"); // make logs of forward operator appear in the right level
 
    DiscretizedFunction<dim> param_exact_disc(mesh, *param_exact);
+   param_exact_disc.set_norm(cfg->norm_domain);
    Tuple<Meas> data_exact = problem->forward(param_exact_disc);
+
    double data_exact_norm = data_exact.norm();
 
    // in itself not wrong, but makes relative errors and noise levels meaningless.
@@ -250,8 +255,8 @@ template<int dim, typename Meas> void WavePI<dim, Meas>::run() {
    deallog.push("Initial Guess");
    auto initial_guess_discretized = std::make_shared<Param>(mesh, *initial_guess);
 
-   // TODO: make sure that the initial guess has the right norm
-   initial_guess_discretized->set_norm(DiscretizedFunction<dim>::Norm::H1L2);
+   // make sure that the initial guess has the right norm
+   initial_guess_discretized->set_norm(cfg->norm_domain);
 
    deallog.pop();
 
@@ -275,8 +280,10 @@ template<int dim, typename Meas> void WavePI<dim, Meas>::run() {
    regularization->add_listener(std::make_shared<CtrlCProgressListener<Param, Tuple<Meas>, Exact>>());
    regularization->add_listener(std::make_shared<OutputProgressListener<dim, Tuple<Meas>>>(*cfg->prm));
    regularization->add_listener(std::make_shared<BoundCheckProgressListener<dim, Tuple<Meas>>>(*cfg->prm));
-   regularization->add_listener(std::make_shared<StatOutputProgressListener<Param, Tuple<Meas>, Exact>>(*cfg->prm));
-   regularization->add_listener(std::make_shared<WatchdogProgressListener<Param, Tuple<Meas>, Exact>>(*cfg->prm));
+   regularization->add_listener(
+         std::make_shared<StatOutputProgressListener<Param, Tuple<Meas>, Exact>>(*cfg->prm));
+   regularization->add_listener(
+         std::make_shared<WatchdogProgressListener<Param, Tuple<Meas>, Exact>>(*cfg->prm));
 
    regularization->add_post_processor(std::make_shared<BoundEnforcingPostProcessor<dim>>(*cfg->prm));
 
