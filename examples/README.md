@@ -65,6 +65,10 @@ Like [`problem_c_2.cfg`](problem_c_2.cfg), but for $`\nu`$. First linear system 
 
 ## Reconstruction of constant $`a`$
 
-[`problem_a_1.cfg`](problem_a_1.cfg)
+### [`problem_a_1.cfg`](problem_a_1.cfg)
 
 Like [`problem_c_2.cfg`](problem_c_2.cfg), but for $`a`$. Same bad behaviour as for $`c`$.
+
+###  [`problem_a_h1l2_1.cfg`](problem_a_h1l2_1.cfg)
+
+Like [`problem_c_h1l2_2.cfg`](problem_c_h1l2_2.cfg), but for $`a`$.
