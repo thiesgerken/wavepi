@@ -54,7 +54,8 @@ class AProblem: public WaveProblem<dim, Measurement> {
       virtual std::unique_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>> derivative(
             size_t i) {
          return std::make_unique<AProblem<dim, Measurement>::Linearization>(this->wave_equation,
-               this->adjoint_solver, this->current_param, this->fields[i], this->norm_domain, this->norm_codomain);
+               this->adjoint_solver, this->current_param, this->fields[i], this->norm_domain,
+               this->norm_codomain);
       }
 
       virtual DiscretizedFunction<dim> forward(size_t i) {
@@ -145,9 +146,10 @@ class AProblem: public WaveProblem<dim, Measurement> {
 
                // M* : Y -> X
                // should be - nabla(res)*nabla(u) -> piecewise constant function -> fe spaces do not fit
-               // res.dot_solve_mass_and_transform();
+               res.dot_transform();
                m_adj->set_a(std::make_shared<DiscretizedFunction<dim>>(res));
-               res = m_adj->run_adjoint(res.get_mesh());
+               res = m_adj->run_adjoint(res.get_mesh()); // produces `mass * (M* res)`
+               res.solve_mass();
 
                res.set_norm(this->norm_domain);
                res.dot_transform_inverse();

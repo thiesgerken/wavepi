@@ -54,7 +54,8 @@ class CProblem: public WaveProblem<dim, Measurement> {
       virtual std::unique_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>> derivative(
             size_t i) {
          return std::make_unique<CProblem<dim, Measurement>::Linearization>(this->wave_equation,
-               this->adjoint_solver, this->current_param, this->fields[i], this->norm_domain, this->norm_codomain);
+               this->adjoint_solver, this->current_param, this->fields[i], this->norm_domain,
+               this->norm_codomain);
       }
 
       virtual DiscretizedFunction<dim> forward(size_t i) {
@@ -125,7 +126,7 @@ class CProblem: public WaveProblem<dim, Measurement> {
             }
 
             virtual DiscretizedFunction<dim> adjoint(const DiscretizedFunction<dim>& g) {
-               // L*
+               /* L*  */
                auto tmp = std::make_shared<DiscretizedFunction<dim>>(g);
                tmp->set_norm(this->norm_codomain);
                tmp->dot_solve_mass_and_transform();
@@ -149,7 +150,7 @@ class CProblem: public WaveProblem<dim, Measurement> {
                res.set_norm(this->norm_codomain);
                res.dot_mult_mass_and_transform_inverse();
 
-               // M*
+               /* M*  */
 
                // numerical adjoint
                res.dot_transform();
@@ -161,7 +162,7 @@ class CProblem: public WaveProblem<dim, Measurement> {
                res.set_norm(this->norm_domain);
                res.dot_transform_inverse();
 
-               // analytical adjoint (does not work ?! space_time_mass missing?)
+               // analytical adjoint (does not work)
                /*
                 res = res.calculate_derivative();
                 res.pointwise_multiplication(u->derivative());
