@@ -33,10 +33,16 @@ enum class Norm {
    L2L2,
 
    /**
-    * H^1([0,T], L^2(\Omega)) norm, using the trapezoidal rule in time (approximation)
-    * and the mass matrix in space (exact)
+    * H^1([0,T], L^2(\Omega)) norm, using the trapezoidal rule in time (approximation),
+    * the mass matrix in space (exact) and finite differences of order h^2 (inner) and h (boundary)
     */
-   H1L2
+   H1L2,
+
+   /**
+    * H^2([0,T], L^2(\Omega)) norm, using the trapezoidal rule in time (approximation),
+    * the mass matrix in space (exact) and finite differences of order h^2 (inner) and h (boundary)
+    */
+   H2L2
 };
 
 }

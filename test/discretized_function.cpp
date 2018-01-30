@@ -381,6 +381,21 @@ void run_derivative_transpose_test(int fe_order, int quad_order, int refines, in
 
       double tol = 1e-10;
       EXPECT_LT(err, tol);
+
+      auto D2y = y.calculate_second_derivative();
+      D2y.set_norm(Norm::Coefficients);
+
+      auto D2tx = x.calculate_second_derivative_transpose();
+      D2tx.set_norm(Norm::Coefficients);
+
+      double dot_x_D2y = x * D2y;
+      double dot_D2tx_y = D2tx * y;
+      double err2 = std::abs(dot_D2tx_y - dot_x_D2y) / (std::abs(dot_x_D2y) + 1e-300);
+
+      deallog << std::scientific << "(x, D2y) = " << dot_x_D2y << ", (D2^t x, y) = " << dot_D2tx_y
+            << ", rel. error = " << err2 << std::endl;
+
+      EXPECT_LT(err2, tol);
    }
 
    deallog << std::endl;
@@ -396,6 +411,9 @@ void run_dot_norm_tests(int fe_order, int quad_order, int refines, int n_steps) 
 
    deallog << "== norm=H1L2 ==" << std::endl;
    run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, Norm::H1L2);
+
+   deallog << "== norm=H2L2 ==" << std::endl;
+   run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, Norm::H2L2);
 }
 
 template<int dim>
@@ -408,6 +426,9 @@ void run_dot_transform_inverse_tests(int fe_order, int quad_order, int refines, 
 
    deallog << "== norm=H1L2 ==" << std::endl;
    run_dot_transform_inverse_test<dim>(fe_order, quad_order, refines, n_steps, Norm::H1L2);
+
+   deallog << "== norm=H2L2 ==" << std::endl;
+   run_dot_transform_inverse_test<dim>(fe_order, quad_order, refines, n_steps, Norm::H2L2);
 }
 
 template<int dim>
@@ -420,6 +441,9 @@ void run_dot_transform_consistent_tests(int fe_order, int quad_order, int refine
 
    deallog << "== norm=H1L2 ==" << std::endl;
    run_dot_transform_consistent_test<dim>(fe_order, quad_order, refines, n_steps, Norm::H1L2);
+
+   deallog << "== norm=H2L2 ==" << std::endl;
+   run_dot_transform_consistent_test<dim>(fe_order, quad_order, refines, n_steps, Norm::H2L2);
 }
 
 }

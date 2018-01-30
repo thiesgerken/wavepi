@@ -35,6 +35,14 @@ template class DiscretizedFunction<1> ;
 template class DiscretizedFunction<2> ;
 template class DiscretizedFunction<3> ;
 
+inline double square(const double x) {
+   return x * x;
+}
+
+inline double pow4(const double x) {
+   return x * x * x * x;
+}
+
 template<int dim>
 DiscretizedFunction<dim>::DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>> mesh, bool store_derivative)
       : store_derivative(store_derivative), cur_time_idx(0), mesh(mesh) {
@@ -245,6 +253,38 @@ DiscretizedFunction<dim> DiscretizedFunction<dim>::calculate_derivative() const 
 }
 
 template<int dim>
+DiscretizedFunction<dim> DiscretizedFunction<dim>::calculate_second_derivative() const {
+   AssertThrow(mesh, ExcNotInitialized());
+   AssertThrow(mesh->length() > 1, ExcInternalError());
+
+   DiscretizedFunction<dim> result(mesh, false);
+
+   /* implementation for constant mesh */
+
+   for (size_t i = 0; i < mesh->length(); i++) {
+      if (i < mesh->length() - 1)
+         AssertThrow(function_coefficients[i + 1].size() == function_coefficients[i].size(),
+               ExcNotImplemented());
+
+      if (i == 0) {
+         result.function_coefficients[i].add(-2, function_coefficients[i + 1]);
+         result.function_coefficients[i].add(1, function_coefficients[i + 2]);
+         result.function_coefficients[i] /= square(mesh->get_time(i + 1) - mesh->get_time(i));
+      } else if (i == mesh->length() - 1) {
+         result.function_coefficients[i].add(-2, function_coefficients[i - 1]);
+         result.function_coefficients[i].add(1, function_coefficients[i - 2]);
+         result.function_coefficients[i] /= square(mesh->get_time(i) - mesh->get_time(i - 1));
+      } else {
+         result.function_coefficients[i].sadd(-2, 1, function_coefficients[i + 1]);
+         result.function_coefficients[i].add(1, function_coefficients[i - 1]);
+         result.function_coefficients[i] /= square(mesh->get_time(i + 1) - mesh->get_time(i - 1));
+      }
+   }
+
+   return result;
+}
+
+template<int dim>
 double DiscretizedFunction<dim>::absolute_error(Function<dim>& other) const {
    return absolute_error(other, nullptr);
 }
@@ -401,6 +441,58 @@ DiscretizedFunction<dim> DiscretizedFunction<dim>::calculate_derivative_transpos
          Vector<double> tmp = function_coefficients[i + 1];
          mesh->transfer(i + 1, i, { &tmp });
          dest.add(-1.0 / (mesh->get_time(i + 2) - mesh->get_time(i)), tmp);
+      }
+   }
+
+   return result;
+}
+
+template<int dim>
+DiscretizedFunction<dim> DiscretizedFunction<dim>::calculate_second_derivative_transpose() const {
+   AssertThrow(mesh, ExcNotInitialized());
+
+   // because of the special cases
+   AssertThrow(mesh->length() > 3, ExcInternalError());
+
+   DiscretizedFunction<dim> result(mesh, false);
+
+   /* implementation for constant mesh */
+
+   for (size_t i = 0; i < mesh->length(); i++) {
+      auto dest = &result.function_coefficients[i];
+
+      if (i < mesh->length() - 1)
+         AssertThrow(function_coefficients[i + 1].size() == function_coefficients[i].size(),
+               ExcNotImplemented());
+
+      if (i == 0) {
+         dest->equ(1.0 / square(mesh->get_time(i + 1) - mesh->get_time(i)), function_coefficients[i]);
+         dest->add(1.0 / square(mesh->get_time(i + 2) - mesh->get_time(i)), function_coefficients[i + 1]);
+      } else if (i == 1) {
+         dest->equ(-2.0 / square(mesh->get_time(i + 1) - mesh->get_time(i - 1)), function_coefficients[i]);
+         dest->add(-2.0 / square(mesh->get_time(i) - mesh->get_time(i - 1)), function_coefficients[i - 1]);
+         dest->add(1.0 / square(mesh->get_time(i + 2) - mesh->get_time(i)), function_coefficients[i + 1]);
+      } else if (i == 2) {
+         dest->equ(-2.0 / square(mesh->get_time(i + 1) - mesh->get_time(i - 1)), function_coefficients[i]);
+         dest->add(1.0 / square(mesh->get_time(i) - mesh->get_time(i - 2)), function_coefficients[i - 1]);
+         dest->add(1.0 / square(mesh->get_time(i + 2) - mesh->get_time(i)), function_coefficients[i + 1]);
+         dest->add(1.0 / square(mesh->get_time(i - 2) - mesh->get_time(i - 1)), function_coefficients[i - 2]);
+      } else if (i == mesh->length() - 1) {
+         dest->equ(1.0 / square(mesh->get_time(i) - mesh->get_time(i - 1)), function_coefficients[i]);
+         dest->add(1.0 / square(mesh->get_time(i) - mesh->get_time(i - 2)), function_coefficients[i - 1]);
+      } else if (i == mesh->length() - 2) {
+         dest->equ(-2.0 / square(mesh->get_time(i + 1) - mesh->get_time(i - 1)), function_coefficients[i]);
+         dest->add(-2.0 / square(mesh->get_time(i) - mesh->get_time(i + 1)), function_coefficients[i + 1]);
+         dest->add(1.0 / square(mesh->get_time(i - 2) - mesh->get_time(i)), function_coefficients[i - 1]);
+      } else if (i == mesh->length() - 3) {
+         dest->equ(-2.0 / square(mesh->get_time(i + 1) - mesh->get_time(i - 1)), function_coefficients[i]);
+         dest->add(1.0 / square(mesh->get_time(i) - mesh->get_time(i - 2)), function_coefficients[i - 1]);
+         dest->add(1.0 / square(mesh->get_time(i + 2) - mesh->get_time(i)), function_coefficients[i + 1]);
+         dest->add(1.0 / square(mesh->get_time(i + 2) - mesh->get_time(i + 1)), function_coefficients[i + 2]);
+      } else {
+         dest->equ(-2.0 / square(mesh->get_time(i + 1) - mesh->get_time(i - 1)), function_coefficients[i]);
+         dest->add(1.0 / square(mesh->get_time(i) - mesh->get_time(i - 2)), function_coefficients[i - 1]);
+         dest->add(1.0 / square(mesh->get_time(i + 2) - mesh->get_time(i)), function_coefficients[i + 1]);
       }
    }
 
@@ -578,6 +670,8 @@ double DiscretizedFunction<dim>::norm() const {
          return norm_l2l2();
       case Norm::H1L2:
          return norm_h1l2();
+      case Norm::H2L2:
+         return norm_h2l2();
       case Norm::Invalid:
          AssertThrow(false, ExcMessage("norm_type == Invalid"))
          break;
@@ -602,6 +696,8 @@ double DiscretizedFunction<dim>::operator*(const DiscretizedFunction<dim> & V) c
          return dot_l2l2(V);
       case Norm::H1L2:
          return dot_h1l2(V);
+      case Norm::H2L2:
+         return dot_h2l2(V);
       case Norm::Invalid:
          AssertThrow(false, ExcMessage("norm_type == Invalid"))
          break;
@@ -626,6 +722,8 @@ bool DiscretizedFunction<dim>::is_hilbert() const {
       case Norm::L2L2:
          return true;
       case Norm::H1L2:
+         return true;
+      case Norm::H2L2:
          return true;
       case Norm::Invalid:
          AssertThrow(false, ExcMessage("norm_type == Invalid"))
@@ -664,6 +762,9 @@ void DiscretizedFunction<dim>::dot_transform() {
       case Norm::H1L2:
          dot_transform_h1l2();
          return;
+      case Norm::H2L2:
+         dot_transform_h2l2();
+         return;
       case Norm::Invalid:
          AssertThrow(false, ExcMessage("norm_type == Invalid"))
          break;
@@ -688,6 +789,9 @@ void DiscretizedFunction<dim>::dot_transform_inverse() {
          return;
       case Norm::H1L2:
          dot_transform_inverse_h1l2();
+         return;
+      case Norm::H2L2:
+         dot_transform_inverse_h2l2();
          return;
       case Norm::Invalid:
          AssertThrow(false, ExcMessage("norm_type == Invalid"))
@@ -714,6 +818,9 @@ void DiscretizedFunction<dim>::dot_solve_mass_and_transform() {
       case Norm::H1L2:
          dot_solve_mass_and_transform_h1l2();
          return;
+      case Norm::H2L2:
+         dot_solve_mass_and_transform_h2l2();
+         return;
       case Norm::Invalid:
          AssertThrow(false, ExcMessage("norm_type == Invalid"))
          break;
@@ -738,6 +845,9 @@ void DiscretizedFunction<dim>::dot_mult_mass_and_transform_inverse() {
          return;
       case Norm::H1L2:
          dot_mult_mass_and_transform_inverse_h1l2();
+         return;
+      case Norm::H2L2:
+         dot_mult_mass_and_transform_inverse_h2l2();
          return;
       case Norm::Invalid:
          AssertThrow(false, ExcMessage("norm_type == Invalid"))
@@ -947,13 +1057,15 @@ template<int dim> void DiscretizedFunction<dim>::dot_transform_inverse_h1l2() {
    dot_mult_mass_and_transform_inverse_h1l2();
 }
 
-inline double square(const double x) {
-   return x * x;
+template<int dim> void DiscretizedFunction<dim>::dot_transform_inverse_h2l2() {
+   solve_mass();
+   dot_mult_mass_and_transform_inverse_h2l2();
 }
 
 template<int dim> void DiscretizedFunction<dim>::dot_mult_mass_and_transform_inverse_h1l2() {
    LogStream::Prefix p("h1l2_transform");
-   Timer timer;
+   AssertThrow(mesh->length() > 7, ExcInternalError());
+       Timer timer;
    timer.start();
 
    SparsityPattern pattern(mesh->length(), mesh->length(), 3);
@@ -1060,6 +1172,175 @@ template<int dim> void DiscretizedFunction<dim>::dot_mult_mass_and_transform_inv
    deallog << "solved in " << timer.wall_time() << "s" << std::endl;
 }
 
+template<int dim> void DiscretizedFunction<dim>::dot_mult_mass_and_transform_inverse_h2l2() {
+   LogStream::Prefix p("h2l2_transform");
+   Timer timer;
+   timer.start();
+
+   SparsityPattern pattern(mesh->length(), mesh->length(), 5);
+
+   for (size_t i = 0; i < 3; i++)
+      for (size_t j = 0; j < 3; j++)
+         pattern.add(i, j);
+
+   for (size_t i = 3; i < mesh->length() - 3; i++) {
+      // fill row i and column i
+      for (int j = -2; j <= 2; j++) {
+         pattern.add(i, i + j);
+         pattern.add(i + j, i);
+      }
+   }
+
+   for (size_t i = 0; i < 3; i++)
+      for (size_t j = 0; j < 3; j++)
+         pattern.add(mesh->length() - 1 - i, mesh->length() - 1 - j);
+
+   pattern.compress();
+
+   // coefficients of trapezoidal rule
+   std::vector<double> lambdas(mesh->length(), 0.0);
+
+   for (size_t i = 0; i < mesh->length(); i++) {
+      if (i > 0)
+         lambdas[i] += std::abs(mesh->get_time(i) - mesh->get_time(i - 1)) / 2.0;
+
+      if (i < mesh->length() - 1)
+         lambdas[i] += std::abs(mesh->get_time(i + 1) - mesh->get_time(i)) / 2.0;
+   }
+
+   SparseMatrix<double> matrix(pattern);
+
+   double p20 = 1.0 / pow4(mesh->get_time(2) - mesh->get_time(0));
+   double p10 = 1.0 / pow4(mesh->get_time(1) - mesh->get_time(0));
+   double p31 = 1.0 / pow4(mesh->get_time(3) - mesh->get_time(1));
+   double p42 = 1.0 / pow4(mesh->get_time(4) - mesh->get_time(2));
+
+   matrix.set(0, 0, lambdas[0] * p10 + lambdas[1] * p20);
+   matrix.set(1, 1, 4 * lambdas[0] * p10 + 4 * lambdas[1] * p20 + lambdas[2] * p31);
+   matrix.set(2, 2, lambdas[0] * p10 + lambdas[1] * p20 + 4 * lambdas[2] * p31 + 4 * lambdas[3] * p42);
+
+   matrix.set(0, 1, -2 * lambdas[0] * p10 - 2 * lambdas[1] * p20);
+   matrix.set(1, 0, -2 * lambdas[0] * p10 - 2 * lambdas[1] * p20);
+
+   matrix.set(0, 2, lambdas[0] * p10 + lambdas[1] * p20);
+   matrix.set(2, 0, lambdas[0] * p10 + lambdas[1] * p20);
+
+   matrix.set(1, 2, -2 * lambdas[0] * p10 - 2 * lambdas[1] * p20 - 2 * lambdas[2] * p31);
+   matrix.set(2, 1, -2 * lambdas[0] * p10 - 2 * lambdas[1] * p20 - 2 * lambdas[2] * p31);
+
+   for (size_t i = 3; i < mesh->length() - 3; i++) {
+      // fill row i and column i
+
+      double p20 = 1.0 / pow4(mesh->get_time(i + 2) - mesh->get_time(i));
+      double p0m2 = 1.0 / pow4(mesh->get_time(i - 2) - mesh->get_time(i));
+      double p1m1 = 1.0 / pow4(mesh->get_time(i + 1) - mesh->get_time(i - 1));
+
+      matrix.set(i, i, lambdas[i + 1] * p20 + lambdas[i] * p1m1 + lambdas[i - 1] * p0m2);
+
+      matrix.set(i, i - 1, -2 * lambdas[i - 1] * p0m2 - 2 * lambdas[i] * p1m1);
+      matrix.set(i - 1, i, -2 * lambdas[i - 1] * p0m2 - 2 * lambdas[i] * p1m1);
+
+      matrix.set(i, i + 1, -2 * lambdas[i + 1] * p20 - 2 * lambdas[i] * p1m1);
+      matrix.set(i + 1, i, -2 * lambdas[i + 1] * p20 - 2 * lambdas[i] * p1m1);
+
+      matrix.set(i, i + 2, lambdas[i + 1] * p20);
+      matrix.set(i + 2, i, lambdas[i + 1] * p20);
+
+      matrix.set(i, i - 2, lambdas[i - 1] * p0m2);
+      matrix.set(i - 2, i, lambdas[i - 1] * p0m2);
+   }
+
+   // (symmetric to the first entries)
+   size_t N = mesh->length() - 1; // makes it easier to read
+
+   p20 = 1.0 / pow4(mesh->get_time(N - 2) - mesh->get_time(N - 0));
+   p10 = 1.0 / pow4(mesh->get_time(N - 1) - mesh->get_time(N - 0));
+   p31 = 1.0 / pow4(mesh->get_time(N - 3) - mesh->get_time(N - 1));
+   p42 = 1.0 / pow4(mesh->get_time(N - 4) - mesh->get_time(N - 2));
+
+   matrix.set(N - 0, N - 0, lambdas[N - 0] * p10 + lambdas[N - 1] * p20);
+   matrix.set(N - 1, N - 1, 4 * lambdas[N - 0] * p10 + 4 * lambdas[N - 1] * p20 + lambdas[N - 2] * p31);
+   matrix.set(N - 2, N - 2,
+         lambdas[N - 0] * p10 + lambdas[N - 1] * p20 + 4 * lambdas[N - 2] * p31 + 4 * lambdas[N - 3] * p42);
+
+   matrix.set(N - 0, N - 1, -2 * lambdas[N - 0] * p10 - 2 * lambdas[N - 1] * p20);
+   matrix.set(N - 1, N - 0, -2 * lambdas[N - 0] * p10 - 2 * lambdas[N - 1] * p20);
+
+   matrix.set(N - 0, N - 2, lambdas[N - 0] * p10 + lambdas[N - 1] * p20);
+   matrix.set(N - 2, N - 0, lambdas[N - 0] * p10 + lambdas[N - 1] * p20);
+
+   matrix.set(N - 1, N - 2, -2 * lambdas[N - 0] * p10 - 2 * lambdas[N - 1] * p20 - 2 * lambdas[N - 2] * p31);
+   matrix.set(N - 2, N - 1, -2 * lambdas[N - 0] * p10 - 2 * lambdas[N - 1] * p20 - 2 * lambdas[N - 2] * p31);
+
+   matrix *= h2l2_beta;
+
+   // H1 part (+ trapezoidal rule)
+   SparseMatrix<double> matrixH1(pattern);
+
+   double sq20 = 1.0 / square(mesh->get_time(2) - mesh->get_time(0));
+   double sq10 = 1.0 / square(mesh->get_time(1) - mesh->get_time(0));
+   double sq31 = 1.0 / square(mesh->get_time(3) - mesh->get_time(1));
+
+   matrixH1.set(0, 0, lambdas[1] * sq20 + lambdas[0] * sq10);
+   matrixH1.set(1, 1, lambdas[2] * sq31 + lambdas[0] * sq10);
+   matrixH1.set(0, 1, -lambdas[0] * sq10);
+   matrixH1.set(1, 0, -lambdas[0] * sq10);
+
+   for (size_t i = 2; i < mesh->length() - 2; i++) {
+      // fill row i and column i
+
+      double sq20 = 1.0 / square(mesh->get_time(i + 2) - mesh->get_time(i));
+      double sq0m2 = 1.0 / square(mesh->get_time(i) - mesh->get_time(i - 2));
+
+      matrixH1.set(i, i, lambdas[i + 1] * sq20 + lambdas[i - 1] * sq0m2);
+
+      matrixH1.set(i, i - 2, -lambdas[i - 1] * sq0m2);
+      matrixH1.set(i - 2, i, -lambdas[i - 1] * sq0m2);
+
+      matrixH1.set(i, i + 2, -lambdas[i + 1] * sq20);
+      matrixH1.set(i + 2, i, -lambdas[i + 1] * sq20);
+   }
+
+   // (symmetric to the first entries)
+   sq20 = 1.0 / square(mesh->get_time(N - 2) - mesh->get_time(N));
+   sq10 = 1.0 / square(mesh->get_time(N - 1) - mesh->get_time(N));
+   sq31 = 1.0 / square(mesh->get_time(N - 3) - mesh->get_time(N - 1));
+
+   matrixH1.set(N, N - 0, lambdas[N - 1] * sq20 + lambdas[N] * sq10);
+   matrixH1.set(N - 1, N - 1, lambdas[N - 2] * sq31 + lambdas[N] * sq10);
+   matrixH1.set(N, N - 1, -lambdas[N] * sq10);
+   matrixH1.set(N - 1, N, -lambdas[N] * sq10);
+
+   matrixH1 *= h2l2_alpha;
+   matrix.add(1.0, matrixH1);
+
+   // L2 part (+ trapezoidal rule)
+   for (size_t i = 0; i < mesh->length(); i++)
+      matrix.add(i, i, lambdas[i]);
+
+   // just to be sure
+   for (size_t i = 0; i < mesh->length(); i++)
+      Assert(function_coefficients[i].size() == function_coefficients[0].size(), ExcInternalError());
+
+   // solve for every DoF
+   SparseDirectUMFPACK umfpack;
+   umfpack.factorize(matrix);
+
+   Vector<double> tmp(mesh->length());
+
+   for (size_t i = 0; i < function_coefficients[0].size(); i++) {
+      for (size_t j = 0; j < mesh->length(); j++)
+         tmp[j] = function_coefficients[j][i];
+
+      umfpack.solve(tmp);
+
+      for (size_t j = 0; j < mesh->length(); j++)
+         function_coefficients[j][i] = tmp[j];
+   }
+
+   deallog << "solved in " << timer.wall_time() << "s" << std::endl;
+}
+
 template<int dim> double DiscretizedFunction<dim>::dot_h1l2(const DiscretizedFunction<dim> & V) const {
    double result = 0.0;
 
@@ -1086,8 +1367,39 @@ template<int dim> double DiscretizedFunction<dim>::dot_h1l2(const DiscretizedFun
    return result;
 }
 
+template<int dim> double DiscretizedFunction<dim>::dot_h2l2(const DiscretizedFunction<dim> & V) const {
+   double result = 0.0;
+
+   // we may be able to use v, but this might introduce inconsistencies in the adjoints
+   // Note: this function works even for non-constant meshes.
+   auto deriv = calculate_derivative();
+   auto Vderiv = V.calculate_derivative();
+
+   // using deriv.calculate_derivative feels wrong, better use a specialized formula.
+   auto deriv2 = calculate_second_derivative();
+   auto Vderiv2 = V.calculate_second_derivative();
+
+   for (size_t i = 0; i < mesh->length(); i++) {
+      double doti = mesh->get_mass_matrix(i)->matrix_scalar_product(function_coefficients[i],
+            V.function_coefficients[i]);
+      double doti_deriv = mesh->get_mass_matrix(i)->matrix_scalar_product(deriv[i], Vderiv[i]);
+      double doti_deriv2 = mesh->get_mass_matrix(i)->matrix_scalar_product(deriv2[i], Vderiv2[i]);
+
+      // + trapezoidal rule in time
+      if (i > 0)
+         result += (doti + h2l2_alpha * doti_deriv + h2l2_beta * doti_deriv2) / 2
+               * (std::abs(mesh->get_time(i) - mesh->get_time(i - 1)));
+
+      if (i < mesh->length() - 1)
+         result += (doti + h2l2_alpha * doti_deriv + h2l2_beta * doti_deriv2) / 2
+               * (std::abs(mesh->get_time(i + 1) - mesh->get_time(i)));
+   }
+
+   return result;
+}
+
 template<int dim> void DiscretizedFunction<dim>::dot_solve_mass_and_transform_h1l2() {
-   // X = T * (I + \alpha D^t D) * M,
+   // X = (T + \alpha D^t T D) * M,
    // M (blocks of mass matrices) is already taken care of, D = derivative, T = trapezoidal rule
 
    auto dx = calculate_derivative();
@@ -1115,9 +1427,47 @@ template<int dim> void DiscretizedFunction<dim>::dot_solve_mass_and_transform_h1
    }
 }
 
+template<int dim> void DiscretizedFunction<dim>::dot_solve_mass_and_transform_h2l2() {
+   // X = (T + \alpha D^t T D + \beta D_2^t T D_2) * M,
+   // M (blocks of mass matrices) is already taken care of, D = derivative, T = trapezoidal rule
+
+   auto dx = calculate_derivative();
+   auto d2x = calculate_second_derivative();
+
+   // trapezoidal rule
+   // (has to happen between D and D^t for dx)
+   for (size_t i = 0; i < mesh->length(); i++) {
+      double factor = 0.0;
+
+      if (i > 0)
+         factor += std::abs(mesh->get_time(i) - mesh->get_time(i - 1)) / 2.0;
+
+      if (i < mesh->length() - 1)
+         factor += std::abs(mesh->get_time(i + 1) - mesh->get_time(i)) / 2.0;
+
+      dx[i] *= factor;
+      d2x[i] *= factor;
+      function_coefficients[i] *= factor;
+   }
+
+   auto dtdx = dx.calculate_derivative_transpose();
+   auto d2td2x = dx.calculate_second_derivative_transpose();
+
+   // add derivative terms
+   for (size_t i = 0; i < mesh->length(); i++) {
+      function_coefficients[i].add(h2l2_alpha, dtdx[i]);
+      function_coefficients[i].add(h2l2_beta, d2td2x[i]);
+   }
+}
+
 template<int dim> void DiscretizedFunction<dim>::dot_transform_h1l2() {
    mult_mass();
    dot_solve_mass_and_transform_h1l2();
+}
+
+template<int dim> void DiscretizedFunction<dim>::dot_transform_h2l2() {
+   mult_mass();
+   dot_solve_mass_and_transform_h2l2();
 }
 
 template<int dim>
@@ -1141,6 +1491,37 @@ double DiscretizedFunction<dim>::norm_h1l2() const {
 
       if (i < mesh->length() - 1)
          result += (nrm2 + h1l2_alpha * nrm2_deriv) / 2
+               * (std::abs(mesh->get_time(i + 1) - mesh->get_time(i)));
+   }
+
+   return std::sqrt(result);
+}
+
+template<int dim>
+double DiscretizedFunction<dim>::norm_h2l2() const {
+   Assert(mesh, ExcNotInitialized());
+
+   // we may be able to use v, but this might introduce inconsistencies in the adjoints
+   // Note: this function works even for non-constant meshes.
+   auto deriv = calculate_derivative();
+
+   // using deriv.calculate_derivative feels wrong, better use a specialized formula.
+   auto deriv2 = calculate_second_derivative();
+
+   double result = 0;
+
+   for (size_t i = 0; i < mesh->length(); i++) {
+      double nrm2 = mesh->get_mass_matrix(i)->matrix_norm_square(function_coefficients[i]);
+      double nrm2_deriv = mesh->get_mass_matrix(i)->matrix_norm_square(deriv[i]);
+      double nrm2_deriv2 = mesh->get_mass_matrix(i)->matrix_norm_square(deriv2[i]);
+
+      // + trapezoidal rule in time:
+      if (i > 0)
+         result += (nrm2 + h2l2_alpha * nrm2_deriv + h2l2_beta * nrm2_deriv2) / 2
+               * (std::abs(mesh->get_time(i) - mesh->get_time(i - 1)));
+
+      if (i < mesh->length() - 1)
+         result += (nrm2 + h2l2_alpha * nrm2_deriv + h2l2_beta * nrm2_deriv2) / 2
                * (std::abs(mesh->get_time(i + 1) - mesh->get_time(i)));
    }
 

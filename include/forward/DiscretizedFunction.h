@@ -163,10 +163,23 @@ class DiscretizedFunction: public Function<dim> {
       DiscretizedFunction<dim> calculate_derivative() const;
 
       /**
+       * Approximate the first time derivative using finite differences
+       * (one-sided at begin/end and central everywhere else)
+       * Throws an error if this function keeps track of its derivative.
+       */
+      DiscretizedFunction<dim> calculate_second_derivative() const;
+
+      /**
        * calculate the transpose (i.e. adjoint using vector norms / dot products) of what `calculate_derivative` does.
        * For constant time step size this is equivalent to g -> -g' in inner nodes (-> partial integration!).
        */
       DiscretizedFunction<dim> calculate_derivative_transpose() const;
+
+      /**
+       * calculate the transpose (i.e. adjoint using vector norms / dot products) of what `calculate_second_derivative` does.
+       * For constant time step size this is equivalent to g -> g'' in inner nodes (-> partial integration!).
+       */
+      DiscretizedFunction<dim> calculate_second_derivative_transpose() const;
 
       /**
        * @}
@@ -499,6 +512,9 @@ class DiscretizedFunction: public Function<dim> {
 
       const double h1l2_alpha = 1.0;
 
+      const double h2l2_alpha = 1.0;
+      const double h2l2_beta = 1.0;
+
       std::shared_ptr<SpaceTimeMesh<dim>> mesh;
 
       std::vector<Vector<double>> function_coefficients;
@@ -543,6 +559,20 @@ class DiscretizedFunction: public Function<dim> {
       void dot_transform_inverse_h1l2();
       void dot_solve_mass_and_transform_h1l2();
       void dot_mult_mass_and_transform_inverse_h1l2();
+
+      /**
+       * @}
+       *
+       * @name Functions for `Norm::H2L2`
+       */
+
+      double norm_h2l2() const;
+      double dot_h2l2(const DiscretizedFunction<dim> & V) const;
+
+      void dot_transform_h2l2();
+      void dot_transform_inverse_h2l2();
+      void dot_solve_mass_and_transform_h2l2();
+      void dot_mult_mass_and_transform_inverse_h2l2();
 
       /**
        * @}
