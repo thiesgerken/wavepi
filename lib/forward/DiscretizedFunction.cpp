@@ -267,15 +267,18 @@ DiscretizedFunction<dim> DiscretizedFunction<dim>::calculate_second_derivative()
                ExcNotImplemented());
 
       if (i == 0) {
+         result.function_coefficients[i] = function_coefficients[i];
          result.function_coefficients[i].add(-2, function_coefficients[i + 1]);
          result.function_coefficients[i].add(1, function_coefficients[i + 2]);
          result.function_coefficients[i] /= square(mesh->get_time(i + 1) - mesh->get_time(i));
       } else if (i == mesh->length() - 1) {
+         result.function_coefficients[i] = function_coefficients[i];
          result.function_coefficients[i].add(-2, function_coefficients[i - 1]);
          result.function_coefficients[i].add(1, function_coefficients[i - 2]);
          result.function_coefficients[i] /= square(mesh->get_time(i) - mesh->get_time(i - 1));
       } else {
-         result.function_coefficients[i].sadd(-2, 1, function_coefficients[i + 1]);
+         result.function_coefficients[i].equ(-2, function_coefficients[i]);
+         result.function_coefficients[i].add(1, function_coefficients[i + 1]);
          result.function_coefficients[i].add(1, function_coefficients[i - 1]);
          result.function_coefficients[i] /= square(mesh->get_time(i + 1) - mesh->get_time(i - 1));
       }
@@ -1065,7 +1068,7 @@ template<int dim> void DiscretizedFunction<dim>::dot_transform_inverse_h2l2() {
 template<int dim> void DiscretizedFunction<dim>::dot_mult_mass_and_transform_inverse_h1l2() {
    LogStream::Prefix p("h1l2_transform");
    AssertThrow(mesh->length() > 7, ExcInternalError());
-       Timer timer;
+   Timer timer;
    timer.start();
 
    SparsityPattern pattern(mesh->length(), mesh->length(), 3);
@@ -1217,7 +1220,7 @@ template<int dim> void DiscretizedFunction<dim>::dot_mult_mass_and_transform_inv
 
    matrix.set(0, 0, lambdas[0] * p10 + lambdas[1] * p20);
    matrix.set(1, 1, 4 * lambdas[0] * p10 + 4 * lambdas[1] * p20 + lambdas[2] * p31);
-   matrix.set(2, 2, lambdas[0] * p10 + lambdas[1] * p20 + 4 * lambdas[2] * p31 + 4 * lambdas[3] * p42);
+   matrix.set(2, 2, lambdas[0] * p10 + lambdas[1] * p20 + 4 * lambdas[2] * p31 + lambdas[3] * p42);
 
    matrix.set(0, 1, -2 * lambdas[0] * p10 - 2 * lambdas[1] * p20);
    matrix.set(1, 0, -2 * lambdas[0] * p10 - 2 * lambdas[1] * p20);
@@ -1235,7 +1238,7 @@ template<int dim> void DiscretizedFunction<dim>::dot_mult_mass_and_transform_inv
       double p0m2 = 1.0 / pow4(mesh->get_time(i - 2) - mesh->get_time(i));
       double p1m1 = 1.0 / pow4(mesh->get_time(i + 1) - mesh->get_time(i - 1));
 
-      matrix.set(i, i, lambdas[i + 1] * p20 + lambdas[i] * p1m1 + lambdas[i - 1] * p0m2);
+      matrix.set(i, i, lambdas[i + 1] * p20 + 4*lambdas[i] * p1m1 + lambdas[i - 1] * p0m2);
 
       matrix.set(i, i - 1, -2 * lambdas[i - 1] * p0m2 - 2 * lambdas[i] * p1m1);
       matrix.set(i - 1, i, -2 * lambdas[i - 1] * p0m2 - 2 * lambdas[i] * p1m1);
@@ -1261,7 +1264,7 @@ template<int dim> void DiscretizedFunction<dim>::dot_mult_mass_and_transform_inv
    matrix.set(N - 0, N - 0, lambdas[N - 0] * p10 + lambdas[N - 1] * p20);
    matrix.set(N - 1, N - 1, 4 * lambdas[N - 0] * p10 + 4 * lambdas[N - 1] * p20 + lambdas[N - 2] * p31);
    matrix.set(N - 2, N - 2,
-         lambdas[N - 0] * p10 + lambdas[N - 1] * p20 + 4 * lambdas[N - 2] * p31 + 4 * lambdas[N - 3] * p42);
+         lambdas[N - 0] * p10 + lambdas[N - 1] * p20 + 4 * lambdas[N - 2] * p31 + lambdas[N - 3] * p42);
 
    matrix.set(N - 0, N - 1, -2 * lambdas[N - 0] * p10 - 2 * lambdas[N - 1] * p20);
    matrix.set(N - 1, N - 0, -2 * lambdas[N - 0] * p10 - 2 * lambdas[N - 1] * p20);
@@ -1311,8 +1314,7 @@ template<int dim> void DiscretizedFunction<dim>::dot_mult_mass_and_transform_inv
    matrixH1.set(N, N - 1, -lambdas[N] * sq10);
    matrixH1.set(N - 1, N, -lambdas[N] * sq10);
 
-   matrixH1 *= h2l2_alpha;
-   matrix.add(1.0, matrixH1);
+   matrix.add(h2l2_alpha, matrixH1);
 
    // L2 part (+ trapezoidal rule)
    for (size_t i = 0; i < mesh->length(); i++)
@@ -1451,7 +1453,7 @@ template<int dim> void DiscretizedFunction<dim>::dot_solve_mass_and_transform_h2
    }
 
    auto dtdx = dx.calculate_derivative_transpose();
-   auto d2td2x = dx.calculate_second_derivative_transpose();
+   auto d2td2x = d2x.calculate_second_derivative_transpose();
 
    // add derivative terms
    for (size_t i = 0; i < mesh->length(); i++) {

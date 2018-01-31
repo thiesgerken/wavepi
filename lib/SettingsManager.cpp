@@ -126,9 +126,9 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
       prm->declare_entry(KEY_PROBLEM_TYPE, "a", Patterns::Selection("a|c|q|nu|L2A|L2Q|L2Nu|L2C"),
             "parameter that is reconstructed");
 
-      prm->declare_entry(KEY_PROBLEM_NORM_DOMAIN, "L2L2", Patterns::Selection("L2L2|H1L2|Coefficients"),
+      prm->declare_entry(KEY_PROBLEM_NORM_DOMAIN, "L2L2", Patterns::Selection("L2L2|H1L2|H2L2|Coefficients"),
             "norm to use for parameters (incl. the reconstruction)");
-      prm->declare_entry(KEY_PROBLEM_NORM_CODOMAIN, "L2L2", Patterns::Selection("L2L2|H1L2|Coefficients"),
+      prm->declare_entry(KEY_PROBLEM_NORM_CODOMAIN, "L2L2", Patterns::Selection("L2L2|H1L2|H2L2|Coefficients"),
             "Set the norm to use for fields. Be aware that this has to match the norm that the measurements expect its inputs to have.");
 
       prm->declare_entry(KEY_PROBLEM_EPSILON, "1e-2", Patterns::Double(0, 1), "relative noise level ε");
@@ -284,6 +284,8 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
          norm_domain = Norm::L2L2;
       else if (norm_domain_s == "H1L2")
          norm_domain = Norm::H1L2;
+      else if (norm_domain_s == "H2L2")
+         norm_domain = Norm::H2L2;
       else if (norm_domain_s == "Coefficients")
          norm_domain = Norm::Coefficients;
       else
@@ -294,7 +296,9 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
       if (norm_codomain_s == "L2L2")
          norm_codomain = Norm::L2L2;
       else if (norm_codomain_s == "H1L2")
-         norm_codomain = Norm::H1L2;
+         norm_codomain = Norm::H2L2;
+      else if (norm_codomain_s == "H1L2")
+         norm_codomain = Norm::H2L2;
       else if (norm_codomain_s == "Coefficients")
          norm_codomain = Norm::Coefficients;
       else

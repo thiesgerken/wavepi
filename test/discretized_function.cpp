@@ -256,7 +256,7 @@ void run_dot_transform_inverse_test(int fe_order, int quad_order, int refines, i
    deallog << std::endl << "----------  n_dofs / timestep: " << mesh->get_dof_handler(0)->n_dofs();
    deallog << ", n_steps: " << times.size() << "  ----------" << std::endl;
 
-   double tol = 1e-08;
+   double tol = 1e-06;
 
    for (int i = 0; i < 10; i++) {
       DiscretizedFunction<dim> x = DiscretizedFunction<dim>::noise(mesh);
