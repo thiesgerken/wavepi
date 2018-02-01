@@ -54,6 +54,10 @@ const std::string SettingsManager::KEY_PROBLEM = "problem";
 const std::string SettingsManager::KEY_PROBLEM_TYPE = "type";
 const std::string SettingsManager::KEY_PROBLEM_NORM_DOMAIN = "norm of domain";
 const std::string SettingsManager::KEY_PROBLEM_NORM_CODOMAIN = "norm of codomain";
+const std::string SettingsManager::KEY_PROBLEM_NORM_H1L2ALPHA = "H1L2 alpha";
+const std::string SettingsManager::KEY_PROBLEM_NORM_H2L2ALPHA = "H2L2 alpha";
+const std::string SettingsManager::KEY_PROBLEM_NORM_H2L2BETA = "H2L2 beta";
+
 const std::string SettingsManager::KEY_PROBLEM_EPSILON = "epsilon";
 const std::string SettingsManager::KEY_PROBLEM_CONSTANTS = "constants";
 const std::string SettingsManager::KEY_PROBLEM_GUESS = "initial guess";
