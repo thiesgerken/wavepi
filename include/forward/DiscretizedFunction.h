@@ -35,6 +35,10 @@ using namespace dealii;
 template<int dim>
 class DiscretizedFunction: public Function<dim> {
    public:
+      static double h1l2_alpha;
+      static double h2l2_alpha;
+      static double h2l2_beta;
+
       virtual ~DiscretizedFunction() = default;
 
       /**
@@ -509,11 +513,6 @@ class DiscretizedFunction: public Function<dim> {
       Norm norm_type = Norm::Invalid;
       bool store_derivative = false;
       size_t cur_time_idx = 0;
-
-      const double h1l2_alpha = 1.0;
-
-      const double h2l2_alpha = 1.0;
-      const double h2l2_beta = 1.0;
 
       std::shared_ptr<SpaceTimeMesh<dim>> mesh;
 

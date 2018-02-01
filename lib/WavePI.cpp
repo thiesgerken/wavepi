@@ -61,6 +61,10 @@ template<int dim, typename Meas> WavePI<dim, Meas>::WavePI(std::shared_ptr<Setti
 
    AssertThrow(pulses.size() == measures.size(), ExcInternalError());
 
+   DiscretizedFunction<dim>::h1l2_alpha = cfg->norm_h1l2_alpha;
+   DiscretizedFunction<dim>::h2l2_alpha = cfg->norm_h2l2_alpha;
+   DiscretizedFunction<dim>::h2l2_beta = cfg->norm_h2l2_beta;
+
    initial_guess = std::make_shared<MacroFunctionParser<dim>>(cfg->expr_initial_guess,
          cfg->constants_for_exprs);
 

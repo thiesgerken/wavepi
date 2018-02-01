@@ -128,8 +128,16 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
 
       prm->declare_entry(KEY_PROBLEM_NORM_DOMAIN, "L2L2", Patterns::Selection("L2L2|H1L2|H2L2|Coefficients"),
             "norm to use for parameters (incl. the reconstruction)");
-      prm->declare_entry(KEY_PROBLEM_NORM_CODOMAIN, "L2L2", Patterns::Selection("L2L2|H1L2|H2L2|Coefficients"),
+      prm->declare_entry(KEY_PROBLEM_NORM_CODOMAIN, "L2L2",
+            Patterns::Selection("L2L2|H1L2|H2L2|Coefficients"),
             "Set the norm to use for fields. Be aware that this has to match the norm that the measurements expect its inputs to have.");
+
+      prm->declare_entry(KEY_PROBLEM_NORM_H1L2ALPHA, "0.5", Patterns::Double(0),
+            "Factor α in front of derivative term of H^1([0,T], L^2) dot product");
+      prm->declare_entry(KEY_PROBLEM_NORM_H2L2ALPHA, "0.5", Patterns::Double(0),
+            "Factor α in front of first derivative term of H^2([0,T], L^2) dot product");
+      prm->declare_entry(KEY_PROBLEM_NORM_H2L2BETA, "0.25", Patterns::Double(0),
+            "Factor β in front of second derivative term of H^2([0,T], L^2) dot product");
 
       prm->declare_entry(KEY_PROBLEM_EPSILON, "1e-2", Patterns::Double(0, 1), "relative noise level ε");
 
@@ -303,6 +311,10 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
          norm_codomain = Norm::Coefficients;
       else
          AssertThrow(false, ExcMessage("Cannot parse norm of codomain"));
+
+      norm_h1l2_alpha = prm->get_double(KEY_PROBLEM_NORM_H1L2ALPHA);
+      norm_h2l2_alpha = prm->get_double(KEY_PROBLEM_NORM_H2L2ALPHA);
+      norm_h2l2_beta = prm->get_double(KEY_PROBLEM_NORM_H2L2BETA);
 
       std::string problem = prm->get(KEY_PROBLEM_TYPE);
 

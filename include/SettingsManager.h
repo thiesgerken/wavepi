@@ -48,6 +48,9 @@ class SettingsManager {
       static const std::string KEY_PROBLEM_TYPE;
       static const std::string KEY_PROBLEM_NORM_DOMAIN;
       static const std::string KEY_PROBLEM_NORM_CODOMAIN;
+      static const std::string KEY_PROBLEM_NORM_H1L2ALPHA;
+      static const std::string KEY_PROBLEM_NORM_H2L2ALPHA;
+      static const std::string KEY_PROBLEM_NORM_H2L2BETA;
 
       static const std::string KEY_PROBLEM_EPSILON;
       static const std::string KEY_PROBLEM_CONSTANTS;
@@ -126,6 +129,10 @@ class SettingsManager {
       NonlinearMethod method;
       Norm norm_domain;
       Norm norm_codomain;
+
+      double norm_h1l2_alpha;
+      double norm_h2l2_alpha;
+      double norm_h2l2_beta;
 
       std::map<std::string, double> constants_for_exprs;
       std::string expr_initial_guess;
