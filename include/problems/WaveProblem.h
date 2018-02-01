@@ -22,6 +22,8 @@
 #include <util/Tuple.h>
 #include <measurements/Measure.h>
 
+#include <deal.II/base/mpi.h>
+
 #include <stddef.h>
 #include <memory>
 #include <vector>
@@ -67,7 +69,8 @@ class WaveProblem: public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Measu
          for (size_t i = 0; i < right_hand_sides.size(); i++)
             derivs.push_back(derivative(i));
 
-         return std::make_unique<WaveProblem<dim, Measurement>::Linearization>(derivs, measures, stats, norm_domain, norm_codomain);
+         return std::make_unique<WaveProblem<dim, Measurement>::Linearization>(derivs, measures, stats,
+               norm_domain, norm_codomain);
       }
 
       virtual Tuple<Measurement> forward(const DiscretizedFunction<dim>& param) {
@@ -81,17 +84,54 @@ class WaveProblem: public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Measu
          // save a copy of the parameter
          this->current_param = std::make_shared<DiscretizedFunction<dim>>(param);
 
+         /*
+          Tuple<Measurement> result;
+
+          for (size_t i = 0; i < right_hand_sides.size(); i++) {
+          fw_timer.start();
+          auto fwd = forward(i);
+          fw_timer.stop();
+
+          meas_timer.start();
+          result.push_back(measures[i]->evaluate(fwd));
+          meas_timer.stop();
+          }
+          */
+
          Tuple<Measurement> result;
+         std::vector<std::vector<MPI_Win>> result_windows;
+
+         result.reserve(right_hand_sides.size());
+         result_windows.reserve(right_hand_sides.size());
 
          for (size_t i = 0; i < right_hand_sides.size(); i++) {
+            result.push_back(measures[i]->zero());
+            result_windows.push_back(result[i].make_windows());
+         }
+
+         size_t n_procs = Utilities::MPI::n_mpi_processes(MPI_COMM_WORLD);
+         size_t rank = Utilities::MPI::this_mpi_process(MPI_COMM_WORLD);
+
+         for (size_t i = 0; i < right_hand_sides.size(); i++) {
+            if (right_hand_sides.size() % n_procs != rank)
+               continue;
+
             fw_timer.start();
             auto fwd = forward(i);
             fw_timer.stop();
 
             meas_timer.start();
-            result.push_back(measures[i]->evaluate(fwd));
+            result[i] = measures[i]->evaluate(fwd);
             meas_timer.stop();
+
+            for (size_t k = 0; k < n_procs; k++)
+               if (k != rank)
+                  result[i].copy_to(result_windows[i], k);
          }
+
+         for (size_t i = 0; i < right_hand_sides.size(); i++)
+            for (size_t j = 0; j < result_windows[i].size(); j++)
+               MPI_Win_complete(result_windows[i][j]);
 
          stats->calls_forward++;
          stats->time_forward += fw_timer.wall_time();
@@ -258,7 +298,8 @@ class WaveProblem: public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Measu
 
             virtual DiscretizedFunction<dim> zero() {
                auto res = sub_problems[0]->zero();
-               AssertThrow(res.get_norm() == norm_domain, ExcMessage("sub_problems[0}->zero() has unexpected norm"))
+               AssertThrow(res.get_norm() == norm_domain,
+                     ExcMessage("sub_problems[0}->zero() has unexpected norm"))
 
                return res;
             }

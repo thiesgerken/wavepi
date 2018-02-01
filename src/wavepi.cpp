@@ -25,6 +25,8 @@
 #include <memory>
 #include <string>
 
+#include <deal.II/base/mpi.h>
+
 using namespace dealii;
 using namespace wavepi;
 using namespace wavepi::util;
@@ -32,6 +34,8 @@ using namespace wavepi::util;
 namespace po = boost::program_options;
 
 int main(int argc, char * argv[]) {
+   Utilities::MPI::MPI_InitFinalize mpi_init(argc, argv,  numbers::invalid_unsigned_int);
+
    try {
       po::options_description desc(Version::get_identification() + "\nsupported options");
 
