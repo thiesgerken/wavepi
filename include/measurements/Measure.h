@@ -55,6 +55,18 @@ class Measure {
        * This function should ask `Sol` and `Measurement` for the required spaces.
        */
       virtual Sol adjoint(const Measurement& measurements) = 0;
+
+      /*
+       * For MPI it is necessary to allocate storage for the measurements before measuring.
+       * The first call to `evaluate` should store the necessary information to do that.
+       */
+      virtual bool zero_available() = 0;
+
+      /*
+       * For MPI it is necessary to allocate storage for the measurements before measuring.
+       */
+      virtual Measurement zero() = 0;
+
 };
 
 /**
@@ -68,12 +80,31 @@ class IdenticalMeasure: public Measure<Sol, Sol> {
       virtual ~IdenticalMeasure() = default;
 
       virtual Sol evaluate(const Sol& field) {
+         if (!demo) {
+            demo = std::make_shared<Sol>(field);
+            *demo = 0;
+         }
+
          return field;
       }
 
       virtual Sol adjoint(const Sol& measurements) {
          return measurements;
       }
+
+      virtual bool zero_available() {
+         return demo.get() != 0;
+      }
+
+      virtual Sol zero() {
+         AssertThrow(demo, ExcNotInitialized());
+
+         // return a copy of *demo
+         return *demo;
+      }
+
+   private:
+      std::shared_ptr<Sol> demo;
 };
 
 } /* namespace forward */

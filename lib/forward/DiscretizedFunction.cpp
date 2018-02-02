@@ -1703,6 +1703,32 @@ double DiscretizedFunction<dim>::relative_error(const DiscretizedFunction<dim>& 
    return tmp.norm() / (denom == 0.0 ? 1.0 : denom);
 }
 
+template<int dim>
+std::vector<MPI_Win> DiscretizedFunction<dim>::make_windows() {
+   AssertThrow(!store_derivative, ExcNotImplemented());
+
+   std::vector<MPI_Win> wins(function_coefficients.size());
+
+   for (size_t i = 0; i < function_coefficients.size(); i++)
+      MPI_Win_create(&function_coefficients[i][0], sizeof(double) * function_coefficients[i].size(),
+            sizeof(double), MPI_INFO_NULL, MPI_COMM_WORLD, &wins[i]);
+
+   return wins;
+}
+
+/**
+ * copy the data of this object to another process
+ */
+template<int dim>
+void DiscretizedFunction<dim>::copy_to(std::vector<MPI_Win> destination, size_t rank) {
+   for (size_t i = 0; i < function_coefficients.size(); i++) {
+      MPI_Win_lock(MPI_LOCK_EXCLUSIVE, 0, 0, destination[i]);
+      MPI_Put(&function_coefficients[i][0], function_coefficients[i].size(), MPI_DOUBLE, rank, 0,
+            function_coefficients[i].size(), MPI_DOUBLE, destination[i]);
+      MPI_Win_unlock(0, destination[i]);
+   }
+}
+
 } /* namespace forward */
 } /* namespace wavepi */
 

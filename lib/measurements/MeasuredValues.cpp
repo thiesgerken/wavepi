@@ -7,6 +7,7 @@
 
 #include <measurements/MeasuredValues.h>
 #include <deal.II/base/exceptions.h>
+#include <deal.II/base/mpi.h>
 #include <stddef.h>
 #include <memory>
 #include <random>
@@ -152,6 +153,26 @@ void MeasuredValues<dim>::write_pvd(std::string path, std::string filename, std:
 
    fpvd << "</Collection>" << std::endl << "</VTKFile>" << std::endl;
    fpvd.close();
+}
+
+template<int dim>
+std::vector<MPI_Win> MeasuredValues<dim>::make_windows() {
+   std::vector<MPI_Win> wins(1);
+
+   MPI_Win_create(&elements[0], sizeof(double) * elements.size(), sizeof(double), MPI_INFO_NULL,
+         MPI_COMM_WORLD, &wins[0]);
+
+   return wins;
+}
+
+/**
+ * copy the data of this object to another process
+ */
+template<int dim>
+void MeasuredValues<dim>::copy_to(std::vector<MPI_Win> destination, size_t rank) {
+   MPI_Win_lock(MPI_LOCK_EXCLUSIVE, 0, 0, destination[0]);
+   MPI_Put(&elements[0], elements.size(), MPI_DOUBLE, rank, 0, elements.size(), MPI_DOUBLE, destination[0]);
+   MPI_Win_unlock(0, destination[0]);
 }
 
 template class MeasuredValues<1> ;

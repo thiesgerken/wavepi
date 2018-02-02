@@ -98,40 +98,112 @@ class WaveProblem: public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Measu
           }
           */
 
-         Tuple<Measurement> result;
-         std::vector<std::vector<MPI_Win>> result_windows;
-
-         result.reserve(right_hand_sides.size());
-         result_windows.reserve(right_hand_sides.size());
-
-         for (size_t i = 0; i < right_hand_sides.size(); i++) {
-            result.push_back(measures[i]->zero());
-            result_windows.push_back(result[i].make_windows());
-         }
-
          size_t n_procs = Utilities::MPI::n_mpi_processes(MPI_COMM_WORLD);
          size_t rank = Utilities::MPI::this_mpi_process(MPI_COMM_WORLD);
 
-         for (size_t i = 0; i < right_hand_sides.size(); i++) {
-            if (right_hand_sides.size() % n_procs != rank)
-               continue;
+         Tuple<Measurement> result;
+         result.reserve(right_hand_sides.size());
 
-            fw_timer.start();
-            auto fwd = forward(i);
-            fw_timer.stop();
-
-            meas_timer.start();
-            result[i] = measures[i]->evaluate(fwd);
-            meas_timer.stop();
-
-            for (size_t k = 0; k < n_procs; k++)
-               if (k != rank)
-                  result[i].copy_to(result_windows[i], k);
-         }
-
+         bool zero_available = true;
          for (size_t i = 0; i < right_hand_sides.size(); i++)
-            for (size_t j = 0; j < result_windows[i].size(); j++)
-               MPI_Win_complete(result_windows[i][j]);
+            zero_available &= measures[i]->zero_available();
+
+         if (zero_available) {
+            std::vector<std::vector<MPI_Win>> result_windows;
+            result_windows.reserve(right_hand_sides.size());
+
+            for (size_t i = 0; i < right_hand_sides.size(); i++) {
+               result.push_back(measures[i]->zero());
+               result_windows.push_back(result[i].make_windows());
+            }
+
+            for (size_t i = 0; i < right_hand_sides.size(); i++) {
+               if (i % n_procs != rank)
+                  continue;
+
+               std::cout << rank << " working on field+meas " << i << std::endl;
+
+               fw_timer.start();
+               auto fwd = forward(i);
+               fw_timer.stop();
+
+               meas_timer.start();
+               result[i] = measures[i]->evaluate(fwd);
+               meas_timer.stop();
+
+               for (size_t k = 0; k < n_procs; k++)
+                  if (k != rank)
+                     result[i].copy_to(result_windows[i], k);
+            }
+
+            for (size_t i = 0; i < right_hand_sides.size(); i++)
+               for (size_t j = 0; j < result_windows[i].size(); j++) {
+                  MPI_Win_wait(result_windows[i][j]);
+                  MPI_Win_complete(result_windows[i][j]);
+                  MPI_Win_free(&result_windows[i][j]);
+               }
+         } else {
+            Tuple<DiscretizedFunction<dim>> result_fields;
+            std::vector<std::vector<MPI_Win>> result_windows;
+
+            result_fields.reserve(right_hand_sides.size());
+            result_windows.reserve(right_hand_sides.size());
+
+            for (size_t i = 0; i < right_hand_sides.size(); i++) {
+               result_fields.push_back(DiscretizedFunction<dim>(param.get_mesh()));
+               result_windows.push_back(result_fields[i].make_windows());
+
+               for (size_t j = 0; j < result_windows[i].size(); j++)
+                  MPI_Win_fence(0, result_windows[i][j]);
+            }
+
+            for (size_t i = 0; i < right_hand_sides.size(); i++) {
+               if (i % n_procs != rank)
+                  continue;
+
+               std::cout << rank << " working on field " << i << std::endl;
+
+               fw_timer.start();
+               result_fields[i] = forward(i);
+               fw_timer.stop();
+
+               for (size_t k = 0; k < n_procs; k++)
+                  if (k != rank) {
+                     std::cout << rank << " sending " << i << " to " << k << std::endl;
+                     result_fields[i].copy_to(result_windows[i], k);
+                  }
+            }
+
+            for (size_t i = 0; i < right_hand_sides.size(); i++)
+               for (size_t j = 0; j < result_windows[i].size(); j++) {
+//                  MPI_Win_wait(result_windows[i][j]);
+//                  MPI_Win_complete(result_windows[i][j]);
+
+                  //std::cout << rank << " flushing " << i << "." << j << std::endl;
+                  //MPI_Win_flush_all(result_windows[i][j]);
+               }
+
+            std::cout << rank << " barrier" << std::endl;
+                       MPI_Barrier(MPI_COMM_WORLD);
+
+            for (size_t i = 0; i < right_hand_sides.size(); i++)
+               for (size_t j = 0; j < result_windows[i].size(); j++) {
+                  //                  MPI_Win_wait(result_windows[i][j]);
+                  //                  MPI_Win_complete(result_windows[i][j]);
+
+                  std::cout << rank << " fencing " << i << "." << j << std::endl;
+                  MPI_Win_fence(0, result_windows[i][j]);
+                  MPI_Win_free(&result_windows[i][j]);
+               }
+
+            // everyone does the measurements
+            meas_timer.start();
+
+            for (size_t i = 0; i < right_hand_sides.size(); i++)
+               result.push_back(measures[i]->evaluate(result_fields[i]));
+
+            meas_timer.stop();
+         }
 
          stats->calls_forward++;
          stats->time_forward += fw_timer.wall_time();

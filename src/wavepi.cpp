@@ -10,6 +10,7 @@
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/logstream.h>
 #include <deal.II/base/parameter_handler.h>
+#include <deal.II/base/mpi.h>
 
 #include <forward/DiscretizedFunction.h>
 
@@ -34,7 +35,7 @@ using namespace wavepi::util;
 namespace po = boost::program_options;
 
 int main(int argc, char * argv[]) {
-   Utilities::MPI::MPI_InitFinalize mpi_init(argc, argv,  numbers::invalid_unsigned_int);
+   Utilities::MPI::MPI_InitFinalize mpi_init(argc, argv, 4);
 
    try {
       po::options_description desc(Version::get_identification() + "\nsupported options");
@@ -132,16 +133,21 @@ int main(int argc, char * argv[]) {
       AssertThrow(vm.count("config-format") == 0,
             ExcMessage("--config-format is useless without --export-config"));
 
+      size_t rank = Utilities::MPI::this_mpi_process(MPI_COMM_WORLD);
+
       // has to be kept in scope
       std::ofstream logout;
 
       if (cfg->log_file.size()) {
+         if (rank > 0)
+            cfg->log_file = cfg->log_file + std::to_string(rank);
+
          logout = std::ofstream(cfg->log_file);
          deallog.attach(logout);
          deallog.depth_file(cfg->log_file_depth);
       }
 
-      deallog.depth_console(cfg->log_console_depth);
+      deallog.depth_console(rank == 0 ? cfg->log_console_depth : 0);
 
       deallog.precision(3);
       deallog.pop();

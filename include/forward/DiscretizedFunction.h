@@ -14,6 +14,7 @@
 #include <deal.II/base/tensor.h>
 #include <deal.II/dofs/dof_handler.h>
 #include <deal.II/lac/vector.h>
+#include <deal.II/base/mpi.h>
 
 #include <stddef.h>
 #include <memory>
@@ -483,6 +484,22 @@ class DiscretizedFunction: public Function<dim> {
        */
       void write_vtk(const std::string name, const std::string name_deriv, const std::string filename,
             size_t i) const;
+
+      /**
+       * @}
+       *
+       * @name MPI support
+       */
+
+      /**
+       * make windows to the storage of this object
+       */
+      std::vector<MPI_Win> make_windows();
+
+      /**
+       * copy the data of this object to another process
+       */
+      void copy_to(std::vector<MPI_Win> destination, size_t rank);
 
       /**
        * @}

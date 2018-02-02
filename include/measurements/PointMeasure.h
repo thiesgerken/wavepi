@@ -73,6 +73,10 @@ class PointMeasure: public Measure<DiscretizedFunction<dim>, MeasuredValues<dim>
       static void declare_parameters(ParameterHandler &prm);
       void get_parameters(ParameterHandler &prm);
 
+      virtual bool zero_available();
+
+       virtual MeasuredValues<dim> zero();
+
       virtual MeasuredValues<dim> evaluate(const DiscretizedFunction<dim>& field);
 
       /**
