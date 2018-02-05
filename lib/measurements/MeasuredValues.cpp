@@ -156,23 +156,19 @@ void MeasuredValues<dim>::write_pvd(std::string path, std::string filename, std:
 }
 
 template<int dim>
-std::vector<MPI_Win> MeasuredValues<dim>::make_windows() {
-   std::vector<MPI_Win> wins(1);
+std::vector<MPI_Request> MeasuredValues<dim>::mpi_irecv(size_t source) {
+   std::vector<MPI_Request> reqs(1);
 
-   MPI_Win_create(&elements[0], sizeof(double) * elements.size(), sizeof(double), MPI_INFO_NULL,
-         MPI_COMM_WORLD, &wins[0]);
+   MPI_Irecv(&elements[0], elements.size(), MPI_DOUBLE, source, 1,
+            MPI_COMM_WORLD, &reqs[0]);
 
-   return wins;
+   return reqs;
 }
 
-/**
- * copy the data of this object to another process
- */
 template<int dim>
-void MeasuredValues<dim>::copy_to(std::vector<MPI_Win> destination, size_t rank) {
-   MPI_Win_lock(MPI_LOCK_EXCLUSIVE, 0, 0, destination[0]);
-   MPI_Put(&elements[0], elements.size(), MPI_DOUBLE, rank, 0, elements.size(), MPI_DOUBLE, destination[0]);
-   MPI_Win_unlock(0, destination[0]);
+void MeasuredValues<dim>::mpi_send(size_t destination) {
+     MPI_Send(&elements[0], elements.size(), MPI_DOUBLE, destination, 1,
+            MPI_COMM_WORLD);
 }
 
 template class MeasuredValues<1> ;

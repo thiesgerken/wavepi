@@ -492,14 +492,14 @@ class DiscretizedFunction: public Function<dim> {
        */
 
       /**
-       * make windows to the storage of this object
+       * set up irecvs on the data of this object
        */
-      std::vector<MPI_Win> make_windows();
+      std::vector<MPI_Request> mpi_irecv(size_t source);
 
       /**
-       * copy the data of this object to another process
+       * send the data of this object to another process
        */
-      void copy_to(std::vector<MPI_Win> destination, size_t rank);
+      void mpi_send(size_t destination);
 
       /**
        * @}

@@ -104,24 +104,29 @@ class WaveProblem: public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Measu
          Tuple<Measurement> result;
          result.reserve(right_hand_sides.size());
 
+         // need to be able to allocate space for measurements before field is available
          bool zero_available = true;
          for (size_t i = 0; i < right_hand_sides.size(); i++)
             zero_available &= measures[i]->zero_available();
 
-         if (zero_available) {
-            std::vector<std::vector<MPI_Win>> result_windows;
-            result_windows.reserve(right_hand_sides.size());
+         std::cout << "rank " << rank << " entering parallel section" << std::endl;
+         std::vector<std::vector<MPI_Request>> recv_requests(right_hand_sides.size());
 
+         if (zero_available) {
+            // prepare Irecvs on jobs I do not work on
             for (size_t i = 0; i < right_hand_sides.size(); i++) {
                result.push_back(measures[i]->zero());
-               result_windows.push_back(result[i].make_windows());
+
+               if (i % n_procs != rank)
+                  recv_requests[i] = result[i].mpi_irecv(i % n_procs);
             }
 
+            // work on my jobs
             for (size_t i = 0; i < right_hand_sides.size(); i++) {
                if (i % n_procs != rank)
                   continue;
 
-               std::cout << rank << " working on field+meas " << i << std::endl;
+               std::cout << "rank " << rank << " working on field+meas " << i << std::endl;
 
                fw_timer.start();
                auto fwd = forward(i);
@@ -132,36 +137,36 @@ class WaveProblem: public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Measu
                meas_timer.stop();
 
                for (size_t k = 0; k < n_procs; k++)
-                  if (k != rank)
-                     result[i].copy_to(result_windows[i], k);
+                  if (k != rank) {
+                     deallog << "rank " << rank << " sending meas " << i << " to rank " << k << std::endl;
+                     result[i].mpi_send(k);
+                  }
             }
 
+            std::cout << "rank " << rank << " waiting on Irecvs " << std::endl;
+
             for (size_t i = 0; i < right_hand_sides.size(); i++)
-               for (size_t j = 0; j < result_windows[i].size(); j++) {
-                  MPI_Win_wait(result_windows[i][j]);
-                  MPI_Win_complete(result_windows[i][j]);
-                  MPI_Win_free(&result_windows[i][j]);
+               for (size_t j = 0; j < recv_requests[i].size(); j++) {
+                  MPI_Wait(&recv_requests[i][j], MPI_STATUS_IGNORE);
                }
+
+            std::cout << "rank " << rank << " exiting parallel section" << std::endl;
          } else {
             Tuple<DiscretizedFunction<dim>> result_fields;
-            std::vector<std::vector<MPI_Win>> result_windows;
-
-            result_fields.reserve(right_hand_sides.size());
-            result_windows.reserve(right_hand_sides.size());
 
             for (size_t i = 0; i < right_hand_sides.size(); i++) {
                result_fields.push_back(DiscretizedFunction<dim>(param.get_mesh()));
-               result_windows.push_back(result_fields[i].make_windows());
+               result_fields[i].set_norm(norm_codomain);
 
-               for (size_t j = 0; j < result_windows[i].size(); j++)
-                  MPI_Win_fence(0, result_windows[i][j]);
+               if (i % n_procs != rank)
+                  recv_requests[i] = result_fields[i].mpi_irecv(i % n_procs);
             }
 
             for (size_t i = 0; i < right_hand_sides.size(); i++) {
                if (i % n_procs != rank)
                   continue;
 
-               std::cout << rank << " working on field " << i << std::endl;
+               std::cout << "rank " << rank << " working on field " << i << std::endl;
 
                fw_timer.start();
                result_fields[i] = forward(i);
@@ -169,32 +174,19 @@ class WaveProblem: public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Measu
 
                for (size_t k = 0; k < n_procs; k++)
                   if (k != rank) {
-                     std::cout << rank << " sending " << i << " to " << k << std::endl;
-                     result_fields[i].copy_to(result_windows[i], k);
+                     std::cout << "rank " << rank << " sending field " << i << " to rank " << k << std::endl;
+                     result_fields[i].mpi_send(k);
                   }
             }
 
-            for (size_t i = 0; i < right_hand_sides.size(); i++)
-               for (size_t j = 0; j < result_windows[i].size(); j++) {
-//                  MPI_Win_wait(result_windows[i][j]);
-//                  MPI_Win_complete(result_windows[i][j]);
-
-                  //std::cout << rank << " flushing " << i << "." << j << std::endl;
-                  //MPI_Win_flush_all(result_windows[i][j]);
-               }
-
-            std::cout << rank << " barrier" << std::endl;
-                       MPI_Barrier(MPI_COMM_WORLD);
+            std::cout << "rank " << rank << " waiting on Irecvs " << std::endl;
 
             for (size_t i = 0; i < right_hand_sides.size(); i++)
-               for (size_t j = 0; j < result_windows[i].size(); j++) {
-                  //                  MPI_Win_wait(result_windows[i][j]);
-                  //                  MPI_Win_complete(result_windows[i][j]);
-
-                  std::cout << rank << " fencing " << i << "." << j << std::endl;
-                  MPI_Win_fence(0, result_windows[i][j]);
-                  MPI_Win_free(&result_windows[i][j]);
+               for (size_t j = 0; j < recv_requests[i].size(); j++) {
+                  MPI_Wait(&recv_requests[i][j], MPI_STATUS_IGNORE);
                }
+
+            std::cout << "rank " << rank << " exiting parallel section" << std::endl;
 
             // everyone does the measurements
             meas_timer.start();

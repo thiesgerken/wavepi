@@ -35,7 +35,7 @@ using namespace wavepi::util;
 namespace po = boost::program_options;
 
 int main(int argc, char * argv[]) {
-   Utilities::MPI::MPI_InitFinalize mpi_init(argc, argv, 4);
+   Utilities::MPI::MPI_InitFinalize mpi_init(argc, argv, 2);
 
    try {
       po::options_description desc(Version::get_identification() + "\nsupported options");
@@ -187,9 +187,15 @@ int main(int argc, char * argv[]) {
 
       // deallog.timestamp();
    } catch (std::exception &exc) {
+      size_t rank = Utilities::MPI::this_mpi_process(MPI_COMM_WORLD);
+      if (rank != 0)
+         std::cerr << "rank " << rank << ": ";
       std::cerr << "Exception on processing: " << exc.what() << std::endl;
       return 1;
    } catch (...) {
+      size_t rank = Utilities::MPI::this_mpi_process(MPI_COMM_WORLD);
+      if (rank != 0)
+         std::cerr << "rank " << rank << ": ";
       std::cerr << "Unknown exception!" << std::endl;
       return 1;
    }

@@ -1704,29 +1704,25 @@ double DiscretizedFunction<dim>::relative_error(const DiscretizedFunction<dim>& 
 }
 
 template<int dim>
-std::vector<MPI_Win> DiscretizedFunction<dim>::make_windows() {
+std::vector<MPI_Request> DiscretizedFunction<dim>::mpi_irecv(size_t source) {
    AssertThrow(!store_derivative, ExcNotImplemented());
 
-   std::vector<MPI_Win> wins(function_coefficients.size());
+   std::vector<MPI_Request> reqs(function_coefficients.size());
 
    for (size_t i = 0; i < function_coefficients.size(); i++)
-      MPI_Win_create(&function_coefficients[i][0], sizeof(double) * function_coefficients[i].size(),
-            sizeof(double), MPI_INFO_NULL, MPI_COMM_WORLD, &wins[i]);
+      MPI_Irecv(&function_coefficients[i][0], function_coefficients[i].size(), MPI_DOUBLE, source, 1,
+            MPI_COMM_WORLD, &reqs[i]);
 
-   return wins;
+   return reqs;
 }
 
-/**
- * copy the data of this object to another process
- */
 template<int dim>
-void DiscretizedFunction<dim>::copy_to(std::vector<MPI_Win> destination, size_t rank) {
-   for (size_t i = 0; i < function_coefficients.size(); i++) {
-      MPI_Win_lock(MPI_LOCK_EXCLUSIVE, 0, 0, destination[i]);
-      MPI_Put(&function_coefficients[i][0], function_coefficients[i].size(), MPI_DOUBLE, rank, 0,
-            function_coefficients[i].size(), MPI_DOUBLE, destination[i]);
-      MPI_Win_unlock(0, destination[i]);
-   }
+void DiscretizedFunction<dim>::mpi_send(size_t destination) {
+   AssertThrow(!store_derivative, ExcNotImplemented());
+
+   for (size_t i = 0; i < function_coefficients.size(); i++)
+      MPI_Send(&function_coefficients[i][0], function_coefficients[i].size(), MPI_DOUBLE, destination, 1,
+            MPI_COMM_WORLD);
 }
 
 } /* namespace forward */
