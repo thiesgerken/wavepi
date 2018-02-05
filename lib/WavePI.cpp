@@ -279,13 +279,21 @@ template<int dim, typename Meas> void WavePI<dim, Meas>::run() {
    }
    cfg->prm->leave_subsection();
 
+   size_t rank = Utilities::MPI::this_mpi_process(MPI_COMM_WORLD);
+
    regularization->add_listener(
          std::make_shared<GenericInversionProgressListener<Param, Tuple<Meas>, Exact>>("i"));
    regularization->add_listener(std::make_shared<CtrlCProgressListener<Param, Tuple<Meas>, Exact>>());
-   regularization->add_listener(std::make_shared<OutputProgressListener<dim, Tuple<Meas>>>(*cfg->prm));
+
+   if (rank == 0)
+      regularization->add_listener(std::make_shared<OutputProgressListener<dim, Tuple<Meas>>>(*cfg->prm));
+
    regularization->add_listener(std::make_shared<BoundCheckProgressListener<dim, Tuple<Meas>>>(*cfg->prm));
-   regularization->add_listener(
-         std::make_shared<StatOutputProgressListener<Param, Tuple<Meas>, Exact>>(*cfg->prm));
+
+   if (rank == 0)
+      regularization->add_listener(
+            std::make_shared<StatOutputProgressListener<Param, Tuple<Meas>, Exact>>(*cfg->prm));
+
    regularization->add_listener(
          std::make_shared<WatchdogProgressListener<Param, Tuple<Meas>, Exact>>(*cfg->prm));
 

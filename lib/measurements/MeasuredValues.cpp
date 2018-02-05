@@ -156,13 +156,12 @@ void MeasuredValues<dim>::write_pvd(std::string path, std::string filename, std:
 }
 
 template<int dim>
-std::vector<MPI_Request> MeasuredValues<dim>::mpi_irecv(size_t source) {
-   std::vector<MPI_Request> reqs(1);
+void MeasuredValues<dim>::mpi_irecv(size_t source, std::vector<MPI_Request> &reqs) {
+   AssertThrow(reqs.size() == 0, ExcInternalError());
 
+   reqs.emplace_back();
    MPI_Irecv(&elements[0], elements.size(), MPI_DOUBLE, source, 1,
             MPI_COMM_WORLD, &reqs[0]);
-
-   return reqs;
 }
 
 template<int dim>

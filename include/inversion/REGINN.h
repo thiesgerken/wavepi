@@ -11,6 +11,7 @@
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/logstream.h>
 #include <deal.II/base/parameter_handler.h>
+#include <deal.II/base/mpi.h>
 
 #include <inversion/ConjugateGradients.h>
 #include <inversion/ConstantMaxIterChoice.h>
@@ -93,9 +94,11 @@ class REGINN: public NewtonRegularization<Param, Sol, Exact> {
             else
                AssertThrow(false, ExcInternalError());
 
-            inner_stats = std::make_shared<InnerStatOutputProgressListener<Param, Sol, Exact>>(prm);
+            size_t rank = Utilities::MPI::this_mpi_process(MPI_COMM_WORLD);
 
-            linear_solver->add_listener(inner_stats);
+            inner_stats = std::make_shared<InnerStatOutputProgressListener<Param, Sol, Exact>>(prm);
+            if (rank == 0)
+               linear_solver->add_listener(inner_stats);
 
             inner_watchdog = std::make_shared<WatchdogProgressListener<Param, Sol, Exact>>(prm, true,
                   "linear watchdog");
@@ -203,7 +206,9 @@ class REGINN: public NewtonRegularization<Param, Sol, Exact> {
             tol_choice->add_iteration(discrepancy, linear_status->iteration_number);
             max_iter_choice->add_iteration(discrepancy, linear_status->iteration_number);
 
-            std::cout << std::endl;
+            size_t rank = Utilities::MPI::this_mpi_process(MPI_COMM_WORLD);
+            if (rank == 0)
+               std::cout << std::endl;
          }
 
          status.finished = true;

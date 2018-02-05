@@ -24,6 +24,7 @@ class InverseProblem {
       virtual ~InverseProblem() = default;
 
       virtual Sol forward(const Param& f) = 0;
+
 };
 
 } /* namespace inversion */

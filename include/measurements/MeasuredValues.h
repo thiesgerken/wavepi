@@ -152,7 +152,7 @@ class MeasuredValues {
       /**
        * set up irecvs on the data of this object
        */
-      std::vector<MPI_Request> mpi_irecv(size_t source);
+      void mpi_irecv(size_t source, std::vector<MPI_Request> &reqs);
 
       /**
        * send the data of this object to another process

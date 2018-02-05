@@ -151,8 +151,11 @@ int main(int argc, char * argv[]) {
 
       deallog.precision(3);
       deallog.pop();
-      deallog << Version::get_identification() << std::endl;
-      deallog << Version::get_infos() << std::endl;
+
+      if (rank == 0) {
+         deallog << Version::get_identification() << std::endl;
+         deallog << Version::get_infos() << std::endl;
+      }
       // deallog.log_execution_time(true);
 
       if (cfg->dimension == 1) {

@@ -78,18 +78,6 @@ std::vector<std::vector<std::pair<size_t, double>>> PointMeasure<dim>::compute_j
    return jobs;
 }
 
-template<int dim> bool PointMeasure<dim>::zero_available() {
-   return delta_shape && delta_scale_space > 0 && delta_scale_time > 0 && measurement_points
-         && measurement_points->size();
-}
-
-template<int dim> MeasuredValues<dim> PointMeasure<dim>::zero() {
-   AssertThrow(delta_shape && delta_scale_space > 0 && delta_scale_time > 0, ExcNotInitialized());
-   AssertThrow(measurement_points && measurement_points->size(), ExcNotInitialized());
-
-   return MeasuredValues<dim>(measurement_points);
-}
-
 template<int dim> MeasuredValues<dim> PointMeasure<dim>::evaluate(const DiscretizedFunction<dim>& field) {
    AssertThrow(delta_shape && delta_scale_space > 0 && delta_scale_time > 0, ExcNotInitialized());
    AssertThrow(measurement_points && measurement_points->size(), ExcNotInitialized());
