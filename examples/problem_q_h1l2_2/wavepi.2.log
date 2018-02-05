@@ -1,0 +1,673 @@
+JobId thies-vm Tue Jan 30 13:01:23 2018
+wavepi d2070970
+Release-Build, compiled on 2018-01-30T09:55:23Z
+from git commit d2070970e46e3ae1a1614bf5a983ee503186993f on branch master
+initialize_mesh::Number of active cells: 4096
+initialize_mesh::Number of degrees of freedom in the first spatial mesh: 4225
+initialize_mesh::cell diameters: minimal = 0.177, maximal = 0.177
+initialize_mesh::dt: 0.0235
+parameters:WaveEquation::theta: 0.5
+parameters:WaveEquation::tol: 1e-8
+parameters:constraints::lower bound: -1e300
+parameters:constraints::upper bound: 1e300
+parameters:general::dimension: 2
+parameters:general::finite element degree: 1
+parameters:general::quadrature order: 3
+parameters:inversion::method: REGINN
+parameters:inversion::tau: 2
+parameters:log::console depth: 2
+parameters:log::file: wavepi.log
+parameters:log::file depth: 100
+parameters:mesh::end time: 6
+parameters:mesh::initial refines: 6
+parameters:mesh::initial time steps: 256
+parameters:output::data: true
+parameters:output::destination: ./step-{{i}}/
+parameters:output::discrepancy decrease: 0.5
+parameters:output::estimate: true
+parameters:output::exact: true
+parameters:output::interval: 50
+parameters:output::last: true
+parameters:output::residual: true
+parameters:output::statistics: history
+parameters:problem::constants: 
+parameters:problem::epsilon: 1e-4
+parameters:problem::initial guess: 1.0
+parameters:problem::norm of codomain: L2L2
+parameters:problem::norm of domain: H1L2
+parameters:problem::parameter a: 1.0
+parameters:problem::parameter c: 1.5
+parameters:problem::parameter nu: 0.0
+parameters:problem::parameter q: 1.5
+parameters:problem::type: q
+parameters:watchdog::discrepancy increasing: false
+parameters:watchdog::discrepancy slope min values: 40
+parameters:watchdog::discrepancy slope percentage: 0.25
+parameters:watchdog::discrepancy slope threshold: 0.0
+parameters:watchdog::discrepancy threshold: 10.0
+parameters:watchdog::maximum iteration count: 0
+REGINN::i=0 : rdisc=0.205, rnorm=0.667, rerr=0.333
+REGINN::Saving exact parameter in ./step-0000/
+REGINN::Saving data in ./step-0000/
+REGINN::Saving current residual in ./step-0000/
+REGINN::Saving current estimate in ./step-0000/
+REGINN::1.00 ≤ estimate ≤ 1.00
+REGINN::Solving linear problem using rtol=0.700 and max_iter=0
+REGINN:CGLS::k=0 : rdisc=1.00, norm=0.00
+REGINN:CGLS::k=1 : rdisc=0.421, norm=1.99
+REGINN:CGLS::Target discrepancy reached after 1 iteration.
+REGINN::i=1 : rdisc=0.0871, rnorm=0.687, rerr=0.323
+REGINN::Saving current residual in ./step-0001/
+REGINN::Saving current estimate in ./step-0001/
+REGINN::1.00 ≤ estimate ≤ 3.44
+REGINN::Solving linear problem using rtol=0.700 and max_iter=0
+REGINN:CGLS::k=0 : rdisc=1.00, norm=0.00
+REGINN:CGLS::k=1 : rdisc=0.782, norm=1.14
+REGINN:CGLS::k=2 : rdisc=0.682, norm=1.67
+REGINN:CGLS::Target discrepancy reached after 2 iterations.
+REGINN::i=2 : rdisc=0.0584, rnorm=0.713, rerr=0.305
+REGINN::0.999 ≤ estimate ≤ 2.89
+REGINN::Solving linear problem using rtol=0.598 and max_iter=0
+REGINN:CGLS::k=0 : rdisc=1.00, norm=0.00
+REGINN:CGLS::k=1 : rdisc=0.902, norm=0.522
+REGINN:CGLS::k=2 : rdisc=0.707, norm=1.58
+REGINN:CGLS::k=3 : rdisc=0.429, norm=2.92
+REGINN:CGLS::Target discrepancy reached after 3 iterations.
+REGINN::i=3 : rdisc=0.0251, rnorm=0.769, rerr=0.278
+REGINN::Saving current residual in ./step-0003/
+REGINN::Saving current estimate in ./step-0003/
+REGINN::0.891 ≤ estimate ≤ 2.15
+REGINN::Solving linear problem using rtol=0.512 and max_iter=0
+REGINN:CGLS::k=0 : rdisc=1.00, norm=0.00
+REGINN:CGLS::k=1 : rdisc=0.911, norm=0.174
+REGINN:CGLS::k=2 : rdisc=0.851, norm=0.321
+REGINN:CGLS::k=3 : rdisc=0.723, norm=0.727
+REGINN:CGLS::k=4 : rdisc=0.620, norm=1.09
+REGINN:CGLS::k=5 : rdisc=0.477, norm=1.64
+REGINN:CGLS::Target discrepancy reached after 5 iterations.
+REGINN::i=4 : rdisc=0.0120, rnorm=0.794, rerr=0.266
+REGINN::Saving current residual in ./step-0004/
+REGINN::Saving current estimate in ./step-0004/
+REGINN::0.992 ≤ estimate ≤ 2.35
+REGINN::Solving linear problem using rtol=0.438 and max_iter=0
+REGINN:CGLS::k=0 : rdisc=1.00, norm=0.00
+REGINN:CGLS::k=1 : rdisc=0.980, norm=0.0402
+REGINN:CGLS::k=2 : rdisc=0.872, norm=0.309
+REGINN:CGLS::k=3 : rdisc=0.805, norm=0.489
+REGINN:CGLS::k=4 : rdisc=0.748, norm=0.656
+REGINN:CGLS::k=5 : rdisc=0.669, norm=0.896
+REGINN:CGLS::k=6 : rdisc=0.572, norm=1.19
+REGINN:CGLS::k=7 : rdisc=0.546, norm=1.27
+REGINN:CGLS::k=8 : rdisc=0.475, norm=1.48
+REGINN:CGLS::k=9 : rdisc=0.421, norm=1.63
+REGINN:CGLS::Target discrepancy reached after 9 iterations.
+REGINN::i=5 : rdisc=0.00512, rnorm=0.816, rerr=0.256
+REGINN::Saving current residual in ./step-0005/
+REGINN::Saving current estimate in ./step-0005/
+REGINN::0.981 ≤ estimate ≤ 2.09
+REGINN::Solving linear problem using rtol=0.374 and max_iter=0
+REGINN:CGLS::k=0 : rdisc=1.00, norm=0.00
+REGINN:CGLS::k=1 : rdisc=0.978, norm=0.0189
+REGINN:CGLS::k=2 : rdisc=0.967, norm=0.0308
+REGINN:CGLS::k=3 : rdisc=0.911, norm=0.139
+REGINN:CGLS::k=4 : rdisc=0.859, norm=0.243
+REGINN:CGLS::k=5 : rdisc=0.811, norm=0.343
+REGINN:CGLS::k=6 : rdisc=0.768, norm=0.436
+REGINN:CGLS::k=7 : rdisc=0.729, norm=0.524
+REGINN:CGLS::k=8 : rdisc=0.696, norm=0.598
+REGINN:CGLS::k=9 : rdisc=0.658, norm=0.686
+REGINN:CGLS::k=10: rdisc=0.641, norm=0.727
+REGINN:CGLS::k=11: rdisc=0.552, norm=0.945
+REGINN:CGLS::k=12: rdisc=0.521, norm=1.02
+REGINN:CGLS::k=13: rdisc=0.485, norm=1.10
+REGINN:CGLS::k=14: rdisc=0.475, norm=1.12
+REGINN:CGLS::k=15: rdisc=0.459, norm=1.16
+REGINN:CGLS::k=16: rdisc=0.428, norm=1.23
+REGINN:CGLS::k=17: rdisc=0.415, norm=1.26
+REGINN:CGLS::k=18: rdisc=0.402, norm=1.29
+REGINN:CGLS::k=19: rdisc=0.389, norm=1.32
+REGINN:CGLS::k=20: rdisc=0.386, norm=1.33
+REGINN:CGLS::k=21: rdisc=0.368, norm=1.38
+REGINN:CGLS::Target discrepancy reached after 21 iterations.
+REGINN::i=6 : rdisc=0.00192, rnorm=0.830, rerr=0.248
+REGINN::Saving current residual in ./step-0006/
+REGINN::Saving current estimate in ./step-0006/
+REGINN::0.955 ≤ estimate ≤ 1.81
+REGINN::Solving linear problem using rtol=0.695 and max_iter=0
+REGINN:CGLS::k=0 : rdisc=1.00, norm=0.00
+REGINN:CGLS::k=1 : rdisc=0.985, norm=0.00450
+REGINN:CGLS::k=2 : rdisc=0.971, norm=0.0113
+REGINN:CGLS::k=3 : rdisc=0.958, norm=0.0208
+REGINN:CGLS::k=4 : rdisc=0.945, norm=0.0330
+REGINN:CGLS::k=5 : rdisc=0.910, norm=0.0711
+REGINN:CGLS::k=6 : rdisc=0.892, norm=0.0931
+REGINN:CGLS::k=7 : rdisc=0.889, norm=0.0971
+REGINN:CGLS::k=8 : rdisc=0.874, norm=0.116
+REGINN:CGLS::k=9 : rdisc=0.859, norm=0.139
+REGINN:CGLS::k=10: rdisc=0.832, norm=0.184
+REGINN:CGLS::k=11: rdisc=0.815, norm=0.218
+REGINN:CGLS::k=12: rdisc=0.799, norm=0.249
+REGINN:CGLS::k=13: rdisc=0.790, norm=0.266
+REGINN:CGLS::k=14: rdisc=0.761, norm=0.323
+REGINN:CGLS::k=15: rdisc=0.747, norm=0.352
+REGINN:CGLS::k=16: rdisc=0.733, norm=0.381
+REGINN:CGLS::k=17: rdisc=0.715, norm=0.419
+REGINN:CGLS::k=18: rdisc=0.698, norm=0.454
+REGINN:CGLS::k=19: rdisc=0.677, norm=0.499
+REGINN:CGLS::Target discrepancy reached after 19 iterations.
+REGINN::i=7 : rdisc=0.00130, rnorm=0.831, rerr=0.246
+REGINN::0.942 ≤ estimate ≤ 1.73
+REGINN::Solving linear problem using rtol=0.594 and max_iter=0
+REGINN:CGLS::k=0 : rdisc=1.00, norm=0.00
+REGINN:CGLS::k=1 : rdisc=0.984, norm=0.00616
+REGINN:CGLS::k=2 : rdisc=0.979, norm=0.00825
+REGINN:CGLS::k=3 : rdisc=0.975, norm=0.0109
+REGINN:CGLS::k=4 : rdisc=0.965, norm=0.0191
+REGINN:CGLS::k=5 : rdisc=0.955, norm=0.0289
+REGINN:CGLS::k=6 : rdisc=0.935, norm=0.0555
+REGINN:CGLS::k=7 : rdisc=0.914, norm=0.0841
+REGINN:CGLS::k=8 : rdisc=0.911, norm=0.0887
+REGINN:CGLS::k=9 : rdisc=0.899, norm=0.106
+REGINN:CGLS::k=10: rdisc=0.891, norm=0.119
+REGINN:CGLS::k=11: rdisc=0.877, norm=0.141
+REGINN:CGLS::k=12: rdisc=0.870, norm=0.152
+REGINN:CGLS::k=13: rdisc=0.864, norm=0.162
+REGINN:CGLS::k=14: rdisc=0.863, norm=0.164
+REGINN:CGLS::k=15: rdisc=0.851, norm=0.185
+REGINN:CGLS::k=16: rdisc=0.836, norm=0.212
+REGINN:CGLS::k=17: rdisc=0.825, norm=0.236
+REGINN:CGLS::k=18: rdisc=0.821, norm=0.243
+REGINN:CGLS::k=19: rdisc=0.807, norm=0.274
+REGINN:CGLS::k=20: rdisc=0.795, norm=0.300
+REGINN:CGLS::k=21: rdisc=0.782, norm=0.329
+REGINN:CGLS::k=22: rdisc=0.755, norm=0.389
+REGINN:CGLS::k=23: rdisc=0.722, norm=0.464
+REGINN:CGLS::k=24: rdisc=0.716, norm=0.477
+REGINN:CGLS::k=25: rdisc=0.663, norm=0.595
+REGINN:CGLS::k=26: rdisc=0.642, norm=0.640
+REGINN:CGLS::k=27: rdisc=0.618, norm=0.689
+REGINN:CGLS::k=28: rdisc=0.615, norm=0.695
+REGINN:CGLS::k=29: rdisc=0.612, norm=0.702
+REGINN:CGLS::k=30: rdisc=0.608, norm=0.710
+REGINN:CGLS::k=31: rdisc=0.593, norm=0.739
+REGINN:CGLS::Target discrepancy reached after 31 iterations.
+REGINN::i=8 : rdisc=0.000782, rnorm=0.838, rerr=0.243
+REGINN::Saving current residual in ./step-0008/
+REGINN::Saving current estimate in ./step-0008/
+REGINN::0.916 ≤ estimate ≤ 1.82
+REGINN::Solving linear problem using rtol=0.714 and max_iter=0
+REGINN:CGLS::k=0 : rdisc=1.00, norm=0.00
+REGINN:CGLS::k=1 : rdisc=0.990, norm=0.00370
+REGINN:CGLS::k=2 : rdisc=0.988, norm=0.00456
+REGINN:CGLS::k=3 : rdisc=0.986, norm=0.00550
+REGINN:CGLS::k=4 : rdisc=0.981, norm=0.00865
+REGINN:CGLS::k=5 : rdisc=0.978, norm=0.0119
+REGINN:CGLS::k=6 : rdisc=0.973, norm=0.0168
+REGINN:CGLS::k=7 : rdisc=0.962, norm=0.0291
+REGINN:CGLS::k=8 : rdisc=0.950, norm=0.0448
+REGINN:CGLS::k=9 : rdisc=0.943, norm=0.0545
+REGINN:CGLS::k=10: rdisc=0.929, norm=0.0742
+REGINN:CGLS::k=11: rdisc=0.926, norm=0.0787
+REGINN:CGLS::k=12: rdisc=0.920, norm=0.0871
+REGINN:CGLS::k=13: rdisc=0.912, norm=0.0991
+REGINN:CGLS::k=14: rdisc=0.910, norm=0.102
+REGINN:CGLS::k=15: rdisc=0.901, norm=0.117
+REGINN:CGLS::k=16: rdisc=0.891, norm=0.133
+REGINN:CGLS::k=17: rdisc=0.885, norm=0.142
+REGINN:CGLS::k=18: rdisc=0.877, norm=0.157
+REGINN:CGLS::k=19: rdisc=0.875, norm=0.161
+REGINN:CGLS::k=20: rdisc=0.862, norm=0.183
+REGINN:CGLS::k=21: rdisc=0.847, norm=0.211
+REGINN:CGLS::k=22: rdisc=0.841, norm=0.222
+REGINN:CGLS::k=23: rdisc=0.822, norm=0.255
+REGINN:CGLS::k=24: rdisc=0.821, norm=0.258
+REGINN:CGLS::k=25: rdisc=0.816, norm=0.267
+REGINN:CGLS::k=26: rdisc=0.806, norm=0.286
+REGINN:CGLS::k=27: rdisc=0.797, norm=0.302
+REGINN:CGLS::k=28: rdisc=0.785, norm=0.326
+REGINN:CGLS::k=29: rdisc=0.782, norm=0.330
+REGINN:CGLS::k=30: rdisc=0.778, norm=0.339
+REGINN:CGLS::k=31: rdisc=0.767, norm=0.360
+REGINN:CGLS::k=32: rdisc=0.761, norm=0.371
+REGINN:CGLS::k=33: rdisc=0.749, norm=0.395
+REGINN:CGLS::k=34: rdisc=0.744, norm=0.405
+REGINN:CGLS::k=35: rdisc=0.740, norm=0.411
+REGINN:CGLS::k=36: rdisc=0.735, norm=0.422
+REGINN:CGLS::k=37: rdisc=0.729, norm=0.435
+REGINN:CGLS::k=38: rdisc=0.725, norm=0.443
+REGINN:CGLS::k=39: rdisc=0.722, norm=0.448
+REGINN:CGLS::k=40: rdisc=0.718, norm=0.456
+REGINN:CGLS::k=41: rdisc=0.715, norm=0.462
+REGINN:CGLS::k=42: rdisc=0.704, norm=0.484
+REGINN:CGLS::Target discrepancy reached after 42 iterations.
+REGINN::i=9 : rdisc=0.000554, rnorm=0.840, rerr=0.241
+REGINN::0.904 ≤ estimate ≤ 1.83
+REGINN::Solving linear problem using rtol=0.749 and max_iter=0
+REGINN:CGLS::k=0 : rdisc=1.00, norm=0.00
+REGINN:CGLS::k=1 : rdisc=0.995, norm=0.000981
+REGINN:CGLS::k=2 : rdisc=0.989, norm=0.00239
+REGINN:CGLS::k=3 : rdisc=0.982, norm=0.00458
+REGINN:CGLS::k=4 : rdisc=0.978, norm=0.00613
+REGINN:CGLS::k=5 : rdisc=0.972, norm=0.00972
+REGINN:CGLS::k=6 : rdisc=0.968, norm=0.0119
+REGINN:CGLS::k=7 : rdisc=0.964, norm=0.0158
+REGINN:CGLS::k=8 : rdisc=0.963, norm=0.0166
+REGINN:CGLS::k=9 : rdisc=0.953, norm=0.0264
+REGINN:CGLS::k=10: rdisc=0.949, norm=0.0315
+REGINN:CGLS::k=11: rdisc=0.943, norm=0.0382
+REGINN:CGLS::k=12: rdisc=0.932, norm=0.0509
+REGINN:CGLS::k=13: rdisc=0.927, norm=0.0577
+REGINN:CGLS::k=14: rdisc=0.926, norm=0.0593
+REGINN:CGLS::k=15: rdisc=0.921, norm=0.0649
+REGINN:CGLS::k=16: rdisc=0.917, norm=0.0702
+REGINN:CGLS::k=17: rdisc=0.916, norm=0.0722
+REGINN:CGLS::k=18: rdisc=0.910, norm=0.0793
+REGINN:CGLS::k=19: rdisc=0.908, norm=0.0833
+REGINN:CGLS::k=20: rdisc=0.905, norm=0.0869
+REGINN:CGLS::k=21: rdisc=0.899, norm=0.0968
+REGINN:CGLS::k=22: rdisc=0.892, norm=0.107
+REGINN:CGLS::k=23: rdisc=0.887, norm=0.114
+REGINN:CGLS::k=24: rdisc=0.881, norm=0.125
+REGINN:CGLS::k=25: rdisc=0.872, norm=0.139
+REGINN:CGLS::k=26: rdisc=0.870, norm=0.142
+REGINN:CGLS::k=27: rdisc=0.865, norm=0.152
+REGINN:CGLS::k=28: rdisc=0.860, norm=0.160
+REGINN:CGLS::k=29: rdisc=0.852, norm=0.174
+REGINN:CGLS::k=30: rdisc=0.851, norm=0.176
+REGINN:CGLS::k=31: rdisc=0.848, norm=0.181
+REGINN:CGLS::k=32: rdisc=0.843, norm=0.189
+REGINN:CGLS::k=33: rdisc=0.841, norm=0.193
+REGINN:CGLS::k=34: rdisc=0.837, norm=0.201
+REGINN:CGLS::k=35: rdisc=0.832, norm=0.210
+REGINN:CGLS::k=36: rdisc=0.830, norm=0.213
+REGINN:CGLS::k=37: rdisc=0.829, norm=0.215
+REGINN:CGLS::k=38: rdisc=0.824, norm=0.226
+REGINN:CGLS::k=39: rdisc=0.821, norm=0.232
+REGINN:CGLS::k=40: rdisc=0.818, norm=0.236
+REGINN:CGLS::k=41: rdisc=0.814, norm=0.244
+REGINN:CGLS::k=42: rdisc=0.813, norm=0.247
+REGINN:CGLS::k=43: rdisc=0.807, norm=0.259
+REGINN:CGLS::k=44: rdisc=0.804, norm=0.265
+REGINN:CGLS::k=45: rdisc=0.796, norm=0.281
+REGINN:CGLS::k=46: rdisc=0.765, norm=0.349
+REGINN:CGLS::k=47: rdisc=0.759, norm=0.362
+REGINN:CGLS::k=48: rdisc=0.757, norm=0.367
+REGINN:CGLS::k=49: rdisc=0.744, norm=0.396
+REGINN:CGLS::Target discrepancy reached after 49 iterations.
+REGINN::i=10: rdisc=0.000414, rnorm=0.843, rerr=0.239
+REGINN::0.885 ≤ estimate ≤ 1.84
+REGINN::Solving linear problem using rtol=0.746 and max_iter=0
+REGINN:CGLS::k=0 : rdisc=1.00, norm=0.00
+REGINN:CGLS::k=1 : rdisc=0.995, norm=0.00116
+REGINN:CGLS::k=2 : rdisc=0.992, norm=0.00187
+REGINN:CGLS::k=3 : rdisc=0.989, norm=0.00249
+REGINN:CGLS::k=4 : rdisc=0.985, norm=0.00429
+REGINN:CGLS::k=5 : rdisc=0.977, norm=0.00831
+REGINN:CGLS::k=6 : rdisc=0.969, norm=0.0125
+REGINN:CGLS::k=7 : rdisc=0.966, norm=0.0144
+REGINN:CGLS::k=8 : rdisc=0.965, norm=0.0154
+REGINN:CGLS::k=9 : rdisc=0.960, norm=0.0184
+REGINN:CGLS::k=10: rdisc=0.954, norm=0.0226
+REGINN:CGLS::k=11: rdisc=0.950, norm=0.0259
+REGINN:CGLS::k=12: rdisc=0.949, norm=0.0269
+REGINN:CGLS::k=13: rdisc=0.946, norm=0.0295
+REGINN:CGLS::k=14: rdisc=0.944, norm=0.0307
+REGINN:CGLS::k=15: rdisc=0.940, norm=0.0344
+REGINN:CGLS::k=16: rdisc=0.935, norm=0.0403
+REGINN:CGLS::k=17: rdisc=0.931, norm=0.0437
+REGINN:CGLS::k=18: rdisc=0.929, norm=0.0460
+REGINN:CGLS::k=19: rdisc=0.928, norm=0.0476
+REGINN:CGLS::k=20: rdisc=0.927, norm=0.0491
+REGINN:CGLS::k=21: rdisc=0.926, norm=0.0499
+REGINN:CGLS::k=22: rdisc=0.924, norm=0.0527
+REGINN:CGLS::k=23: rdisc=0.921, norm=0.0564
+REGINN:CGLS::k=24: rdisc=0.918, norm=0.0606
+REGINN:CGLS::k=25: rdisc=0.914, norm=0.0663
+REGINN:CGLS::k=26: rdisc=0.913, norm=0.0675
+REGINN:CGLS::k=27: rdisc=0.911, norm=0.0720
+REGINN:CGLS::k=28: rdisc=0.909, norm=0.0751
+REGINN:CGLS::k=29: rdisc=0.905, norm=0.0812
+REGINN:CGLS::k=30: rdisc=0.903, norm=0.0842
+REGINN:CGLS::k=31: rdisc=0.898, norm=0.0928
+REGINN:CGLS::k=32: rdisc=0.897, norm=0.0943
+REGINN:CGLS::k=33: rdisc=0.891, norm=0.107
+REGINN:CGLS::k=34: rdisc=0.888, norm=0.111
+REGINN:CGLS::k=35: rdisc=0.887, norm=0.113
+REGINN:CGLS::k=36: rdisc=0.886, norm=0.116
+REGINN:CGLS::k=37: rdisc=0.884, norm=0.118
+REGINN:CGLS::k=38: rdisc=0.882, norm=0.124
+REGINN:CGLS::k=39: rdisc=0.878, norm=0.132
+REGINN:CGLS::k=40: rdisc=0.876, norm=0.135
+REGINN:CGLS::k=41: rdisc=0.874, norm=0.138
+REGINN:CGLS::k=42: rdisc=0.874, norm=0.140
+REGINN:CGLS::k=43: rdisc=0.873, norm=0.141
+REGINN:CGLS::k=44: rdisc=0.872, norm=0.144
+REGINN:CGLS::k=45: rdisc=0.870, norm=0.147
+REGINN:CGLS::k=46: rdisc=0.865, norm=0.157
+REGINN:CGLS::k=47: rdisc=0.864, norm=0.162
+REGINN:CGLS::k=48: rdisc=0.863, norm=0.163
+REGINN:CGLS::k=49: rdisc=0.859, norm=0.171
+REGINN:CGLS::k=50: rdisc=0.858, norm=0.174
+REGINN:CGLS::k=51: rdisc=0.853, norm=0.185
+REGINN:CGLS::k=52: rdisc=0.841, norm=0.213
+REGINN:CGLS::k=53: rdisc=0.839, norm=0.219
+REGINN:CGLS::k=54: rdisc=0.836, norm=0.226
+REGINN:CGLS::k=55: rdisc=0.825, norm=0.255
+REGINN:CGLS::k=56: rdisc=0.814, norm=0.282
+REGINN:CGLS::k=57: rdisc=0.809, norm=0.293
+REGINN:CGLS::k=58: rdisc=0.803, norm=0.308
+REGINN:CGLS::k=59: rdisc=0.793, norm=0.334
+REGINN:CGLS::k=60: rdisc=0.784, norm=0.356
+REGINN:CGLS::k=61: rdisc=0.780, norm=0.367
+REGINN:CGLS::k=62: rdisc=0.766, norm=0.402
+REGINN:CGLS::k=63: rdisc=0.762, norm=0.413
+REGINN:CGLS::k=64: rdisc=0.756, norm=0.426
+REGINN:CGLS::k=65: rdisc=0.753, norm=0.435
+REGINN:CGLS::k=66: rdisc=0.749, norm=0.445
+REGINN:CGLS::k=67: rdisc=0.746, norm=0.452
+REGINN:CGLS::Target discrepancy reached after 67 iterations.
+REGINN::i=11: rdisc=0.000317, rnorm=0.846, rerr=0.237
+REGINN::Saving current residual in ./step-0011/
+REGINN::Saving current estimate in ./step-0011/
+REGINN::0.859 ≤ estimate ≤ 1.94
+REGINN::Solving linear problem using rtol=0.773 and max_iter=0
+REGINN:CGLS::k=0 : rdisc=1.00, norm=0.00
+REGINN:CGLS::k=1 : rdisc=0.993, norm=0.000647
+REGINN:CGLS::k=2 : rdisc=0.988, norm=0.00135
+REGINN:CGLS::k=3 : rdisc=0.983, norm=0.00209
+REGINN:CGLS::k=4 : rdisc=0.979, norm=0.00312
+REGINN:CGLS::k=5 : rdisc=0.973, norm=0.00493
+REGINN:CGLS::k=6 : rdisc=0.967, norm=0.00698
+REGINN:CGLS::k=7 : rdisc=0.964, norm=0.00827
+REGINN:CGLS::k=8 : rdisc=0.963, norm=0.00860
+REGINN:CGLS::k=9 : rdisc=0.955, norm=0.0124
+REGINN:CGLS::k=10: rdisc=0.951, norm=0.0149
+REGINN:CGLS::k=11: rdisc=0.949, norm=0.0161
+REGINN:CGLS::k=12: rdisc=0.944, norm=0.0193
+REGINN:CGLS::k=13: rdisc=0.943, norm=0.0200
+REGINN:CGLS::k=14: rdisc=0.936, norm=0.0255
+REGINN:CGLS::k=15: rdisc=0.933, norm=0.0276
+REGINN:CGLS::k=16: rdisc=0.927, norm=0.0319
+REGINN:CGLS::k=17: rdisc=0.924, norm=0.0349
+REGINN:CGLS::k=18: rdisc=0.923, norm=0.0358
+REGINN:CGLS::k=19: rdisc=0.921, norm=0.0375
+REGINN:CGLS::k=20: rdisc=0.920, norm=0.0385
+REGINN:CGLS::k=21: rdisc=0.919, norm=0.0395
+REGINN:CGLS::k=22: rdisc=0.918, norm=0.0402
+REGINN:CGLS::k=23: rdisc=0.917, norm=0.0411
+REGINN:CGLS::k=24: rdisc=0.917, norm=0.0413
+REGINN:CGLS::k=25: rdisc=0.916, norm=0.0426
+REGINN:CGLS::k=26: rdisc=0.915, norm=0.0430
+REGINN:CGLS::k=27: rdisc=0.915, norm=0.0436
+REGINN:CGLS::k=28: rdisc=0.913, norm=0.0449
+REGINN:CGLS::k=29: rdisc=0.913, norm=0.0454
+REGINN:CGLS::k=30: rdisc=0.913, norm=0.0460
+REGINN:CGLS::k=31: rdisc=0.911, norm=0.0475
+REGINN:CGLS::k=32: rdisc=0.910, norm=0.0499
+REGINN:CGLS::k=33: rdisc=0.909, norm=0.0510
+REGINN:CGLS::k=34: rdisc=0.908, norm=0.0516
+REGINN:CGLS::k=35: rdisc=0.908, norm=0.0522
+REGINN:CGLS::k=36: rdisc=0.907, norm=0.0538
+REGINN:CGLS::k=37: rdisc=0.905, norm=0.0579
+REGINN:CGLS::k=38: rdisc=0.902, norm=0.0627
+REGINN:CGLS::k=39: rdisc=0.902, norm=0.0634
+REGINN:CGLS::k=40: rdisc=0.901, norm=0.0649
+REGINN:CGLS::k=41: rdisc=0.899, norm=0.0681
+REGINN:CGLS::k=42: rdisc=0.899, norm=0.0695
+REGINN:CGLS::k=43: rdisc=0.898, norm=0.0720
+REGINN:CGLS::k=44: rdisc=0.897, norm=0.0733
+REGINN:CGLS::k=45: rdisc=0.896, norm=0.0743
+REGINN:CGLS::k=46: rdisc=0.895, norm=0.0776
+REGINN:CGLS::k=47: rdisc=0.892, norm=0.0840
+REGINN:CGLS::k=48: rdisc=0.890, norm=0.0884
+REGINN:CGLS::k=49: rdisc=0.890, norm=0.0902
+REGINN:CGLS::k=50: rdisc=0.889, norm=0.0908
+REGINN:CGLS::k=51: rdisc=0.887, norm=0.0964
+REGINN:CGLS::k=52: rdisc=0.885, norm=0.101
+REGINN:CGLS::k=53: rdisc=0.882, norm=0.109
+REGINN:CGLS::k=54: rdisc=0.882, norm=0.111
+REGINN:CGLS::k=55: rdisc=0.880, norm=0.114
+REGINN:CGLS::k=56: rdisc=0.879, norm=0.118
+REGINN:CGLS::k=57: rdisc=0.877, norm=0.121
+REGINN:CGLS::k=58: rdisc=0.876, norm=0.125
+REGINN:CGLS::k=59: rdisc=0.873, norm=0.132
+REGINN:CGLS::k=60: rdisc=0.873, norm=0.134
+REGINN:CGLS::k=61: rdisc=0.870, norm=0.141
+REGINN:CGLS::k=62: rdisc=0.867, norm=0.150
+REGINN:CGLS::k=63: rdisc=0.864, norm=0.161
+REGINN:CGLS::k=64: rdisc=0.863, norm=0.162
+REGINN:CGLS::k=65: rdisc=0.862, norm=0.164
+REGINN:CGLS::k=66: rdisc=0.860, norm=0.171
+REGINN:CGLS::k=67: rdisc=0.856, norm=0.184
+REGINN:CGLS::k=68: rdisc=0.853, norm=0.193
+REGINN:CGLS::k=69: rdisc=0.852, norm=0.195
+REGINN:CGLS::k=70: rdisc=0.848, norm=0.208
+REGINN:CGLS::k=71: rdisc=0.842, norm=0.224
+REGINN:CGLS::k=72: rdisc=0.840, norm=0.231
+REGINN:CGLS::k=73: rdisc=0.832, norm=0.255
+REGINN:CGLS::k=74: rdisc=0.829, norm=0.263
+REGINN:CGLS::k=75: rdisc=0.825, norm=0.275
+REGINN:CGLS::k=76: rdisc=0.820, norm=0.292
+REGINN:CGLS::k=77: rdisc=0.814, norm=0.308
+REGINN:CGLS::k=78: rdisc=0.809, norm=0.326
+REGINN:CGLS::k=79: rdisc=0.805, norm=0.336
+REGINN:CGLS::k=80: rdisc=0.804, norm=0.340
+REGINN:CGLS::k=81: rdisc=0.800, norm=0.351
+REGINN:CGLS::k=82: rdisc=0.789, norm=0.383
+REGINN:CGLS::k=83: rdisc=0.784, norm=0.399
+REGINN:CGLS::k=84: rdisc=0.782, norm=0.404
+REGINN:CGLS::k=85: rdisc=0.780, norm=0.411
+REGINN:CGLS::k=86: rdisc=0.768, norm=0.447
+REGINN:CGLS::Target discrepancy reached after 86 iterations.
+REGINN::i=12: rdisc=0.000256, rnorm=0.849, rerr=0.235
+REGINN::0.762 ≤ estimate ≤ 2.18
+REGINN::Solving linear problem using rtol=0.782 and max_iter=0
+REGINN:CGLS::k=0 : rdisc=1.00, norm=0.00
+REGINN:CGLS::k=1 : rdisc=0.981, norm=0.000747
+REGINN:CGLS::k=2 : rdisc=0.972, norm=0.00124
+REGINN:CGLS::k=3 : rdisc=0.964, norm=0.00198
+REGINN:CGLS::k=4 : rdisc=0.960, norm=0.00248
+REGINN:CGLS::k=5 : rdisc=0.957, norm=0.00308
+REGINN:CGLS::k=6 : rdisc=0.955, norm=0.00381
+REGINN:CGLS::k=7 : rdisc=0.954, norm=0.00418
+REGINN:CGLS::k=8 : rdisc=0.952, norm=0.00485
+REGINN:CGLS::k=9 : rdisc=0.947, norm=0.00741
+REGINN:CGLS::k=10: rdisc=0.946, norm=0.00803
+REGINN:CGLS::k=11: rdisc=0.941, norm=0.0113
+REGINN:CGLS::k=12: rdisc=0.941, norm=0.0117
+REGINN:CGLS::k=13: rdisc=0.938, norm=0.0140
+REGINN:CGLS::k=14: rdisc=0.935, norm=0.0161
+REGINN:CGLS::k=15: rdisc=0.932, norm=0.0186
+REGINN:CGLS::k=16: rdisc=0.931, norm=0.0196
+REGINN:CGLS::k=17: rdisc=0.929, norm=0.0213
+REGINN:CGLS::k=18: rdisc=0.927, norm=0.0231
+REGINN:CGLS::k=19: rdisc=0.926, norm=0.0242
+REGINN:CGLS::k=20: rdisc=0.923, norm=0.0262
+REGINN:CGLS::k=21: rdisc=0.922, norm=0.0273
+REGINN:CGLS::k=22: rdisc=0.922, norm=0.0281
+REGINN:CGLS::k=23: rdisc=0.920, norm=0.0298
+REGINN:CGLS::k=24: rdisc=0.919, norm=0.0304
+REGINN:CGLS::k=25: rdisc=0.918, norm=0.0321
+REGINN:CGLS::k=26: rdisc=0.917, norm=0.0334
+REGINN:CGLS::k=27: rdisc=0.915, norm=0.0354
+REGINN:CGLS::k=28: rdisc=0.914, norm=0.0367
+REGINN:CGLS::k=29: rdisc=0.912, norm=0.0386
+REGINN:CGLS::k=30: rdisc=0.912, norm=0.0388
+REGINN:CGLS::k=31: rdisc=0.912, norm=0.0395
+REGINN:CGLS::k=32: rdisc=0.911, norm=0.0409
+REGINN:CGLS::k=33: rdisc=0.910, norm=0.0421
+REGINN:CGLS::k=34: rdisc=0.909, norm=0.0435
+REGINN:CGLS::k=35: rdisc=0.907, norm=0.0455
+REGINN:CGLS::k=36: rdisc=0.907, norm=0.0465
+REGINN:CGLS::k=37: rdisc=0.906, norm=0.0468
+REGINN:CGLS::k=38: rdisc=0.906, norm=0.0477
+REGINN:CGLS::k=39: rdisc=0.905, norm=0.0488
+REGINN:CGLS::k=40: rdisc=0.904, norm=0.0499
+REGINN:CGLS::k=41: rdisc=0.903, norm=0.0518
+REGINN:CGLS::k=42: rdisc=0.902, norm=0.0532
+REGINN:CGLS::k=43: rdisc=0.902, norm=0.0536
+REGINN:CGLS::k=44: rdisc=0.901, norm=0.0564
+REGINN:CGLS::k=45: rdisc=0.900, norm=0.0575
+REGINN:CGLS::k=46: rdisc=0.898, norm=0.0608
+REGINN:CGLS::k=47: rdisc=0.898, norm=0.0613
+REGINN:CGLS::k=48: rdisc=0.897, norm=0.0641
+REGINN:CGLS::k=49: rdisc=0.896, norm=0.0650
+REGINN:CGLS::k=50: rdisc=0.895, norm=0.0674
+REGINN:CGLS::k=51: rdisc=0.894, norm=0.0689
+REGINN:CGLS::k=52: rdisc=0.892, norm=0.0726
+REGINN:CGLS::k=53: rdisc=0.892, norm=0.0741
+REGINN:CGLS::k=54: rdisc=0.891, norm=0.0751
+REGINN:CGLS::k=55: rdisc=0.890, norm=0.0777
+REGINN:CGLS::k=56: rdisc=0.890, norm=0.0787
+REGINN:CGLS::k=57: rdisc=0.889, norm=0.0812
+REGINN:CGLS::k=58: rdisc=0.888, norm=0.0835
+REGINN:CGLS::k=59: rdisc=0.887, norm=0.0852
+REGINN:CGLS::k=60: rdisc=0.886, norm=0.0863
+REGINN:CGLS::k=61: rdisc=0.886, norm=0.0884
+REGINN:CGLS::k=62: rdisc=0.885, norm=0.0904
+REGINN:CGLS::k=63: rdisc=0.884, norm=0.0917
+REGINN:CGLS::k=64: rdisc=0.884, norm=0.0928
+REGINN:CGLS::k=65: rdisc=0.883, norm=0.0934
+REGINN:CGLS::k=66: rdisc=0.883, norm=0.0947
+REGINN:CGLS::k=67: rdisc=0.882, norm=0.0971
+REGINN:CGLS::k=68: rdisc=0.881, norm=0.0997
+REGINN:CGLS::k=69: rdisc=0.880, norm=0.102
+REGINN:CGLS::k=70: rdisc=0.879, norm=0.104
+REGINN:CGLS::k=71: rdisc=0.878, norm=0.108
+REGINN:CGLS::k=72: rdisc=0.876, norm=0.112
+REGINN:CGLS::k=73: rdisc=0.874, norm=0.117
+REGINN:CGLS::k=74: rdisc=0.874, norm=0.120
+REGINN:CGLS::k=75: rdisc=0.873, norm=0.123
+REGINN:CGLS::k=76: rdisc=0.872, norm=0.124
+REGINN:CGLS::k=77: rdisc=0.869, norm=0.134
+REGINN:CGLS::k=78: rdisc=0.867, norm=0.139
+REGINN:CGLS::k=79: rdisc=0.866, norm=0.142
+REGINN:CGLS::k=80: rdisc=0.863, norm=0.150
+REGINN:CGLS::k=81: rdisc=0.860, norm=0.162
+REGINN:CGLS::k=82: rdisc=0.857, norm=0.168
+REGINN:CGLS::k=83: rdisc=0.857, norm=0.171
+REGINN:CGLS::k=84: rdisc=0.855, norm=0.175
+REGINN:CGLS::k=85: rdisc=0.853, norm=0.181
+REGINN:CGLS::k=86: rdisc=0.852, norm=0.186
+REGINN:CGLS::k=87: rdisc=0.850, norm=0.191
+REGINN:CGLS::k=88: rdisc=0.848, norm=0.197
+REGINN:CGLS::k=89: rdisc=0.847, norm=0.200
+REGINN:CGLS::k=90: rdisc=0.847, norm=0.202
+REGINN:CGLS::k=91: rdisc=0.844, norm=0.210
+REGINN:CGLS::k=92: rdisc=0.842, norm=0.217
+REGINN:CGLS::k=93: rdisc=0.839, norm=0.225
+REGINN:CGLS::k=94: rdisc=0.836, norm=0.235
+REGINN:CGLS::k=95: rdisc=0.836, norm=0.237
+REGINN:CGLS::k=96: rdisc=0.835, norm=0.240
+REGINN:CGLS::k=97: rdisc=0.831, norm=0.252
+REGINN:CGLS::k=98: rdisc=0.830, norm=0.254
+REGINN:CGLS::k=99: rdisc=0.829, norm=0.258
+REGINN:CGLS::k=100: rdisc=0.829, norm=0.259
+REGINN:CGLS::k=101: rdisc=0.828, norm=0.261
+REGINN:CGLS::k=102: rdisc=0.827, norm=0.266
+REGINN:CGLS::k=103: rdisc=0.826, norm=0.268
+REGINN:CGLS::k=104: rdisc=0.825, norm=0.272
+REGINN:CGLS::k=105: rdisc=0.825, norm=0.273
+REGINN:CGLS::k=106: rdisc=0.823, norm=0.277
+REGINN:CGLS::k=107: rdisc=0.822, norm=0.284
+REGINN:CGLS::k=108: rdisc=0.820, norm=0.288
+REGINN:CGLS::k=109: rdisc=0.818, norm=0.296
+REGINN:CGLS::k=110: rdisc=0.818, norm=0.297
+REGINN:CGLS::k=111: rdisc=0.816, norm=0.303
+REGINN:CGLS::k=112: rdisc=0.814, norm=0.307
+REGINN:CGLS::k=113: rdisc=0.813, norm=0.311
+REGINN:CGLS::k=114: rdisc=0.813, norm=0.314
+REGINN:CGLS::k=115: rdisc=0.812, norm=0.317
+REGINN:CGLS::k=116: rdisc=0.811, norm=0.319
+REGINN:CGLS::k=117: rdisc=0.810, norm=0.323
+REGINN:CGLS::k=118: rdisc=0.808, norm=0.330
+REGINN:CGLS::k=119: rdisc=0.806, norm=0.335
+REGINN:CGLS::k=120: rdisc=0.806, norm=0.337
+REGINN:CGLS::k=121: rdisc=0.803, norm=0.346
+REGINN:CGLS::k=122: rdisc=0.799, norm=0.359
+REGINN:CGLS::k=123: rdisc=0.798, norm=0.362
+REGINN:CGLS::k=124: rdisc=0.796, norm=0.369
+REGINN:CGLS::k=125: rdisc=0.795, norm=0.374
+REGINN:CGLS::k=126: rdisc=0.792, norm=0.383
+REGINN:CGLS::k=127: rdisc=0.790, norm=0.392
+REGINN:CGLS::k=128: rdisc=0.786, norm=0.405
+REGINN:CGLS::k=129: rdisc=0.781, norm=0.420
+REGINN:CGLS::Target discrepancy reached after 129 iterations.
+REGINN::i=13: rdisc=0.000209, rnorm=0.852, rerr=0.232
+REGINN::0.575 ≤ estimate ≤ 2.26
+REGINN::Solving linear problem using rtol=0.907 and max_iter=0
+REGINN:CGLS::k=0 : rdisc=1.00, norm=0.00
+REGINN:CGLS::k=1 : rdisc=0.988, norm=0.000382
+REGINN:CGLS::k=2 : rdisc=0.981, norm=0.000955
+REGINN:CGLS::k=3 : rdisc=0.979, norm=0.00129
+REGINN:CGLS::k=4 : rdisc=0.975, norm=0.00192
+REGINN:CGLS::k=5 : rdisc=0.971, norm=0.00300
+REGINN:CGLS::k=6 : rdisc=0.970, norm=0.00317
+REGINN:CGLS::k=7 : rdisc=0.968, norm=0.00374
+REGINN:CGLS::k=8 : rdisc=0.965, norm=0.00480
+REGINN:CGLS::k=9 : rdisc=0.964, norm=0.00547
+REGINN:CGLS::k=10: rdisc=0.963, norm=0.00604
+REGINN:CGLS::k=11: rdisc=0.962, norm=0.00630
+REGINN:CGLS::k=12: rdisc=0.961, norm=0.00693
+REGINN:CGLS::k=13: rdisc=0.960, norm=0.00762
+REGINN:CGLS::k=14: rdisc=0.958, norm=0.00903
+REGINN:CGLS::k=15: rdisc=0.957, norm=0.00980
+REGINN:CGLS::k=16: rdisc=0.957, norm=0.00998
+REGINN:CGLS::k=17: rdisc=0.955, norm=0.0109
+REGINN:CGLS::k=18: rdisc=0.952, norm=0.0136
+REGINN:CGLS::k=19: rdisc=0.952, norm=0.0142
+REGINN:CGLS::k=20: rdisc=0.949, norm=0.0166
+REGINN:CGLS::k=21: rdisc=0.949, norm=0.0169
+REGINN:CGLS::k=22: rdisc=0.948, norm=0.0177
+REGINN:CGLS::k=23: rdisc=0.947, norm=0.0186
+REGINN:CGLS::k=24: rdisc=0.946, norm=0.0200
+REGINN:CGLS::k=25: rdisc=0.945, norm=0.0210
+REGINN:CGLS::k=26: rdisc=0.945, norm=0.0213
+REGINN:CGLS::k=27: rdisc=0.944, norm=0.0224
+REGINN:CGLS::k=28: rdisc=0.943, norm=0.0230
+REGINN:CGLS::k=29: rdisc=0.942, norm=0.0240
+REGINN:CGLS::k=30: rdisc=0.941, norm=0.0260
+REGINN:CGLS::k=31: rdisc=0.941, norm=0.0262
+REGINN:CGLS::k=32: rdisc=0.938, norm=0.0299
+REGINN:CGLS::k=33: rdisc=0.937, norm=0.0318
+REGINN:CGLS::k=34: rdisc=0.936, norm=0.0324
+REGINN:CGLS::k=35: rdisc=0.935, norm=0.0335
+REGINN:CGLS::k=36: rdisc=0.934, norm=0.0349
+REGINN:CGLS::k=37: rdisc=0.934, norm=0.0356
+REGINN:CGLS::k=38: rdisc=0.933, norm=0.0378
+REGINN:CGLS::k=39: rdisc=0.932, norm=0.0394
+REGINN:CGLS::k=40: rdisc=0.930, norm=0.0417
+REGINN:CGLS::k=41: rdisc=0.930, norm=0.0425
+REGINN:CGLS::k=42: rdisc=0.929, norm=0.0439
+REGINN:CGLS::k=43: rdisc=0.928, norm=0.0455
+REGINN:CGLS::k=44: rdisc=0.926, norm=0.0494
+REGINN:CGLS::k=45: rdisc=0.924, norm=0.0520
+REGINN:CGLS::k=46: rdisc=0.922, norm=0.0559
+REGINN:CGLS::k=47: rdisc=0.921, norm=0.0568
+REGINN:CGLS::k=48: rdisc=0.920, norm=0.0585
+REGINN:CGLS::k=49: rdisc=0.920, norm=0.0599
+REGINN:CGLS::k=50: rdisc=0.918, norm=0.0622
+REGINN:CGLS::k=51: rdisc=0.918, norm=0.0630
+REGINN:CGLS::k=52: rdisc=0.916, norm=0.0674
+REGINN:CGLS::k=53: rdisc=0.916, norm=0.0676
+REGINN:CGLS::k=54: rdisc=0.914, norm=0.0708
+REGINN:CGLS::k=55: rdisc=0.912, norm=0.0734
+REGINN:CGLS::k=56: rdisc=0.912, norm=0.0746
+REGINN:CGLS::k=57: rdisc=0.911, norm=0.0761
+REGINN:CGLS::k=58: rdisc=0.910, norm=0.0776
+REGINN:CGLS::k=59: rdisc=0.910, norm=0.0791
+REGINN:CGLS::k=60: rdisc=0.909, norm=0.0798
+REGINN:CGLS::k=61: rdisc=0.908, norm=0.0827
+REGINN:CGLS::k=62: rdisc=0.907, norm=0.0841
+REGINN:CGLS::Target discrepancy reached after 62 iterations.
+REGINN::i=14: rdisc=0.000190, rnorm=0.852, rerr=0.232
+REGINN::0.598 ≤ estimate ≤ 2.28
+REGINN::Target discrepancy reached after 14 iterations.
+REGINN::Saving current residual in ./step-0014/
+REGINN::Saving current estimate in ./step-0014/
+REGINN::0.598 ≤ estimate ≤ 2.28
+stats::forward              : 16 calls, average 4.77 s per call
+stats::linearization forward: 526 calls, average 2.84 s per call
+stats::linearization adjoint: 526 calls, average 3.29 s per call
+stats::measure forward      : 542 calls, average 0.00142 s per call
+stats::measure adjoint      : 526 calls, average 0.00180 s per call
