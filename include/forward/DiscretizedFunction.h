@@ -487,6 +487,10 @@ class DiscretizedFunction: public Function<dim> {
 
       /**
        * @}
+       */
+
+#ifdef WAVEPI_MPI
+      /**
        *
        * @name MPI support
        */
@@ -504,6 +508,7 @@ class DiscretizedFunction: public Function<dim> {
       /**
        * @}
        */
+#endif
 
       /**
        * Create a new `DiscretizedFunction` filled with random nodal values between -1 and 1.

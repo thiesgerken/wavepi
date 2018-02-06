@@ -145,9 +145,10 @@ class MeasuredValues {
        */
       void write_vts(std::string path, std::string filename, std::string name) const;
 
+#ifdef WAVEPI_MPI
       /**
-         * @name MPI support
-         */
+       * @name MPI support
+       */
 
       /**
        * set up irecvs on the data of this object
@@ -162,6 +163,7 @@ class MeasuredValues {
       /**
        * @}
        */
+#endif
 
    private:
       std::shared_ptr<SpaceTimeGrid<dim>> grid;

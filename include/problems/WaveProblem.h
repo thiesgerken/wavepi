@@ -265,12 +265,12 @@ class WaveProblem: public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Measu
                Timer fw_timer;
                Timer meas_timer;
 
+               Tuple<Measurement> result;
+               result.reserve(measures.size());
+
 #ifdef WAVEPI_MPI
                size_t n_procs = Utilities::MPI::n_mpi_processes(MPI_COMM_WORLD);
                size_t rank = Utilities::MPI::this_mpi_process(MPI_COMM_WORLD);
-
-               Tuple<Measurement> result;
-               result.reserve(measures.size());
 
                deallog << "rank " << rank << " entering parallel section" << std::endl;
                std::vector<std::vector<MPI_Request>> recv_requests(measures.size());

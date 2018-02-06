@@ -155,20 +155,22 @@ void MeasuredValues<dim>::write_pvd(std::string path, std::string filename, std:
    fpvd.close();
 }
 
+#ifdef WAVEPI_MPI
 template<int dim>
 void MeasuredValues<dim>::mpi_irecv(size_t source, std::vector<MPI_Request> &reqs) {
    AssertThrow(reqs.size() == 0, ExcInternalError());
 
    reqs.emplace_back();
    MPI_Irecv(&elements[0], elements.size(), MPI_DOUBLE, source, 1,
-            MPI_COMM_WORLD, &reqs[0]);
+         MPI_COMM_WORLD, &reqs[0]);
 }
 
 template<int dim>
 void MeasuredValues<dim>::mpi_send(size_t destination) {
-     MPI_Send(&elements[0], elements.size(), MPI_DOUBLE, destination, 1,
-            MPI_COMM_WORLD);
+   MPI_Send(&elements[0], elements.size(), MPI_DOUBLE, destination, 1,
+         MPI_COMM_WORLD);
 }
+#endif
 
 template class MeasuredValues<1> ;
 template class MeasuredValues<2> ;
