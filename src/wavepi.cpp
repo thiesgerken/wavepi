@@ -35,7 +35,7 @@ using namespace wavepi::util;
 namespace po = boost::program_options;
 
 int main(int argc, char * argv[]) {
-   Utilities::MPI::MPI_InitFinalize mpi_init(argc, argv, 2);
+   Utilities::MPI::MPI_InitFinalize mpi_init(argc, argv);
 
    try {
       po::options_description desc(Version::get_identification() + "\nsupported options");
@@ -134,6 +134,7 @@ int main(int argc, char * argv[]) {
             ExcMessage("--config-format is useless without --export-config"));
 
       size_t rank = Utilities::MPI::this_mpi_process(MPI_COMM_WORLD);
+      size_t mpi_size = Utilities::MPI::n_mpi_processes(MPI_COMM_WORLD);
 
       // has to be kept in scope
       std::ofstream logout;
@@ -147,16 +148,18 @@ int main(int argc, char * argv[]) {
          deallog.depth_file(cfg->log_file_depth);
       }
 
-      deallog.depth_console(rank == 0 ? cfg->log_console_depth : 0);
-
+      deallog.depth_console(cfg->log_console_depth);
       deallog.precision(3);
       deallog.pop();
 
-      if (rank == 0) {
-         deallog << Version::get_identification() << std::endl;
-         deallog << Version::get_infos() << std::endl;
-      }
-      // deallog.log_execution_time(true);
+      if (rank > 0) {
+         deallog << "node " << rank << " coming online" << std::endl;
+         deallog.depth_console(0);
+      } else if (mpi_size > 1)
+         deallog << "parallel job on " << mpi_size << " nodes" << std::endl;
+
+      deallog << Version::get_identification() << std::endl;
+      deallog << Version::get_infos() << std::endl;
 
       if (cfg->dimension == 1) {
          if (cfg->measure_type == SettingsManager::MeasureType::vector) {

@@ -27,8 +27,6 @@
 #include <vector>
 #include <fstream>
 
-#include <deal.II/base/mpi.h>
-
 using namespace dealii;
 using namespace wavepi;
 using namespace wavepi::util;
@@ -132,14 +130,6 @@ void demo() {
 }
 
 int main(int argc, char * argv[]) {
-   Utilities::MPI::MPI_InitFinalize mpi_init(argc, argv,  numbers::invalid_unsigned_int);
-
-   int n_jobs = Utilities::MPI::n_mpi_processes(MPI_COMM_WORLD);
-   int rank = Utilities::MPI::this_mpi_process(MPI_COMM_WORLD);
-
-   std::cout << rank << " of " << n_jobs << std::endl;
-
-
    try {
       demo<2>();
    } catch (std::exception &exc) {
