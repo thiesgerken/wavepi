@@ -42,6 +42,10 @@ cmake -DCMAKE_BUILD_TYPE=Release ..
 
 Use the same command with `Debug` to go back. There are also `make` targets that switch the build type.
 
+## MPI
+
+Add `-DWAVEPI_WITH_MPI` to the `cmake` invokation to enable MPI support. In this case, MPI is used to parallelize PDE solutions for different right hand sides. 
+
 ## Tests
 
 This project uses [Google Test](https://github.com/google/googletest). Run the test suite using the binary `wavepi_test` (only built if `gtest` was found). You can also list all tests (`--gtest_list_tests`) and only run a subset of them (`--gtest_filter="[filter]"`, wildcards are allowed). Currently, a few of the tests should fail (L2 Adjoint to the wave equation by integrating backwards is not as good as `WaveEquationAdjoint`, and is not even correct if $`\nu\neq 0`$).

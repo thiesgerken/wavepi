@@ -101,8 +101,7 @@ template<int dim> MeasuredValues<dim> PointMeasure<dim>::evaluate(const Discreti
          mesh->get_constraint_matrix(ji)->distribute(interp_shape);
 
          res[jobs[ji][k].first] += jobs[ji][k].second
-               * mesh->get_mass_matrix(ji)->matrix_scalar_product(interp_shape,
-                     field[ji]);
+               * mesh->get_mass_matrix(ji)->matrix_scalar_product(interp_shape, field[ji]);
       }
    }
 

@@ -22,6 +22,8 @@
 #include <util/Tuple.h>
 #include <measurements/Measure.h>
 
+#include <deal.II/base/mpi.h>
+
 #include <stddef.h>
 #include <memory>
 #include <vector>
@@ -67,7 +69,8 @@ class WaveProblem: public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Measu
          for (size_t i = 0; i < right_hand_sides.size(); i++)
             derivs.push_back(derivative(i));
 
-         return std::make_unique<WaveProblem<dim, Measurement>::Linearization>(derivs, measures, stats, norm_domain, norm_codomain);
+         return std::make_unique<WaveProblem<dim, Measurement>::Linearization>(derivs, measures, stats,
+               norm_domain, norm_codomain);
       }
 
       virtual Tuple<Measurement> forward(const DiscretizedFunction<dim>& param) {
@@ -81,6 +84,75 @@ class WaveProblem: public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Measu
          // save a copy of the parameter
          this->current_param = std::make_shared<DiscretizedFunction<dim>>(param);
 
+#ifdef WAVEPI_MPI
+         size_t n_procs = Utilities::MPI::n_mpi_processes(MPI_COMM_WORLD);
+         size_t rank = Utilities::MPI::this_mpi_process(MPI_COMM_WORLD);
+
+         Tuple<Measurement> result;
+         result.reserve(right_hand_sides.size());
+
+         deallog << "rank " << rank << " entering parallel section" << std::endl;
+         std::vector<std::vector<MPI_Request>> recv_requests(right_hand_sides.size());
+
+         std::vector<DiscretizedFunction<dim>> result_fields(right_hand_sides.size(),
+               DiscretizedFunction<dim>(param.get_mesh(), true));
+
+         for (size_t i = 0; i < right_hand_sides.size(); i++) {
+            result_fields[i].set_norm(norm_codomain);
+
+            if (i % n_procs != rank)
+            result_fields[i].mpi_irecv(i % n_procs, recv_requests[i]);
+         }
+
+         for (size_t i = 0; i < right_hand_sides.size(); i++) {
+            if (i % n_procs != rank)
+            continue;
+
+            deallog << "rank " << rank << " working on field " << i << std::endl;
+
+            fw_timer.start();
+            result_fields[i] = forward(i);
+            fw_timer.stop();
+
+            for (size_t k = 0; k < n_procs; k++)
+            if (k != rank) {
+               deallog << "rank " << rank << " sending field " << i << " to rank " << k << std::endl;
+               result_fields[i].mpi_send(k);
+            }
+         }
+
+         deallog << "rank " << rank << " waiting on Irecvs " << std::endl;
+
+         for (size_t i = 0; i < right_hand_sides.size(); i++)
+         for (size_t j = 0; j < recv_requests[i].size(); j++) {
+            MPI_Wait(&recv_requests[i][j], MPI_STATUS_IGNORE);
+         }
+
+         for (size_t i = 0; i < right_hand_sides.size(); i++) {
+            if (i % n_procs == rank)
+            continue;
+
+            deallog << "rank " << rank << " looking at field " << i << std::endl;
+
+            fw_timer.start();
+            forward(i, result_fields[i]);
+            fw_timer.stop();
+         }
+
+         deallog << "rank " << rank << " exiting parallel section" << std::endl;
+
+         // everyone does the measurements
+         // TODO: could be done in parallel as well
+         // would need some kind of allocating function that uses the field
+         meas_timer.start();
+
+         for (size_t i = 0; i < right_hand_sides.size(); i++) {
+            result_fields[i].throw_away_derivative();
+            result.push_back(measures[i]->evaluate(result_fields[i]));
+         }
+
+         meas_timer.stop();
+#else
          Tuple<Measurement> result;
 
          for (size_t i = 0; i < right_hand_sides.size(); i++) {
@@ -92,6 +164,7 @@ class WaveProblem: public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Measu
             result.push_back(measures[i]->evaluate(fwd));
             meas_timer.stop();
          }
+#endif
 
          stats->calls_forward++;
          stats->time_forward += fw_timer.wall_time();
@@ -158,6 +231,15 @@ class WaveProblem: public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Measu
        */
       virtual DiscretizedFunction<dim> forward(size_t rhs_index) = 0;
 
+      /**
+       * `forward(size_t)` could want to save information about the solution,
+       * but when using MPI, this is not called. This function gets the function
+       * that another process computed and can save it if needed.
+       */
+      virtual void forward(size_t rhs_index __attribute__((unused)),
+            const DiscretizedFunction<dim>& u __attribute__((unused))) {
+      }
+
    private:
       std::vector<std::shared_ptr<Measure<DiscretizedFunction<dim>, Measurement>>> measures;
 
@@ -184,7 +266,63 @@ class WaveProblem: public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Measu
                Timer meas_timer;
 
                Tuple<Measurement> result;
+               result.reserve(measures.size());
 
+#ifdef WAVEPI_MPI
+               size_t n_procs = Utilities::MPI::n_mpi_processes(MPI_COMM_WORLD);
+               size_t rank = Utilities::MPI::this_mpi_process(MPI_COMM_WORLD);
+
+               deallog << "rank " << rank << " entering parallel section" << std::endl;
+               std::vector<std::vector<MPI_Request>> recv_requests(measures.size());
+               std::vector<DiscretizedFunction<dim>> result_fields(measures.size(),
+                     DiscretizedFunction<dim>(h.get_mesh()));
+
+               for (size_t i = 0; i < measures.size(); i++) {
+                  result_fields[i].set_norm(norm_codomain);
+
+                  if (i % n_procs != rank)
+                  result_fields[i].mpi_irecv(i % n_procs, recv_requests[i]);
+               }
+
+               for (size_t i = 0; i < measures.size(); i++) {
+                  if (i % n_procs != rank)
+                  continue;
+
+                  deallog << "rank " << rank << " working on field " << i << std::endl;
+
+                  fw_timer.start();
+                  result_fields[i] = sub_problems[i]->forward(h);
+                  fw_timer.stop();
+
+                  AssertThrow(result_fields[i].get_norm() == norm_codomain,
+                        ExcMessage("Output of Linearization has unexpected norm"))
+
+                  for (size_t k = 0; k < n_procs; k++)
+                  if (k != rank) {
+                     deallog << "rank " << rank << " sending field " << i << " to rank " << k << std::endl;
+                     result_fields[i].mpi_send(k);
+                  }
+               }
+
+               deallog << "rank " << rank << " waiting on Irecvs " << std::endl;
+
+               for (size_t i = 0; i < measures.size(); i++)
+               for (size_t j = 0; j < recv_requests[i].size(); j++) {
+                  MPI_Wait(&recv_requests[i][j], MPI_STATUS_IGNORE);
+               }
+
+               deallog << "rank " << rank << " exiting parallel section" << std::endl;
+
+               // everyone does the measurements
+               // TODO: could be done in parallel as well
+               // would need some kind of allocating function that uses the field
+               meas_timer.start();
+
+               for (size_t i = 0; i < measures.size(); i++)
+               result.push_back(measures[i]->evaluate(result_fields[i]));
+
+               meas_timer.stop();
+#else
                for (size_t i = 0; i < measures.size(); i++) {
                   fw_timer.start();
                   auto fw = sub_problems[i]->forward(h);
@@ -198,6 +336,7 @@ class WaveProblem: public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Measu
                   result.push_back(measures[i]->evaluate(fw));
                   meas_timer.stop();
                }
+#endif
 
                stats->calls_forward++;
                stats->time_forward += fw_timer.wall_time();
@@ -223,6 +362,59 @@ class WaveProblem: public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Measu
 
                DiscretizedFunction<dim> result(zero());
 
+#ifdef WAVEPI_MPI
+               size_t n_procs = Utilities::MPI::n_mpi_processes(MPI_COMM_WORLD);
+               size_t rank = Utilities::MPI::this_mpi_process(MPI_COMM_WORLD);
+
+               deallog << "rank " << rank << " entering parallel section" << std::endl;
+               std::vector<std::vector<MPI_Request>> recv_requests(measures.size());
+               std::vector<DiscretizedFunction<dim>> result_fields(measures.size(), zero());
+
+               for (size_t i = 0; i < measures.size(); i++) {
+                  result_fields[i].set_norm(norm_codomain);
+
+                  if (i % n_procs != rank)
+                  result_fields[i].mpi_irecv(i % n_procs, recv_requests[i]);
+               }
+
+               for (size_t i = 0; i < measures.size(); i++) {
+                  if (i % n_procs != rank)
+                  continue;
+
+                  deallog << "rank " << rank << " working on task " << i << std::endl;
+
+                  adj_meas_timer.start();
+                  auto am = measures[i]->adjoint(g[i]);
+                  adj_meas_timer.stop();
+
+                  adj_timer.start();
+                  result_fields[i] = sub_problems[i]->adjoint(am);
+                  adj_timer.stop();
+
+                  for (size_t k = 0; k < n_procs; k++)
+                  if (k != rank) {
+                     deallog << "rank " << rank << " sending field " << i << " to rank " << k
+                     << std::endl;
+                     result_fields[i].mpi_send(k);
+                  }
+               }
+
+               deallog << "rank " << rank << " waiting on Irecvs " << std::endl;
+
+               for (size_t i = 0; i < measures.size(); i++)
+               for (size_t j = 0; j < recv_requests[i].size(); j++) {
+                  MPI_Wait(&recv_requests[i][j], MPI_STATUS_IGNORE);
+               }
+
+               deallog << "rank " << rank << " exiting parallel section" << std::endl;
+
+               // everyone does the summing
+               // TODO: could be done in parallel as well
+               for (size_t i = 0; i < measures.size(); i++)
+               result += result_fields[i];
+
+#else
+
                for (size_t i = 0; i < measures.size(); i++) {
                   adj_meas_timer.start();
                   auto am = measures[i]->adjoint(g[i]);
@@ -238,6 +430,7 @@ class WaveProblem: public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Measu
                   // Norm checking for sub_problems[i]->adjoint(am)
                   // not necessary, `+=` would fail.
                }
+#endif
 
                stats->calls_adjoint++;
                stats->time_adjoint += adj_timer.wall_time();
@@ -258,7 +451,8 @@ class WaveProblem: public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Measu
 
             virtual DiscretizedFunction<dim> zero() {
                auto res = sub_problems[0]->zero();
-               AssertThrow(res.get_norm() == norm_domain, ExcMessage("sub_problems[0}->zero() has unexpected norm"))
+               AssertThrow(res.get_norm() == norm_domain,
+                     ExcMessage("sub_problems[0}->zero() has unexpected norm"))
 
                return res;
             }

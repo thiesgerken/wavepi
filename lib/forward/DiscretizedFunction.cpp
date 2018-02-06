@@ -1703,6 +1703,47 @@ double DiscretizedFunction<dim>::relative_error(const DiscretizedFunction<dim>& 
    return tmp.norm() / (denom == 0.0 ? 1.0 : denom);
 }
 
-} /* namespace forward */
+#ifdef WAVEPI_MPI
+template<int dim>
+void DiscretizedFunction<dim>::mpi_irecv(size_t source, std::vector<MPI_Request> &reqs) {
+   AssertThrow(reqs.size() == 0, ExcInternalError());
+
+   reqs.reserve(function_coefficients.size());
+
+   for (size_t i = 0; i < mesh->length(); i++) {
+      reqs.emplace_back();
+      MPI_Irecv(&function_coefficients[i][0], function_coefficients[i].size(), MPI_DOUBLE, source, 1,
+            MPI_COMM_WORLD, &reqs[i]);
+   }
+
+   if (store_derivative) {
+      reqs.reserve(function_coefficients.size() + derivative_coefficients.size());
+
+      for (size_t i = 0; i < mesh->length(); i++) {
+         reqs.emplace_back();
+         MPI_Irecv(&derivative_coefficients[i][0], derivative_coefficients[i].size(), MPI_DOUBLE, source,
+               1,
+               MPI_COMM_WORLD, &reqs[function_coefficients.size() + i]);
+      }
+   }
+}
+
+template<int dim>
+void DiscretizedFunction<dim>::mpi_send(size_t destination) {
+   for (size_t i = 0; i < mesh->length(); i++)
+   MPI_Send(&function_coefficients[i][0], function_coefficients[i].size(), MPI_DOUBLE, destination, 1,
+         MPI_COMM_WORLD);
+
+   if (store_derivative) {
+      for (size_t i = 0; i < mesh->length(); i++)
+      MPI_Send(&derivative_coefficients[i][0], derivative_coefficients[i].size(), MPI_DOUBLE,
+            destination, 1,
+            MPI_COMM_WORLD);
+   }
+}
+#endif
+
+}
+/* namespace forward */
 } /* namespace wavepi */
 

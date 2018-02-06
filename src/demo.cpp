@@ -39,11 +39,11 @@ class DemoF: public Function<dim> {
 
       double value(const Point<dim> &p, const unsigned int component = 0) const {
          Assert(component == 0, ExcIndexRange(component, 0, 1));
-         if (p.distance(center) < 0.75)
-            return std::sin(this->get_time() * 2 * numbers::PI);
-         else
-            return 0.0;
-      }
+      if (p.distance(center) < 0.75)
+      return std::sin(this->get_time() * 2 * numbers::PI);
+      else
+      return 0.0;
+   }
 };
 
 template<int dim>
@@ -55,14 +55,14 @@ class DemoC: public Function<dim> {
 
       virtual double value(const Point<dim> &p, const unsigned int component = 0) const {
          Assert(component == 0, ExcIndexRange(component, 0, 1));
-         if (p.distance(center) < 2)
-            return 1.0
-                  / (4.0
-                        + (1.0 - std::pow(p.distance(center) / 2, 4)) * 12.0
-                              * std::pow(std::sin(this->get_time() / 2.5 * numbers::PI), 2));
-         else
-            return 1.0 / (4.0 + 0.0);
-      }
+      if (p.distance(center) < 2)
+      return 1.0
+      / (4.0
+            + (1.0 - std::pow(p.distance(center) / 2, 4)) * 12.0
+            * std::pow(std::sin(this->get_time() / 2.5 * numbers::PI), 2));
+      else
+      return 1.0 / (4.0 + 0.0);
+   }
 };
 
 template<int dim>
@@ -73,13 +73,13 @@ class DemoWaveSpeed: public Function<dim> {
       virtual ~DemoWaveSpeed() = default;
 
       virtual double value(const Point<dim> &p, const unsigned int component = 0) const {
-         return 1.0 / std::sqrt(base.value(p, component));
-      }
+      return 1.0 / std::sqrt(base.value(p, component));
+   }
 
-      virtual void set_time(double t) {
-         Function<dim>::set_time(t);
-         base.set_time(t);
-      }
+   virtual void set_time(double t) {
+      Function<dim>::set_time(t);
+      base.set_time(t);
+   }
 };
 
 template<> const Point<2> DemoF<2>::center = Point<2>(1.0, 0.0);

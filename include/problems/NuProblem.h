@@ -54,7 +54,8 @@ class NuProblem: public WaveProblem<dim, Measurement> {
       virtual std::unique_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>> derivative(
             size_t i) {
          return std::make_unique<NuProblem<dim, Measurement>::Linearization>(this->wave_equation,
-               this->adjoint_solver, this->current_param, this->fields[i], this->norm_domain, this->norm_codomain);
+               this->adjoint_solver, this->current_param, this->fields[i], this->norm_domain,
+               this->norm_codomain);
       }
 
       virtual DiscretizedFunction<dim> forward(size_t i) {
@@ -66,11 +67,20 @@ class NuProblem: public WaveProblem<dim, Measurement> {
          DiscretizedFunction<dim> res = this->wave_equation.run();
          res.set_norm(this->norm_codomain);
 
-         // save a copy of res
+         // save a copy of res (with derivative)
          this->fields[i] = std::make_shared<DiscretizedFunction<dim>>(res);
 
-         res.throw_away_derivative();
+         // is done in WaveProblem before measurements and must not be done here.
+         // res.throw_away_derivative();
+
          return res;
+      }
+
+      virtual void forward(size_t i, const DiscretizedFunction<dim>& u) {
+         AssertThrow(u.has_derivative(), ExcInternalError());
+
+         // save a copy of res (with derivative)
+         this->fields[i] = std::make_shared<DiscretizedFunction<dim>>(u);
       }
 
    private:

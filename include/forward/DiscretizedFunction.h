@@ -14,6 +14,7 @@
 #include <deal.II/base/tensor.h>
 #include <deal.II/dofs/dof_handler.h>
 #include <deal.II/lac/vector.h>
+#include <deal.II/base/mpi.h>
 
 #include <stddef.h>
 #include <memory>
@@ -487,6 +488,27 @@ class DiscretizedFunction: public Function<dim> {
       /**
        * @}
        */
+
+#ifdef WAVEPI_MPI
+      /**
+       *
+       * @name MPI support
+       */
+
+      /**
+       * set up irecvs on the data of this object
+       */
+      void mpi_irecv(size_t source, std::vector<MPI_Request> &reqs);
+
+      /**
+       * send the data of this object to another process
+       */
+      void mpi_send(size_t destination);
+
+      /**
+       * @}
+       */
+#endif
 
       /**
        * Create a new `DiscretizedFunction` filled with random nodal values between -1 and 1.

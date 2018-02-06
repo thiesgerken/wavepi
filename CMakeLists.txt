@@ -37,6 +37,11 @@ set(CMAKE_EXE_LINKER_FLAGS    "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=gold")
 set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} -fuse-ld=gold")
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fuse-ld=gold")
 
+if(WAVEPI_WITH_MPI)
+    message("Compiling with MPI support")
+    add_definitions(-DWAVEPI_MPI)
+endif()
+
 enable_testing()
 
 add_subdirectory(lib)

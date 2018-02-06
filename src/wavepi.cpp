@@ -10,6 +10,7 @@
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/logstream.h>
 #include <deal.II/base/parameter_handler.h>
+#include <deal.II/base/mpi.h>
 
 #include <forward/DiscretizedFunction.h>
 
@@ -25,6 +26,8 @@
 #include <memory>
 #include <string>
 
+#include <deal.II/base/mpi.h>
+
 using namespace dealii;
 using namespace wavepi;
 using namespace wavepi::util;
@@ -32,6 +35,10 @@ using namespace wavepi::util;
 namespace po = boost::program_options;
 
 int main(int argc, char * argv[]) {
+   Utilities::MPI::MPI_InitFinalize mpi_init(argc, argv);
+   size_t mpi_rank = Utilities::MPI::this_mpi_process(MPI_COMM_WORLD);
+   size_t mpi_size = Utilities::MPI::n_mpi_processes(MPI_COMM_WORLD);
+
    try {
       po::options_description desc(Version::get_identification() + "\nsupported options");
 
@@ -132,18 +139,26 @@ int main(int argc, char * argv[]) {
       std::ofstream logout;
 
       if (cfg->log_file.size()) {
+         if (mpi_rank > 0)
+            cfg->log_file = cfg->log_file + std::to_string(mpi_rank);
+
          logout = std::ofstream(cfg->log_file);
          deallog.attach(logout);
          deallog.depth_file(cfg->log_file_depth);
       }
 
       deallog.depth_console(cfg->log_console_depth);
-
       deallog.precision(3);
       deallog.pop();
+
+      if (mpi_rank > 0) {
+         deallog << "node " << mpi_rank << " coming online" << std::endl;
+         deallog.depth_console(0);
+      } else if (mpi_size > 1)
+         deallog << "parallel job on " << mpi_size << " nodes" << std::endl;
+
       deallog << Version::get_identification() << std::endl;
       deallog << Version::get_infos() << std::endl;
-      // deallog.log_execution_time(true);
 
       if (cfg->dimension == 1) {
          if (cfg->measure_type == SettingsManager::MeasureType::vector) {
@@ -177,9 +192,13 @@ int main(int argc, char * argv[]) {
 
       // deallog.timestamp();
    } catch (std::exception &exc) {
+      if (mpi_rank != 0)
+         std::cerr << "rank " << mpi_rank << ": ";
       std::cerr << "Exception on processing: " << exc.what() << std::endl;
       return 1;
    } catch (...) {
+      if (mpi_rank != 0)
+         std::cerr << "rank " << mpi_rank << ": ";
       std::cerr << "Unknown exception!" << std::endl;
       return 1;
    }

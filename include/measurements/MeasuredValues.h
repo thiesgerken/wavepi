@@ -22,6 +22,7 @@
 #include <random>
 #include <string>
 #include <vector>
+#include <deal.II/base/mpi.h>
 
 namespace wavepi {
 namespace measurements {
@@ -143,6 +144,26 @@ class MeasuredValues {
        * Only in 1D: write space + time data as 2D vts file
        */
       void write_vts(std::string path, std::string filename, std::string name) const;
+
+#ifdef WAVEPI_MPI
+      /**
+       * @name MPI support
+       */
+
+      /**
+       * set up irecvs on the data of this object
+       */
+      void mpi_irecv(size_t source, std::vector<MPI_Request> &reqs);
+
+      /**
+       * send the data of this object to another process
+       */
+      void mpi_send(size_t destination);
+
+      /**
+       * @}
+       */
+#endif
 
    private:
       std::shared_ptr<SpaceTimeGrid<dim>> grid;

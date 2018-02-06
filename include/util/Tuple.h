@@ -170,6 +170,10 @@ class Tuple {
             elements[i].write_pvd(path, filename + Utilities::int_to_string(i, 2), name);
       }
 
+      void reserve(int num) {
+         elements.reserve(num);
+      }
+
    private:
       std::vector<T> elements;
 };
