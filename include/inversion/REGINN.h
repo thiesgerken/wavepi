@@ -94,10 +94,10 @@ class REGINN: public NewtonRegularization<Param, Sol, Exact> {
             else
                AssertThrow(false, ExcInternalError());
 
-            size_t rank = Utilities::MPI::this_mpi_process(MPI_COMM_WORLD);
-
             inner_stats = std::make_shared<InnerStatOutputProgressListener<Param, Sol, Exact>>(prm);
-            if (rank == 0)
+
+            // only add stat output for the master node in case of MPI
+            if (Utilities::MPI::this_mpi_process(MPI_COMM_WORLD) == 0)
                linear_solver->add_listener(inner_stats);
 
             inner_watchdog = std::make_shared<WatchdogProgressListener<Param, Sol, Exact>>(prm, true,
@@ -206,9 +206,7 @@ class REGINN: public NewtonRegularization<Param, Sol, Exact> {
             tol_choice->add_iteration(discrepancy, linear_status->iteration_number);
             max_iter_choice->add_iteration(discrepancy, linear_status->iteration_number);
 
-            size_t rank = Utilities::MPI::this_mpi_process(MPI_COMM_WORLD);
-            if (rank == 0)
-               std::cout << std::endl;
+            deallog << std::endl;
          }
 
          status.finished = true;

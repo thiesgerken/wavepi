@@ -36,6 +36,8 @@ namespace po = boost::program_options;
 
 int main(int argc, char * argv[]) {
    Utilities::MPI::MPI_InitFinalize mpi_init(argc, argv);
+   size_t mpi_rank = Utilities::MPI::this_mpi_process(MPI_COMM_WORLD);
+   size_t mpi_size = Utilities::MPI::n_mpi_processes(MPI_COMM_WORLD);
 
    try {
       po::options_description desc(Version::get_identification() + "\nsupported options");
@@ -133,15 +135,12 @@ int main(int argc, char * argv[]) {
       AssertThrow(vm.count("config-format") == 0,
             ExcMessage("--config-format is useless without --export-config"));
 
-      size_t rank = Utilities::MPI::this_mpi_process(MPI_COMM_WORLD);
-      size_t mpi_size = Utilities::MPI::n_mpi_processes(MPI_COMM_WORLD);
-
       // has to be kept in scope
       std::ofstream logout;
 
       if (cfg->log_file.size()) {
-         if (rank > 0)
-            cfg->log_file = cfg->log_file + std::to_string(rank);
+         if (mpi_rank > 0)
+            cfg->log_file = cfg->log_file + std::to_string(mpi_rank);
 
          logout = std::ofstream(cfg->log_file);
          deallog.attach(logout);
@@ -152,8 +151,8 @@ int main(int argc, char * argv[]) {
       deallog.precision(3);
       deallog.pop();
 
-      if (rank > 0) {
-         deallog << "node " << rank << " coming online" << std::endl;
+      if (mpi_rank > 0) {
+         deallog << "node " << mpi_rank << " coming online" << std::endl;
          deallog.depth_console(0);
       } else if (mpi_size > 1)
          deallog << "parallel job on " << mpi_size << " nodes" << std::endl;
@@ -193,15 +192,13 @@ int main(int argc, char * argv[]) {
 
       // deallog.timestamp();
    } catch (std::exception &exc) {
-      size_t rank = Utilities::MPI::this_mpi_process(MPI_COMM_WORLD);
-      if (rank != 0)
-         std::cerr << "rank " << rank << ": ";
+      if (mpi_rank != 0)
+         std::cerr << "rank " << mpi_rank << ": ";
       std::cerr << "Exception on processing: " << exc.what() << std::endl;
       return 1;
    } catch (...) {
-      size_t rank = Utilities::MPI::this_mpi_process(MPI_COMM_WORLD);
-      if (rank != 0)
-         std::cerr << "rank " << rank << ": ";
+      if (mpi_rank != 0)
+         std::cerr << "rank " << mpi_rank << ": ";
       std::cerr << "Unknown exception!" << std::endl;
       return 1;
    }

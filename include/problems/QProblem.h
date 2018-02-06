@@ -54,7 +54,8 @@ class QProblem: public WaveProblem<dim, Measurement> {
       virtual std::unique_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>> derivative(
             size_t i) {
          return std::make_unique<QProblem<dim, Measurement>::Linearization>(this->wave_equation,
-               this->adjoint_solver, this->current_param, this->fields[i], this->norm_domain, this->norm_codomain);
+               this->adjoint_solver, this->current_param, this->fields[i], this->norm_domain,
+               this->norm_codomain);
       }
 
       virtual DiscretizedFunction<dim> forward(size_t i) {
@@ -65,12 +66,22 @@ class QProblem: public WaveProblem<dim, Measurement> {
 
          DiscretizedFunction<dim> res = this->wave_equation.run();
          res.set_norm(this->norm_codomain);
+
+         // is also done in WaveProblem before measurements
+         // but we want to prevent network traffic for derivative.
          res.throw_away_derivative();
 
          // save a copy of res
          this->fields[i] = std::make_shared<DiscretizedFunction<dim>>(res);
 
          return res;
+      }
+
+      virtual void forward(size_t i, const DiscretizedFunction<dim>& u) {
+         AssertThrow(!u.has_derivative(), ExcInternalError());
+
+         // save a copy of res (without derivative)
+         this->fields[i] = std::make_shared<DiscretizedFunction<dim>>(u);
       }
 
    private:
