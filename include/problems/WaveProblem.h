@@ -115,6 +115,7 @@ class WaveProblem: public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Measu
             result_fields[i] = forward(i);
             fw_timer.stop();
 
+            // TODO: Isend or Ibcast (and wait for those requests as well) -> better performance for more than one pde / node
             comm_timer.start();
             for (size_t k = 0; k < n_procs; k++)
             if (k != rank) {
@@ -303,6 +304,7 @@ class WaveProblem: public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Measu
                   AssertThrow(result_fields[i].get_norm() == norm_codomain,
                         ExcMessage("Output of Linearization has unexpected norm"))
 
+                  // TODO: Isend or Ibcast (and wait for those requests as well) -> better performance for more than one pde / node
                   comm_timer.start();
                   for (size_t k = 0; k < n_procs; k++)
                   if (k != rank) {
@@ -404,6 +406,7 @@ class WaveProblem: public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Measu
                   result_fields[i] = sub_problems[i]->adjoint(am);
                   adj_timer.stop();
 
+                  // TODO: do a private sum on my jobs first and send that to everyone in the end -> better performance for more than one pde / node
                   comm_timer.start();
                   for (size_t k = 0; k < n_procs; k++)
                   if (k != rank) {
