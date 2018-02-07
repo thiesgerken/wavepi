@@ -35,7 +35,7 @@ using namespace wavepi::util;
 namespace po = boost::program_options;
 
 int main(int argc, char * argv[]) {
-   Utilities::MPI::MPI_InitFinalize mpi_init(argc, argv);
+   Utilities::MPI::MPI_InitFinalize mpi_init(argc, argv, 5);
    size_t mpi_rank = Utilities::MPI::this_mpi_process(MPI_COMM_WORLD);
    size_t mpi_size = Utilities::MPI::n_mpi_processes(MPI_COMM_WORLD);
 

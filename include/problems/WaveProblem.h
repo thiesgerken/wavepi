@@ -371,7 +371,7 @@ class WaveProblem: public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Measu
                std::vector<DiscretizedFunction<dim>> result_fields(measures.size(), zero());
 
                for (size_t i = 0; i < measures.size(); i++) {
-                  result_fields[i].set_norm(norm_codomain);
+                  result_fields[i].set_norm(norm_domain);
 
                   if (i % n_procs != rank)
                   result_fields[i].mpi_irecv(i % n_procs, recv_requests[i]);
