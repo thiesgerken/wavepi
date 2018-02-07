@@ -8,6 +8,7 @@
 #include <inversion/ToleranceChoice.h>
 
 #include <deal.II/base/logstream.h>
+#include <deal.II/base/mpi.h>
 #include <deal.II/base/exceptions.h>
 #include <fstream>
 
@@ -57,6 +58,9 @@ void ToleranceChoice::add_iteration(double new_discrepancy, int steps) {
    // truncate if i == 0
    auto opts = discrepancies.size() == 1 ? std::ios::trunc : std::ios::app;
    std::ofstream csv_file(tolerance_prefix + ".csv", std::ios::out | opts);
+
+   if (Utilities::MPI::this_mpi_process(MPI_COMM_WORLD) != 0)
+      return;
 
    if (!csv_file) {
       deallog << "Could not open " + tolerance_prefix + ".csv" + " for output!" << std::endl;

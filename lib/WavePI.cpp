@@ -315,6 +315,10 @@ template<int dim, typename Meas> void WavePI<dim, Meas>::run() {
             << stats->time_measure_forward / stats->calls_measure_forward << " s per call" << std::endl;
       deallog << "measure adjoint      : " << stats->calls_measure_adjoint << " calls, average "
             << stats->time_measure_adjoint / stats->calls_measure_adjoint << " s per call" << std::endl;
+      deallog << "mpi communication      : " << stats->time_communication << " s, average "
+            << stats->time_communication
+                  / (stats->calls_forward + stats->calls_linearization_forward
+                        + stats->calls_linearization_adjoint) << " s per pde solution" << std::endl;
    }
 }
 

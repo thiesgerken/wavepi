@@ -31,6 +31,8 @@ struct NonlinearProblemStats {
 
       double time_measure_forward;
       double time_measure_adjoint;
+
+      double time_communication;
 };
 
 template<typename Param, typename Sol>

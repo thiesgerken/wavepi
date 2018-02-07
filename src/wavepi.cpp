@@ -35,7 +35,7 @@ using namespace wavepi::util;
 namespace po = boost::program_options;
 
 int main(int argc, char * argv[]) {
-   Utilities::MPI::MPI_InitFinalize mpi_init(argc, argv, 5);
+   Utilities::MPI::MPI_InitFinalize mpi_init(argc, argv);
    size_t mpi_rank = Utilities::MPI::this_mpi_process(MPI_COMM_WORLD);
    size_t mpi_size = Utilities::MPI::n_mpi_processes(MPI_COMM_WORLD);
 
@@ -190,7 +190,7 @@ int main(int argc, char * argv[]) {
       } else
          AssertThrow(false, ExcMessage("not built for dimension " + std::to_string(cfg->dimension)));
 
-      // deallog.timestamp();
+      deallog.timestamp();
    } catch (std::exception &exc) {
       if (mpi_rank != 0)
          std::cerr << "rank " << mpi_rank << ": ";
