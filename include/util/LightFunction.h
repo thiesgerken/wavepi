@@ -17,17 +17,17 @@ using namespace dealii;
 /**
  * no `set_time` s.t. evaluation can be thread safe
  */
-template<int dim>
+template <int dim>
 class LightFunction {
-   public:
-      virtual ~LightFunction() = default;
+ public:
+  virtual ~LightFunction() = default;
 
-      /**
-       * evaluate function
-       *
-       * @param p point in spacetime to evaluate at (last entry is time)
-       */
-      virtual double evaluate(const Point<dim + 1> &p) const = 0;
+  /**
+   * evaluate function
+   *
+   * @param p point in spacetime to evaluate at (last entry is time)
+   */
+  virtual double evaluate(const Point<dim + 1> &p) const = 0;
 };
 
 } /* namespace util */

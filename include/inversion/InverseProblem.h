@@ -17,14 +17,12 @@ namespace wavepi {
  */
 namespace inversion {
 
-template<typename Param, typename Sol>
+template <typename Param, typename Sol>
 class InverseProblem {
-   public:
+ public:
+  virtual ~InverseProblem() = default;
 
-      virtual ~InverseProblem() = default;
-
-      virtual Sol forward(const Param& f) = 0;
-
+  virtual Sol forward(const Param& f) = 0;
 };
 
 } /* namespace inversion */

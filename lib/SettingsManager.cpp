@@ -32,430 +32,423 @@ using namespace wavepi::inversion;
 using namespace wavepi::util;
 using namespace wavepi::measurements;
 
-const std::string SettingsManager::KEY_GENERAL = "general";
-const std::string SettingsManager::KEY_GENERAL_DIMENSION = "dimension";
-const std::string SettingsManager::KEY_GENERAL_FE_DEGREE = "finite element degree";
+const std::string SettingsManager::KEY_GENERAL            = "general";
+const std::string SettingsManager::KEY_GENERAL_DIMENSION  = "dimension";
+const std::string SettingsManager::KEY_GENERAL_FE_DEGREE  = "finite element degree";
 const std::string SettingsManager::KEY_GENERAL_QUAD_ORDER = "quadrature order";
 
-const std::string SettingsManager::KEY_LOG = "log";
-const std::string SettingsManager::KEY_LOG_FILE = "file";
-const std::string SettingsManager::KEY_LOG_FILE_DEPTH = "file depth";
+const std::string SettingsManager::KEY_LOG               = "log";
+const std::string SettingsManager::KEY_LOG_FILE          = "file";
+const std::string SettingsManager::KEY_LOG_FILE_DEPTH    = "file depth";
 const std::string SettingsManager::KEY_LOG_CONSOLE_DEPTH = "console depth";
 
-const std::string SettingsManager::KEY_MESH = "mesh";
-const std::string SettingsManager::KEY_MESH_END_TIME = "end time";
-const std::string SettingsManager::KEY_MESH_INITIAL_REFINES = "initial refines";
+const std::string SettingsManager::KEY_MESH                    = "mesh";
+const std::string SettingsManager::KEY_MESH_END_TIME           = "end time";
+const std::string SettingsManager::KEY_MESH_INITIAL_REFINES    = "initial refines";
 const std::string SettingsManager::KEY_MESH_INITIAL_TIME_STEPS = "initial time steps";
-const std::string SettingsManager::KEY_MESH_SHAPE = "shape";
-const std::string SettingsManager::KEY_MESH_SHAPE_GENERATOR = "generator name";
-const std::string SettingsManager::KEY_MESH_SHAPE_OPTIONS = "options";
+const std::string SettingsManager::KEY_MESH_SHAPE              = "shape";
+const std::string SettingsManager::KEY_MESH_SHAPE_GENERATOR    = "generator name";
+const std::string SettingsManager::KEY_MESH_SHAPE_OPTIONS      = "options";
 
-const std::string SettingsManager::KEY_PROBLEM = "problem";
-const std::string SettingsManager::KEY_PROBLEM_TYPE = "type";
-const std::string SettingsManager::KEY_PROBLEM_NORM_DOMAIN = "norm of domain";
-const std::string SettingsManager::KEY_PROBLEM_NORM_CODOMAIN = "norm of codomain";
+const std::string SettingsManager::KEY_PROBLEM                = "problem";
+const std::string SettingsManager::KEY_PROBLEM_TYPE           = "type";
+const std::string SettingsManager::KEY_PROBLEM_NORM_DOMAIN    = "norm of domain";
+const std::string SettingsManager::KEY_PROBLEM_NORM_CODOMAIN  = "norm of codomain";
 const std::string SettingsManager::KEY_PROBLEM_NORM_H1L2ALPHA = "H1L2 alpha";
 const std::string SettingsManager::KEY_PROBLEM_NORM_H2L2ALPHA = "H2L2 alpha";
-const std::string SettingsManager::KEY_PROBLEM_NORM_H2L2BETA = "H2L2 beta";
+const std::string SettingsManager::KEY_PROBLEM_NORM_H2L2BETA  = "H2L2 beta";
 
-const std::string SettingsManager::KEY_PROBLEM_EPSILON = "epsilon";
+const std::string SettingsManager::KEY_PROBLEM_EPSILON   = "epsilon";
 const std::string SettingsManager::KEY_PROBLEM_CONSTANTS = "constants";
-const std::string SettingsManager::KEY_PROBLEM_GUESS = "initial guess";
-const std::string SettingsManager::KEY_PROBLEM_PARAM_A = "parameter a";
-const std::string SettingsManager::KEY_PROBLEM_PARAM_Q = "parameter q";
-const std::string SettingsManager::KEY_PROBLEM_PARAM_C = "parameter c";
-const std::string SettingsManager::KEY_PROBLEM_PARAM_NU = "parameter nu";
+const std::string SettingsManager::KEY_PROBLEM_GUESS     = "initial guess";
+const std::string SettingsManager::KEY_PROBLEM_PARAM_A   = "parameter a";
+const std::string SettingsManager::KEY_PROBLEM_PARAM_Q   = "parameter q";
+const std::string SettingsManager::KEY_PROBLEM_PARAM_C   = "parameter c";
+const std::string SettingsManager::KEY_PROBLEM_PARAM_NU  = "parameter nu";
 
-const std::string SettingsManager::KEY_PROBLEM_DATA = "data";
-const std::string SettingsManager::KEY_PROBLEM_DATA_COUNT = "number of right hand sides";
-const std::string SettingsManager::KEY_PROBLEM_DATA_RHS = "right hand sides";
-const std::string SettingsManager::KEY_PROBLEM_DATA_CONFIG = "configurations";
-const std::string SettingsManager::KEY_PROBLEM_DATA_I = "config "; // + number
+const std::string SettingsManager::KEY_PROBLEM_DATA           = "data";
+const std::string SettingsManager::KEY_PROBLEM_DATA_COUNT     = "number of right hand sides";
+const std::string SettingsManager::KEY_PROBLEM_DATA_RHS       = "right hand sides";
+const std::string SettingsManager::KEY_PROBLEM_DATA_CONFIG    = "configurations";
+const std::string SettingsManager::KEY_PROBLEM_DATA_I         = "config ";  // + number
 const std::string SettingsManager::KEY_PROBLEM_DATA_I_MEASURE = "measure";
 
-const std::string SettingsManager::KEY_INVERSION = "inversion";
-const std::string SettingsManager::KEY_INVERSION_TAU = "tau";
+const std::string SettingsManager::KEY_INVERSION        = "inversion";
+const std::string SettingsManager::KEY_INVERSION_TAU    = "tau";
 const std::string SettingsManager::KEY_INVERSION_METHOD = "method";
 
 void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) {
-   OutputProgressListener<2, Tuple<DiscretizedFunction<2>>>::declare_parameters(*prm);
-   WatchdogProgressListener<Tuple<DiscretizedFunction<2>>, Tuple<DiscretizedFunction<2>>>::declare_parameters(
-         *prm);
-   StatOutputProgressListener<Tuple<DiscretizedFunction<2>>, Tuple<DiscretizedFunction<2>>>::declare_parameters(
-         *prm);
-   WaveEquationBase<2>::declare_parameters(*prm);
-   BoundCheckProgressListener<2, Tuple<DiscretizedFunction<2>>>::declare_parameters(*prm);
+  OutputProgressListener<2, Tuple<DiscretizedFunction<2>>>::declare_parameters(*prm);
+  WatchdogProgressListener<Tuple<DiscretizedFunction<2>>, Tuple<DiscretizedFunction<2>>>::declare_parameters(*prm);
+  StatOutputProgressListener<Tuple<DiscretizedFunction<2>>, Tuple<DiscretizedFunction<2>>>::declare_parameters(*prm);
+  WaveEquationBase<2>::declare_parameters(*prm);
+  BoundCheckProgressListener<2, Tuple<DiscretizedFunction<2>>>::declare_parameters(*prm);
 
-   prm->enter_subsection(KEY_GENERAL);
-   {
-      prm->declare_entry(KEY_GENERAL_DIMENSION, "2", Patterns::Integer(1, 3), "problem dimension");
-      prm->declare_entry(KEY_GENERAL_FE_DEGREE, "1", Patterns::Integer(1, 4),
-            "polynomial degree of finite elements. Note that bound checking is currently only implemented for linear elements.");
-      prm->declare_entry(KEY_GENERAL_QUAD_ORDER, "3", Patterns::Integer(1, 20),
-            "order of quadrature (QGauss, exact in polynomials of degree ≤ 2n-1, use at least finite element degree + 1) ");
-   }
-   prm->leave_subsection();
+  prm->enter_subsection(KEY_GENERAL);
+  {
+    prm->declare_entry(KEY_GENERAL_DIMENSION, "2", Patterns::Integer(1, 3), "problem dimension");
+    prm->declare_entry(KEY_GENERAL_FE_DEGREE, "1", Patterns::Integer(1, 4),
+                       "polynomial degree of finite elements. Note that bound "
+                       "checking is currently only implemented for linear "
+                       "elements.");
+    prm->declare_entry(KEY_GENERAL_QUAD_ORDER, "3", Patterns::Integer(1, 20),
+                       "order of quadrature (QGauss, exact in polynomials of "
+                       "degree ≤ 2n-1, use at least finite element degree + "
+                       "1) ");
+  }
+  prm->leave_subsection();
 
-   prm->enter_subsection(KEY_LOG);
-   {
-      prm->declare_entry(KEY_LOG_FILE, "wavepi.log", Patterns::FileName(Patterns::FileName::output),
-            "external log file");
-      prm->declare_entry(KEY_LOG_FILE_DEPTH, "100", Patterns::Integer(0), "depth for the log file");
-      prm->declare_entry(KEY_LOG_CONSOLE_DEPTH, "2", Patterns::Integer(0), "depth for stdout");
-   }
-   prm->leave_subsection();
+  prm->enter_subsection(KEY_LOG);
+  {
+    prm->declare_entry(KEY_LOG_FILE, "wavepi.log", Patterns::FileName(Patterns::FileName::output), "external log file");
+    prm->declare_entry(KEY_LOG_FILE_DEPTH, "100", Patterns::Integer(0), "depth for the log file");
+    prm->declare_entry(KEY_LOG_CONSOLE_DEPTH, "2", Patterns::Integer(0), "depth for stdout");
+  }
+  prm->leave_subsection();
 
-   prm->enter_subsection(KEY_MESH);
-   {
-      prm->declare_entry(KEY_MESH_END_TIME, "6", Patterns::Double(0), "time horizon T");
-      prm->declare_entry(KEY_MESH_INITIAL_REFINES, "5", Patterns::Integer(0),
-            "refines of the (initial) spatial grid");
-      prm->declare_entry(KEY_MESH_INITIAL_TIME_STEPS, "256", Patterns::Integer(2),
-            "(initial) number of time steps");
+  prm->enter_subsection(KEY_MESH);
+  {
+    prm->declare_entry(KEY_MESH_END_TIME, "6", Patterns::Double(0), "time horizon T");
+    prm->declare_entry(KEY_MESH_INITIAL_REFINES, "5", Patterns::Integer(0), "refines of the (initial) spatial grid");
+    prm->declare_entry(KEY_MESH_INITIAL_TIME_STEPS, "256", Patterns::Integer(2), "(initial) number of time steps");
 
-      prm->enter_subsection(KEY_MESH_SHAPE);
-      {
-         prm->declare_entry(KEY_MESH_SHAPE_GENERATOR, "hyper_cube",
-               Patterns::Selection("hyper_cube|hyper_L|hyper_ball|cheese"),
-               "generator for the triangulation");
-         prm->declare_entry(KEY_MESH_SHAPE_OPTIONS, "left=-1.0, right=1.0", Patterns::Anything(),
-               "options for the generator, in the form `var1=value1, var2=value2, ...`.\n Available options: left, right for hyper_cube and hyper_L, center_{x,y,z} and radius for hyper_cube, scale for cheese.");
+    prm->enter_subsection(KEY_MESH_SHAPE);
+    {
+      prm->declare_entry(KEY_MESH_SHAPE_GENERATOR, "hyper_cube",
+                         Patterns::Selection("hyper_cube|hyper_L|hyper_ball|cheese"),
+                         "generator for the triangulation");
+      prm->declare_entry(KEY_MESH_SHAPE_OPTIONS, "left=-1.0, right=1.0", Patterns::Anything(),
+                         "options for the generator, in the form `var1=value1, var2=value2, "
+                         "...`.\n Available options: left, right for hyper_cube and hyper_L, "
+                         "center_{x,y,z} and radius for hyper_cube, scale for cheese.");
+    }
+    prm->leave_subsection();
+  }
+  prm->leave_subsection();
+
+  prm->enter_subsection(KEY_PROBLEM);
+  {
+    prm->declare_entry(KEY_PROBLEM_TYPE, "a", Patterns::Selection("a|c|q|nu|L2A|L2Q|L2Nu|L2C"),
+                       "parameter that is reconstructed");
+
+    prm->declare_entry(KEY_PROBLEM_NORM_DOMAIN, "L2L2", Patterns::Selection("L2L2|H1L2|H2L2|Coefficients"),
+                       "norm to use for parameters (incl. the reconstruction)");
+    prm->declare_entry(KEY_PROBLEM_NORM_CODOMAIN, "L2L2", Patterns::Selection("L2L2|H1L2|H2L2|Coefficients"),
+                       "Set the norm to use for fields. Be aware that this has "
+                       "to match the norm that the measurements expect its "
+                       "inputs to have.");
+
+    prm->declare_entry(KEY_PROBLEM_NORM_H1L2ALPHA, "0.5", Patterns::Double(0),
+                       "Factor α in front of derivative term of H^1([0,T], L^2) dot product");
+    prm->declare_entry(KEY_PROBLEM_NORM_H2L2ALPHA, "0.5", Patterns::Double(0),
+                       "Factor α in front of first derivative term of "
+                       "H^2([0,T], L^2) dot product");
+    prm->declare_entry(KEY_PROBLEM_NORM_H2L2BETA, "0.25", Patterns::Double(0),
+                       "Factor β in front of second derivative term of "
+                       "H^2([0,T], L^2) dot product");
+
+    prm->declare_entry(KEY_PROBLEM_EPSILON, "1e-2", Patterns::Double(0, 1), "relative noise level ε");
+
+    prm->declare_entry(KEY_PROBLEM_CONSTANTS, "", Patterns::Anything(),
+                       "constants for the function declarations,\nin the form "
+                       "`var1=value1, var2=value2, ...`.");
+
+    prm->declare_entry(KEY_PROBLEM_GUESS, "0.5", Patterns::Anything(), "initial guess");
+
+    prm->declare_entry(KEY_PROBLEM_PARAM_A, "1.0", Patterns::Anything(), "parameter a");
+    prm->declare_entry(KEY_PROBLEM_PARAM_Q, "0.0", Patterns::Anything(), "parameter q");
+    prm->declare_entry(KEY_PROBLEM_PARAM_C, "2.0", Patterns::Anything(), "parameter c");
+    prm->declare_entry(KEY_PROBLEM_PARAM_NU, "0.0", Patterns::Anything(), "parameter ν");
+
+    prm->enter_subsection(KEY_PROBLEM_DATA);
+    {
+      prm->declare_entry(KEY_PROBLEM_DATA_COUNT, "1", Patterns::Integer(1), "Number of right hand sides");
+
+      prm->declare_entry(KEY_PROBLEM_DATA_CONFIG, "0", Patterns::Anything(),
+                         "configuration to use for which right hand side, "
+                         "separated by semicolons");
+      prm->declare_entry(KEY_PROBLEM_DATA_RHS, "if(norm{x|y|z} < 0.2, sin(t), 0.0)", Patterns::Anything(),
+                         "right hand sides, separated by semicolons");
+
+      for (size_t i = 0; i < num_configurations; i++) {
+        prm->enter_subsection(KEY_PROBLEM_DATA_I + Utilities::int_to_string(i, 1));
+
+        GridPointMeasure<2>::declare_parameters(*prm);
+        prm->declare_entry(KEY_PROBLEM_DATA_I_MEASURE, "Identical", Patterns::Selection("Identical|Grid"),
+                           "type of measurements");
+
+        prm->leave_subsection();
       }
-      prm->leave_subsection();
-   }
-   prm->leave_subsection();
+    }
+    prm->leave_subsection();
+  }
+  prm->leave_subsection();
 
-   prm->enter_subsection(KEY_PROBLEM);
-   {
-      prm->declare_entry(KEY_PROBLEM_TYPE, "a", Patterns::Selection("a|c|q|nu|L2A|L2Q|L2Nu|L2C"),
-            "parameter that is reconstructed");
+  prm->enter_subsection(KEY_INVERSION);
+  {
+    prm->declare_entry(KEY_INVERSION_METHOD, "REGINN", Patterns::Selection("REGINN|NonlinearLandweber"),
+                       "solver for the inverse problem");
+    prm->declare_entry(KEY_INVERSION_TAU, "2", Patterns::Double(0), "parameter τ for discrepancy principle");
 
-      prm->declare_entry(KEY_PROBLEM_NORM_DOMAIN, "L2L2", Patterns::Selection("L2L2|H1L2|H2L2|Coefficients"),
-            "norm to use for parameters (incl. the reconstruction)");
-      prm->declare_entry(KEY_PROBLEM_NORM_CODOMAIN, "L2L2",
-            Patterns::Selection("L2L2|H1L2|H2L2|Coefficients"),
-            "Set the norm to use for fields. Be aware that this has to match the norm that the measurements expect its inputs to have.");
-
-      prm->declare_entry(KEY_PROBLEM_NORM_H1L2ALPHA, "0.5", Patterns::Double(0),
-            "Factor α in front of derivative term of H^1([0,T], L^2) dot product");
-      prm->declare_entry(KEY_PROBLEM_NORM_H2L2ALPHA, "0.5", Patterns::Double(0),
-            "Factor α in front of first derivative term of H^2([0,T], L^2) dot product");
-      prm->declare_entry(KEY_PROBLEM_NORM_H2L2BETA, "0.25", Patterns::Double(0),
-            "Factor β in front of second derivative term of H^2([0,T], L^2) dot product");
-
-      prm->declare_entry(KEY_PROBLEM_EPSILON, "1e-2", Patterns::Double(0, 1), "relative noise level ε");
-
-      prm->declare_entry(KEY_PROBLEM_CONSTANTS, "", Patterns::Anything(),
-            "constants for the function declarations,\nin the form `var1=value1, var2=value2, ...`.");
-
-      prm->declare_entry(KEY_PROBLEM_GUESS, "0.5", Patterns::Anything(), "initial guess");
-
-      prm->declare_entry(KEY_PROBLEM_PARAM_A, "1.0", Patterns::Anything(), "parameter a");
-      prm->declare_entry(KEY_PROBLEM_PARAM_Q, "0.0", Patterns::Anything(), "parameter q");
-      prm->declare_entry(KEY_PROBLEM_PARAM_C, "2.0", Patterns::Anything(), "parameter c");
-      prm->declare_entry(KEY_PROBLEM_PARAM_NU, "0.0", Patterns::Anything(), "parameter ν");
-
-      prm->enter_subsection(KEY_PROBLEM_DATA);
-      {
-         prm->declare_entry(KEY_PROBLEM_DATA_COUNT, "1", Patterns::Integer(1), "Number of right hand sides");
-
-         prm->declare_entry(KEY_PROBLEM_DATA_CONFIG, "0", Patterns::Anything(),
-               "configuration to use for which right hand side, separated by semicolons");
-         prm->declare_entry(KEY_PROBLEM_DATA_RHS, "if(norm{x|y|z} < 0.2, sin(t), 0.0)", Patterns::Anything(),
-               "right hand sides, separated by semicolons");
-
-         for (size_t i = 0; i < num_configurations; i++) {
-            prm->enter_subsection(KEY_PROBLEM_DATA_I + Utilities::int_to_string(i, 1));
-
-            GridPointMeasure<2>::declare_parameters(*prm);
-            prm->declare_entry(KEY_PROBLEM_DATA_I_MEASURE, "Identical", Patterns::Selection("Identical|Grid"),
-                  "type of measurements");
-
-            prm->leave_subsection();
-         }
-      }
-      prm->leave_subsection();
-   }
-   prm->leave_subsection();
-
-   prm->enter_subsection(KEY_INVERSION);
-   {
-      prm->declare_entry(KEY_INVERSION_METHOD, "REGINN", Patterns::Selection("REGINN|NonlinearLandweber"),
-            "solver for the inverse problem");
-      prm->declare_entry(KEY_INVERSION_TAU, "2", Patterns::Double(0),
-            "parameter τ for discrepancy principle");
-
-      REGINN<DiscretizedFunction<2>, DiscretizedFunction<2>, Function<2>>::declare_parameters(*prm);
-      NonlinearLandweber<DiscretizedFunction<2>, DiscretizedFunction<2>, Function<2>>::declare_parameters(
-            *prm);
-   }
-   prm->leave_subsection();
+    REGINN<DiscretizedFunction<2>, DiscretizedFunction<2>, Function<2>>::declare_parameters(*prm);
+    NonlinearLandweber<DiscretizedFunction<2>, DiscretizedFunction<2>, Function<2>>::declare_parameters(*prm);
+  }
+  prm->leave_subsection();
 }
 
 void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
-   this->prm = prm;
-   AssertThrow(prm, ExcInternalError());
+  this->prm = prm;
+  AssertThrow(prm, ExcInternalError());
 
-   prm->enter_subsection(KEY_LOG);
-   {
-      log_file = prm->get(KEY_LOG_FILE);
-      log_file_depth = prm->get_integer(KEY_LOG_FILE_DEPTH);
-      log_console_depth = prm->get_integer(KEY_LOG_CONSOLE_DEPTH);
-   }
-   prm->leave_subsection();
+  prm->enter_subsection(KEY_LOG);
+  {
+    log_file          = prm->get(KEY_LOG_FILE);
+    log_file_depth    = prm->get_integer(KEY_LOG_FILE_DEPTH);
+    log_console_depth = prm->get_integer(KEY_LOG_CONSOLE_DEPTH);
+  }
+  prm->leave_subsection();
 
-   prm->enter_subsection(KEY_GENERAL);
-   {
-      fe_degree = prm->get_integer(KEY_GENERAL_FE_DEGREE);
-      quad_order = prm->get_integer(KEY_GENERAL_QUAD_ORDER);
-      dimension = prm->get_integer(KEY_GENERAL_DIMENSION);
-   }
-   prm->leave_subsection();
+  prm->enter_subsection(KEY_GENERAL);
+  {
+    fe_degree  = prm->get_integer(KEY_GENERAL_FE_DEGREE);
+    quad_order = prm->get_integer(KEY_GENERAL_QUAD_ORDER);
+    dimension  = prm->get_integer(KEY_GENERAL_DIMENSION);
+  }
+  prm->leave_subsection();
 
-   prm->enter_subsection(KEY_MESH);
-   {
-      end_time = prm->get_double(KEY_MESH_END_TIME);
-      initial_refines = prm->get_integer(KEY_MESH_INITIAL_REFINES);
-      initial_time_steps = prm->get_integer(KEY_MESH_INITIAL_TIME_STEPS);
+  prm->enter_subsection(KEY_MESH);
+  {
+    end_time           = prm->get_double(KEY_MESH_END_TIME);
+    initial_refines    = prm->get_integer(KEY_MESH_INITIAL_REFINES);
+    initial_time_steps = prm->get_integer(KEY_MESH_INITIAL_TIME_STEPS);
 
-      dt = end_time / (initial_time_steps - 1);
-      times.clear();
-      times.resize(initial_time_steps);
+    dt = end_time / (initial_time_steps - 1);
+    times.clear();
+    times.resize(initial_time_steps);
 
-      for (size_t i = 0; i < initial_time_steps; i++)
-         times[i] = i * dt;
+    for (size_t i = 0; i < initial_time_steps; i++) times[i] = i * dt;
 
-      prm->enter_subsection(KEY_MESH_SHAPE);
-      {
-         std::string generator = prm->get(KEY_MESH_SHAPE_GENERATOR);
+    prm->enter_subsection(KEY_MESH_SHAPE);
+    {
+      std::string generator = prm->get(KEY_MESH_SHAPE_GENERATOR);
 
-         std::string options_list = prm->get(KEY_MESH_SHAPE_OPTIONS);
-         std::vector<std::string> options_listed = Utilities::split_string_list(options_list, ',');
+      std::string options_list                = prm->get(KEY_MESH_SHAPE_OPTIONS);
+      std::vector<std::string> options_listed = Utilities::split_string_list(options_list, ',');
 
-         shape_options.clear();
+      shape_options.clear();
 
-         for (size_t i = 0; i < options_listed.size(); ++i) {
-            std::vector<std::string> this_c = Utilities::split_string_list(options_listed[i], '=');
-            AssertThrow(this_c.size() == 2, ExcMessage("Could not parse generator options"));
-            double tmp;
-            AssertThrow(std::sscanf(this_c[1].c_str(), "%lf", &tmp),
-                  ExcMessage("Could not parse generator options"));
-            shape_options[this_c[0]] = tmp;
-         }
-
-         if (generator == "hyper_cube") {
-            if (!shape_options.count("left"))
-               shape_options.emplace("left", -5.0);
-
-            if (!shape_options.count("right"))
-               shape_options.emplace("right", 5.0);
-
-            shape = MeshShape::hyper_cube;
-         } else if (generator == "hyper_L") {
-            if (!shape_options.count("left"))
-               shape_options.emplace("left", -5.0);
-
-            if (!shape_options.count("right"))
-               shape_options.emplace("right", 5.0);
-
-            shape = MeshShape::hyper_L;
-         } else if (generator == "hyper_ball") {
-            if (!shape_options.count("center_x"))
-               shape_options.emplace("center_x", 0.0);
-
-            if (!shape_options.count("center_y"))
-               shape_options.emplace("center_y", 0.0);
-
-            if (!shape_options.count("center_z"))
-               shape_options.emplace("center_z", 0.0);
-
-            if (!shape_options.count("radius"))
-               shape_options.emplace("radius", 1.0);
-
-            shape = MeshShape::hyper_ball;
-         } else if (generator == "cheese") {
-            if (!shape_options.count("scale"))
-               shape_options.emplace("scale", 1.0);
-
-            AssertThrow(dimension > 1, ExcMessage("cheese only makes sense for dim > 1."));
-            shape = MeshShape::cheese;
-         } else
-            AssertThrow(false, ExcMessage("Unknown grid generator:" + generator));
-      }
-      prm->leave_subsection();
-   }
-   prm->leave_subsection();
-
-   prm->enter_subsection(KEY_PROBLEM);
-   {
-      epsilon = prm->get_double(KEY_PROBLEM_EPSILON);
-
-      std::string norm_domain_s = prm->get(KEY_PROBLEM_NORM_DOMAIN);
-
-      if (norm_domain_s == "L2L2")
-         norm_domain = Norm::L2L2;
-      else if (norm_domain_s == "H1L2")
-         norm_domain = Norm::H1L2;
-      else if (norm_domain_s == "H2L2")
-         norm_domain = Norm::H2L2;
-      else if (norm_domain_s == "Coefficients")
-         norm_domain = Norm::Coefficients;
-      else
-         AssertThrow(false, ExcMessage("Cannot parse norm of domain"));
-
-      std::string norm_codomain_s = prm->get(KEY_PROBLEM_NORM_CODOMAIN);
-
-      if (norm_codomain_s == "L2L2")
-         norm_codomain = Norm::L2L2;
-      else if (norm_codomain_s == "H1L2")
-         norm_codomain = Norm::H2L2;
-      else if (norm_codomain_s == "H1L2")
-         norm_codomain = Norm::H2L2;
-      else if (norm_codomain_s == "Coefficients")
-         norm_codomain = Norm::Coefficients;
-      else
-         AssertThrow(false, ExcMessage("Cannot parse norm of codomain"));
-
-      norm_h1l2_alpha = prm->get_double(KEY_PROBLEM_NORM_H1L2ALPHA);
-      norm_h2l2_alpha = prm->get_double(KEY_PROBLEM_NORM_H2L2ALPHA);
-      norm_h2l2_beta = prm->get_double(KEY_PROBLEM_NORM_H2L2BETA);
-
-      std::string problem = prm->get(KEY_PROBLEM_TYPE);
-
-      if (problem == "L2A" || problem == "a")
-         problem_type = ProblemType::L2A;
-      else if (problem == "L2Q" || problem == "q")
-         problem_type = ProblemType::L2Q;
-      else if (problem == "L2Nu" || problem == "nu")
-         problem_type = ProblemType::L2Nu;
-      else if (problem == "L2C" || problem == "c")
-         problem_type = ProblemType::L2C;
-      else
-         AssertThrow(false, ExcInternalError());
-
-      if (problem[0] == 'L' && problem[1] == '2') {
-         std::cerr << "Warning: problem_type == '" << problem
-               << "' is deprecated, spaces are set through norm_domain and norm_codomain!" << std::endl;
-
-         // change setting so that rewrite of configs yields new format
-         if (problem == "L2A")
-            prm->set(KEY_PROBLEM_TYPE, "a");
-         else if (problem == "L2Q")
-            prm->set(KEY_PROBLEM_TYPE, "q");
-         else if (problem == "L2Nu")
-            prm->set(KEY_PROBLEM_TYPE, "nu");
-         else if (problem == "L2C")
-            prm->set(KEY_PROBLEM_TYPE, "c");
+      for (size_t i = 0; i < options_listed.size(); ++i) {
+        std::vector<std::string> this_c = Utilities::split_string_list(options_listed[i], '=');
+        AssertThrow(this_c.size() == 2, ExcMessage("Could not parse generator options"));
+        double tmp;
+        AssertThrow(std::sscanf(this_c[1].c_str(), "%lf", &tmp), ExcMessage("Could not parse generator options"));
+        shape_options[this_c[0]] = tmp;
       }
 
-      std::string constants_list = prm->get(KEY_PROBLEM_CONSTANTS);
-      std::vector<std::string> const_listed = Utilities::split_string_list(constants_list, ',');
+      if (generator == "hyper_cube") {
+        if (!shape_options.count("left")) shape_options.emplace("left", -5.0);
 
-      constants_for_exprs.clear();
+        if (!shape_options.count("right")) shape_options.emplace("right", 5.0);
 
-      for (size_t i = 0; i < const_listed.size(); ++i) {
-         std::vector<std::string> this_c = Utilities::split_string_list(const_listed[i], '=');
-         AssertThrow(this_c.size() == 2, ExcMessage("Invalid format"));
-         double tmp;
-         AssertThrow(std::sscanf(this_c[1].c_str(), "%lf", &tmp), ExcMessage("Double number?"));
-         constants_for_exprs[this_c[0]] = tmp;
+        shape = MeshShape::hyper_cube;
+      } else if (generator == "hyper_L") {
+        if (!shape_options.count("left")) shape_options.emplace("left", -5.0);
+
+        if (!shape_options.count("right")) shape_options.emplace("right", 5.0);
+
+        shape = MeshShape::hyper_L;
+      } else if (generator == "hyper_ball") {
+        if (!shape_options.count("center_x")) shape_options.emplace("center_x", 0.0);
+
+        if (!shape_options.count("center_y")) shape_options.emplace("center_y", 0.0);
+
+        if (!shape_options.count("center_z")) shape_options.emplace("center_z", 0.0);
+
+        if (!shape_options.count("radius")) shape_options.emplace("radius", 1.0);
+
+        shape = MeshShape::hyper_ball;
+      } else if (generator == "cheese") {
+        if (!shape_options.count("scale")) shape_options.emplace("scale", 1.0);
+
+        AssertThrow(dimension > 1, ExcMessage("cheese only makes sense for dim > 1."));
+        shape = MeshShape::cheese;
+      } else {
+        AssertThrow(false, ExcMessage("Unknown grid generator:" + generator));
+      }
+    }
+    prm->leave_subsection();
+  }
+  prm->leave_subsection();
+
+  prm->enter_subsection(KEY_PROBLEM);
+  {
+    epsilon = prm->get_double(KEY_PROBLEM_EPSILON);
+
+    std::string norm_domain_s = prm->get(KEY_PROBLEM_NORM_DOMAIN);
+
+    if (norm_domain_s == "L2L2")
+      norm_domain = Norm::L2L2;
+    else if (norm_domain_s == "H1L2")
+      norm_domain = Norm::H1L2;
+    else if (norm_domain_s == "H2L2")
+      norm_domain = Norm::H2L2;
+    else if (norm_domain_s == "Coefficients")
+      norm_domain = Norm::Coefficients;
+    else
+      AssertThrow(false, ExcMessage("Cannot parse norm of domain"));
+
+    std::string norm_codomain_s = prm->get(KEY_PROBLEM_NORM_CODOMAIN);
+
+    if (norm_codomain_s == "L2L2")
+      norm_codomain = Norm::L2L2;
+    else if (norm_codomain_s == "H1L2")
+      norm_codomain = Norm::H2L2;
+    else if (norm_codomain_s == "H1L2")
+      norm_codomain = Norm::H2L2;
+    else if (norm_codomain_s == "Coefficients")
+      norm_codomain = Norm::Coefficients;
+    else
+      AssertThrow(false, ExcMessage("Cannot parse norm of codomain"));
+
+    norm_h1l2_alpha = prm->get_double(KEY_PROBLEM_NORM_H1L2ALPHA);
+    norm_h2l2_alpha = prm->get_double(KEY_PROBLEM_NORM_H2L2ALPHA);
+    norm_h2l2_beta  = prm->get_double(KEY_PROBLEM_NORM_H2L2BETA);
+
+    std::string problem = prm->get(KEY_PROBLEM_TYPE);
+
+    if (problem == "L2A" || problem == "a")
+      problem_type = ProblemType::L2A;
+    else if (problem == "L2Q" || problem == "q")
+      problem_type = ProblemType::L2Q;
+    else if (problem == "L2Nu" || problem == "nu")
+      problem_type = ProblemType::L2Nu;
+    else if (problem == "L2C" || problem == "c")
+      problem_type = ProblemType::L2C;
+    else
+      AssertThrow(false, ExcInternalError());
+
+    if (problem[0] == 'L' && problem[1] == '2') {
+      std::cerr << "Warning: problem_type == '" << problem
+                << "' is deprecated, spaces are set through norm_domain and "
+                   "norm_codomain!"
+                << std::endl;
+
+      // change setting so that rewrite of configs yields new format
+      if (problem == "L2A")
+        prm->set(KEY_PROBLEM_TYPE, "a");
+      else if (problem == "L2Q")
+        prm->set(KEY_PROBLEM_TYPE, "q");
+      else if (problem == "L2Nu")
+        prm->set(KEY_PROBLEM_TYPE, "nu");
+      else if (problem == "L2C")
+        prm->set(KEY_PROBLEM_TYPE, "c");
+    }
+
+    std::string constants_list            = prm->get(KEY_PROBLEM_CONSTANTS);
+    std::vector<std::string> const_listed = Utilities::split_string_list(constants_list, ',');
+
+    constants_for_exprs.clear();
+
+    for (size_t i = 0; i < const_listed.size(); ++i) {
+      std::vector<std::string> this_c = Utilities::split_string_list(const_listed[i], '=');
+      AssertThrow(this_c.size() == 2, ExcMessage("Invalid format"));
+      double tmp;
+      AssertThrow(std::sscanf(this_c[1].c_str(), "%lf", &tmp), ExcMessage("Double number?"));
+      constants_for_exprs[this_c[0]] = tmp;
+    }
+
+    expr_initial_guess = prm->get(KEY_PROBLEM_GUESS);
+    expr_param_a       = prm->get(KEY_PROBLEM_PARAM_A);
+    expr_param_nu      = prm->get(KEY_PROBLEM_PARAM_NU);
+    expr_param_c       = prm->get(KEY_PROBLEM_PARAM_C);
+    expr_param_q       = prm->get(KEY_PROBLEM_PARAM_Q);
+
+    prm->enter_subsection(KEY_PROBLEM_DATA);
+    {
+      num_rhs   = prm->get_integer(KEY_PROBLEM_DATA_COUNT);
+      exprs_rhs = Utilities::split_string_list(prm->get(KEY_PROBLEM_DATA_RHS), ';');
+
+      configs.clear();
+      measures.clear();
+
+      try {
+        for (auto is : Utilities::split_string_list(prm->get(KEY_PROBLEM_DATA_CONFIG), ';')) {
+          size_t ci = std::stoi(is);
+          AssertThrow(ci < num_configurations, ExcIndexRange(ci, 0, num_configurations));
+          configs.push_back(ci);
+        }
+      } catch (std::invalid_argument &e) {
+        AssertThrow(false, ExcMessage("could not parse configurations: " + std::string(e.what())));
       }
 
-      expr_initial_guess = prm->get(KEY_PROBLEM_GUESS);
-      expr_param_a = prm->get(KEY_PROBLEM_PARAM_A);
-      expr_param_nu = prm->get(KEY_PROBLEM_PARAM_NU);
-      expr_param_c = prm->get(KEY_PROBLEM_PARAM_C);
-      expr_param_q = prm->get(KEY_PROBLEM_PARAM_Q);
+      AssertThrow(num_rhs == exprs_rhs.size(), ExcMessage("number of right hand sides != number of expressions given"));
+      AssertThrow(num_rhs == configs.size(),
+                  ExcMessage("number of right hand sides != number of configurations given"));
 
-      prm->enter_subsection(KEY_PROBLEM_DATA);
-      {
-         num_rhs = prm->get_integer(KEY_PROBLEM_DATA_COUNT);
-         exprs_rhs = Utilities::split_string_list(prm->get(KEY_PROBLEM_DATA_RHS), ';');
+      std::vector<MeasureType> measure_types;
 
-         configs.clear();
-         measures.clear();
+      for (size_t i = 0; i < num_configurations; i++) {
+        prm->enter_subsection(KEY_PROBLEM_DATA_I + Utilities::int_to_string(i, 1));
 
-         try {
-            for (auto is : Utilities::split_string_list(prm->get(KEY_PROBLEM_DATA_CONFIG), ';')) {
-               size_t ci = std::stoi(is);
-               AssertThrow(ci < num_configurations, ExcIndexRange(ci, 0, num_configurations));
-               configs.push_back(ci);
-            }
-         } catch (std::invalid_argument &e) {
-            AssertThrow(false, ExcMessage("could not parse configurations: " + std::string(e.what())));
-         }
+        auto measure_desc = prm->get(KEY_PROBLEM_DATA_I_MEASURE);
+        MeasureType my_measure_type;
 
-         AssertThrow(num_rhs == exprs_rhs.size(),
-               ExcMessage("number of right hand sides != number of expressions given"));
-         AssertThrow(num_rhs == configs.size(),
-               ExcMessage("number of right hand sides != number of configurations given"));
+        if (measure_desc == "Identical") {
+          measures.push_back(Measure::identical);
+          my_measure_type = MeasureType::discretized_function;
+        } else if (measure_desc == "Grid") {
+          measures.push_back(Measure::grid);
+          my_measure_type = MeasureType::vector;
+        } else {
+          AssertThrow(false, ExcMessage("Unknown Measure: " + measure_desc));
+        }
 
-         std::vector<MeasureType> measure_types;
+        measure_types.push_back(my_measure_type);
 
-         for (size_t i = 0; i < num_configurations; i++) {
-            prm->enter_subsection(KEY_PROBLEM_DATA_I + Utilities::int_to_string(i, 1));
+        GridPointMeasure<2>::declare_parameters(*prm);
 
-            auto measure_desc = prm->get(KEY_PROBLEM_DATA_I_MEASURE);
-            MeasureType my_measure_type;
-
-            if (measure_desc == "Identical") {
-               measures.push_back(Measure::identical);
-               my_measure_type = MeasureType::discretized_function;
-            } else if (measure_desc == "Grid") {
-               measures.push_back(Measure::grid);
-               my_measure_type = MeasureType::vector;
-            } else
-               AssertThrow(false, ExcMessage("Unknown Measure: " + measure_desc));
-
-            measure_types.push_back(my_measure_type);
-
-            GridPointMeasure<2>::declare_parameters(*prm);
-
-            prm->leave_subsection();
-         }
-
-         for (size_t i = 0; i < num_rhs; i++) {
-            auto my_measure_type = measure_types[configs[i]];
-
-            if (!i)
-               measure_type = my_measure_type;
-
-            AssertThrow(measure_type == my_measure_type,
-                  ExcMessage(
-                        "the resulting data types must be the same for all used measurement configurations!"))
-         }
-
+        prm->leave_subsection();
       }
-      prm->leave_subsection();
-   }
-   prm->leave_subsection();
 
-   prm->enter_subsection(KEY_INVERSION);
-   {
-      tau = prm->get_double(KEY_INVERSION_TAU);
+      for (size_t i = 0; i < num_rhs; i++) {
+        auto my_measure_type = measure_types[configs[i]];
 
-      std::string smethod = prm->get(KEY_INVERSION_METHOD);
+        if (!i) measure_type = my_measure_type;
 
-      if (smethod == "REGINN")
-         method = NonlinearMethod::REGINN;
-      else if (smethod == "NonlinearLandweber")
-         method = NonlinearMethod::NonlinearLandweber;
-      else
-         AssertThrow(false, ExcMessage("Unknown Method: " + smethod));
-   }
+        AssertThrow(measure_type == my_measure_type, ExcMessage("the resulting data types must be the same for "
+                                                                "all used measurement configurations!"))
+      }
+    }
+    prm->leave_subsection();
+  }
+  prm->leave_subsection();
 
-   prm->leave_subsection();
+  prm->enter_subsection(KEY_INVERSION);
+  {
+    tau = prm->get_double(KEY_INVERSION_TAU);
+
+    std::string smethod = prm->get(KEY_INVERSION_METHOD);
+
+    if (smethod == "REGINN")
+      method = NonlinearMethod::REGINN;
+    else if (smethod == "NonlinearLandweber")
+      method = NonlinearMethod::NonlinearLandweber;
+    else
+      AssertThrow(false, ExcMessage("Unknown Method: " + smethod));
+  }
+
+  prm->leave_subsection();
 }
 
 void SettingsManager::log_parameters() {
-   unsigned int prev_console = deallog.depth_console(100);
-   unsigned int prev_file = deallog.depth_file(100);
+  unsigned int prev_console = deallog.depth_console(100);
+  unsigned int prev_file    = deallog.depth_file(100);
 
-   prm->log_parameters(deallog);
+  prm->log_parameters(deallog);
 
-   deallog.depth_console(prev_console);
-   deallog.depth_file(prev_file);
+  deallog.depth_console(prev_console);
+  deallog.depth_file(prev_file);
 }
 
-}
+}  // namespace wavepi
 /* namespace wavepi */

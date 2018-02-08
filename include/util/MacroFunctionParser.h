@@ -22,24 +22,25 @@ using namespace dealii;
  * In contrast to its base class, you do not need to call `initialize` (not virtual ...).
  *
  * Additional replacements:
- * `norm{x|y|z}` becomes `sqrt(pow(x,2))`, `sqrt(pow(x,2)+pow(y,2))` or `sqrt(pow(x,2)+pow(y,2)+pow(z,2))`, depending on dimension.
- * Currently this is implemented using naive string replacement, so the characters '}', '{' and '|' must not be used in expressions x,y or z.
+ * `norm{x|y|z}` becomes `sqrt(pow(x,2))`, `sqrt(pow(x,2)+pow(y,2))` or `sqrt(pow(x,2)+pow(y,2)+pow(z,2))`, depending on
+ * dimension. Currently this is implemented using naive string replacement, so the characters '}', '{' and '|' must not
+ * be used in expressions x,y or z.
  */
-template<int dim>
-class MacroFunctionParser: public FunctionParser<dim> {
-   public:
-      virtual ~MacroFunctionParser() = default;
+template <int dim>
+class MacroFunctionParser : public FunctionParser<dim> {
+ public:
+  virtual ~MacroFunctionParser() = default;
 
-      MacroFunctionParser(const std::string & expression, const std::map<std::string, double> & constants,
-            bool last_is_time = false);
+  MacroFunctionParser(const std::string& expression, const std::map<std::string, double>& constants,
+                      bool last_is_time = false);
 
-      MacroFunctionParser(const std::vector<std::string> & expressions,
-            const std::map<std::string, double> & constants, bool last_is_time = false);
+  MacroFunctionParser(const std::vector<std::string>& expressions, const std::map<std::string, double>& constants,
+                      bool last_is_time = false);
 
-   private:
-      static const std::string norm_replacement;
+ private:
+  static const std::string norm_replacement;
 
-      static std::string replace(const std::string & expr);
+  static std::string replace(const std::string& expr);
 };
 
 } /* namespace util */

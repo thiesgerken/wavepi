@@ -15,42 +15,39 @@ namespace inversion {
 using namespace dealii;
 
 struct LinearProblemStats {
-   public:
-      int calls_forward;
-      int calls_adjoint;
+ public:
+  int calls_forward;
+  int calls_adjoint;
 
-      double time_forward;
-      double time_adjoint;
+  double time_forward;
+  double time_adjoint;
 
-      int calls_measure_forward;
-      int calls_measure_adjoint;
+  int calls_measure_forward;
+  int calls_measure_adjoint;
 
-      double time_measure_forward;
-      double time_measure_adjoint;
+  double time_measure_forward;
+  double time_measure_adjoint;
 
-      double time_communication;
+  double time_communication;
 };
 
-template<typename Param, typename Sol>
-class LinearProblem: public InverseProblem<Param, Sol> {
-   public:
+template <typename Param, typename Sol>
+class LinearProblem : public InverseProblem<Param, Sol> {
+ public:
+  virtual ~LinearProblem() = default;
 
-      virtual ~LinearProblem() = default;
+  virtual Param adjoint(const Sol& g) = 0;
 
-      virtual Param adjoint(const Sol& g) = 0;
+  /**
+   * Linear methods often do not use an initial guess, and want to start with zero.
+   */
+  virtual Param zero() = 0;
 
-      /**
-       * Linear methods often do not use an initial guess, and want to start with zero.
-       */
-      virtual Param zero() = 0;
-
-      /**
-       * If supported, return statistics for the calls made to this class.
-       * Otherwise, return `nullptr`, like the default implementation does.
-       */
-      virtual std::shared_ptr<LinearProblemStats> get_statistics() {
-         return nullptr;
-      }
+  /**
+   * If supported, return statistics for the calls made to this class.
+   * Otherwise, return `nullptr`, like the default implementation does.
+   */
+  virtual std::shared_ptr<LinearProblemStats> get_statistics() { return nullptr; }
 };
 
 } /* namespace inversion */

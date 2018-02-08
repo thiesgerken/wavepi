@@ -12,14 +12,14 @@
 using namespace dealii;
 
 int main(int argc, char **argv) {
-   ::testing::InitGoogleTest(&argc, argv);
+  ::testing::InitGoogleTest(&argc, argv);
 
-   std::ofstream logout("wavepi_test.log", std::ios_base::app);
-   deallog.attach(logout);
-   deallog.depth_console(0);
-   deallog.depth_file(100);
-   deallog.precision(3);
-   deallog.pop();
+  std::ofstream logout("wavepi_test.log", std::ios_base::app);
+  deallog.attach(logout);
+  deallog.depth_console(0);
+  deallog.depth_file(100);
+  deallog.precision(3);
+  deallog.pop();
 
-   return RUN_ALL_TESTS();
+  return RUN_ALL_TESTS();
 }

@@ -17,22 +17,17 @@ namespace wavepi {
 namespace inversion {
 
 // Param and Sol need at least banach space structure
-template<typename Param, typename Sol, typename Exact>
-class LinearRegularization: public Regularization<Param, Sol, Exact> {
-   public:
+template <typename Param, typename Sol, typename Exact>
+class LinearRegularization : public Regularization<Param, Sol, Exact> {
+ public:
+  virtual ~LinearRegularization() = default;
 
-      virtual ~LinearRegularization() = default;
+  const std::shared_ptr<LinearProblem<Param, Sol>>& get_problem() const { return problem; }
 
-      const std::shared_ptr<LinearProblem<Param, Sol>>& get_problem() const {
-         return problem;
-      }
+  void set_problem(const std::shared_ptr<LinearProblem<Param, Sol>>& problem) { this->problem = problem; }
 
-      void set_problem(const std::shared_ptr<LinearProblem<Param, Sol> >& problem) {
-         this->problem = problem;
-      }
-
-   protected:
-      std::shared_ptr<LinearProblem<Param, Sol>> problem;
+ protected:
+  std::shared_ptr<LinearProblem<Param, Sol>> problem;
 };
 
 } /* namespace inversion */

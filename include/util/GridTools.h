@@ -15,7 +15,7 @@ namespace util {
 namespace GridTools {
 using namespace dealii;
 
-template<int dim>
+template <int dim>
 void set_all_boundary_ids(Triangulation<dim> &tria, int id);
 
 } /* namespace GridTools */

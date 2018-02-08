@@ -15,23 +15,22 @@ namespace wavepi {
 namespace inversion {
 using namespace dealii;
 
-class ConstantToleranceChoice: public ToleranceChoice {
-   public:
-      ConstantToleranceChoice(double tol);
-      ConstantToleranceChoice(ParameterHandler &prm);
+class ConstantToleranceChoice : public ToleranceChoice {
+ public:
+  ConstantToleranceChoice(double tol);
+  ConstantToleranceChoice(ParameterHandler &prm);
 
-      static void declare_parameters(ParameterHandler &prm);
-      void get_parameters(ParameterHandler &prm);
+  static void declare_parameters(ParameterHandler &prm);
+  void get_parameters(ParameterHandler &prm);
 
-   protected:
-      virtual double calculate_tolerance() const;
+ protected:
+  virtual double calculate_tolerance() const;
 
-   private:
-      double tol;
-
+ private:
+  double tol;
 };
 
-} /* namespace problems */
+}  // namespace inversion
 } /* namespace wavepi */
 
 #endif /* INCLUDE_INVERSION_CONSTANTTOLERANCECHOICE_H_ */

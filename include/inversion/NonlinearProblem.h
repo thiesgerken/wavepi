@@ -17,43 +17,39 @@ namespace wavepi {
 namespace inversion {
 
 struct NonlinearProblemStats {
-   public:
-      int calls_forward;
-      int calls_linearization_forward;
-      int calls_linearization_adjoint;
+ public:
+  int calls_forward;
+  int calls_linearization_forward;
+  int calls_linearization_adjoint;
 
-      double time_forward;
-      double time_linearization_forward;
-      double time_linearization_adjoint;
+  double time_forward;
+  double time_linearization_forward;
+  double time_linearization_adjoint;
 
-      int calls_measure_forward;
-      int calls_measure_adjoint;
+  int calls_measure_forward;
+  int calls_measure_adjoint;
 
-      double time_measure_forward;
-      double time_measure_adjoint;
+  double time_measure_forward;
+  double time_measure_adjoint;
 
-      double time_communication;
+  double time_communication;
 };
 
-template<typename Param, typename Sol>
-class NonlinearProblem: public InverseProblem<Param, Sol> {
-   public:
+template <typename Param, typename Sol>
+class NonlinearProblem : public InverseProblem<Param, Sol> {
+ public:
+  virtual ~NonlinearProblem() = default;
 
-      virtual ~NonlinearProblem() = default;
+  /**
+   * returns the derivative (as linear operator) at p.
+   */
+  virtual std::unique_ptr<LinearProblem<Param, Sol>> derivative(const Param& p) = 0;
 
-      /**
-       * returns the derivative (as linear operator) at p.
-       */
-      virtual std::unique_ptr<LinearProblem<Param, Sol>> derivative(const Param& p) = 0;
-
-      /**
-       * If supported, return statistics for the calls made to this class.
-       * Otherwise, return `nullptr`, like the default implementation does.
-       */
-      virtual std::shared_ptr<NonlinearProblemStats> get_statistics() {
-         return nullptr;
-      }
-
+  /**
+   * If supported, return statistics for the calls made to this class.
+   * Otherwise, return `nullptr`, like the default implementation does.
+   */
+  virtual std::shared_ptr<NonlinearProblemStats> get_statistics() { return nullptr; }
 };
 
 } /* namespace inversion */

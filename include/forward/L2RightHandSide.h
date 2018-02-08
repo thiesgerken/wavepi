@@ -25,37 +25,36 @@ namespace wavepi {
 namespace forward {
 using namespace dealii;
 
-template<int dim>
-class L2RightHandSide: public RightHandSide<dim> {
-   public:
+template <int dim>
+class L2RightHandSide : public RightHandSide<dim> {
+ public:
+  virtual ~L2RightHandSide() = default;
 
-      virtual ~L2RightHandSide() = default;
+  L2RightHandSide(std::shared_ptr<Function<dim>> f);
 
-      L2RightHandSide(std::shared_ptr<Function<dim>> f);
+  virtual void create_right_hand_side(const DoFHandler<dim> &dof_handler, const Quadrature<dim> &q,
+                                      Vector<double> &rhs) const;
 
-      virtual void create_right_hand_side(const DoFHandler<dim> &dof_handler, const Quadrature<dim> &q,
-            Vector<double> &rhs) const;
+  std::shared_ptr<Function<dim>> get_base_rhs() const;
+  void set_base_rhs(std::shared_ptr<Function<dim>> base_rhs);
 
-      std::shared_ptr<Function<dim>> get_base_rhs() const;
-      void set_base_rhs(std::shared_ptr<Function<dim>> base_rhs);
+ private:
+  std::shared_ptr<Function<dim>> base_rhs;
 
-   private:
-      std::shared_ptr<Function<dim>> base_rhs;
+  struct AssemblyScratchData {
+    AssemblyScratchData(const FiniteElement<dim> &fe, const Quadrature<dim> &quad);
+    AssemblyScratchData(const AssemblyScratchData &scratch_data);
+    FEValues<dim> fe_values;
+  };
 
-      struct AssemblyScratchData {
-            AssemblyScratchData(const FiniteElement<dim> &fe, const Quadrature<dim> &quad);
-            AssemblyScratchData(const AssemblyScratchData &scratch_data);
-            FEValues<dim> fe_values;
-      };
+  struct AssemblyCopyData {
+    Vector<double> cell_rhs;
+    std::vector<types::global_dof_index> local_dof_indices;
+  };
 
-      struct AssemblyCopyData {
-            Vector<double> cell_rhs;
-            std::vector<types::global_dof_index> local_dof_indices;
-      };
-
-      void copy_local_to_global(Vector<double> &result, const AssemblyCopyData &copy_data);
-      void local_assemble(const Vector<double> &f, const typename DoFHandler<dim>::active_cell_iterator &cell,
-            AssemblyScratchData &scratch_data, AssemblyCopyData &copy_data);
+  void copy_local_to_global(Vector<double> &result, const AssemblyCopyData &copy_data);
+  void local_assemble(const Vector<double> &f, const typename DoFHandler<dim>::active_cell_iterator &cell,
+                      AssemblyScratchData &scratch_data, AssemblyCopyData &copy_data);
 };
 
 } /* namespace forward */

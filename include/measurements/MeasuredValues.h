@@ -9,20 +9,16 @@
 #define INCLUDE_MEASUREMENTS_MEASUREDVALUES_H_
 
 #include <deal.II/base/exceptions.h>
+#include <deal.II/base/mpi.h>
 #include <stddef.h>
+#include <tgmath.h>
+#include <util/SpaceTimeGrid.h>
+#include <algorithm>
+#include <cmath>
 #include <memory>
 #include <random>
 #include <string>
 #include <vector>
-#include <util/SpaceTimeGrid.h>
-#include <stddef.h>
-#include <tgmath.h>
-#include <algorithm>
-#include <cmath>
-#include <random>
-#include <string>
-#include <vector>
-#include <deal.II/base/mpi.h>
 
 namespace wavepi {
 namespace measurements {
@@ -32,142 +28,124 @@ using namespace wavepi::util;
 /**
  * `std::vector<dim>` with vector space functionality and l2-norms and scalar products.
  */
-template<int dim>
+template <int dim>
 class MeasuredValues {
-   public:
-      explicit MeasuredValues(std::shared_ptr<SpaceTimeGrid<dim>> grid)
-            : grid(grid), elements(grid->size()) {
-      }
+ public:
+  explicit MeasuredValues(std::shared_ptr<SpaceTimeGrid<dim>> grid) : grid(grid), elements(grid->size()) {}
 
-      MeasuredValues(MeasuredValues&& o)
-            : grid(std::move(o.grid)), elements(std::move(o.elements)) {
-      }
+  MeasuredValues(MeasuredValues&& o) : grid(std::move(o.grid)), elements(std::move(o.elements)) {}
 
-      MeasuredValues(const MeasuredValues& o)
-            : grid(o.grid), elements(o.elements) {
-      }
+  MeasuredValues(const MeasuredValues& o) : grid(o.grid), elements(o.elements) {}
 
-      MeasuredValues<dim>& operator+=(const MeasuredValues<dim>& o) {
-         add(1.0, o);
+  MeasuredValues<dim>& operator+=(const MeasuredValues<dim>& o) {
+    add(1.0, o);
 
-         return *this;
-      }
+    return *this;
+  }
 
-      MeasuredValues<dim>& operator-=(const MeasuredValues<dim>& o) {
-         add(-1.0, o);
+  MeasuredValues<dim>& operator-=(const MeasuredValues<dim>& o) {
+    add(-1.0, o);
 
-         return *this;
-      }
+    return *this;
+  }
 
-      MeasuredValues<dim>& operator*=(const double factor) {
-         for (size_t i = 0; i < this->size(); i++)
-            elements[i] *= factor;
+  MeasuredValues<dim>& operator*=(const double factor) {
+    for (size_t i = 0; i < this->size(); i++) elements[i] *= factor;
 
-         return *this;
-      }
+    return *this;
+  }
 
-      MeasuredValues<dim>& operator/=(const double factor) {
-         return *this *= (1.0 / factor);
-      }
+  MeasuredValues<dim>& operator/=(const double factor) { return *this *= (1.0 / factor); }
 
-      double norm() const {
-         return sqrt(this->dot(*this));
-      }
+  double norm() const { return sqrt(this->dot(*this)); }
 
-      double dot(const MeasuredValues<dim>& o) const {
-         return (*this) * o;
-      }
+  double dot(const MeasuredValues<dim>& o) const { return (*this) * o; }
 
-      double operator*(const MeasuredValues<dim>& o) const {
-         AssertThrow(o.size() == this->size() && o.grid == this->grid, ExcInternalError());
+  double operator*(const MeasuredValues<dim>& o) const {
+    AssertThrow(o.size() == this->size() && o.grid == this->grid, ExcInternalError());
 
-         double tmp = 0.0;
+    double tmp = 0.0;
 
-         for (size_t i = 0; i < this->size(); i++)
-            tmp += o[i] * elements[i];
+    for (size_t i = 0; i < this->size(); i++) tmp += o[i] * elements[i];
 
-         return tmp;
-      }
+    return tmp;
+  }
 
-      void add(const double a, const MeasuredValues<dim>& o) {
-         AssertThrow(o.size() == this->size() && o.grid == this->grid, ExcInternalError());
+  void add(const double a, const MeasuredValues<dim>& o) {
+    AssertThrow(o.size() == this->size() && o.grid == this->grid, ExcInternalError());
 
-         for (size_t i = 0; i < this->size(); i++)
-            elements[i] += a * o[i];
-      }
+    for (size_t i = 0; i < this->size(); i++) elements[i] += a * o[i];
+  }
 
-      /**
-       * scale by s and add a*V
-       */
-      void sadd(const double s, const double a, const MeasuredValues<dim> &o) {
-         AssertThrow(o.size() == this->size() && o.grid == this->grid, ExcInternalError());
+  /**
+   * scale by s and add a*V
+   */
+  void sadd(const double s, const double a, const MeasuredValues<dim>& o) {
+    AssertThrow(o.size() == this->size() && o.grid == this->grid, ExcInternalError());
 
-         for (size_t i = 0; i < this->size(); i++)
-            elements[i] = s * elements[i] + a * o[i];
-      }
+    for (size_t i = 0; i < this->size(); i++) elements[i] = s * elements[i] + a * o[i];
+  }
 
-      MeasuredValues<dim>& operator=(MeasuredValues<dim> && o) {
-         elements = std::move(o.elements);
+  MeasuredValues<dim>& operator=(MeasuredValues<dim>&& o) {
+    elements = std::move(o.elements);
 
-         return *this;
-      }
+    return *this;
+  }
 
-      MeasuredValues<dim>& operator=(const MeasuredValues<dim> & o) {
-         elements = o.elements;
+  MeasuredValues<dim>& operator=(const MeasuredValues<dim>& o) {
+    elements = o.elements;
 
-         return *this;
-      }
+    return *this;
+  }
 
-      static MeasuredValues<dim> noise(const MeasuredValues<dim>& like);
+  static MeasuredValues<dim> noise(const MeasuredValues<dim>& like);
 
-      static MeasuredValues<dim> noise(const MeasuredValues<dim>& like, double norm);
+  static MeasuredValues<dim> noise(const MeasuredValues<dim>& like, double norm);
 
-      size_t size() const {
-         return elements.size();
-      }
+  size_t size() const { return elements.size(); }
 
-      double operator[](size_t i) const {
-         Assert(i < size(), ExcIndexRange(i, 0, size()));
+  double operator[](size_t i) const {
+    Assert(i < size(), ExcIndexRange(i, 0, size()));
 
-         return elements[i];
-      }
+    return elements[i];
+  }
 
-      double& operator[](size_t i) {
-         Assert(i < size(), ExcIndexRange(i, 0, size()));
+  double& operator[](size_t i) {
+    Assert(i < size(), ExcIndexRange(i, 0, size()));
 
-         return elements[i];
-      }
+    return elements[i];
+  }
 
-      void write_pvd(std::string path, std::string filename, std::string name) const;
+  void write_pvd(std::string path, std::string filename, std::string name) const;
 
-      /**
-       * Only in 1D: write space + time data as 2D vts file
-       */
-      void write_vts(std::string path, std::string filename, std::string name) const;
+  /**
+   * Only in 1D: write space + time data as 2D vts file
+   */
+  void write_vts(std::string path, std::string filename, std::string name) const;
 
 #ifdef WAVEPI_MPI
-      /**
-       * @name MPI support
-       */
+  /**
+   * @name MPI support
+   */
 
-      /**
-       * set up irecvs on the data of this object
-       */
-      void mpi_irecv(size_t source, std::vector<MPI_Request> &reqs);
+  /**
+   * set up irecvs on the data of this object
+   */
+  void mpi_irecv(size_t source, std::vector<MPI_Request>& reqs);
 
-      /**
-       * send the data of this object to another process
-       */
-      void mpi_send(size_t destination);
+  /**
+   * send the data of this object to another process
+   */
+  void mpi_send(size_t destination);
 
-      /**
-       * @}
-       */
+  /**
+   * @}
+   */
 #endif
 
-   private:
-      std::shared_ptr<SpaceTimeGrid<dim>> grid;
-      std::vector<double> elements;
+ private:
+  std::shared_ptr<SpaceTimeGrid<dim>> grid;
+  std::vector<double> elements;
 };
 
 } /* namespace measurements */

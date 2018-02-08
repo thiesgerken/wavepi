@@ -13,8 +13,8 @@
 #include <iostream>
 #include <iterator>
 #include <map>
-#include <string>
 #include <sstream>
+#include <string>
 
 namespace wavepi {
 namespace util {
@@ -22,17 +22,14 @@ namespace util {
 using namespace dealii;
 
 class Helpers {
-   public:
+ public:
+  static std::string replace(std::string const &in, std::map<std::string, std::string> const &subst);
 
-      static std::string replace(std::string const &in, std::map<std::string, std::string> const &subst);
-
-   private:
-      Helpers() {};
+ private:
+  Helpers(){};
 };
 
-
-}
-}
-
+}  // namespace util
+}  // namespace wavepi
 
 #endif /* INCLUDE_UTIL_HELPERS_H_ */

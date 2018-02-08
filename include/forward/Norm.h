@@ -15,37 +15,37 @@ namespace forward {
  * possible norm settings
  */
 enum class Norm {
-   /**
-    * Invalid norm setting. This is the default setting for newly constructed objects.
-    */
-   Invalid = 0,
+  /**
+   * Invalid norm setting. This is the default setting for newly constructed objects.
+   */
+  Invalid = 0,
 
-   /**
-    * 2-norm on the underlying vectors.
-    * Fast, but only a crude approximation (even in case of uniform space-time grids and P1-elements)
-    */
-   Coefficients,
+  /**
+   * 2-norm on the underlying vectors.
+   * Fast, but only a crude approximation (even in case of uniform space-time grids and P1-elements)
+   */
+  Coefficients,
 
-   /**
-    * L^2([0,T], L^2(\Omega)) norm, using the trapezoidal rule in time (approximation)
-    * and the mass matrix in space (exact)
-    */
-   L2L2,
+  /**
+   * L^2([0,T], L^2(\Omega)) norm, using the trapezoidal rule in time (approximation)
+   * and the mass matrix in space (exact)
+   */
+  L2L2,
 
-   /**
-    * H^1([0,T], L^2(\Omega)) norm, using the trapezoidal rule in time (approximation),
-    * the mass matrix in space (exact) and finite differences of order h^2 (inner) and h (boundary)
-    */
-   H1L2,
+  /**
+   * H^1([0,T], L^2(\Omega)) norm, using the trapezoidal rule in time (approximation),
+   * the mass matrix in space (exact) and finite differences of order h^2 (inner) and h (boundary)
+   */
+  H1L2,
 
-   /**
-    * H^2([0,T], L^2(\Omega)) norm, using the trapezoidal rule in time (approximation),
-    * the mass matrix in space (exact) and finite differences of order h^2 (inner) and h (boundary)
-    */
-   H2L2
+  /**
+   * H^2([0,T], L^2(\Omega)) norm, using the trapezoidal rule in time (approximation),
+   * the mass matrix in space (exact) and finite differences of order h^2 (inner) and h (boundary)
+   */
+  H2L2
 };
 
-}
-}
+}  // namespace forward
+}  // namespace wavepi
 
 #endif /* INCLUDE_FORWARD_NORM_H_ */

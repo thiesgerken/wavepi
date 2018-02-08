@@ -20,19 +20,19 @@ using namespace dealii;
 /**
  * Function that is radially symmetric in time and space.
  */
-template<int dim>
-class RadialParsedFunction: public Function<dim> {
-   public:
-      virtual ~RadialParsedFunction() = default;
+template <int dim>
+class RadialParsedFunction : public Function<dim> {
+ public:
+  virtual ~RadialParsedFunction() = default;
 
-      RadialParsedFunction(std::string function_description);
+  RadialParsedFunction(std::string function_description);
 
-      virtual double value(const Point<dim> & p, const unsigned int component = 0) const;
+  virtual double value(const Point<dim>& p, const unsigned int component = 0) const;
 
-      virtual void set_time(double time);
+  virtual void set_time(double time);
 
-   private:
-      FunctionParser<1> base;
+ private:
+  FunctionParser<1> base;
 };
 
 } /* namespace util */

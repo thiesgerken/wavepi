@@ -17,14 +17,13 @@
 #include <forward/WaveEquation.h>
 
 #include <inversion/NonlinearProblem.h>
-
-#include <problems/WaveProblem.h>
-
 #include <measurements/Measure.h>
-#include <SettingsManager.h>
+#include <problems/WaveProblem.h>
 
 #include <util/MacroFunctionParser.h>
 #include <util/Tuple.h>
+
+#include <SettingsManager.h>
 
 #include <memory>
 #include <vector>
@@ -38,52 +37,53 @@ using namespace wavepi::util;
 using namespace wavepi::measurements;
 using namespace wavepi::problems;
 
-template<int dim, typename Meas>
+template <int dim, typename Meas>
 class WavePI {
-      using Param = DiscretizedFunction<dim>;
-      using Sol = DiscretizedFunction<dim>;
-      using Exact = Function<dim>;
+  using Param = DiscretizedFunction<dim>;
+  using Sol   = DiscretizedFunction<dim>;
+  using Exact = Function<dim>;
 
-   public:
-      /**
-       * @param cfg Settings to use
-       * @param measures Measures to use for the right hand sides, due to templating this class cannot instantiate them itself
-       */
-      WavePI(std::shared_ptr<SettingsManager> cfg);
+ public:
+  /**
+   * @param cfg Settings to use
+   * @param measures Measures to use for the right hand sides, due to templating this class cannot instantiate them
+   * itself
+   */
+  WavePI(std::shared_ptr<SettingsManager> cfg);
 
-      void run();
+  void run();
 
-   private:
-      std::shared_ptr<SettingsManager> cfg;
-      std::vector<std::shared_ptr<Measure<Param, Meas>>> measures;
+ private:
+  std::shared_ptr<SettingsManager> cfg;
+  std::vector<std::shared_ptr<Measure<Param, Meas>>> measures;
 
-      std::shared_ptr<SpaceTimeMesh<dim>> mesh;
-      std::shared_ptr<WaveEquation<dim>> wave_eq;
+  std::shared_ptr<SpaceTimeMesh<dim>> mesh;
+  std::shared_ptr<WaveEquation<dim>> wave_eq;
 
-      std::shared_ptr<WaveProblem<dim, Meas>> problem;
+  std::shared_ptr<WaveProblem<dim, Meas>> problem;
 
-      std::shared_ptr<Function<dim>> param_exact;
+  std::shared_ptr<Function<dim>> param_exact;
 
-      std::shared_ptr<MacroFunctionParser<dim>> initial_guess;
-      std::shared_ptr<MacroFunctionParser<dim>> param_q;
-      std::shared_ptr<MacroFunctionParser<dim>> param_nu;
-      std::shared_ptr<MacroFunctionParser<dim>> param_a;
-      std::shared_ptr<MacroFunctionParser<dim>> param_c;
+  std::shared_ptr<MacroFunctionParser<dim>> initial_guess;
+  std::shared_ptr<MacroFunctionParser<dim>> param_q;
+  std::shared_ptr<MacroFunctionParser<dim>> param_nu;
+  std::shared_ptr<MacroFunctionParser<dim>> param_a;
+  std::shared_ptr<MacroFunctionParser<dim>> param_c;
 
-      std::vector<std::shared_ptr<Function<dim>>> pulses;
+  std::vector<std::shared_ptr<Function<dim>>> pulses;
 
-      std::shared_ptr<Tuple<Meas>> data; // noisy data
+  std::shared_ptr<Tuple<Meas>> data;  // noisy data
 
-      /**
-       * `Point` constructor from three values, neglecting those that are not needed.
-       */
-      static Point<dim> make_point(double x, double y, double z);
+  /**
+   * `Point` constructor from three values, neglecting those that are not needed.
+   */
+  static Point<dim> make_point(double x, double y, double z);
 
-      std::shared_ptr<Measure<Param, Meas>> get_measure(size_t config_idx);
+  std::shared_ptr<Measure<Param, Meas>> get_measure(size_t config_idx);
 
-      void initialize_mesh();
-      void initialize_problem();
-      void generate_data();
+  void initialize_mesh();
+  void initialize_problem();
+  void generate_data();
 };
 
 } /* namespace wavepi */
