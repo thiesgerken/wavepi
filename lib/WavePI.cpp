@@ -189,6 +189,13 @@ get_measure_tuple(1) get_measure_tuple(2) get_measure_tuple(3)
   deallog << "cell diameters: minimal = " << dealii::GridTools::minimal_cell_diameter(*triangulation);
   deallog << ", maximal = " << dealii::GridTools::maximal_cell_diameter(*triangulation) << std::endl;
   deallog << "dt: " << cfg->dt << std::endl;
+
+  double mem = 0;
+  for (size_t i = 0; i < mesh->length(); i++)
+    mem += 8 * mesh->n_dofs(i);
+
+  // (in case of !store_derivative)
+  deallog << "expected size of a DiscretizedFunction<dim>: " << mem / (1024 * 1024) << " MiB" << std::endl;
 }
 
 template <int dim, typename Meas>
