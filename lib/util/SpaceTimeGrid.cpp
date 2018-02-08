@@ -21,7 +21,8 @@ template <int dim>
 void SpaceTimeGrid<dim>::make_space_time_points() {
   size_t size_cache = 0;
 
-  for (auto x : points) size_cache += x.size();
+  for (auto x : points)
+    size_cache += x.size();
 
   space_time_points.clear();
   space_time_points.reserve(size_cache);
@@ -30,7 +31,8 @@ void SpaceTimeGrid<dim>::make_space_time_points() {
     for (auto x : points[i]) {
       Point<dim + 1> pt;
 
-      for (size_t d = 0; d < dim; d++) pt[d] = x[d];
+      for (size_t d = 0; d < dim; d++)
+        pt[d] = x[d];
 
       pt[dim] = times[i];
 
@@ -47,11 +49,13 @@ SpaceTimeGrid<1>::SpaceTimeGrid(const std::vector<double> &times,
 
   std::vector<Point<1>> points_per_time(nb_points);
 
-  for (size_t ix = 0; ix < spatial_points[0].size(); ix++) points_per_time[ix] = Point<1>(spatial_points[0][ix]);
+  for (size_t ix = 0; ix < spatial_points[0].size(); ix++)
+    points_per_time[ix] = Point<1>(spatial_points[0][ix]);
 
   this->points = std::vector<std::vector<Point<1>>>(times.size());
 
-  for (size_t i = 0; i < times.size(); i++) points[i] = points_per_time;
+  for (size_t i = 0; i < times.size(); i++)
+    points[i] = points_per_time;
 
   this->grid_extents = spatial_points;
   make_space_time_points();
@@ -72,7 +76,8 @@ SpaceTimeGrid<2>::SpaceTimeGrid(const std::vector<double> &times,
 
   this->points = std::vector<std::vector<Point<2>>>(times.size());
 
-  for (size_t i = 0; i < times.size(); i++) points[i] = points_per_time;
+  for (size_t i = 0; i < times.size(); i++)
+    points[i] = points_per_time;
 
   this->grid_extents = spatial_points;
   make_space_time_points();
@@ -95,7 +100,8 @@ SpaceTimeGrid<3>::SpaceTimeGrid(const std::vector<double> &times,
 
   this->points = std::vector<std::vector<Point<3>>>(times.size());
 
-  for (size_t i = 0; i < times.size(); i++) points[i] = points_per_time;
+  for (size_t i = 0; i < times.size(); i++)
+    points[i] = points_per_time;
 
   this->grid_extents = spatial_points;
   make_space_time_points();

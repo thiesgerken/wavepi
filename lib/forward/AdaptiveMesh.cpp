@@ -161,7 +161,8 @@ std::shared_ptr<DoFHandler<dim>> AdaptiveMesh<dim>::transfer(size_t source_time_
   transfer(source_time_index);
 
   std::vector<Vector<double> *> vecs;
-  for (auto vec : vectors) vecs.push_back(vec);
+  for (auto vec : vectors)
+    vecs.push_back(vec);
 
   transfer(target_time_index, vecs);
 
@@ -213,7 +214,8 @@ void AdaptiveMesh<dim>::patch(const Patch &patch, std::vector<Vector<double> *> 
       SolutionTransfer<dim, Vector<double>> trans(*working_dof_handler);
 
       std::vector<Vector<double>> all_in;
-      for (auto vec : vectors) all_in.emplace_back(*vec);
+      for (auto vec : vectors)
+        all_in.emplace_back(*vec);
 
       working_triangulation->load_refine_flags(cells_to_refine);
       working_triangulation->load_coarsen_flags(cells_to_coarsen);
@@ -226,7 +228,8 @@ void AdaptiveMesh<dim>::patch(const Patch &patch, std::vector<Vector<double> *> 
       std::vector<Vector<double>> all_out(vectors.size(), Vector<double>(working_dof_handler->n_dofs()));
       trans.interpolate(all_in, all_out);
 
-      for (size_t i = 0; i < vectors.size(); i++) *vectors[i] = all_out[i];
+      for (size_t i = 0; i < vectors.size(); i++)
+        *vectors[i] = all_out[i];
     }
   }
 }
@@ -345,13 +348,15 @@ void AdaptiveMesh<dim>::generate_backward_patches() {
       for (auto cell : working_triangulation->active_cell_iterators()) {
         auto parent_id = cell->parent()->id();
 
-        while (refine_it != ids_to_refine.end() && *refine_it < parent_id) refine_it++;
+        while (refine_it != ids_to_refine.end() && *refine_it < parent_id)
+          refine_it++;
 
         if (refine_it != ids_to_refine.end() && *refine_it == parent_id) cell->set_coarsen_flag();
 
         auto my_id = cell->id();
 
-        while (coarsen_it != ids_to_coarsen.end() && *coarsen_it < my_id) coarsen_it++;
+        while (coarsen_it != ids_to_coarsen.end() && *coarsen_it < my_id)
+          coarsen_it++;
 
         if (coarsen_it != ids_to_coarsen.end() && *coarsen_it == my_id) cell->set_refine_flag();
       }

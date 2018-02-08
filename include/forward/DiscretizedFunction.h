@@ -504,6 +504,12 @@ class DiscretizedFunction : public Function<dim> {
   void mpi_send(size_t destination);
 
   /**
+   * reduce the stuff in source using the given operation, everyone gets the result in this object
+   * (should be empty before!)
+   */
+  void mpi_all_reduce(DiscretizedFunction<dim> source, MPI_Op op);
+
+  /**
    * @}
    */
 #endif

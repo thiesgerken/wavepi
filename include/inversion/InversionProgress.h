@@ -203,7 +203,7 @@ class CtrlCProgressListener : public InversionProgressListener<Param, Sol, Exact
     if (abort) {
       printf("\nCaught signal %d. Issuing a hard-abort.\n", s);
 
-      AssertThrow(false, ExcMessage("Aborting computation due to signal"))
+      AssertThrow(false, ExcMessage("Aborting computation due to signal"));
     } else {
       printf("\nCaught signal %d. Issuing a soft-abort.\n", s);
 

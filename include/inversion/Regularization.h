@@ -67,7 +67,8 @@ class Regularization {
   bool progress(InversionProgress<Param, Sol, Exact> state) {
     bool continue_iteration = true;
 
-    for (auto listener : progress_listeners) continue_iteration &= listener->progress(state);
+    for (auto listener : progress_listeners)
+      continue_iteration &= listener->progress(state);
 
     return continue_iteration;
   }

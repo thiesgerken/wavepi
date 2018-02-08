@@ -17,7 +17,8 @@ MacroFunctionParser<dim>::MacroFunctionParser(const std::vector<std::string>& ex
                                               const std::map<std::string, double>& constants, bool last_is_time) {
   std::vector<std::string> exprs;
 
-  for (auto expr : expressions) exprs.push_back(replace(expr));
+  for (auto expr : expressions)
+    exprs.push_back(replace(expr));
 
   if (!last_is_time)
     this->initialize(FunctionParser<dim>::default_variable_names() + ",t", exprs, constants, true);

@@ -56,7 +56,8 @@ class Tuple {
   }
 
   Tuple<T>& operator*=(const double factor) {
-    for (size_t i = 0; i < this->size(); i++) elements[i] *= factor;
+    for (size_t i = 0; i < this->size(); i++)
+      elements[i] *= factor;
 
     return *this;
   }
@@ -72,7 +73,8 @@ class Tuple {
 
     double tmp = 0.0;
 
-    for (size_t i = 0; i < this->size(); i++) tmp += o[i] * elements[i];
+    for (size_t i = 0; i < this->size(); i++)
+      tmp += o[i] * elements[i];
 
     return tmp;
   }
@@ -80,7 +82,8 @@ class Tuple {
   void add(const double a, const Tuple<T>& o) {
     AssertThrow(o.size() == this->size(), ExcInternalError());
 
-    for (size_t i = 0; i < this->size(); i++) elements[i].add(a, o[i]);
+    for (size_t i = 0; i < this->size(); i++)
+      elements[i].add(a, o[i]);
   }
 
   /**
@@ -89,7 +92,8 @@ class Tuple {
   void sadd(const double s, const double a, const Tuple<T>& o) {
     AssertThrow(o.size() == this->size(), ExcInternalError());
 
-    for (size_t i = 0; i < this->size(); i++) elements[i].sadd(s, a, o[i]);
+    for (size_t i = 0; i < this->size(); i++)
+      elements[i].sadd(s, a, o[i]);
   }
 
   Tuple<T>& operator=(Tuple<T>&& o) {
@@ -107,7 +111,8 @@ class Tuple {
   static Tuple<T> noise(const Tuple<T>& like) {
     Tuple<T> res;
 
-    for (size_t i = 0; i < like.size(); i++) res.push_back(T::noise(like[i]));
+    for (size_t i = 0; i < like.size(); i++)
+      res.push_back(T::noise(like[i]));
 
     return res;
   }

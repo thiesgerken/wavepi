@@ -88,7 +88,8 @@ class PointMeasure : public Measure<DiscretizedFunction<dim>, MeasuredValues<dim
 
     virtual double evaluate(const Point<dim + 1>& p) const {
       double nrm = 0.0;
-      for (size_t i = 0; i < dim; i++) nrm += p[i] * p[i];
+      for (size_t i = 0; i < dim; i++)
+        nrm += p[i] * p[i];
 
       return std::max(1 - sqrt(nrm), 0.0) * std::max(1 - p[dim], 0.0);
     }
@@ -100,7 +101,8 @@ class PointMeasure : public Measure<DiscretizedFunction<dim>, MeasuredValues<dim
 
     virtual double evaluate(const Point<dim + 1>& p) const {
       double nrm = 0.0;
-      for (size_t i = 0; i < dim; i++) nrm += p[i] * p[i];
+      for (size_t i = 0; i < dim; i++)
+        nrm += p[i] * p[i];
 
       return nrm <= 1.0 && p[dim] <= 1.0 && p[dim] >= -1.0 ? 1.0 : 0.0;
     }
@@ -120,7 +122,8 @@ class PointMeasure : public Measure<DiscretizedFunction<dim>, MeasuredValues<dim
 
       p1(dim) = (this->get_time() - offset(dim)) / delta_scale_time;
 
-      for (size_t d = 0; d < dim; d++) p1(d) = (p(d) - offset(d)) / delta_scale_space;
+      for (size_t d = 0; d < dim; d++)
+        p1(d) = (p(d) - offset(d)) / delta_scale_space;
 
       return base->evaluate(p1);
     }

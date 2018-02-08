@@ -85,12 +85,15 @@ std::vector<double> GridPointMeasure<dim>::make_points(const std::string descrip
   std::vector<double> points(nb);
 
   if (lb == 0.0 && is_time)  // lb excl, ub incl
-    for (size_t i = 0; i < nb; i++) points[i] = lb + (i + 1) * (ub - lb) / nb;
+    for (size_t i = 0; i < nb; i++)
+      points[i] = lb + (i + 1) * (ub - lb) / nb;
   else if (lb > 0.0 && is_time)  // lb incl, ub incl
-    for (size_t i = 0; i < nb; i++) points[i] = lb + (i + 1) * (ub - lb) / (nb - 1);
+    for (size_t i = 0; i < nb; i++)
+      points[i] = lb + (i + 1) * (ub - lb) / (nb - 1);
   else
     // lb excl, ub excl
-    for (size_t i = 0; i < nb; i++) points[i] = lb + (i + 1) * (ub - lb) / (nb + 1);
+    for (size_t i = 0; i < nb; i++)
+      points[i] = lb + (i + 1) * (ub - lb) / (nb + 1);
 
   return points;
 }

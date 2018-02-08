@@ -678,7 +678,7 @@ double DiscretizedFunction<dim>::norm() const {
     case Norm::Invalid:
       AssertThrow(false, ExcMessage("norm_type == Invalid")) break;
     default:
-      AssertThrow(false, ExcMessage("Unknown Norm"))
+      AssertThrow(false, ExcMessage("Unknown Norm"));
   }
 
   AssertThrow(false, ExcInternalError());
@@ -703,7 +703,7 @@ double DiscretizedFunction<dim>::operator*(const DiscretizedFunction<dim>& V) co
     case Norm::Invalid:
       AssertThrow(false, ExcMessage("norm_type == Invalid")) break;
     default:
-      AssertThrow(false, ExcMessage("Unknown Norm"))
+      AssertThrow(false, ExcMessage("Unknown Norm"));
   }
 
   AssertThrow(false, ExcInternalError());
@@ -729,7 +729,7 @@ bool DiscretizedFunction<dim>::is_hilbert() const {
     case Norm::Invalid:
       AssertThrow(false, ExcMessage("norm_type == Invalid")) break;
     default:
-      AssertThrow(false, ExcMessage("Unknown Norm"))
+      AssertThrow(false, ExcMessage("Unknown Norm"));
   }
 
   AssertThrow(false, ExcInternalError());
@@ -770,7 +770,7 @@ void DiscretizedFunction<dim>::dot_transform() {
     case Norm::Invalid:
       AssertThrow(false, ExcMessage("norm_type == Invalid")) break;
     default:
-      AssertThrow(false, ExcMessage("Unknown Norm"))
+      AssertThrow(false, ExcMessage("Unknown Norm"));
   }
 
   AssertThrow(false, ExcInternalError());
@@ -797,7 +797,7 @@ void DiscretizedFunction<dim>::dot_transform_inverse() {
     case Norm::Invalid:
       AssertThrow(false, ExcMessage("norm_type == Invalid")) break;
     default:
-      AssertThrow(false, ExcMessage("Unknown Norm"))
+      AssertThrow(false, ExcMessage("Unknown Norm"));
   }
 
   AssertThrow(false, ExcInternalError());
@@ -824,7 +824,7 @@ void DiscretizedFunction<dim>::dot_solve_mass_and_transform() {
     case Norm::Invalid:
       AssertThrow(false, ExcMessage("norm_type == Invalid")) break;
     default:
-      AssertThrow(false, ExcMessage("Unknown Norm"))
+      AssertThrow(false, ExcMessage("Unknown Norm"));
   }
 
   AssertThrow(false, ExcInternalError());
@@ -851,7 +851,7 @@ void DiscretizedFunction<dim>::dot_mult_mass_and_transform_inverse() {
     case Norm::Invalid:
       AssertThrow(false, ExcMessage("norm_type == Invalid")) break;
     default:
-      AssertThrow(false, ExcMessage("Unknown Norm"))
+      AssertThrow(false, ExcMessage("Unknown Norm"));
   }
 
   AssertThrow(false, ExcInternalError());
@@ -1136,7 +1136,8 @@ void DiscretizedFunction<dim>::dot_mult_mass_and_transform_inverse_h1l2() {
   matrix *= h1l2_alpha;
 
   // L2 part (+ trapezoidal rule)
-  for (size_t i = 0; i < mesh->length(); i++) matrix.add(i, i, lambdas[i]);
+  for (size_t i = 0; i < mesh->length(); i++)
+    matrix.add(i, i, lambdas[i]);
 
   // just to be sure
   for (size_t i = 0; i < mesh->length(); i++)
@@ -1149,11 +1150,13 @@ void DiscretizedFunction<dim>::dot_mult_mass_and_transform_inverse_h1l2() {
   Vector<double> tmp(mesh->length());
 
   for (size_t i = 0; i < function_coefficients[0].size(); i++) {
-    for (size_t j = 0; j < mesh->length(); j++) tmp[j] = function_coefficients[j][i];
+    for (size_t j = 0; j < mesh->length(); j++)
+      tmp[j] = function_coefficients[j][i];
 
     umfpack.solve(tmp);
 
-    for (size_t j = 0; j < mesh->length(); j++) function_coefficients[j][i] = tmp[j];
+    for (size_t j = 0; j < mesh->length(); j++)
+      function_coefficients[j][i] = tmp[j];
   }
 
   deallog << "solved in " << timer.wall_time() << "s" << std::endl;
@@ -1168,7 +1171,8 @@ void DiscretizedFunction<dim>::dot_mult_mass_and_transform_inverse_h2l2() {
   SparsityPattern pattern(mesh->length(), mesh->length(), 5);
 
   for (size_t i = 0; i < 3; i++)
-    for (size_t j = 0; j < 3; j++) pattern.add(i, j);
+    for (size_t j = 0; j < 3; j++)
+      pattern.add(i, j);
 
   for (size_t i = 3; i < mesh->length() - 3; i++) {
     // fill row i and column i
@@ -1179,7 +1183,8 @@ void DiscretizedFunction<dim>::dot_mult_mass_and_transform_inverse_h2l2() {
   }
 
   for (size_t i = 0; i < 3; i++)
-    for (size_t j = 0; j < 3; j++) pattern.add(mesh->length() - 1 - i, mesh->length() - 1 - j);
+    for (size_t j = 0; j < 3; j++)
+      pattern.add(mesh->length() - 1 - i, mesh->length() - 1 - j);
 
   pattern.compress();
 
@@ -1298,7 +1303,8 @@ void DiscretizedFunction<dim>::dot_mult_mass_and_transform_inverse_h2l2() {
   matrix.add(h2l2_alpha, matrixH1);
 
   // L2 part (+ trapezoidal rule)
-  for (size_t i = 0; i < mesh->length(); i++) matrix.add(i, i, lambdas[i]);
+  for (size_t i = 0; i < mesh->length(); i++)
+    matrix.add(i, i, lambdas[i]);
 
   // just to be sure
   for (size_t i = 0; i < mesh->length(); i++)
@@ -1311,11 +1317,13 @@ void DiscretizedFunction<dim>::dot_mult_mass_and_transform_inverse_h2l2() {
   Vector<double> tmp(mesh->length());
 
   for (size_t i = 0; i < function_coefficients[0].size(); i++) {
-    for (size_t j = 0; j < mesh->length(); j++) tmp[j] = function_coefficients[j][i];
+    for (size_t j = 0; j < mesh->length(); j++)
+      tmp[j] = function_coefficients[j][i];
 
     umfpack.solve(tmp);
 
-    for (size_t j = 0; j < mesh->length(); j++) function_coefficients[j][i] = tmp[j];
+    for (size_t j = 0; j < mesh->length(); j++)
+      function_coefficients[j][i] = tmp[j];
   }
 
   deallog << "solved in " << timer.wall_time() << "s" << std::endl;
@@ -1689,8 +1697,21 @@ void DiscretizedFunction<dim>::mpi_send(size_t destination) {
                MPI_COMM_WORLD);
   }
 }
+
+template <int dim>
+void DiscretizedFunction<dim>::mpi_all_reduce(DiscretizedFunction<dim> source, MPI_Op op) {
+  for (size_t i = 0; i < mesh->length(); i++)
+    MPI_Allreduce(&source.function_coefficients[i][0], &function_coefficients[i][0], function_coefficients[i].size(),
+                  MPI_DOUBLE, op, MPI_COMM_WORLD);
+
+  if (store_derivative) {
+    for (size_t i = 0; i < mesh->length(); i++)
+      MPI_Allreduce(&source.derivative_coefficients[i][0], &derivative_coefficients[i][0],
+                    derivative_coefficients[i].size(), MPI_DOUBLE, op, MPI_COMM_WORLD);
+  }
+}
 #endif
 
 }  // namespace forward
 /* namespace forward */
-} /* namespace wavepi */
+}  // namespace wavepi

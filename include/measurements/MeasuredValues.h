@@ -50,7 +50,8 @@ class MeasuredValues {
   }
 
   MeasuredValues<dim>& operator*=(const double factor) {
-    for (size_t i = 0; i < this->size(); i++) elements[i] *= factor;
+    for (size_t i = 0; i < this->size(); i++)
+      elements[i] *= factor;
 
     return *this;
   }
@@ -66,7 +67,8 @@ class MeasuredValues {
 
     double tmp = 0.0;
 
-    for (size_t i = 0; i < this->size(); i++) tmp += o[i] * elements[i];
+    for (size_t i = 0; i < this->size(); i++)
+      tmp += o[i] * elements[i];
 
     return tmp;
   }
@@ -74,7 +76,8 @@ class MeasuredValues {
   void add(const double a, const MeasuredValues<dim>& o) {
     AssertThrow(o.size() == this->size() && o.grid == this->grid, ExcInternalError());
 
-    for (size_t i = 0; i < this->size(); i++) elements[i] += a * o[i];
+    for (size_t i = 0; i < this->size(); i++)
+      elements[i] += a * o[i];
   }
 
   /**
@@ -83,7 +86,8 @@ class MeasuredValues {
   void sadd(const double s, const double a, const MeasuredValues<dim>& o) {
     AssertThrow(o.size() == this->size() && o.grid == this->grid, ExcInternalError());
 
-    for (size_t i = 0; i < this->size(); i++) elements[i] = s * elements[i] + a * o[i];
+    for (size_t i = 0; i < this->size(); i++)
+      elements[i] = s * elements[i] + a * o[i];
   }
 
   MeasuredValues<dim>& operator=(MeasuredValues<dim>&& o) {
@@ -137,6 +141,12 @@ class MeasuredValues {
    * send the data of this object to another process
    */
   void mpi_send(size_t destination);
+
+  /**
+   * reduce the stuff in source using the given operation, everyone gets the result in this object
+   * (should be empty before!)
+   */
+  void mpi_all_reduce(MeasuredValues<dim> source, MPI_Op op);
 
   /**
    * @}

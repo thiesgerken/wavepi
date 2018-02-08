@@ -53,7 +53,8 @@ using namespace wavepi::util;
 template <int dim, typename Meas>
 WavePI<dim, Meas>::WavePI(std::shared_ptr<SettingsManager> cfg) : cfg(cfg) {
   measures.clear();
-  for (auto config_idx : cfg->configs) measures.push_back(get_measure(config_idx));
+  for (auto config_idx : cfg->configs)
+    measures.push_back(get_measure(config_idx));
 
   for (auto expr : cfg->exprs_rhs)
     pulses.push_back(std::make_shared<MacroFunctionParser<dim>>(expr, cfg->constants_for_exprs));
@@ -148,9 +149,9 @@ get_measure_tuple(1) get_measure_tuple(2) get_measure_tuple(3)
     GridGenerator::cheese(*triangulation, holes);
     dealii::GridTools::scale(cfg->shape_options["scale"], *triangulation);
   } else
-    AssertThrow(false, ExcInternalError())
+    AssertThrow(false, ExcInternalError());
 
-        wavepi::util::GridTools::set_all_boundary_ids(*triangulation, 0);
+  wavepi::util::GridTools::set_all_boundary_ids(*triangulation, 0);
   triangulation->refine_global(cfg->initial_refines);
 
   mesh = std::make_shared<ConstantMesh<dim>>(cfg->times, FE_Q<dim>(cfg->fe_degree), QGauss<dim>(cfg->quad_order),
@@ -224,7 +225,7 @@ void WavePI<dim, Meas>::initialize_problem() {
       problem     = std::make_shared<AProblem<dim, Meas>>(*wave_eq, pulses, measures);
       break;
     default:
-      AssertThrow(false, ExcInternalError())
+      AssertThrow(false, ExcInternalError());
   }
 
   problem->set_norm_domain(cfg->norm_domain);
@@ -276,7 +277,7 @@ void WavePI<dim, Meas>::run() {
           problem, initial_guess_discretized, *cfg->prm);
       break;
     default:
-      AssertThrow(false, ExcInternalError())
+      AssertThrow(false, ExcInternalError());
   }
   cfg->prm->leave_subsection();
 

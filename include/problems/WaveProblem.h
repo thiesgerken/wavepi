@@ -77,9 +77,9 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
 
   virtual Tuple<Measurement> forward(const DiscretizedFunction<dim> &param) {
     LogStream::Prefix p("forward");
-    AssertThrow(param.get_norm() == norm_domain, ExcMessage("Argument of Forward Operator has unexpected norm"))
+    AssertThrow(param.get_norm() == norm_domain, ExcMessage("Argument of Forward Operator has unexpected norm"));
 
-        Timer fw_timer;
+    Timer fw_timer;
     Timer meas_timer;
     Timer comm_timer;
 
@@ -288,11 +288,11 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
         fw_timer.stop();
 
         AssertThrow(result_fields[i].get_norm() == norm_codomain,
-                    ExcMessage("Output of Linearization has unexpected norm"))
+                    ExcMessage("Output of Linearization has unexpected norm"));
 
-            // TODO: Isend or Ibcast (and wait for those requests as well) ->
-            // better performance for more than one pde / node
-            comm_timer.start();
+        // TODO: Isend or Ibcast (and wait for those requests as well) ->
+        // better performance for more than one pde / node
+        comm_timer.start();
         for (size_t k = 0; k < n_procs; k++)
           if (k != rank) {
             deallog << "rank " << rank << " sending field " << i << " to rank " << k << std::endl;
@@ -324,9 +324,9 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
         fw_timer.start();
         auto fw = sub_problems[i]->forward(h);
 
-        AssertThrow(fw.get_norm() == norm_codomain, ExcMessage("Output of Linearization has unexpected norm"))
+        AssertThrow(fw.get_norm() == norm_codomain, ExcMessage("Output of Linearization has unexpected norm"));
 
-            fw_timer.stop();
+        fw_timer.stop();
 
         meas_timer.start();
         result.push_back(measures[i]->evaluate(fw));
@@ -369,15 +369,8 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
 
       deallog << "rank " << rank << " entering parallel section" << std::endl;
 
-      // do a sum on local jobs and send the result to everyone else
-      std::vector<DiscretizedFunction<dim>> result_fields(n_procs, zero());
-      std::vector<std::vector<MPI_Request>> recv_requests(n_procs);
-
-      for (size_t i = 0; i < n_procs; i++) {
-        result_fields[i].set_norm(norm_domain);
-
-        if (i != rank) result_fields[i].mpi_irecv(i, recv_requests[i]);
-      }
+      // sum of local jobs
+      DiscretizedFunction<dim> private_result(zero());
 
       for (size_t i = 0; i < measures.size(); i++) {
         if (i % n_procs != rank) continue;
@@ -388,37 +381,20 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
         auto am = measures[i]->adjoint(g[i]);
         adj_meas_timer.stop();
 
+        AssertThrow(am.get_norm() == norm_codomain, ExcMessage("Output of Measure adjoint has unexpected norm"));
+
         adj_timer.start();
-        result_fields[rank] += sub_problems[i]->adjoint(am);
+        private_result += sub_problems[i]->adjoint(am);
         adj_timer.stop();
       }
 
-      // send private sum to everyone else
-      // TODO: use MPI_bcast
-      comm_timer.start();
-      for (size_t k = 0; k < n_procs; k++)
-        if (k != rank) {
-          deallog << "rank " << rank << " sending private result " << i << " to rank " << k << std::endl;
-          result_fields[rank].mpi_send(k);
-        }
-      comm_timer.stop();
-
-      deallog << "rank " << rank << " waiting on Irecvs " << std::endl;
+      deallog << "rank " << rank << " performing all_reduce" << std::endl;
 
       comm_timer.start();
-      for (size_t i = 0; i < n_procs; i++)
-        for (size_t j = 0; j < recv_requests[i].size(); j++)
-          MPI_Wait(&recv_requests[i][j], MPI_STATUS_IGNORE);
+      result.mpi_all_reduce(private_result, MPI_SUM);
       comm_timer.stop();
 
       deallog << "rank " << rank << " exiting parallel section" << std::endl;
-
-      // sum of the private results
-      // TODO: could be done in parallel as well (all_reduce)
-      adj_timer.start();
-      for (size_t i = 0; i < measures.size(); i++)
-        result += result_fields[i];
-      adj_timer.stop();
 #else
       for (size_t i = 0; i < measures.size(); i++) {
         adj_meas_timer.start();
@@ -459,9 +435,9 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
 
     virtual DiscretizedFunction<dim> zero() {
       auto res = sub_problems[0]->zero();
-      AssertThrow(res.get_norm() == norm_domain, ExcMessage("sub_problems[0]->zero() has unexpected norm"))
+      AssertThrow(res.get_norm() == norm_domain, ExcMessage("sub_problems[0]->zero() has unexpected norm"));
 
-          return res;
+      return res;
     }
 
     virtual std::shared_ptr<LinearProblemStats> get_statistics() { return stats; }

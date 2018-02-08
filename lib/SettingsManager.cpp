@@ -226,7 +226,8 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
     times.clear();
     times.resize(initial_time_steps);
 
-    for (size_t i = 0; i < initial_time_steps; i++) times[i] = i * dt;
+    for (size_t i = 0; i < initial_time_steps; i++)
+      times[i] = i * dt;
 
     prm->enter_subsection(KEY_MESH_SHAPE);
     {

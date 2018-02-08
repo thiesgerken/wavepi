@@ -30,7 +30,8 @@ MeasuredValues<dim> MeasuredValues<dim>::noise(const MeasuredValues<dim>& like) 
   std::default_random_engine generator;
   std::uniform_real_distribution<double> distribution(-1, 1);
 
-  for (size_t i = 0; i < like.size(); i++) res[i] = distribution(generator);
+  for (size_t i = 0; i < like.size(); i++)
+    res[i] = distribution(generator);
 
   return res;
 }
@@ -69,7 +70,8 @@ void MeasuredValues<dim>::write_vts(std::string path, std::string filename, std:
   fvts.precision(16);
   fvts << std::scientific;
 
-  for (auto x : elements) fvts << x << " ";
+  for (auto x : elements)
+    fvts << x << " ";
 
   fvts << "</DataArray></PointData><CellData></CellData>"
        << "<Points><DataArray type=\"Float64\" Name=\"Points\" NumberOfComponents=\"3\" format=\"ascii\">";
@@ -77,7 +79,8 @@ void MeasuredValues<dim>::write_vts(std::string path, std::string filename, std:
   fvts.precision(6);
   fvts << std::fixed;
 
-  for (auto p : grid->get_space_time_points()) fvts << p(0) << " " << p(1) << " 0 ";
+  for (auto p : grid->get_space_time_points())
+    fvts << p(0) << " " << p(1) << " 0 ";
 
   fvts << "</DataArray></Points></Piece></StructuredGrid></VTKFile>" << std::endl;
   fvts.close();
@@ -124,7 +127,8 @@ void MeasuredValues<dim>::write_pvd(std::string path, std::string filename, std:
     fvts.precision(16);
     fvts << std::scientific;
 
-    for (size_t i = 0; i < nb_spatial_points; i++) fvts << elements[nb_spatial_points * ti + i] << " ";
+    for (size_t i = 0; i < nb_spatial_points; i++)
+      fvts << elements[nb_spatial_points * ti + i] << " ";
 
     fvts << std::endl
          << "</DataArray>" << std::endl
@@ -165,6 +169,12 @@ template <int dim>
 void MeasuredValues<dim>::mpi_send(size_t destination) {
   MPI_Send(&elements[0], elements.size(), MPI_DOUBLE, destination, 1, MPI_COMM_WORLD);
 }
+
+template <int dim>
+void MeasuredValues<dim>::mpi_all_reduce(MeasuredValues<dim> source, MPI_Op op) {
+  MPI_Allreduce(&source.elements[0], &elements[0], elements.size(), MPI_DOUBLE, op, MPI_COMM_WORLD);
+}
+
 #endif
 
 template class MeasuredValues<1>;

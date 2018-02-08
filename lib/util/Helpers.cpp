@@ -25,10 +25,9 @@ std::string Helpers::replace(std::string const &in, std::map<std::string, std::s
     subst_pos += strlen("{{");
     std::map<std::string, std::string>::const_iterator subst_it = subst.find(in.substr(subst_pos, end_pos - subst_pos));
 
-    AssertThrow(subst_it != subst.end(), ExcMessage("undefined substitution"))
+    AssertThrow(subst_it != subst.end(), ExcMessage("undefined substitution"));
 
-            out
-        << subst_it->second;
+    out << subst_it->second;
     pos = end_pos + strlen("}}");
   }
   out << in.substr(pos, std::string::npos);
