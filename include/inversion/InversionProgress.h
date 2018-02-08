@@ -233,7 +233,7 @@ class OutputProgressListener : public InversionProgressListener<DiscretizedFunct
     {
       prm.declare_entry("interval", "10", Patterns::Integer(0),
                         "output every n iterations, or never by this rule if n == 0.");
-      prm.declare_entry("discrepancy decrease", "0.5", Patterns::Double(),
+      prm.declare_entry("discrepancy decrease", "0.25", Patterns::Double(),
                         "output if the discrepancy decreased by at least this factor since the last output. Set to ≤ 0 "
                         "to disable this rule.");
       prm.declare_entry("last", "true", Patterns::Bool(), "output the last iteration before exit");

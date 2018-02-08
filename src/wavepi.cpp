@@ -186,8 +186,6 @@ int main(int argc, char *argv[]) {
         AssertThrow(false, ExcInternalError());
     } else
       AssertThrow(false, ExcMessage("not built for dimension " + std::to_string(cfg->dimension)));
-
-    deallog.timestamp();
   } catch (std::exception &exc) {
     if (mpi_rank != 0) std::cerr << "rank " << mpi_rank << ": ";
     std::cerr << "Exception on processing: " << exc.what() << std::endl;

@@ -259,6 +259,9 @@ void WavePI<dim, Meas>::generate_data() {
 
 template <int dim, typename Meas>
 void WavePI<dim, Meas>::run() {
+  Timer timer_total;
+  timer_total.start();
+
   initialize_mesh();
   initialize_problem();
   generate_data();
@@ -320,11 +323,14 @@ void WavePI<dim, Meas>::run() {
     deallog << "measure adjoint      : " << stats->calls_measure_adjoint << " calls, average "
             << stats->time_measure_adjoint / stats->calls_measure_adjoint << " s per call" << std::endl;
 
-    if (Utilities::MPI::n_mpi_processes(MPI_COMM_WORLD) > 0)
+    if (Utilities::MPI::n_mpi_processes(MPI_COMM_WORLD) > 1)
       deallog << "mpi communication    : " << stats->time_communication << " s, average "
               << stats->time_communication /
                      (stats->calls_forward + stats->calls_linearization_forward + stats->calls_linearization_adjoint)
               << " s per pde solution" << std::endl;
+
+    deallog << "total wall time      : " << (int)std::floor(timer_total.wall_time() / 60) << "min "
+            << (int)std::floor(std::fmod(timer_total.wall_time(), 60)) << "s" << std::endl;
   }
 }
 

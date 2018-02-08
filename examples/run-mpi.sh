@@ -22,5 +22,5 @@ mpirun --bind-to none -np 2 --hostfile ../hostfile ../../build/wavepi -c ../$1.c
 
 cat wavepi.log | ../../build/wavepi_logfilter 2 > wavepi.2.log
 cat wavepi.log | ../../build/wavepi_logfilter 4 | xz > wavepi.4.log.xz
-rm wavepi.log
+
 cd ..

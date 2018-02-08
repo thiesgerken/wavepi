@@ -25,8 +25,9 @@ Modifications:
 * [`problem_c_5.cfg`](problem_c_5.cfg): higher `max_tol`
 * [`problem_c_7.cfg`](problem_c_7.cfg): higher `max_tol`, Fibonacci maximum iteration choice and safeguarding for cg
 * [`problem_c_8.cfg`](problem_c_8.cfg): higher `max_tol`, Fibonacci maximum iteration choice, safeguarding for cg, two right hand sides
-* [`problem_c_9.cfg`](problem_c_9.cfg): higher `max_tol`, Fibonacci maximum iteration choice, safeguarding for cg, four right hand sides, coarse grid
-*
+* [`problem_c_9.cfg`](problem_c_9.cfg): higher `max_tol`, Fibonacci maximum iteration choice, safeguarding for cg, four right hand sides
+* [`problem_c_10.cfg`](problem_c_10.cfg): higher `max_tol`, Fibonacci maximum iteration choice, safeguarding for cg, four right hand sides, eps=1e-4
+
 ### [`problem_c_h1l2_1.cfg`](problem_c_1.cfg)
 
 Tries to reconstruct a constant $`c = 2`$ from field with $`1\%`$ noise using $`H^1([0,T], L^2)`$-Norm in domain and $`L^2([0,T], L^2)`$ in codomain (identical measurements)
@@ -44,8 +45,8 @@ Modifications:
 * [`problem_c_h1l2_5.cfg`](problem_c_h1l2_5.cfg): higher `max_tol`
 * [`problem_c_h1l2_7.cfg`](problem_c_h1l2_7.cfg): higher `max_tol`, Fibonacci maximum iteration choice and safeguarding for cg
 * [`problem_c_h1l2_8.cfg`](problem_c_h1l2_8.cfg): higher `max_tol`, Fibonacci maximum iteration choice, safeguarding for cg, two right hand sides
-* [`problem_c_h1l2_9.cfg`](problem_c_h1l2_9.cfg): higher `max_tol`, Fibonacci maximum iteration choice, safeguarding for cg, four right hand sides, coarse grid
-
+* [`problem_c_h1l2_9.cfg`](problem_c_h1l2_9.cfg): higher `max_tol`, Fibonacci maximum iteration choice, safeguarding for cg, four right hand sides
+* [`problem_c_h1l2_10.cfg`](problem_c_h1l2_10.cfg): higher `max_tol`, Fibonacci maximum iteration choice, safeguarding for cg, four right hand sides, eps=1e-4
 
 ## Reconstruction of constant $`q`$
 

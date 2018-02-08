@@ -19,6 +19,6 @@ cp ../$1.cfg wavepi.cfg
 ../../build/wavepi -c wavepi.cfg
 cat wavepi.log | ../../build/wavepi_logfilter 2 > wavepi.2.log
 cat wavepi.log | ../../build/wavepi_logfilter 4 | xz > wavepi.4.log.xz
-rm wavepi.log
+# rm wavepi.log
 
 cd ..

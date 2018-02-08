@@ -1,3 +1,4 @@
 *.vtu
 *.pvd
 wavepi.log
+wavepi.log*

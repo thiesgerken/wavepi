@@ -52,11 +52,12 @@ void ToleranceChoice::add_iteration(double new_discrepancy, int steps) {
 
   if (!tolerance_prefix.size()) return;
 
+  // only rank 0 does the output
+  if (Utilities::MPI::this_mpi_process(MPI_COMM_WORLD) != 0) return;
+
   // truncate if i == 0
   auto opts = discrepancies.size() == 1 ? std::ios::trunc : std::ios::app;
   std::ofstream csv_file(tolerance_prefix + ".csv", std::ios::out | opts);
-
-  if (Utilities::MPI::this_mpi_process(MPI_COMM_WORLD) != 0) return;
 
   if (!csv_file) {
     deallog << "Could not open " + tolerance_prefix + ".csv" + " for output!" << std::endl;
