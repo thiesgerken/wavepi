@@ -128,7 +128,7 @@ std::string Version::get_infos() {
       //  ss << s << " ";
       //}
 
-      ss << std::endl << GIT_STATUS;
+      ss << std::endl << GIT_STATUS << std::endl;
     }
   } else
     ss << get_build_type() << "-Build, compiled without version control information";

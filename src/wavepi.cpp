@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
 
     if (vm.count("version")) {
       std::cout << Version::get_identification() << std::endl << std::endl;
-      std::cout << Version::get_infos() << std::endl;
+      std::cout << Version::get_infos();
       return 1;
     }
 

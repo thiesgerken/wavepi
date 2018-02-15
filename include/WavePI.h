@@ -11,8 +11,6 @@
 #include <deal.II/base/function.h>
 #include <deal.II/base/point.h>
 
-#include <SettingsManager.h>
-
 #include <base/DiscretizedFunction.h>
 #include <base/MacroFunctionParser.h>
 #include <base/SpaceTimeMesh.h>
@@ -20,6 +18,8 @@
 #include <forward/WaveEquation.h>
 #include <measurements/Measure.h>
 #include <problems/WaveProblem.h>
+
+#include <SettingsManager.h>
 
 #include <stddef.h>
 #include <memory>

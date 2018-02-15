@@ -6,19 +6,23 @@
  */
 
 #include <deal.II/base/exceptions.h>
+#include <deal.II/base/index_set.h>
 #include <deal.II/base/logstream.h>
+#include <deal.II/base/mpi.h>
 #include <deal.II/base/parameter_handler.h>
 #include <deal.II/base/quadrature_lib.h>
+#include <deal.II/base/timer.h>
 #include <deal.II/base/utilities.h>
 #include <deal.II/fe/fe_q.h>
 #include <deal.II/grid/grid_generator.h>
 #include <deal.II/grid/grid_tools.h>
 #include <deal.II/grid/tria.h>
 
-#include <base/AdaptiveMesh.h>
 #include <base/ConstantMesh.h>
+#include <base/Util.h>
 #include <inversion/InversionProgress.h>
 #include <inversion/NonlinearLandweber.h>
+#include <inversion/PostProcessor.h>
 #include <inversion/REGINN.h>
 #include <inversion/Regularization.h>
 #include <measurements/GridPointMeasure.h>
@@ -28,15 +32,17 @@
 #include <problems/NuProblem.h>
 #include <problems/QProblem.h>
 
-#include <stddef.h>
-#include <tgmath.h>
-
 #include <WavePI.h>
 
+#include <stddef.h>
+#include <tgmath.h>
 #include <cmath>
 #include <fstream>
 #include <iostream>
+#include <memory>
+#include <ostream>
 #include <string>
+#include <vector>
 
 namespace wavepi {
 
