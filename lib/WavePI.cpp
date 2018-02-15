@@ -19,6 +19,7 @@
 #include <deal.II/grid/tria.h>
 
 #include <base/ConstantMesh.h>
+#include <base/Transformation.h>
 #include <base/Util.h>
 #include <inversion/InversionProgress.h>
 #include <inversion/NonlinearLandweber.h>
@@ -212,30 +213,43 @@ void WavePI<dim, Meas>::initialize_problem() {
   wave_eq->set_param_nu(param_nu);
   wave_eq->get_parameters(*cfg->prm);
 
-  switch (cfg->problem_type) {
-    case SettingsManager::ProblemType::L2Q:
-      /* Reconstruct q */
-      param_exact = wave_eq->get_param_q();
-      problem     = std::make_shared<QProblem<dim, Meas>>(*wave_eq, pulses, measures);
+  switch (cfg->transform) {
+    case SettingsManager::TransformType::identity:
+      transform = std::make_shared<IdentityTransform<dim>>();
       break;
-    case SettingsManager::ProblemType::L2C:
-      /* Reconstruct c */
-      param_exact = wave_eq->get_param_c();
-      problem     = std::make_shared<CProblem<dim, Meas>>(*wave_eq, pulses, measures);
-      break;
-    case SettingsManager::ProblemType::L2Nu:
-      /* Reconstruct nu */
-      param_exact = wave_eq->get_param_nu();
-      problem     = std::make_shared<NuProblem<dim, Meas>>(*wave_eq, pulses, measures);
-      break;
-    case SettingsManager::ProblemType::L2A:
-      /* Reconstruct a */
-      param_exact = wave_eq->get_param_a();
-      problem     = std::make_shared<AProblem<dim, Meas>>(*wave_eq, pulses, measures);
+    case SettingsManager::TransformType::log:
+      transform = std::make_shared<LogTransform<dim>>();
       break;
     default:
       AssertThrow(false, ExcInternalError());
   }
+
+  switch (cfg->problem_type) {
+    case SettingsManager::ProblemType::L2Q:
+      /* Reconstruct q */
+      param_exact = wave_eq->get_param_q();
+      problem     = std::make_shared<QProblem<dim, Meas>>(*wave_eq, pulses, measures, transform);
+      break;
+    case SettingsManager::ProblemType::L2C:
+      /* Reconstruct c */
+      param_exact = wave_eq->get_param_c();
+      problem     = std::make_shared<CProblem<dim, Meas>>(*wave_eq, pulses, measures, transform);
+      break;
+    case SettingsManager::ProblemType::L2Nu:
+      /* Reconstruct nu */
+      param_exact = wave_eq->get_param_nu();
+      problem     = std::make_shared<NuProblem<dim, Meas>>(*wave_eq, pulses, measures, transform);
+      break;
+    case SettingsManager::ProblemType::L2A:
+      /* Reconstruct a */
+      param_exact = wave_eq->get_param_a();
+      problem     = std::make_shared<AProblem<dim, Meas>>(*wave_eq, pulses, measures, transform);
+      break;
+    default:
+      AssertThrow(false, ExcInternalError());
+  }
+
+  // TODO: transform param_exact
 
   problem->set_norm_domain(cfg->norm_domain);
   problem->set_norm_codomain(cfg->norm_codomain);
@@ -247,6 +261,7 @@ void WavePI<dim, Meas>::generate_data() {
   LogStream::Prefix pp("run");  // make logs of forward operator appear in the right level
 
   DiscretizedFunction<dim> param_exact_disc(mesh, *param_exact);
+  param_exact_disc = transform->transform(param_exact_disc);
   param_exact_disc.set_norm(cfg->norm_domain);
   Tuple<Meas> data_exact = problem->forward(param_exact_disc);
 

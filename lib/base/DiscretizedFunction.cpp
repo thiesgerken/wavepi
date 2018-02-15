@@ -49,8 +49,9 @@ inline double square(const double x) { return x * x; }
 inline double pow4(const double x) { return x * x * x * x; }
 
 template <int dim>
-DiscretizedFunction<dim>::DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>> mesh, bool store_derivative)
-    : store_derivative(store_derivative), cur_time_idx(0), mesh(mesh) {
+DiscretizedFunction<dim>::DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>> mesh, bool store_derivative,
+                                              Norm norm)
+    : norm_type(norm), store_derivative(store_derivative), cur_time_idx(0), mesh(mesh) {
   Assert(mesh, ExcNotInitialized());
 
   function_coefficients.reserve(mesh->length());

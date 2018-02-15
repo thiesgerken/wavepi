@@ -57,6 +57,7 @@ class WavePI {
   std::shared_ptr<WaveEquation<dim>> wave_eq;
 
   std::shared_ptr<WaveProblem<dim, Meas>> problem;
+  std::shared_ptr<Transformation<dim>> transform;
 
   std::shared_ptr<Function<dim>> param_exact;
 

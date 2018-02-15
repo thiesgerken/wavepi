@@ -13,6 +13,7 @@
 #include <deal.II/base/timer.h>
 
 #include <base/DiscretizedFunction.h>
+#include <base/Transformation.h>
 #include <base/Tuple.h>
 #include <forward/WaveEquation.h>
 #include <forward/WaveEquationAdjoint.h>
@@ -35,6 +36,7 @@ namespace problems {
 
 using namespace dealii;
 using namespace wavepi::forward;
+using namespace wavepi::base;
 using namespace wavepi::inversion;
 using namespace wavepi::measurements;
 
@@ -43,20 +45,19 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
  public:
   virtual ~WaveProblem() = default;
 
-  WaveProblem(const WaveEquation<dim> &weq, std::vector<std::shared_ptr<Function<dim>>> right_hand_sides,
-              std::vector<std::shared_ptr<Measure<DiscretizedFunction<dim>, Measurement>>> measures,
-              typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver)
+  WaveProblem(
+      const WaveEquation<dim> &weq, std::vector<std::shared_ptr<Function<dim>>> right_hand_sides,
+      std::vector<std::shared_ptr<Measure<DiscretizedFunction<dim>, Measurement>>> measures,
+      std::shared_ptr<Transformation<dim>> transform,
+      typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver = WaveEquationBase<dim>::WaveEquationAdjoint)
       : stats(std::make_shared<NonlinearProblemStats>()),
         wave_equation(weq),
         adjoint_solver(adjoint_solver),
         right_hand_sides(right_hand_sides),
-        measures(measures) {
-    AssertThrow(right_hand_sides.size() == measures.size() && measures.size(), ExcInternalError());
+        measures(measures),
+        transform(transform) {
+    AssertThrow(transform && right_hand_sides.size() == measures.size() && measures.size(), ExcInternalError());
   }
-
-  WaveProblem(const WaveEquation<dim> &weq, std::vector<std::shared_ptr<Function<dim>>> right_hand_sides,
-              std::vector<std::shared_ptr<Measure<DiscretizedFunction<dim>, Measurement>>> measures)
-      : WaveProblem<dim, Measurement>(weq, right_hand_sides, measures, WaveEquationBase<dim>::WaveEquationAdjoint) {}
 
   virtual std::unique_ptr<LinearProblem<DiscretizedFunction<dim>, Tuple<Measurement>>> derivative(
       const DiscretizedFunction<dim> &param) {
@@ -67,8 +68,8 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
     for (size_t i = 0; i < right_hand_sides.size(); i++)
       derivs.push_back(derivative(i));
 
-    return std::make_unique<WaveProblem<dim, Measurement>::Linearization>(derivs, measures, stats, norm_domain,
-                                                                          norm_codomain);
+    return std::make_unique<WaveProblem<dim, Measurement>::Linearization>(derivs, measures, current_param_transformed,
+                                                                          transform, stats, norm_domain, norm_codomain);
   }
 
   virtual Tuple<Measurement> forward(const DiscretizedFunction<dim> &param) {
@@ -79,8 +80,9 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
     Timer meas_timer;
     Timer comm_timer;
 
-    // save a copy of the parameter
-    this->current_param = std::make_shared<DiscretizedFunction<dim>>(param);
+    // save a copy of the (inverse transformed) parameter
+    this->current_param             = std::make_shared<DiscretizedFunction<dim>>(transform->transform_inverse(param));
+    this->current_param_transformed = std::make_shared<DiscretizedFunction<dim>>(param);
 
 #ifdef WAVEPI_MPI
     size_t n_procs = Utilities::MPI::n_mpi_processes(MPI_COMM_WORLD);
@@ -233,6 +235,8 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
 
  private:
   std::vector<std::shared_ptr<Measure<DiscretizedFunction<dim>, Measurement>>> measures;
+  std::shared_ptr<DiscretizedFunction<dim>> current_param_transformed;
+  std::shared_ptr<Transformation<dim>> transform;
 
   class Linearization : public LinearProblem<DiscretizedFunction<dim>, Tuple<Measurement>> {
    public:
@@ -241,11 +245,15 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
     Linearization(
         std::vector<std::shared_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>>> sub_problems,
         std::vector<std::shared_ptr<Measure<DiscretizedFunction<dim>, Measurement>>> measures,
-        std::shared_ptr<NonlinearProblemStats> parent_stats, Norm norm_domain, Norm norm_codomain)
+        std::shared_ptr<DiscretizedFunction<dim>> current_param_transformed,
+        std::shared_ptr<Transformation<dim>> transform, std::shared_ptr<NonlinearProblemStats> parent_stats,
+        Norm norm_domain, Norm norm_codomain)
         : stats(std::make_shared<LinearProblemStats>()),
           parent_stats(parent_stats),
           sub_problems(sub_problems),
           measures(measures),
+          current_param_transformed(current_param_transformed),
+          transform(transform),
           norm_domain(norm_domain),
           norm_codomain(norm_codomain) {}
 
@@ -259,6 +267,8 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
 
       Tuple<Measurement> result;
       result.reserve(measures.size());
+
+      auto h_transformed = transform->inverse_derivative(*current_param_transformed, h);
 
 #ifdef WAVEPI_MPI
       size_t n_procs = Utilities::MPI::n_mpi_processes(MPI_COMM_WORLD);
@@ -280,7 +290,7 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
         deallog << "rank " << rank << " working on field " << i << std::endl;
 
         fw_timer.start();
-        result_fields[i] = sub_problems[i]->forward(h);
+        result_fields[i] = sub_problems[i]->forward(h_transformed);
         fw_timer.stop();
 
         AssertThrow(result_fields[i].get_norm() == norm_codomain,
@@ -318,7 +328,7 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
 #else
       for (size_t i = 0; i < measures.size(); i++) {
         fw_timer.start();
-        auto fw = sub_problems[i]->forward(h);
+        auto fw = sub_problems[i]->forward(h_transformed);
 
         AssertThrow(fw.get_norm() == norm_codomain, ExcMessage("Output of Linearization has unexpected norm"));
 
@@ -408,6 +418,15 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
       }
 #endif
 
+      // TODO: one application of dot_transform / dot_transform inverse could be omitted because the above adjoint-calls
+      // also need it. Problem: then the subproblems would need to be concerned about the transformation, right now they
+      // can just ignore this. Solution: instead of adjoint use transpose?
+      if (!std::static_pointer_cast<IdentityTransform<dim>, Transformation<dim>>(transform)) {
+        result.dot_transform();
+        result = transform->inverse_derivative_transpose(*current_param_transformed, result);
+        result.dot_transform_inverse();
+      }
+
       stats->calls_adjoint++;
       stats->time_adjoint += adj_timer.wall_time();
 
@@ -444,6 +463,8 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
 
     std::vector<std::shared_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>>> sub_problems;
     std::vector<std::shared_ptr<Measure<DiscretizedFunction<dim>, Measurement>>> measures;
+    std::shared_ptr<DiscretizedFunction<dim>> current_param_transformed;
+    std::shared_ptr<Transformation<dim>> transform;
 
     Norm norm_domain;
     Norm norm_codomain;

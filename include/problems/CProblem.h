@@ -38,14 +38,12 @@ class CProblem : public WaveProblem<dim, Measurement> {
 
   virtual ~CProblem() = default;
 
-  CProblem(const WaveEquation<dim>& weq, std::vector<std::shared_ptr<Function<dim>>> right_hand_sides,
+  CProblem(WaveEquation<dim>& weq, std::vector<std::shared_ptr<Function<dim>>> right_hand_sides,
            std::vector<std::shared_ptr<Measure<DiscretizedFunction<dim>, Measurement>>> measures,
-           typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver)
-      : WaveProblem<dim, Measurement>(weq, right_hand_sides, measures, adjoint_solver), fields(measures.size()) {}
-
-  CProblem(const WaveEquation<dim>& weq, std::vector<std::shared_ptr<Function<dim>>> right_hand_sides,
-           std::vector<std::shared_ptr<Measure<DiscretizedFunction<dim>, Measurement>>> measures)
-      : WaveProblem<dim, Measurement>(weq, right_hand_sides, measures), fields(measures.size()) {}
+           std::shared_ptr<Transformation<dim>> transform,
+           typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver = WaveEquationBase<dim>::WaveEquationAdjoint)
+      : WaveProblem<dim, Measurement>(weq, right_hand_sides, measures, transform, adjoint_solver),
+        fields(measures.size()) {}
 
  protected:
   virtual std::unique_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>> derivative(size_t i) {

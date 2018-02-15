@@ -7,6 +7,7 @@ SET(LIBSOURCES
         MacroFunctionParser.cpp 
         RadialParsedFunction.cpp 
         SpaceTimeGrid.cpp
+        Transformation.cpp
         Util.cpp   
     )
         

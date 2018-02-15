@@ -62,8 +62,9 @@ class DiscretizedFunction : public Function<dim> {
    *
    * @param mesh the mesh you want this function to be attached to
    * @param store_derivative true iff this function should also track the derivative of the function.
+   * @param norm the norm this function should be measured with
    */
-  DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>> mesh, bool store_derivative);
+  DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>> mesh, bool store_derivative, Norm norm = Norm::Invalid);
 
   /**
    * Creates a new discretized function from a given (possibly continuous) function.

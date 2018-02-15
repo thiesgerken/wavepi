@@ -47,6 +47,7 @@ class SettingsManager {
 
   static const std::string KEY_PROBLEM;
   static const std::string KEY_PROBLEM_TYPE;
+  static const std::string KEY_PROBLEM_TRANSFORM;
   static const std::string KEY_PROBLEM_NORM_DOMAIN;
   static const std::string KEY_PROBLEM_NORM_CODOMAIN;
   static const std::string KEY_PROBLEM_NORM_H1L2ALPHA;
@@ -97,6 +98,11 @@ class SettingsManager {
    */
   enum class MeasureType { discretized_function = 1, vector = 2 };
 
+  /**
+   * possible transforms
+   */
+  enum class TransformType { identity = 1, log = 2 };
+
   std::shared_ptr<ParameterHandler> prm;
 
   std::string log_file;
@@ -118,6 +124,7 @@ class SettingsManager {
   double tau;
   ProblemType problem_type;
   NonlinearMethod method;
+  TransformType transform;
   Norm norm_domain;
   Norm norm_codomain;
 
