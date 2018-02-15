@@ -109,11 +109,12 @@ std::string Version::get_infos() {
   std::stringstream ss;
 
   if (is_git_available()) {
-    ss << get_build_type() << "-Build, compiled on " << get_build_date() << std::endl;
-    ss << "from git commit " << get_git_sha1_long() << " on branch " << get_git_branch();
+    ss << get_build_type() << "-Build, compiled on " << get_build_date();
+    ss << " from commit " << get_git_sha1_long() << " (\"" << get_git_commit_subject() << "\")";
+    ss << " on branch " << get_git_branch() << std::endl;
 
     if (is_git_working_dir_dirty()) {
-      ss << std::endl << "working dir was dirty";
+      ss << std::endl << "working directory was dirty, git status: ";
 
       // if (get_modified_files().size() > 0) {
       // ss << std::endl << "   modified: ";

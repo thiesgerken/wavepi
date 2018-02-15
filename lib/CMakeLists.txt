@@ -7,6 +7,11 @@ SET(LIBSOURCES
     WavePI.cpp 
     SettingsManager.cpp
     )
+  
+#add_custom_target(remove_version_cpp ALL
+#    COMMAND rm ${CMAKE_CURRENT_BINARY_DIR}/lib/Version.cpp
+#    COMMENT "Removing generated Version.cpp"
+#)
 
 find_program(GIT_SCM git DOC "Git version control")
 mark_as_advanced(GIT_SCM)
@@ -65,13 +70,14 @@ configure_file(
   ${CMAKE_BINARY_DIR}/lib/Version.cpp
 )
 
-add_custom_target(touch_version_cpp
-    COMMAND touch ${CMAKE_SOURCE_DIR}/lib/util/Version.cpp.in
-)
-
 list(APPEND LIBSOURCES "${CMAKE_CURRENT_BINARY_DIR}/Version.cpp")
-    
+
 add_library(wavepi ${LIBSOURCES})
 DEAL_II_SETUP_TARGET(wavepi)
 TARGET_LINK_LIBRARIES(wavepi wavepi_base wavepi_measurements wavepi_forward wavepi_inversion)
 
+add_custom_command(TARGET wavepi POST_BUILD 
+                   #COMMAND ${CMAKE_COMMAND} -E remove ${CMAKE_BINARY_DIR}/lib/Version.cpp
+                   COMMAND touch ${CMAKE_SOURCE_DIR}/lib/Version.cpp.in
+                   COMMENT "Removing generated Version.cpp")
+    
