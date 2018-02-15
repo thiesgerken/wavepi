@@ -8,13 +8,12 @@
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/work_stream.h>
 #include <deal.II/fe/fe_update_flags.h>
-
-#include <util/MatrixCreator.h>
+#include <forward/MatrixCreator.h>
 
 #include <functional>
 
 namespace wavepi {
-namespace util {
+namespace forward {
 
 using namespace dealii;
 
@@ -265,5 +264,5 @@ template class MatrixCreator<1>;
 template class MatrixCreator<2>;
 template class MatrixCreator<3>;
 
-} /* namespace util */
+}  // namespace forward
 } /* namespace wavepi */

@@ -12,7 +12,7 @@
 #include <deal.II/fe/fe_update_flags.h>
 #include <deal.II/fe/fe_values.h>
 
-#include <forward/DiscretizedFunction.h>
+#include <base/DiscretizedFunction.h>
 #include <forward/DivRightHandSide.h>
 
 #include <functional>
@@ -21,6 +21,7 @@
 namespace wavepi {
 namespace forward {
 using namespace dealii;
+using namespace wavepi::base;
 
 template <int dim>
 DivRightHandSide<dim>::DivRightHandSide(std::shared_ptr<Function<dim>> a, std::shared_ptr<Function<dim>> u)

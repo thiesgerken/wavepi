@@ -36,7 +36,9 @@
 
 namespace wavepi {
 namespace forward {
+
 using namespace dealii;
+using namespace wavepi::base;
 
 template <int dim>
 WaveEquation<dim>::WaveEquation(std::shared_ptr<SpaceTimeMesh<dim>> mesh)

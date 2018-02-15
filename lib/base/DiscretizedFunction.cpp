@@ -24,12 +24,12 @@
 #include <random>
 #include <utility>
 
-#include <forward/DiscretizedFunction.h>
+#include <base/DiscretizedFunction.h>
 
 using namespace dealii;
 
 namespace wavepi {
-namespace forward {
+namespace base {
 
 template class DiscretizedFunction<1>;
 template class DiscretizedFunction<2>;
@@ -1712,6 +1712,6 @@ void DiscretizedFunction<dim>::mpi_all_reduce(DiscretizedFunction<dim> source, M
 }
 #endif
 
-}  // namespace forward
+}  // namespace base
 /* namespace forward */
 }  // namespace wavepi

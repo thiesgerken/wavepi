@@ -10,7 +10,8 @@
 
 #include <deal.II/base/parameter_handler.h>
 
-#include <forward/Norm.h>
+#include <base/Norm.h>
+
 #include <stddef.h>
 #include <map>
 #include <memory>
@@ -19,7 +20,7 @@
 
 namespace wavepi {
 using namespace dealii;
-using namespace wavepi::forward;
+using namespace wavepi::base;
 
 /**
  * Manages settings for `wavepi.cpp` and class `WavePI`.

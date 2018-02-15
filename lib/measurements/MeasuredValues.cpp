@@ -5,12 +5,12 @@
  *      Author: thies
  */
 
+#include <base/SpaceTimeGrid.h>
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/mpi.h>
 #include <measurements/MeasuredValues.h>
 #include <stddef.h>
 #include <tgmath.h>
-#include <util/SpaceTimeGrid.h>
 #include <algorithm>
 #include <cmath>
 #include <fstream>

@@ -15,8 +15,8 @@
 #include <deal.II/lac/sparsity_pattern.h>
 #include <deal.II/lac/vector.h>
 
-#include <forward/DiscretizedFunction.h>
-#include <forward/SpaceTimeMesh.h>
+#include <base/DiscretizedFunction.h>
+#include <base/SpaceTimeMesh.h>
 #include <forward/WaveEquationBase.h>
 
 #include <stddef.h>
@@ -27,7 +27,7 @@ namespace forward {
 using namespace dealii;
 
 // parameters and rhs must currently be discretized on the same space-time grid!
-// this is the adjoint equation when using vector norm in time and L2 (using mass matrices) in space
+// this is the adjoint equation when using vector norm in time and space
 template <int dim>
 class WaveEquationAdjoint : public WaveEquationBase<dim> {
  public:

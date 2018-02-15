@@ -5,12 +5,11 @@
  *      Author: thies
  */
 
+#include <Version.h>
 #include <deal.II/base/exceptions.h>
-#include <util/Version.h>
 #include <sstream>
 
 namespace wavepi {
-namespace util {
 
 using namespace dealii;
 
@@ -149,5 +148,4 @@ std::string Version::get_identification() {
   return ss.str();
 }
 
-} /* namespace util */
 } /* namespace wavepi */

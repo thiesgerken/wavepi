@@ -5,10 +5,10 @@
  *      Author: thies
  */
 
-#include <util/RadialParsedFunction.h>
+#include <base/RadialParsedFunction.h>
 
 namespace wavepi {
-namespace util {
+namespace base {
 using namespace dealii;
 
 template <int dim>
@@ -35,5 +35,5 @@ template class RadialParsedFunction<1>;
 template class RadialParsedFunction<2>;
 template class RadialParsedFunction<3>;
 
-} /* namespace util */
+}  // namespace base
 } /* namespace wavepi */

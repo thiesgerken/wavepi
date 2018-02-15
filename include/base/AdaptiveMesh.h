@@ -5,9 +5,11 @@
  *      Author: thies
  */
 
-#ifndef INCLUDE_FORWARD_ADAPTIVEMESH_H_
-#define INCLUDE_FORWARD_ADAPTIVEMESH_H_
+#ifndef INCLUDE_BASE_ADAPTIVEMESH_H_
+#define INCLUDE_BASE_ADAPTIVEMESH_H_
 
+#include <base/DiscretizedFunction.h>
+#include <base/SpaceTimeMesh.h>
 #include <deal.II/base/quadrature.h>
 #include <deal.II/dofs/dof_handler.h>
 #include <deal.II/fe/fe_q.h>
@@ -16,9 +18,6 @@
 #include <deal.II/lac/sparsity_pattern.h>
 #include <deal.II/lac/vector.h>
 
-#include <forward/DiscretizedFunction.h>
-#include <forward/SpaceTimeMesh.h>
-
 #include <stddef.h>
 #include <initializer_list>
 #include <memory>
@@ -26,7 +25,7 @@
 #include <vector>
 
 namespace wavepi {
-namespace forward {
+namespace base {
 using namespace dealii;
 
 /**
@@ -171,6 +170,6 @@ class AdaptiveMesh : public SpaceTimeMesh<dim> {
   bool any(const std::vector<bool> &v) const;
 };
 
-} /* namespace forward */
+}  // namespace base
 } /* namespace wavepi */
-#endif /* INCLUDE_FORWARD_ADAPTIVEMESH_H_ */
+#endif /* INCLUDE_BASE_ADAPTIVEMESH_H_ */

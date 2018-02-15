@@ -11,10 +11,10 @@
 #include <deal.II/lac/dynamic_sparsity_pattern.h>
 #include <deal.II/numerics/matrix_tools.h>
 
-#include <forward/ConstantMesh.h>
+#include <base/ConstantMesh.h>
 
 namespace wavepi {
-namespace forward {
+namespace base {
 using namespace dealii;
 
 template <int dim>
@@ -109,5 +109,5 @@ template class ConstantMesh<1>;
 template class ConstantMesh<2>;
 template class ConstantMesh<3>;
 
-} /* namespace forward */
+}  // namespace base
 } /* namespace wavepi */

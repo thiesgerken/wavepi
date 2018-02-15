@@ -5,10 +5,11 @@
  *      Author: thies
  */
 
-#ifndef INCLUDE_UTIL_HELPERS_H_
-#define INCLUDE_UTIL_HELPERS_H_
+#ifndef INCLUDE_BASE_UTIL_H_
+#define INCLUDE_BASE_UTIL_H_
 
 #include <deal.II/base/exceptions.h>
+#include <deal.II/grid/tria.h>
 #include <cstring>
 #include <iostream>
 #include <iterator>
@@ -17,19 +18,22 @@
 #include <string>
 
 namespace wavepi {
-namespace util {
+namespace base {
 
 using namespace dealii;
 
-class Helpers {
+class Util {
  public:
   static std::string replace(std::string const &in, std::map<std::string, std::string> const &subst);
 
+  template <int dim>
+  static void set_all_boundary_ids(Triangulation<dim> &tria, int id);
+
  private:
-  Helpers(){};
+  Util(){};
 };
 
-}  // namespace util
+}  // namespace base
 }  // namespace wavepi
 
-#endif /* INCLUDE_UTIL_HELPERS_H_ */
+#endif /* INCLUDE_BASE_UTIL_H_ */

@@ -16,6 +16,8 @@
 #include <deal.II/fe/fe_values.h>
 #include <deal.II/lac/vector.h>
 
+#include <base/DiscretizedFunction.h>
+#include <base/SpaceTimeMesh.h>
 #include <forward/RightHandSide.h>
 
 #include <memory>
@@ -24,6 +26,7 @@
 namespace wavepi {
 namespace forward {
 using namespace dealii;
+using namespace wavepi::base;
 
 /**
  * implements a ↦ (-(∇u⋅∇a, φ_i))_i as a possible right hand side

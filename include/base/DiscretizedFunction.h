@@ -8,6 +8,8 @@
 #ifndef FORWARD_DISCRETIZEDFUNCTION_H_
 #define FORWARD_DISCRETIZEDFUNCTION_H_
 
+#include <base/Norm.h>
+#include <base/SpaceTimeMesh.h>
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/function.h>
 #include <deal.II/base/mpi.h>
@@ -21,11 +23,8 @@
 #include <string>
 #include <vector>
 
-#include <forward/Norm.h>
-#include <forward/SpaceTimeMesh.h>
-
 namespace wavepi {
-namespace forward {
+namespace base {
 using namespace dealii;
 
 /**
@@ -604,7 +603,7 @@ class DiscretizedFunction : public Function<dim> {
    * @}
    */
 };
-} /* namespace forward */
+}  // namespace base
 } /* namespace wavepi */
 
 #endif /* DISCRETIZEDFUNCTION_H_ */

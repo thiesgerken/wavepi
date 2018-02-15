@@ -15,11 +15,13 @@
 #include <deal.II/fe/fe_q.h>
 #include <deal.II/grid/grid_generator.h>
 #include <deal.II/grid/tria.h>
-#include <forward/ConstantMesh.h>
-#include <forward/DiscretizedFunction.h>
+
+#include <base/ConstantMesh.h>
+#include <base/DiscretizedFunction.h>
+#include <base/Util.h>
 #include <forward/WaveEquation.h>
+
 #include <stddef.h>
-#include <util/GridTools.h>
 #include <ctgmath>
 #include <exception>
 #include <fstream>
@@ -29,8 +31,8 @@
 
 using namespace dealii;
 using namespace wavepi;
-using namespace wavepi::util;
 using namespace wavepi::forward;
+using namespace wavepi::base;
 
 template <int dim>
 class DemoF : public Function<dim> {
@@ -96,7 +98,7 @@ void demo() {
 
   auto triangulation = std::make_shared<Triangulation<dim>>();
   GridGenerator::hyper_cube(*triangulation, -5.0, 5.0);
-  wavepi::util::GridTools::set_all_boundary_ids(*triangulation, 0);
+  Util::set_all_boundary_ids(*triangulation, 0);
   triangulation->refine_global(6);
 
   double t_end = 10;
@@ -105,7 +107,8 @@ void demo() {
   double t_start = 0.0, dt = t_end / steps;
   std::vector<double> times;
 
-  for (size_t i = 0; t_start + i * dt <= t_end; i++) times.push_back(t_start + i * dt);
+  for (size_t i = 0; t_start + i * dt <= t_end; i++)
+    times.push_back(t_start + i * dt);
 
   FE_Q<dim> fe(1);
   Quadrature<dim> quad = QGauss<dim>(3);

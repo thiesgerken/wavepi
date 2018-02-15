@@ -5,8 +5,8 @@
  *      Author: thies
  */
 
-#ifndef INCLUDE_UTIL_TUPLE_H_
-#define INCLUDE_UTIL_TUPLE_H_
+#ifndef INCLUDE_BASE_TUPLE_H_
+#define INCLUDE_BASE_TUPLE_H_
 
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/utilities.h>
@@ -20,7 +20,7 @@
 #include <vector>
 
 namespace wavepi {
-namespace util {
+namespace base {
 using namespace dealii;
 
 /**
@@ -155,7 +155,7 @@ class Tuple {
   std::vector<T> elements;
 };
 
-}  // namespace util
+}  // namespace base
 } /* namespace wavepi */
 
 #endif /* INCLUDE_MEASUREMENTS_MEASUREDVALUES_H_ */

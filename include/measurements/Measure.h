@@ -8,17 +8,11 @@
 #ifndef INCLUDE_MEASUREMENTS_MEASURE_H_
 #define INCLUDE_MEASUREMENTS_MEASURE_H_
 
-#include <deal.II/base/exceptions.h>
-#include <deal.II/base/parameter_handler.h>
-#include <deal.II/base/point.h>
-
-#include <forward/DiscretizedFunction.h>
-#include <forward/SpaceTimeMesh.h>
-
-#include <util/MacroFunctionParser.h>
-#include <util/SpaceTimeGrid.h>
-#include <util/Tuple.h>
-
+#include <base/DiscretizedFunction.h>
+#include <base/MacroFunctionParser.h>
+#include <base/SpaceTimeGrid.h>
+#include <base/SpaceTimeMesh.h>
+#include <base/Tuple.h>
 #include <measurements/MeasuredValues.h>
 
 #include <memory>
@@ -32,8 +26,7 @@ namespace wavepi {
 namespace measurements {
 
 using namespace dealii;
-using namespace wavepi::forward;
-using namespace wavepi::util;
+using namespace wavepi::base;
 
 /**
  * Interface for linear Measurements. `Measurement` will most likely be `std::vector<double>`.

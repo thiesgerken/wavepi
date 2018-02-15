@@ -9,13 +9,11 @@
 #include <deal.II/base/function.h>
 #include <deal.II/base/utilities.h>
 
-#include <forward/DiscretizedFunction.h>
+#include <base/DiscretizedFunction.h>
 #include <forward/WaveEquationBase.h>
-
 #include <inversion/InversionProgress.h>
 #include <inversion/NonlinearLandweber.h>
 #include <inversion/REGINN.h>
-
 #include <measurements/GridPointMeasure.h>
 #include <measurements/PointMeasure.h>
 
@@ -29,7 +27,6 @@ namespace wavepi {
 using namespace dealii;
 using namespace wavepi::forward;
 using namespace wavepi::inversion;
-using namespace wavepi::util;
 using namespace wavepi::measurements;
 
 const std::string SettingsManager::KEY_GENERAL            = "general";

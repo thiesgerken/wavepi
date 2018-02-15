@@ -24,7 +24,7 @@
 #include <vector>
 
 namespace wavepi {
-namespace forward {
+namespace base {
 using namespace dealii;
 
 /**
@@ -158,7 +158,7 @@ class SpaceTimeMesh {
   size_t nearest_time(double time, size_t low, size_t up) const;
 };
 
-}  // namespace forward
+}  // namespace base
 }  // namespace wavepi
 
 #endif /* LIB_FORWARD_SPACETIMEMESH_H_ */

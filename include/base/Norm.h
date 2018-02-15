@@ -5,11 +5,11 @@
  *      Author: thies
  */
 
-#ifndef INCLUDE_FORWARD_NORM_H_
-#define INCLUDE_FORWARD_NORM_H_
+#ifndef INCLUDE_BASE_NORM_H_
+#define INCLUDE_BASE_NORM_H_
 
 namespace wavepi {
-namespace forward {
+namespace base {
 
 /**
  * possible norm settings
@@ -45,7 +45,7 @@ enum class Norm {
   H2L2
 };
 
-}  // namespace forward
+}  // namespace base
 }  // namespace wavepi
 
-#endif /* INCLUDE_FORWARD_NORM_H_ */
+#endif /* INCLUDE_BASE_NORM_H_ */

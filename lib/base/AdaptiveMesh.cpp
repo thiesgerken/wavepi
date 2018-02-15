@@ -14,7 +14,7 @@
 #include <deal.II/numerics/matrix_tools.h>
 #include <deal.II/numerics/solution_transfer.h>
 
-#include <forward/AdaptiveMesh.h>
+#include <base/AdaptiveMesh.h>
 
 #include <stdio.h>
 #include <algorithm>
@@ -22,7 +22,7 @@
 #include <list>
 
 namespace wavepi {
-namespace forward {
+namespace base {
 
 template <int dim>
 AdaptiveMesh<dim>::AdaptiveMesh(std::vector<double> times, FE_Q<dim> fe, Quadrature<dim> quad,
@@ -390,5 +390,5 @@ template class AdaptiveMesh<1>;
 template class AdaptiveMesh<2>;
 template class AdaptiveMesh<3>;
 
-} /* namespace forward */
+}  // namespace base
 } /* namespace wavepi */

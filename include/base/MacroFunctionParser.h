@@ -14,7 +14,7 @@
 #include <vector>
 
 namespace wavepi {
-namespace util {
+namespace base {
 using namespace dealii;
 
 /**
@@ -43,7 +43,7 @@ class MacroFunctionParser : public FunctionParser<dim> {
   static std::string replace(const std::string& expr);
 };
 
-} /* namespace util */
+}  // namespace base
 } /* namespace wavepi */
 
 #endif /* LIB_UTIL_MACROFUNCTIONPARSER_H_ */

@@ -15,7 +15,7 @@
 #include <deal.II/base/parameter_handler.h>
 #include <deal.II/base/utilities.h>
 
-#include <forward/DiscretizedFunction.h>
+#include <base/DiscretizedFunction.h>
 
 #include <signal.h>
 #include <stddef.h>
@@ -30,7 +30,7 @@
 namespace wavepi {
 namespace inversion {
 using namespace dealii;
-using namespace wavepi::forward;
+using namespace wavepi::base;
 
 template <typename Param>
 class PostProcessor {

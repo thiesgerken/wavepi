@@ -5,18 +5,13 @@
  *      Author: thies
  */
 
-#ifndef INCLUDE_UTIL_VERSION_H_
-#define INCLUDE_UTIL_VERSION_H_
+#ifndef INCLUDE_VERSION_H_
+#define INCLUDE_VERSION_H_
 
 #include <list>
 #include <string>
 
 namespace wavepi {
-
-/**
- * Utility functions, such as version information and tools for matrix creation.
- */
-namespace util {
 
 struct Version {
  public:
@@ -47,7 +42,6 @@ struct Version {
   static const std::string BUILD_TYPE;
 };
 
-} /* namespace util */
 } /* namespace wavepi */
 
-#endif /* INCLUDE_UTIL_VERSION_H_ */
+#endif /* INCLUDE_VERSION_H_ */

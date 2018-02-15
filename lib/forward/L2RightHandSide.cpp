@@ -10,7 +10,7 @@
 #include <deal.II/fe/fe_update_flags.h>
 #include <deal.II/numerics/vector_tools.h>
 
-#include <forward/DiscretizedFunction.h>
+#include <base/DiscretizedFunction.h>
 #include <forward/L2RightHandSide.h>
 
 #include <functional>
@@ -18,6 +18,7 @@
 namespace wavepi {
 namespace forward {
 using namespace dealii;
+using namespace wavepi::base;
 
 template <int dim>
 L2RightHandSide<dim>::L2RightHandSide(std::shared_ptr<Function<dim>> f) : base_rhs(f) {}

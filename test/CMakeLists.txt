@@ -10,7 +10,7 @@ if (GTEST_FOUND)
         )
 
     ADD_EXECUTABLE(wavepi_test ${LIBSOURCES})
-    TARGET_LINK_LIBRARIES(wavepi_test GTest::GTest GTest::Main wavepi_forward wavepi_inversion wavepi_util) 
+    TARGET_LINK_LIBRARIES(wavepi_test GTest::GTest GTest::Main wavepi_forward wavepi_inversion wavepi_base) 
     
     include(GoogleTest)
     

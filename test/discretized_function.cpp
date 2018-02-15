@@ -20,16 +20,14 @@
 #include <deal.II/grid/grid_generator.h>
 #include <deal.II/grid/tria.h>
 
-#include <forward/ConstantMesh.h>
-#include <forward/DiscretizedFunction.h>
+#include <base/ConstantMesh.h>
+#include <base/DiscretizedFunction.h>
+#include <base/SpaceTimeMesh.h>
+#include <base/Util.h>
 #include <forward/L2RightHandSide.h>
-#include <forward/SpaceTimeMesh.h>
 #include <forward/WaveEquation.h>
 #include <forward/WaveEquationAdjoint.h>
-
 #include <problems/QProblem.h>
-
-#include <util/GridTools.h>
 
 #include <bits/std_abs.h>
 #include <stddef.h>
@@ -43,8 +41,8 @@ namespace {
 
 using namespace dealii;
 using namespace wavepi::forward;
+using namespace wavepi::base;
 using namespace wavepi::problems;
-using namespace wavepi::util;
 
 template <int dim>
 class TestF : public Function<dim> {
@@ -174,13 +172,14 @@ template <int dim>
 void run_dot_norm_test(int fe_order, int quad_order, int refines, int n_steps, Norm norm) {
   auto triangulation = std::make_shared<Triangulation<dim>>();
   GridGenerator::hyper_cube(*triangulation, -1, 1);
-  wavepi::util::GridTools::set_all_boundary_ids(*triangulation, 0);
+  Util::set_all_boundary_ids(*triangulation, 0);
   triangulation->refine_global(refines);
 
   double t_start = 0.0, t_end = 2.0, dt = t_end / n_steps;
   std::vector<double> times;
 
-  for (size_t i = 0; t_start + i * dt <= t_end; i++) times.push_back(t_start + i * dt);
+  for (size_t i = 0; t_start + i * dt <= t_end; i++)
+    times.push_back(t_start + i * dt);
 
   FE_Q<dim> fe(fe_order);
   Quadrature<dim> quad = QGauss<dim>(quad_order);  // exact in poly degree 2n-1 (needed: fe_dim^3)
@@ -237,13 +236,14 @@ template <int dim>
 void run_dot_transform_inverse_test(int fe_order, int quad_order, int refines, int n_steps, Norm norm) {
   auto triangulation = std::make_shared<Triangulation<dim>>();
   GridGenerator::hyper_cube(*triangulation, -1, 1);
-  wavepi::util::GridTools::set_all_boundary_ids(*triangulation, 0);
+  Util::set_all_boundary_ids(*triangulation, 0);
   triangulation->refine_global(refines);
 
   double t_start = 0.0, t_end = 2.0, dt = t_end / n_steps;
   std::vector<double> times;
 
-  for (size_t i = 0; t_start + i * dt <= t_end; i++) times.push_back(t_start + i * dt);
+  for (size_t i = 0; t_start + i * dt <= t_end; i++)
+    times.push_back(t_start + i * dt);
 
   FE_Q<dim> fe(fe_order);
   Quadrature<dim> quad = QGauss<dim>(quad_order);  // exact in poly degree 2n-1 (needed: fe_dim^3)
@@ -290,13 +290,14 @@ template <int dim>
 void run_dot_transform_consistent_test(int fe_order, int quad_order, int refines, int n_steps, Norm norm) {
   auto triangulation = std::make_shared<Triangulation<dim>>();
   GridGenerator::hyper_cube(*triangulation, -1, 1);
-  wavepi::util::GridTools::set_all_boundary_ids(*triangulation, 0);
+  Util::set_all_boundary_ids(*triangulation, 0);
   triangulation->refine_global(refines);
 
   double t_start = 0.0, t_end = 2.0, dt = t_end / n_steps;
   std::vector<double> times;
 
-  for (size_t i = 0; t_start + i * dt <= t_end; i++) times.push_back(t_start + i * dt);
+  for (size_t i = 0; t_start + i * dt <= t_end; i++)
+    times.push_back(t_start + i * dt);
 
   FE_Q<dim> fe(fe_order);
   Quadrature<dim> quad = QGauss<dim>(quad_order);  // exact in poly degree 2n-1 (needed: fe_dim^3)
@@ -336,13 +337,14 @@ template <int dim>
 void run_derivative_transpose_test(int fe_order, int quad_order, int refines, int n_steps) {
   auto triangulation = std::make_shared<Triangulation<dim>>();
   GridGenerator::hyper_cube(*triangulation, -1, 1);
-  wavepi::util::GridTools::set_all_boundary_ids(*triangulation, 0);
+  Util::set_all_boundary_ids(*triangulation, 0);
   triangulation->refine_global(refines);
 
   double t_start = 0.0, t_end = 2.0, dt = t_end / n_steps;
   std::vector<double> times;
 
-  for (size_t i = 0; t_start + i * dt <= t_end; i++) times.push_back(t_start + i * dt);
+  for (size_t i = 0; t_start + i * dt <= t_end; i++)
+    times.push_back(t_start + i * dt);
 
   FE_Q<dim> fe(fe_order);
   Quadrature<dim> quad = QGauss<dim>(quad_order);  // exact in poly degree 2n-1 (needed: fe_dim^3)
@@ -538,4 +540,3 @@ TEST(DiscretizedFunctionTest, DotTransformConsistent3DFE1) {
   run_dot_transform_consistent_tests<3>(1, 3, 2, 32);
   run_dot_transform_consistent_tests<3>(1, 4, 3, 64);
 }
-

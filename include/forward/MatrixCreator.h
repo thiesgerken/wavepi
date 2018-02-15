@@ -22,7 +22,7 @@
 #include <vector>
 
 namespace wavepi {
-namespace util {
+namespace forward {
 
 using namespace dealii;
 
@@ -108,7 +108,7 @@ class MatrixCreator {
                                              const typename DoFHandler<dim>::active_cell_iterator &cell,
                                              LaplaceAssemblyScratchData &scratch_data, AssemblyCopyData &copy_data);
 };
-} /* namespace util */
+}  // namespace forward
 } /* namespace wavepi */
 
 #endif /* UTIL_MATRIXCREATOR_H_ */

@@ -15,11 +15,10 @@
 #include <deal.II/base/parameter_handler.h>
 #include <deal.II/base/utilities.h>
 
-#include <forward/DiscretizedFunction.h>
-#include <util/Helpers.h>
+#include <base/DiscretizedFunction.h>
+#include <base/Util.h>
 
 #include <signal.h>
-#include <stddef.h>
 #include <cstdio>
 #include <cstring>
 #include <fstream>
@@ -32,8 +31,7 @@
 namespace wavepi {
 namespace inversion {
 using namespace dealii;
-using namespace wavepi::forward;
-using namespace wavepi::util;
+using namespace wavepi::base;
 
 template <typename Param, typename Sol, typename Exact = Param>
 struct InversionProgress {
@@ -276,10 +274,10 @@ class OutputProgressListener : public InversionProgressListener<DiscretizedFunct
     std::map<std::string, std::string> subs;
     subs["i"] = Utilities::int_to_string(state.iteration_number, 4);
 
-    std::string dest = Helpers::replace(destination_prefix, subs);
+    std::string dest = Util::replace(destination_prefix, subs);
 
     if (save_exact && state.iteration_number == 0 && state.exact_param) {
-      std::string filename = Helpers::replace(filename_exact, subs);
+      std::string filename = Util::replace(filename_exact, subs);
 
       boost::filesystem::create_directories(dest);
       deallog << "Saving exact parameter in " << dest << std::endl;
@@ -290,7 +288,7 @@ class OutputProgressListener : public InversionProgressListener<DiscretizedFunct
     }
 
     if (save_data && state.iteration_number == 0) {
-      std::string filename = Helpers::replace(filename_data, subs);
+      std::string filename = Util::replace(filename_data, subs);
 
       boost::filesystem::create_directories(dest);
       deallog << "Saving data in " << dest << std::endl;
@@ -305,7 +303,7 @@ class OutputProgressListener : public InversionProgressListener<DiscretizedFunct
       discrepancy_min = std::min(state.current_discrepancy, discrepancy_min);
 
       if (save_residual) {
-        std::string filename = Helpers::replace(filename_residual, subs);
+        std::string filename = Util::replace(filename_residual, subs);
 
         boost::filesystem::create_directories(dest);
         deallog << "Saving current residual in " << dest << std::endl;
@@ -314,7 +312,7 @@ class OutputProgressListener : public InversionProgressListener<DiscretizedFunct
       }
 
       if (save_estimate) {
-        std::string filename = Helpers::replace(filename_estimate, subs);
+        std::string filename = Util::replace(filename_estimate, subs);
 
         boost::filesystem::create_directories(dest);
         deallog << "Saving current estimate in " << dest << std::endl;
@@ -624,8 +622,8 @@ class InnerStatOutputProgressListener : public StatOutputProgressListener<Param,
       std::map<std::string, std::string> subs;
       subs["i"] = Utilities::int_to_string(outer_iteration, 4);
 
-      std::string dest = Helpers::replace(destination_prefix, subs);
-      std::string f    = Helpers::replace(file_name, subs);
+      std::string dest = Util::replace(destination_prefix, subs);
+      std::string f    = Util::replace(file_name, subs);
 
       boost::filesystem::create_directories(dest);
       this->set_file_prefix(dest + f);

@@ -8,18 +8,17 @@
 #ifndef FORWARD_CONSTANTMESH_H_
 #define FORWARD_CONSTANTMESH_H_
 
+#include <base/SpaceTimeMesh.h>
 #include <deal.II/base/quadrature.h>
 #include <deal.II/dofs/dof_handler.h>
 #include <deal.II/lac/sparse_matrix.h>
 #include <deal.II/lac/sparsity_pattern.h>
 
-#include <forward/SpaceTimeMesh.h>
-
 #include <memory>
 #include <vector>
 
 namespace wavepi {
-namespace forward {
+namespace base {
 using namespace dealii;
 
 /**
@@ -66,7 +65,7 @@ class ConstantMesh : public SpaceTimeMesh<dim> {
   std::shared_ptr<ConstraintMatrix> constraints;
 };
 
-} /* namespace forward */
+}  // namespace base
 } /* namespace wavepi */
 
 #endif /* LIB_FORWARD_CONSTANTMESH_H_ */

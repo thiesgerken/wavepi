@@ -84,7 +84,7 @@ class ConjugateGradients : public LinearRegularization<Param, Sol, Exact> {
       if (alpha == 0.0) break;
 
       estimate.add(alpha, p);
-      residual.add(-1.0 * alpha, q);
+      residual.add(-alpha, q);
 
       last_discrepancy = discrepancy;
       discrepancy      = residual.norm();

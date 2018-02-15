@@ -15,26 +15,23 @@
 #include <deal.II/grid/grid_generator.h>
 #include <deal.II/grid/tria.h>
 
-#include <forward/ConstantMesh.h>
-#include <forward/DiscretizedFunction.h>
+#include <base/ConstantMesh.h>
+#include <base/DiscretizedFunction.h>
+#include <base/MacroFunctionParser.h>
+#include <base/SpaceTimeMesh.h>
+#include <base/Tuple.h>
+#include <base/Util.h>
 #include <forward/L2RightHandSide.h>
-#include <forward/SpaceTimeMesh.h>
 #include <forward/WaveEquation.h>
 #include <forward/WaveEquationAdjoint.h>
 #include <forward/WaveEquationBase.h>
-
-#include <gtest/gtest.h>
-
 #include <measurements/Measure.h>
 #include <problems/QProblem.h>
 #include <problems/WaveProblem.h>
 
+#include <gtest/gtest.h>
+
 #include <stddef.h>
-
-#include <util/GridTools.h>
-#include <util/MacroFunctionParser.h>
-#include <util/Tuple.h>
-
 #include <cmath>
 #include <iostream>
 #include <map>
@@ -46,8 +43,8 @@ namespace {
 
 using namespace dealii;
 using namespace wavepi::forward;
+using namespace wavepi::base;
 using namespace wavepi::problems;
-using namespace wavepi::util;
 
 template <int dim>
 class TestF : public Function<dim> {
@@ -181,13 +178,14 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
 
   auto triangulation = std::make_shared<Triangulation<dim>>();
   GridGenerator::hyper_cube(*triangulation, -1, 1);
-  wavepi::util::GridTools::set_all_boundary_ids(*triangulation, 0);
+  Util::set_all_boundary_ids(*triangulation, 0);
   triangulation->refine_global(refines);
 
   double t_start = 0.0, t_end = 2.0, dt = t_end / n_steps;
   std::vector<double> times;
 
-  for (size_t i = 0; t_start + i * dt <= t_end; i++) times.push_back(t_start + i * dt);
+  for (size_t i = 0; t_start + i * dt <= t_end; i++)
+    times.push_back(t_start + i * dt);
 
   std::shared_ptr<SpaceTimeMesh<dim>> mesh =
       std::make_shared<ConstantMesh<dim>>(times, FE_Q<dim>(fe_order), QGauss<dim>(quad_order), triangulation);

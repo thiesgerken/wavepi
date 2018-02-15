@@ -9,22 +9,19 @@
 #define INCLUDE_WAVEPI_H_
 
 #include <deal.II/base/function.h>
-#include <deal.II/base/function_parser.h>
 #include <deal.II/base/point.h>
-
-#include <forward/DiscretizedFunction.h>
-#include <forward/SpaceTimeMesh.h>
-#include <forward/WaveEquation.h>
-
-#include <inversion/NonlinearProblem.h>
-#include <measurements/Measure.h>
-#include <problems/WaveProblem.h>
-
-#include <util/MacroFunctionParser.h>
-#include <util/Tuple.h>
 
 #include <SettingsManager.h>
 
+#include <base/DiscretizedFunction.h>
+#include <base/MacroFunctionParser.h>
+#include <base/SpaceTimeMesh.h>
+#include <base/Tuple.h>
+#include <forward/WaveEquation.h>
+#include <measurements/Measure.h>
+#include <problems/WaveProblem.h>
+
+#include <stddef.h>
 #include <memory>
 #include <vector>
 
@@ -33,7 +30,6 @@ namespace wavepi {
 using namespace dealii;
 using namespace wavepi::forward;
 using namespace wavepi::inversion;
-using namespace wavepi::util;
 using namespace wavepi::measurements;
 using namespace wavepi::problems;
 

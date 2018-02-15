@@ -14,6 +14,7 @@
 namespace wavepi {
 namespace forward {
 using namespace dealii;
+using namespace wavepi::base;
 
 template <int dim>
 L2ProductRightHandSide<dim>::L2ProductRightHandSide(std::shared_ptr<DiscretizedFunction<dim>> f1,

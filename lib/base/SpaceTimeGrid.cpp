@@ -5,10 +5,10 @@
  *      Author: thies
  */
 
-#include <util/SpaceTimeGrid.h>
+#include <base/SpaceTimeGrid.h>
 
 namespace wavepi {
-namespace util {
+namespace base {
 
 template <int dim>
 SpaceTimeGrid<dim>::SpaceTimeGrid(const std::vector<double> &times, const std::vector<std::vector<Point<dim>>> &points)
@@ -111,5 +111,5 @@ template class SpaceTimeGrid<1>;
 template class SpaceTimeGrid<2>;
 template class SpaceTimeGrid<3>;
 
-} /* namespace util */
+}  // namespace base
 } /* namespace wavepi */

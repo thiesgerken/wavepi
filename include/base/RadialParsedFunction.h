@@ -13,7 +13,7 @@
 #include <string>
 
 namespace wavepi {
-namespace util {
+namespace base {
 
 using namespace dealii;
 
@@ -35,7 +35,7 @@ class RadialParsedFunction : public Function<dim> {
   FunctionParser<1> base;
 };
 
-} /* namespace util */
+}  // namespace base
 } /* namespace wavepi */
 
 #endif /* LIB_UTIL_RADIALPARSEDFUNCTION_H_ */

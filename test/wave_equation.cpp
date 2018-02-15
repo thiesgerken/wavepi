@@ -5,7 +5,6 @@
  *      Author: thies
  */
 
-//#include <bits/std_abs.h>
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/function.h>
 #include <deal.II/base/logstream.h>
@@ -17,15 +16,18 @@
 #include <deal.II/fe/fe_q.h>
 #include <deal.II/grid/grid_generator.h>
 #include <deal.II/grid/tria.h>
-#include <forward/AdaptiveMesh.h>
-#include <forward/ConstantMesh.h>
-#include <forward/DiscretizedFunction.h>
+
+#include <base/AdaptiveMesh.h>
+#include <base/ConstantMesh.h>
+#include <base/DiscretizedFunction.h>
+#include <base/SpaceTimeMesh.h>
+#include <base/Util.h>
 #include <forward/L2RightHandSide.h>
-#include <forward/SpaceTimeMesh.h>
 #include <forward/WaveEquation.h>
+
 #include <gtest/gtest.h>
+
 #include <stddef.h>
-#include <util/GridTools.h>
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -34,7 +36,7 @@ namespace {
 
 using namespace dealii;
 using namespace wavepi::forward;
-using namespace wavepi::util;
+using namespace wavepi::base;
 
 template <int dim>
 class TestF : public Function<dim> {
@@ -183,13 +185,14 @@ void run_discretized_test(int fe_order, int quad_order, int refines) {
 
   auto triangulation = std::make_shared<Triangulation<dim>>();
   GridGenerator::hyper_cube(*triangulation, -1, 1);
-  wavepi::util::GridTools::set_all_boundary_ids(*triangulation, 0);
+  Util::set_all_boundary_ids(*triangulation, 0);
   triangulation->refine_global(refines);
 
   double t_start = 0.0, t_end = 2.0, dt = t_end / 64.0;
   std::vector<double> times;
 
-  for (size_t i = 0; t_start + i * dt <= t_end; i++) times.push_back(t_start + i * dt);
+  for (size_t i = 0; t_start + i * dt <= t_end; i++)
+    times.push_back(t_start + i * dt);
 
   FE_Q<dim> fe(fe_order);
   Quadrature<dim> quad = QGauss<dim>(quad_order);  // exact in poly degree 2n-1 (needed: fe_dim^3)
@@ -324,7 +327,8 @@ class SeparationAnsatz : public Function<dim> {
 
     double res = 1;
 
-    for (size_t i = 0; i < dim; i++) res *= std::sin(k[i] * p[i]);
+    for (size_t i = 0; i < dim; i++)
+      res *= std::sin(k[i] * p[i]);
 
     res *= constants[0] * std::sin(std::sqrt(k.square()) * this->get_time()) +
            constants[1] * std::cos(std::sqrt(k.square()) * this->get_time());
@@ -415,13 +419,14 @@ void run_reference_test_constant(int fe_order, int quad_order, int refines, Poin
                                  double t_end, int steps, bool expect = true, bool save = false) {
   auto triangulation = std::make_shared<Triangulation<dim>>();
   GridGenerator::hyper_cube(*triangulation, 0.0, numbers::PI);
-  wavepi::util::GridTools::set_all_boundary_ids(*triangulation, 0);
+  Util::set_all_boundary_ids(*triangulation, 0);
   triangulation->refine_global(refines);
 
   double t_start = 0.0, dt = t_end / steps;
   std::vector<double> times;
 
-  for (size_t i = 0; t_start + i * dt <= t_end; i++) times.push_back(t_start + i * dt);
+  for (size_t i = 0; t_start + i * dt <= t_end; i++)
+    times.push_back(t_start + i * dt);
 
   FE_Q<dim> fe(fe_order);
   Quadrature<dim> quad = QGauss<dim>(quad_order);  // exact in poly degree 2n-1 (needed: fe_dim^3)
@@ -436,13 +441,14 @@ void run_reference_test_adaptive(int fe_order, int quad_order, int refines, Poin
                                  double t_end, int steps, bool expect = true, bool save = false) {
   auto triangulation = std::make_shared<Triangulation<dim>>();
   GridGenerator::hyper_cube(*triangulation, 0.0, numbers::PI);
-  wavepi::util::GridTools::set_all_boundary_ids(*triangulation, 0);
+  Util::set_all_boundary_ids(*triangulation, 0);
   triangulation->refine_global(refines);
 
   double t_start = 0.0, dt = t_end / steps;
   std::vector<double> times;
 
-  for (size_t i = 0; t_start + i * dt <= t_end; i++) times.push_back(t_start + i * dt);
+  for (size_t i = 0; t_start + i * dt <= t_end; i++)
+    times.push_back(t_start + i * dt);
 
   FE_Q<dim> fe(fe_order);
   Quadrature<dim> quad = QGauss<dim>(quad_order);  // exact in poly degree 2n-1 (needed: fe_dim^3)
@@ -459,7 +465,8 @@ void run_reference_test_adaptive(int fe_order, int quad_order, int refines, Poin
   triangulation->save_refine_flags(ref);
   triangulation->save_coarsen_flags(coa);
 
-  for (auto cell : triangulation->active_cell_iterators()) cell->clear_refine_flag();
+  for (auto cell : triangulation->active_cell_iterators())
+    cell->clear_refine_flag();
 
   std::vector<Patch> patches = mesh->get_forward_patches();
   patches[steps / 4].emplace_back(ref, coa);
@@ -475,7 +482,7 @@ void run_reference_test_refined(int fe_order, int quad_order, int refines, Point
                                 double t_end, int steps, bool expect = true, bool save = false) {
   auto triangulation = std::make_shared<Triangulation<dim>>();
   GridGenerator::hyper_cube(*triangulation, 0.0, numbers::PI);
-  wavepi::util::GridTools::set_all_boundary_ids(*triangulation, 0);
+  Util::set_all_boundary_ids(*triangulation, 0);
   triangulation->refine_global(refines);
 
   // flag some cells for refinement and refine them
@@ -487,7 +494,8 @@ void run_reference_test_refined(int fe_order, int quad_order, int refines, Point
   double t_start = 0.0, dt = t_end / steps;
   std::vector<double> times;
 
-  for (size_t i = 0; t_start + i * dt <= t_end; i++) times.push_back(t_start + i * dt);
+  for (size_t i = 0; t_start + i * dt <= t_end; i++)
+    times.push_back(t_start + i * dt);
 
   FE_Q<dim> fe(fe_order);
   Quadrature<dim> quad = QGauss<dim>(quad_order);  // exact in poly degree 2n-1 (needed: fe_dim^3)

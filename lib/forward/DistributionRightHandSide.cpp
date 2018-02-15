@@ -12,7 +12,7 @@
 #include <deal.II/fe/fe_update_flags.h>
 #include <deal.II/fe/fe_values.h>
 
-#include <forward/DiscretizedFunction.h>
+#include <base/DiscretizedFunction.h>
 #include <forward/DistributionRightHandSide.h>
 
 #include <vector>
@@ -20,6 +20,7 @@
 namespace wavepi {
 namespace forward {
 using namespace dealii;
+using namespace wavepi::base;
 
 template <int dim>
 DistributionRightHandSide<dim>::AssemblyScratchData::AssemblyScratchData(const FiniteElement<dim> &fe,

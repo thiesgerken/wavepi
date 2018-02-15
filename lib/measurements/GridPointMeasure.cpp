@@ -16,8 +16,7 @@
 namespace wavepi {
 namespace measurements {
 using namespace dealii;
-using namespace wavepi::util;
-using namespace wavepi::forward;
+using namespace wavepi::base;
 
 template <int dim>
 GridPointMeasure<dim>::GridPointMeasure(const std::vector<double> &times,

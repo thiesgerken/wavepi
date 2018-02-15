@@ -5,8 +5,8 @@
  *      Author: thies
  */
 
-#ifndef INCLUDE_UTIL_SPACETIMEGRID_H_
-#define INCLUDE_UTIL_SPACETIMEGRID_H_
+#ifndef INCLUDE_BASE_SPACETIMEGRID_H_
+#define INCLUDE_BASE_SPACETIMEGRID_H_
 
 #include <deal.II/base/point.h>
 #include <stddef.h>
@@ -14,7 +14,7 @@
 #include <vector>
 
 namespace wavepi {
-namespace util {
+namespace base {
 using namespace dealii;
 
 template <int dim>
@@ -69,7 +69,7 @@ class SpaceTimeGrid {
   void make_space_time_points();
 };
 
-}  // namespace util
+}  // namespace base
 } /* namespace wavepi */
 
 #endif /* INCLUDE_MEASUREMENTS_SPACETIMEGRID_H_ */

@@ -13,10 +13,10 @@
 #include <deal.II/dofs/dof_handler.h>
 #include <deal.II/lac/sparse_matrix.h>
 
-#include <forward/DiscretizedFunction.h>
+#include <base/DiscretizedFunction.h>
+#include <base/SpaceTimeMesh.h>
 #include <forward/L2RightHandSide.h>
 #include <forward/RightHandSide.h>
-#include <forward/SpaceTimeMesh.h>
 
 #include <tgmath.h>
 #include <cmath>
@@ -24,6 +24,9 @@
 
 namespace wavepi {
 namespace forward {
+
+using namespace dealii;
+using namespace wavepi::base;
 
 template <int dim>
 class WaveEquationBase {

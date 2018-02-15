@@ -8,7 +8,7 @@
 #ifndef INCLUDE_PROBLEMS_MEASUREMENTPROBLEM_H_
 #define INCLUDE_PROBLEMS_MEASUREMENTPROBLEM_H_
 
-#include <forward/DiscretizedFunction.h>
+#include <base/DiscretizedFunction.h>
 #include <forward/L2RightHandSide.h>
 #include <forward/WaveEquation.h>
 #include <forward/WaveEquationAdjoint.h>

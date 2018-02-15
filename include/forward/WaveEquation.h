@@ -16,8 +16,8 @@
 #include <deal.II/lac/sparsity_pattern.h>
 #include <deal.II/lac/vector.h>
 
-#include <forward/DiscretizedFunction.h>
-#include <forward/SpaceTimeMesh.h>
+#include <base/DiscretizedFunction.h>
+#include <base/SpaceTimeMesh.h>
 #include <forward/WaveEquationBase.h>
 
 #include <memory>
@@ -33,6 +33,7 @@ namespace wavepi {
 namespace forward {
 
 using namespace dealii;
+using namespace wavepi::base;
 
 // parameters and rhs must currently be discretized on the same space-time grid!
 template <int dim>

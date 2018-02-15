@@ -8,11 +8,11 @@
 #ifndef INCLUDE_MEASUREMENTS_MEASUREDVALUES_H_
 #define INCLUDE_MEASUREMENTS_MEASUREDVALUES_H_
 
+#include <base/SpaceTimeGrid.h>
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/mpi.h>
 #include <stddef.h>
 #include <tgmath.h>
-#include <util/SpaceTimeGrid.h>
 #include <algorithm>
 #include <cmath>
 #include <memory>
@@ -23,7 +23,7 @@
 namespace wavepi {
 namespace measurements {
 using namespace dealii;
-using namespace wavepi::util;
+using namespace wavepi::base;
 
 /**
  * `std::vector<dim>` with vector space functionality and l2-norms and scalar products.

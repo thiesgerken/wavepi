@@ -5,12 +5,12 @@
  *      Author: thies
  */
 
-#include <util/MacroFunctionParser.h>
+#include <base/MacroFunctionParser.h>
 #include <iostream>
 #include <regex>
 
 namespace wavepi {
-namespace util {
+namespace base {
 
 template <int dim>
 MacroFunctionParser<dim>::MacroFunctionParser(const std::vector<std::string>& expressions,
@@ -56,5 +56,5 @@ template class MacroFunctionParser<1>;
 template class MacroFunctionParser<2>;
 template class MacroFunctionParser<3>;
 
-} /* namespace util */
+}  // namespace base
 } /* namespace wavepi */

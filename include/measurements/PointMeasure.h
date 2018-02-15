@@ -21,16 +21,11 @@
 #include <deal.II/lac/vector.h>
 #include <deal.II/numerics/vector_tools.h>
 
-#include <forward/DiscretizedFunction.h>
-#include <forward/SpaceTimeMesh.h>
-
+#include <base/DiscretizedFunction.h>
+#include <base/LightFunction.h>
+#include <base/SpaceTimeGrid.h>
+#include <base/SpaceTimeMesh.h>
 #include <measurements/Measure.h>
-#include <measurements/MeasuredValues.h>
-
-#include <stddef.h>
-
-#include <util/LightFunction.h>
-#include <util/SpaceTimeGrid.h>
 
 #include <list>
 #include <memory>
@@ -40,8 +35,7 @@ namespace wavepi {
 namespace measurements {
 
 using namespace dealii;
-using namespace wavepi::forward;
-using namespace wavepi::util;
+using namespace wavepi::base;
 
 /**
  * Point measurements, implemented as scalar product between the given field and a delta-approximating function.

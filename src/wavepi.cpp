@@ -12,13 +12,11 @@
 #include <deal.II/base/mpi.h>
 #include <deal.II/base/parameter_handler.h>
 
-#include <forward/DiscretizedFunction.h>
-
-#include <inversion/InversionProgress.h>
-
+#include <Version.h>
 #include <WavePI.h>
+#include <base/DiscretizedFunction.h>
+#include <inversion/InversionProgress.h>
 #include <measurements/MeasuredValues.h>
-#include <util/Version.h>
 
 #include <fstream>
 #include <iostream>
@@ -30,7 +28,9 @@
 
 using namespace dealii;
 using namespace wavepi;
-using namespace wavepi::util;
+using namespace wavepi::base;
+using namespace wavepi::forward;
+using namespace wavepi::measurements;
 
 namespace po = boost::program_options;
 

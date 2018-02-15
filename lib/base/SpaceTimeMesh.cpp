@@ -5,14 +5,14 @@
  *      Author: thies
  */
 
+#include <base/SpaceTimeMesh.h>
 #include <deal.II/base/exceptions.h>
-#include <forward/SpaceTimeMesh.h>
 #include <cmath>
 #include <iostream>
 #include <iterator>
 
 namespace wavepi {
-namespace forward {
+namespace base {
 
 template <int dim>
 SpaceTimeMesh<dim>::SpaceTimeMesh(std::vector<double> times, FE_Q<dim> fe, Quadrature<dim> quad)
@@ -72,5 +72,5 @@ template class SpaceTimeMesh<1>;
 template class SpaceTimeMesh<2>;
 template class SpaceTimeMesh<3>;
 
-} /* namespace forward */
+}  // namespace base
 } /* namespace wavepi */

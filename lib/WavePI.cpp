@@ -15,17 +15,14 @@
 #include <deal.II/grid/grid_tools.h>
 #include <deal.II/grid/tria.h>
 
-#include <forward/AdaptiveMesh.h>
-#include <forward/ConstantMesh.h>
-
+#include <base/AdaptiveMesh.h>
+#include <base/ConstantMesh.h>
 #include <inversion/InversionProgress.h>
 #include <inversion/NonlinearLandweber.h>
 #include <inversion/REGINN.h>
 #include <inversion/Regularization.h>
-
 #include <measurements/GridPointMeasure.h>
 #include <measurements/MeasuredValues.h>
-
 #include <problems/AProblem.h>
 #include <problems/CProblem.h>
 #include <problems/NuProblem.h>
@@ -35,7 +32,6 @@
 #include <tgmath.h>
 
 #include <WavePI.h>
-#include <util/GridTools.h>
 
 #include <cmath>
 #include <fstream>
@@ -46,9 +42,9 @@ namespace wavepi {
 
 using namespace dealii;
 using namespace wavepi::forward;
+using namespace wavepi::base;
 using namespace wavepi::inversion;
 using namespace wavepi::problems;
-using namespace wavepi::util;
 
 template <int dim, typename Meas>
 WavePI<dim, Meas>::WavePI(std::shared_ptr<SettingsManager> cfg) : cfg(cfg) {
@@ -151,7 +147,7 @@ get_measure_tuple(1) get_measure_tuple(2) get_measure_tuple(3)
   } else
     AssertThrow(false, ExcInternalError());
 
-  wavepi::util::GridTools::set_all_boundary_ids(*triangulation, 0);
+  Util::set_all_boundary_ids(*triangulation, 0);
   triangulation->refine_global(cfg->initial_refines);
 
   mesh = std::make_shared<ConstantMesh<dim>>(cfg->times, FE_Q<dim>(cfg->fe_degree), QGauss<dim>(cfg->quad_order),

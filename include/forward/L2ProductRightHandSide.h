@@ -33,12 +33,13 @@
 #include <functional>
 #include <memory>
 
-#include <forward/DiscretizedFunction.h>
+#include <base/DiscretizedFunction.h>
 #include <forward/RightHandSide.h>
 
 namespace wavepi {
 namespace forward {
 using namespace dealii;
+using namespace wavepi::base;
 
 /**
  * Implements $`(-f_1*f_2, \phi_j)`$ for two discretized functions $`f_1`$ and $`f_2`$ as a right hand side.

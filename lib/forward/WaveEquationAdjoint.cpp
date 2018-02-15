@@ -34,6 +34,7 @@
 namespace wavepi {
 namespace forward {
 using namespace dealii;
+using namespace wavepi::base;
 
 template <int dim>
 WaveEquationAdjoint<dim>::WaveEquationAdjoint(std::shared_ptr<SpaceTimeMesh<dim>> mesh) : WaveEquationBase<dim>(mesh) {}
@@ -559,9 +560,9 @@ DiscretizedFunction<dim> WaveEquationAdjoint<dim>::apply_R_transpose(const Discr
   return res;
 }
 
-template class WaveEquationAdjoint<1> ;
-template class WaveEquationAdjoint<2> ;
-template class WaveEquationAdjoint<3> ;
+template class WaveEquationAdjoint<1>;
+template class WaveEquationAdjoint<2>;
+template class WaveEquationAdjoint<3>;
 
 } /* namespace forward */
 } /* namespace wavepi */

@@ -5,13 +5,13 @@
  *      Author: thies
  */
 
-#ifndef INCLUDE_UTIL_LIGHTFUNCTION_H_
-#define INCLUDE_UTIL_LIGHTFUNCTION_H_
+#ifndef INCLUDE_BASE_LIGHTFUNCTION_H_
+#define INCLUDE_BASE_LIGHTFUNCTION_H_
 
 #include <deal.II/base/point.h>
 
 namespace wavepi {
-namespace util {
+namespace base {
 using namespace dealii;
 
 /**
@@ -30,7 +30,7 @@ class LightFunction {
   virtual double evaluate(const Point<dim + 1> &p) const = 0;
 };
 
-} /* namespace util */
+}  // namespace base
 } /* namespace wavepi */
 
-#endif /* INCLUDE_UTIL_LIGHTFUNCTION_H_ */
+#endif /* INCLUDE_BASE_LIGHTFUNCTION_H_ */

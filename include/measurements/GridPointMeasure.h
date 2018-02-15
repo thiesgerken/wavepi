@@ -21,8 +21,7 @@ namespace wavepi {
 namespace measurements {
 
 using namespace dealii;
-using namespace wavepi::forward;
-using namespace wavepi::util;
+using namespace wavepi::base;
 
 /**
  * Point measurements on a grid (in space and time),

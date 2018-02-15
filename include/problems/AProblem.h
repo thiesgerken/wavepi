@@ -8,7 +8,7 @@
 #ifndef INCLUDE_PROBLEMS_APROBLEM_H_
 #define INCLUDE_PROBLEMS_APROBLEM_H_
 
-#include <forward/DiscretizedFunction.h>
+#include <base/DiscretizedFunction.h>
 #include <forward/DivRightHandSide.h>
 #include <forward/DivRightHandSideAdjoint.h>
 #include <forward/L2RightHandSide.h>

@@ -9,20 +9,17 @@
 #define INCLUDE_PROBLEMS_WAVEPROBLEM_H_
 
 #include <deal.II/base/function.h>
+#include <deal.II/base/mpi.h>
 #include <deal.II/base/timer.h>
 
-#include <forward/DiscretizedFunction.h>
+#include <base/DiscretizedFunction.h>
+#include <base/Tuple.h>
 #include <forward/WaveEquation.h>
 #include <forward/WaveEquationAdjoint.h>
 #include <forward/WaveEquationBase.h>
-
 #include <inversion/LinearProblem.h>
 #include <inversion/NonlinearProblem.h>
-
 #include <measurements/Measure.h>
-#include <util/Tuple.h>
-
-#include <deal.II/base/mpi.h>
 
 #include <stddef.h>
 #include <memory>
@@ -40,7 +37,6 @@ using namespace dealii;
 using namespace wavepi::forward;
 using namespace wavepi::inversion;
 using namespace wavepi::measurements;
-using namespace wavepi::util;
 
 template <int dim, typename Measurement>
 class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Measurement>> {
