@@ -376,11 +376,10 @@ DiscretizedFunction<dim> WaveEquation<dim>::run() {
     bound_str << cmin << " <= c <= " << cmax;
 
     AssertThrow(cmax * cmin >= 0, ExcMessage("C is not coercive, " + bound_str.str()));
-    AssertThrow(!(cmax > 0 && cmin < 1e-3), ExcMessage("C is not coercive (c_min < 1e-3), " + bound_str.str()));
-    AssertThrow(!(cmin < 0 && cmax > -1e-3),
-                ExcMessage("C is not negative definite (c_max > -1e-3), " + bound_str.str()));
 
-    if (cmax < 0 && cmin < 0) deallog << "warning: C is negative definite, " + bound_str.str() << std::endl;
+    if (cmax > 0 && cmin < 1e-3) deallog << "warning: coercivity of C is low, " << bound_str.str() << std::endl;
+    if (cmax > -1e-3 && cmin < 0) deallog << "warning: coercivity of C is low, " << bound_str.str() << std::endl;
+    if (cmax < 0 && cmin < 0) deallog << "warning: C is negative definite, " << bound_str.str() << std::endl;
   }
 
   if (this->param_a_disc) {

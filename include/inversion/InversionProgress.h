@@ -16,6 +16,7 @@
 #include <deal.II/base/utilities.h>
 
 #include <base/DiscretizedFunction.h>
+#include <base/Transformation.h>
 #include <base/Util.h>
 
 #include <signal.h>
@@ -224,7 +225,9 @@ class OutputProgressListener : public InversionProgressListener<DiscretizedFunct
   OutputProgressListener(int interval, double discrepancy_factor)
       : interval(interval), discrepancy_factor(discrepancy_factor) {}
 
-  OutputProgressListener(ParameterHandler& prm) { get_parameters(prm); }
+  OutputProgressListener(ParameterHandler& prm, std::shared_ptr<Transformation<dim>> transform) : transform(transform) {
+    get_parameters(prm);
+  }
 
   static void declare_parameters(ParameterHandler& prm) {
     prm.enter_subsection("output");
@@ -242,6 +245,11 @@ class OutputProgressListener : public InversionProgressListener<DiscretizedFunct
           "exact", "true", Patterns::Bool(),
           "output the problem's exact solution on the first iteration\n(if available and discretized on first grid)");
 
+      prm.declare_entry(
+          "exact transformed", "false", Patterns::Bool(),
+          "output the problem's exact solution on the first iteration\n(if available and discretized on first grid)");
+
+      prm.declare_entry("estimate transformed", "false", Patterns::Bool(), "output the transformed current estimate");
       prm.declare_entry("estimate", "true", Patterns::Bool(), "output the current estimate");
       prm.declare_entry("residual", "true", Patterns::Bool(), "output the current residual");
 
@@ -259,10 +267,13 @@ class OutputProgressListener : public InversionProgressListener<DiscretizedFunct
 
       save_last = prm.get_bool("last");
 
-      save_data  = prm.get_bool("data");
-      save_exact = prm.get_bool("exact");
+      save_data              = prm.get_bool("data");
+      save_exact             = prm.get_bool("exact");
+      save_exact_transformed = prm.get_bool("exact transformed");
 
-      save_estimate = prm.get_bool("estimate");
+      save_estimate             = prm.get_bool("estimate");
+      save_estimate_transformed = prm.get_bool("estimate transformed");
+
       save_residual = prm.get_bool("residual");
 
       destination_prefix = prm.get("destination");
@@ -276,6 +287,17 @@ class OutputProgressListener : public InversionProgressListener<DiscretizedFunct
 
     std::string dest = Util::replace(destination_prefix, subs);
 
+    if (save_exact_transformed && state.iteration_number == 0 && state.exact_param && transform) {
+      std::string filename = Util::replace(filename_exact_transformed, subs);
+
+      boost::filesystem::create_directories(dest);
+      deallog << "Saving transformed exact parameter in " << dest << std::endl;
+      LogStream::Prefix p = LogStream::Prefix("Output");
+
+      DiscretizedFunction<dim> exact_disc(state.current_estimate->get_mesh(), *state.exact_param);
+      exact_disc.write_pvd(dest, filename, "param");
+    }
+
     if (save_exact && state.iteration_number == 0 && state.exact_param) {
       std::string filename = Util::replace(filename_exact, subs);
 
@@ -284,6 +306,8 @@ class OutputProgressListener : public InversionProgressListener<DiscretizedFunct
       LogStream::Prefix p = LogStream::Prefix("Output");
 
       DiscretizedFunction<dim> exact_disc(state.current_estimate->get_mesh(), *state.exact_param);
+      if (transform) exact_disc = transform->transform_inverse(exact_disc);
+
       exact_disc.write_pvd(dest, filename, "param");
     }
 
@@ -311,13 +335,27 @@ class OutputProgressListener : public InversionProgressListener<DiscretizedFunct
         state.current_residual->write_pvd(dest, filename, "residual");
       }
 
+      if (save_estimate_transformed && transform) {
+        std::string filename = Util::replace(filename_estimate_transformed, subs);
+
+        boost::filesystem::create_directories(dest);
+        deallog << "Saving current transformed estimate in " << dest << std::endl;
+        LogStream::Prefix p = LogStream::Prefix("Output");
+        state.current_estimate->write_pvd(dest, filename, "estimate");
+      }
+
       if (save_estimate) {
         std::string filename = Util::replace(filename_estimate, subs);
 
         boost::filesystem::create_directories(dest);
         deallog << "Saving current estimate in " << dest << std::endl;
         LogStream::Prefix p = LogStream::Prefix("Output");
-        state.current_estimate->write_pvd(dest, filename, "estimate");
+
+        if (transform) {
+          auto current = transform->transform_inverse(*state.current_estimate);
+          current.write_pvd(dest, filename, "estimate");
+        } else
+          state.current_estimate->write_pvd(dest, filename, "estimate");
       }
     }
 
@@ -379,19 +417,26 @@ class OutputProgressListener : public InversionProgressListener<DiscretizedFunct
   void set_filename_data(const std::string& filename_data = "data") { this->filename_data = filename_data; }
 
  private:
+  std::shared_ptr<Transformation<dim>> transform;
+
   // all of these have support for expansion of {{i}} for the iteration index.
   // destination_prefix is created if necessary.
   // destination_prefix has to end with a slash!
-  std::string filename_estimate  = "estimate";
-  std::string filename_residual  = "residual";
-  std::string filename_exact     = "param";
-  std::string filename_data      = "data";
-  std::string destination_prefix = "./step-{{i}}/";
+  std::string filename_estimate             = "estimate";
+  std::string filename_estimate_transformed = "estimate_transformed";
+  std::string filename_residual             = "residual";
+  std::string filename_exact                = "param";
+  std::string filename_exact_transformed    = "param_transformed";
+  std::string filename_data                 = "data";
+  std::string destination_prefix            = "./step-{{i}}/";
 
-  bool save_estimate = true;
-  bool save_residual = true;
-  bool save_exact    = true;  // (once)
-  bool save_data     = true;  // (once)
+  bool save_estimate             = true;
+  bool save_estimate_transformed = false;
+  bool save_residual             = true;
+
+  bool save_exact             = true;   // (once)
+  bool save_exact_transformed = false;  // (once)
+  bool save_data              = true;   // (once)
 
   // save the last one
   bool save_last = true;

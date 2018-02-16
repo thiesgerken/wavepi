@@ -129,7 +129,7 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
     prm->declare_entry(KEY_PROBLEM_TYPE, "a", Patterns::Selection("a|c|q|nu|L2A|L2Q|L2Nu|L2C"),
                        "parameter that is reconstructed");
 
-    prm->declare_entry(KEY_PROBLEM_TRANSFORM, "identity", Patterns::Selection("Identity|Log"),
+    prm->declare_entry(KEY_PROBLEM_TRANSFORM, "Identity", Patterns::Selection("Identity|Log"),
                        "transformation to apply to the parameter (e.g. to get rid of constraints)");
 
     prm->declare_entry(KEY_PROBLEM_NORM_DOMAIN, "L2L2", Patterns::Selection("L2L2|H1L2|H2L2|Coefficients"),

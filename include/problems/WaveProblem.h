@@ -61,7 +61,7 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
 
   virtual std::unique_ptr<LinearProblem<DiscretizedFunction<dim>, Tuple<Measurement>>> derivative(
       const DiscretizedFunction<dim> &param) {
-    Assert(this->current_param->relative_error(param) < 1e-10, ExcInternalError());
+    Assert(this->current_param_transformed->relative_error(param) < 1e-10, ExcInternalError());
 
     std::vector<std::shared_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>>> derivs;
 

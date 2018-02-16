@@ -5,13 +5,20 @@
  *      Author: thies
  */
 
+#include <base/ComposedFunction.h>
 #include <base/Transformation.h>
+#include <deal.II/base/function_parser.h>
 
 namespace wavepi {
 namespace base {
 
 template <int dim>
 DiscretizedFunction<dim> IdentityTransform<dim>::transform(const DiscretizedFunction<dim> &param) {
+  return param;
+}
+
+template <int dim>
+std::shared_ptr<Function<dim>> IdentityTransform<dim>::transform(const std::shared_ptr<Function<dim>> param) {
   return param;
 }
 
@@ -46,6 +53,11 @@ DiscretizedFunction<dim> LogTransform<dim>::transform(const DiscretizedFunction<
     }
 
   return tmp;
+}
+
+template <int dim>
+std::shared_ptr<Function<dim>> LogTransform<dim>::transform(const std::shared_ptr<Function<dim>> param) {
+  return std::make_shared<ComposedFunction<dim>>(param, std::make_shared<LogTransform<dim>::TransformFunction>());
 }
 
 template <int dim>

@@ -23,9 +23,14 @@ class Transformation {
   virtual ~Transformation() = default;
 
   /**
-   * Apply φ to a given function
+   * Apply φ to a given discretized function
    */
   virtual DiscretizedFunction<dim> transform(const DiscretizedFunction<dim> &param) = 0;
+
+  /**
+   * Transform a function
+   */
+  virtual std::shared_ptr<Function<dim>> transform(const std::shared_ptr<Function<dim>> param) = 0;
 
   /**
    * Apply φ^{-1} to a given function
@@ -54,15 +59,17 @@ class IdentityTransform : public Transformation<dim> {
   IdentityTransform()          = default;
   virtual ~IdentityTransform() = default;
 
-  virtual DiscretizedFunction<dim> transform(const DiscretizedFunction<dim> &param);
+  virtual DiscretizedFunction<dim> transform(const DiscretizedFunction<dim> &param) override;
 
-  virtual DiscretizedFunction<dim> transform_inverse(const DiscretizedFunction<dim> &param);
+  virtual std::shared_ptr<Function<dim>> transform(const std::shared_ptr<Function<dim>> param) override;
+
+  virtual DiscretizedFunction<dim> transform_inverse(const DiscretizedFunction<dim> &param) override;
 
   virtual DiscretizedFunction<dim> inverse_derivative(const DiscretizedFunction<dim> &param,
-                                                      const DiscretizedFunction<dim> &h);
+                                                      const DiscretizedFunction<dim> &h) override;
 
   virtual DiscretizedFunction<dim> inverse_derivative_transpose(const DiscretizedFunction<dim> &param,
-                                                                const DiscretizedFunction<dim> &g);
+                                                                const DiscretizedFunction<dim> &g) override;
 };
 
 /**
@@ -74,15 +81,30 @@ class LogTransform : public Transformation<dim> {
   LogTransform()          = default;
   virtual ~LogTransform() = default;
 
-  virtual DiscretizedFunction<dim> transform(const DiscretizedFunction<dim> &param);
+  virtual DiscretizedFunction<dim> transform(const DiscretizedFunction<dim> &param) override;
 
-  virtual DiscretizedFunction<dim> transform_inverse(const DiscretizedFunction<dim> &param);
+  virtual std::shared_ptr<Function<dim>> transform(const std::shared_ptr<Function<dim>> param) override;
+
+  virtual DiscretizedFunction<dim> transform_inverse(const DiscretizedFunction<dim> &param) override;
 
   virtual DiscretizedFunction<dim> inverse_derivative(const DiscretizedFunction<dim> &param,
-                                                      const DiscretizedFunction<dim> &h);
+                                                      const DiscretizedFunction<dim> &h) override;
 
   virtual DiscretizedFunction<dim> inverse_derivative_transpose(const DiscretizedFunction<dim> &param,
-                                                                const DiscretizedFunction<dim> &g);
+                                                                const DiscretizedFunction<dim> &g) override;
+
+ private:
+  class TransformFunction : public Function<1> {
+   public:
+    TransformFunction()          = default;
+    virtual ~TransformFunction() = default;
+
+    virtual double value(const Point<1> &p, const unsigned int component = 0) const override {
+      Assert(component == 0, ExcInternalError());
+
+      return std::log(p[0]);
+    }
+  };
 };
 
 } /* namespace base */

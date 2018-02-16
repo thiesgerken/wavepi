@@ -249,7 +249,8 @@ void WavePI<dim, Meas>::initialize_problem() {
       AssertThrow(false, ExcInternalError());
   }
 
-  // TODO: transform param_exact
+  // transform param_exact
+  param_exact = transform->transform(param_exact);
 
   problem->set_norm_domain(cfg->norm_domain);
   problem->set_norm_codomain(cfg->norm_codomain);
@@ -261,7 +262,6 @@ void WavePI<dim, Meas>::generate_data() {
   LogStream::Prefix pp("run");  // make logs of forward operator appear in the right level
 
   DiscretizedFunction<dim> param_exact_disc(mesh, *param_exact);
-  param_exact_disc = transform->transform(param_exact_disc);
   param_exact_disc.set_norm(cfg->norm_domain);
   Tuple<Meas> data_exact = problem->forward(param_exact_disc);
 
@@ -286,7 +286,8 @@ void WavePI<dim, Meas>::run() {
   std::shared_ptr<Regularization<Param, Tuple<Meas>, Exact>> regularization;
 
   deallog.push("Initial Guess");
-  auto initial_guess_discretized = std::make_shared<Param>(mesh, *initial_guess);
+  auto initial_guess_transformed = transform->transform(initial_guess);
+  auto initial_guess_discretized = std::make_shared<Param>(mesh, *initial_guess_transformed);
 
   // make sure that the initial guess has the right norm
   initial_guess_discretized->set_norm(cfg->norm_domain);
@@ -310,7 +311,7 @@ void WavePI<dim, Meas>::run() {
 
   // Output only for master node
   if (Utilities::MPI::this_mpi_process(MPI_COMM_WORLD) == 0) {
-    regularization->add_listener(std::make_shared<OutputProgressListener<dim, Tuple<Meas>>>(*cfg->prm));
+    regularization->add_listener(std::make_shared<OutputProgressListener<dim, Tuple<Meas>>>(*cfg->prm, transform));
     regularization->add_listener(std::make_shared<StatOutputProgressListener<Param, Tuple<Meas>, Exact>>(*cfg->prm));
   }
 
