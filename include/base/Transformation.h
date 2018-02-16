@@ -94,7 +94,7 @@ class LogTransform : public Transformation<dim> {
                                                                 const DiscretizedFunction<dim> &g) override;
 
  private:
-  double lower_bound = 0.1;
+  double lower_bound = 0.0;
 
   class TransformFunction : public Function<1> {
    public:
