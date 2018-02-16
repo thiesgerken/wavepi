@@ -49,7 +49,7 @@ DiscretizedFunction<dim> LogTransform<dim>::transform(const DiscretizedFunction<
   for (size_t i = 0; i < param.length(); i++)
     for (size_t j = 0; j < param[i].size(); j++) {
       Assert(param[i][j] > 0, ExcMessage("LogTransform::transform called on param with negative entries"));
-      tmp[i][j] = std::log(param[i][j] - 0.1);
+      tmp[i][j] = std::log(param[i][j] - lower_bound);
     }
 
   return tmp;
@@ -57,7 +57,8 @@ DiscretizedFunction<dim> LogTransform<dim>::transform(const DiscretizedFunction<
 
 template <int dim>
 std::shared_ptr<Function<dim>> LogTransform<dim>::transform(const std::shared_ptr<Function<dim>> param) {
-  return std::make_shared<ComposedFunction<dim>>(param, std::make_shared<LogTransform<dim>::TransformFunction>());
+  return std::make_shared<ComposedFunction<dim>>(param,
+                                                 std::make_shared<LogTransform<dim>::TransformFunction>(lower_bound));
 }
 
 template <int dim>
@@ -68,7 +69,7 @@ DiscretizedFunction<dim> LogTransform<dim>::transform_inverse(const DiscretizedF
 
   for (size_t i = 0; i < param.length(); i++)
     for (size_t j = 0; j < param[i].size(); j++)
-      tmp[i][j] = std::exp(param[i][j]) + 0.1;
+      tmp[i][j] = std::exp(param[i][j]) + lower_bound;
 
   return tmp;
 }

@@ -94,16 +94,21 @@ class LogTransform : public Transformation<dim> {
                                                                 const DiscretizedFunction<dim> &g) override;
 
  private:
+  double lower_bound = 0.1;
+
   class TransformFunction : public Function<1> {
    public:
-    TransformFunction()          = default;
+    TransformFunction(double lb) : lower_bound(lb){};
     virtual ~TransformFunction() = default;
 
     virtual double value(const Point<1> &p, const unsigned int component = 0) const override {
       Assert(component == 0, ExcInternalError());
 
-      return std::log(p[0] - 0.1);
+      return std::log(p[0] - lower_bound);
     }
+
+   private:
+    double lower_bound;
   };
 };
 

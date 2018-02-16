@@ -377,14 +377,22 @@ DiscretizedFunction<dim> WaveEquation<dim>::run() {
 
     AssertThrow(cmax * cmin >= 0, ExcMessage("C is not coercive, " + bound_str.str()));
 
-    if (cmax > 0 && cmin < 1e-3) deallog << "warning: coercivity of C is low, " << bound_str.str() << std::endl;
-    if (cmax > -1e-3 && cmin < 0) deallog << "warning: coercivity of C is low, " << bound_str.str() << std::endl;
-    if (cmax < 0 && cmin < 0) deallog << "warning: C is negative definite, " << bound_str.str() << std::endl;
+    if ((cmax > 0 && cmin < 1e-4) || (cmax > -1e-4 && cmin < 0))
+      deallog << "Warning: coercivity of C is low, " << bound_str.str() << std::endl;
+
+    if (cmax < 0 && cmin < 0) deallog << "Warning: C is negative definite, " << bound_str.str() << std::endl;
   }
 
   if (this->param_a_disc) {
-    double amin = this->param_a_disc->min_value();
-    AssertThrow(amin >= 1e-3, ExcMessage("A is not coercive, a_min = " + std::to_string(amin) + " < 1e-3"));
+    double amin, amax;
+    this->param_a_disc->min_max_value(&amin, &amax);
+
+    std::stringstream bound_str;
+    bound_str << amin << " <= a <= " << amax;
+
+    AssertThrow(amin >= 1e-4, ExcMessage("A is not coercive, a_min = " + bound_str.str()));
+
+    if (amin < 1e-4) deallog << "Warning: coercivity of A is low, " << bound_str.str() << std::endl;
   }
 
   // this is going to be the result
