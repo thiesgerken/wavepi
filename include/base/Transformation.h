@@ -102,7 +102,7 @@ class LogTransform : public Transformation<dim> {
     virtual double value(const Point<1> &p, const unsigned int component = 0) const override {
       Assert(component == 0, ExcInternalError());
 
-      return std::log(p[0]);
+      return std::log(p[0] - 0.1);
     }
   };
 };
