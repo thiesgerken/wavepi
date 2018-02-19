@@ -41,6 +41,22 @@ DiscretizedFunction<dim> IdentityTransform<dim>::inverse_derivative_transpose(co
 }
 
 template <int dim>
+void LogTransform<dim>::declare_parameters(ParameterHandler &prm) {
+  prm.enter_subsection("LogTransform");
+  prm.declare_entry("lower bound", "0.0", Patterns::Double(),
+                    "transformation function for log transform is φ(x) = log(x-x₀), where x₀ is the lower bound you "
+                    "want to enforce.");
+  prm.leave_subsection();
+}
+
+template <int dim>
+void LogTransform<dim>::get_parameters(ParameterHandler &prm) {
+  prm.enter_subsection("LogTransform");
+  lower_bound = prm.get_double("lower bound");
+  prm.leave_subsection();
+}
+
+template <int dim>
 DiscretizedFunction<dim> LogTransform<dim>::transform(const DiscretizedFunction<dim> &param) {
   AssertThrow(!param.has_derivative(), ExcMessage("Not transforming derivatives!"));
 
@@ -48,7 +64,8 @@ DiscretizedFunction<dim> LogTransform<dim>::transform(const DiscretizedFunction<
 
   for (size_t i = 0; i < param.length(); i++)
     for (size_t j = 0; j < param[i].size(); j++) {
-      Assert(param[i][j] > 0, ExcMessage("LogTransform::transform called on param with negative entries"));
+      Assert(param[i][j] > lower_bound,
+             ExcMessage("LogTransform::transform called on param with entries <= lower bound"));
       tmp[i][j] = std::log(param[i][j] - lower_bound);
     }
 

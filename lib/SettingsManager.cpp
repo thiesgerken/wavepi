@@ -81,6 +81,7 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
   StatOutputProgressListener<Tuple<DiscretizedFunction<2>>, Tuple<DiscretizedFunction<2>>>::declare_parameters(*prm);
   WaveEquationBase<2>::declare_parameters(*prm);
   BoundCheckProgressListener<2, Tuple<DiscretizedFunction<2>>>::declare_parameters(*prm);
+  LogTransform<2>::declare_parameters(*prm);
 
   prm->enter_subsection(KEY_GENERAL);
   {

@@ -213,16 +213,14 @@ void WavePI<dim, Meas>::initialize_problem() {
   wave_eq->set_param_nu(param_nu);
   wave_eq->get_parameters(*cfg->prm);
 
-  switch (cfg->transform) {
-    case SettingsManager::TransformType::identity:
-      transform = std::make_shared<IdentityTransform<dim>>();
-      break;
-    case SettingsManager::TransformType::log:
-      transform = std::make_shared<LogTransform<dim>>();
-      break;
-    default:
-      AssertThrow(false, ExcInternalError());
-  }
+  if (cfg->transform == SettingsManager::TransformType::identity)
+    transform = std::make_shared<IdentityTransform<dim>>();
+  else if (cfg->transform == SettingsManager::TransformType::log) {
+    auto tmp = std::make_shared<LogTransform<dim>>();
+    tmp->get_parameters(*cfg->prm);
+    transform = tmp;
+  } else
+    AssertThrow(false, ExcInternalError());
 
   switch (cfg->problem_type) {
     case SettingsManager::ProblemType::L2Q:
@@ -254,7 +252,7 @@ void WavePI<dim, Meas>::initialize_problem() {
 
   problem->set_norm_domain(cfg->norm_domain);
   problem->set_norm_codomain(cfg->norm_codomain);
-}
+}  // namespace wavepi
 
 template <int dim, typename Meas>
 void WavePI<dim, Meas>::generate_data() {

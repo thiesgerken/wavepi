@@ -9,9 +9,16 @@
 #define INCLUDE_BASE_TRANSFORMATION_H_
 
 #include <base/DiscretizedFunction.h>
+#include <deal.II/base/exceptions.h>
+#include <deal.II/base/function.h>
+#include <deal.II/base/parameter_handler.h>
+#include <deal.II/base/point.h>
+#include <cmath>
+#include <memory>
 
 namespace wavepi {
 namespace base {
+using namespace dealii;
 
 /**
  * Transformation φ to apply before the forward operator S, i.e. S_{new}(φ(x)) := S(x).
@@ -80,6 +87,10 @@ class LogTransform : public Transformation<dim> {
  public:
   LogTransform()          = default;
   virtual ~LogTransform() = default;
+
+  static void declare_parameters(ParameterHandler &prm);
+
+  void get_parameters(ParameterHandler &prm);
 
   virtual DiscretizedFunction<dim> transform(const DiscretizedFunction<dim> &param) override;
 
