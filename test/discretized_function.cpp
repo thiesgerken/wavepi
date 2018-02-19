@@ -443,100 +443,100 @@ void run_dot_transform_consistent_tests(int fe_order, int quad_order, int refine
 
 }  // namespace
 
-TEST(DiscretizedFunctionTest, DotNormConsistent1DFE1) {
+TEST(DiscretizedFunction, DotNormConsistent1DFE1) {
   run_dot_norm_tests<1>(1, 3, 10, 128);
   run_dot_norm_tests<1>(1, 4, 9, 256);
 }
-TEST(DiscretizedFunctionTest, DotNormConsistent1DFE2) {
+TEST(DiscretizedFunction, DotNormConsistent1DFE2) {
   run_dot_norm_tests<1>(2, 4, 7, 128);
   run_dot_norm_tests<1>(2, 4, 7, 256);
 }
 
-TEST(DiscretizedFunctionTest, DotNormConsistent2DFE1) {
+TEST(DiscretizedFunction, DotNormConsistent2DFE1) {
   run_dot_norm_tests<2>(1, 3, 5, 128);
   run_dot_norm_tests<2>(1, 4, 4, 256);
 }
 
-TEST(DiscretizedFunctionTest, DotNormConsistent2DFE2) {
+TEST(DiscretizedFunction, DotNormConsistent2DFE2) {
   run_dot_norm_tests<2>(2, 4, 4, 128);
   run_dot_norm_tests<2>(2, 4, 4, 256);
 }
 
-TEST(DiscretizedFunctionTest, DotNormConsistent3DFE1) {
+TEST(DiscretizedFunction, DotNormConsistent3DFE1) {
   run_dot_norm_tests<3>(1, 3, 2, 32);
   run_dot_norm_tests<3>(1, 4, 1, 64);
 }
 
-TEST(DiscretizedFunctionTest, DerivativeTranspose1DFE1) {
+TEST(DiscretizedFunction, DerivativeTranspose1DFE1) {
   run_derivative_transpose_test<1>(1, 3, 10, 128);
   run_derivative_transpose_test<1>(1, 4, 9, 256);
 }
-TEST(DiscretizedFunctionTest, DerivativeTranspose1DFE2) {
+TEST(DiscretizedFunction, DerivativeTranspose1DFE2) {
   run_derivative_transpose_test<1>(2, 4, 7, 128);
   run_derivative_transpose_test<1>(2, 4, 7, 256);
 }
 
-TEST(DiscretizedFunctionTest, DerivativeTranspose2DFE1) {
+TEST(DiscretizedFunction, DerivativeTranspose2DFE1) {
   run_derivative_transpose_test<2>(1, 3, 5, 128);
   run_derivative_transpose_test<2>(1, 4, 4, 256);
 }
 
-TEST(DiscretizedFunctionTest, DerivativeTranspose2DFE2) {
+TEST(DiscretizedFunction, DerivativeTranspose2DFE2) {
   run_derivative_transpose_test<2>(2, 4, 4, 128);
   run_derivative_transpose_test<2>(2, 4, 4, 256);
 }
 
-TEST(DiscretizedFunctionTest, DerivativeTranspose3DFE1) {
+TEST(DiscretizedFunction, DerivativeTranspose3DFE1) {
   run_derivative_transpose_test<3>(1, 3, 2, 32);
   run_derivative_transpose_test<3>(1, 4, 1, 64);
 }
 
-TEST(DiscretizedFunctionTest, DotTransformInverse1DFE1) {
+TEST(DiscretizedFunction, DotTransformInverse1DFE1) {
   run_dot_transform_inverse_tests<1>(1, 3, 10, 128);
   run_dot_transform_inverse_tests<1>(1, 4, 9, 256);
 }
 
-TEST(DiscretizedFunctionTest, DotTransformInverse1DFE2) {
+TEST(DiscretizedFunction, DotTransformInverse1DFE2) {
   run_dot_transform_inverse_tests<1>(2, 4, 7, 128);
   run_dot_transform_inverse_tests<1>(2, 4, 7, 256);
 }
 
-TEST(DiscretizedFunctionTest, DotTransformInverse2DFE1) {
+TEST(DiscretizedFunction, DotTransformInverse2DFE1) {
   run_dot_transform_inverse_tests<2>(1, 3, 5, 128);
   run_dot_transform_inverse_tests<2>(1, 4, 4, 256);
 }
 
-TEST(DiscretizedFunctionTest, DotTransformInverse2DFE2) {
+TEST(DiscretizedFunction, DotTransformInverse2DFE2) {
   run_dot_transform_inverse_tests<2>(2, 4, 4, 128);
   run_dot_transform_inverse_tests<2>(2, 4, 4, 256);
 }
 
-TEST(DiscretizedFunctionTest, DotTransformInverse3DFE1) {
+TEST(DiscretizedFunction, DotTransformInverse3DFE1) {
   run_dot_transform_inverse_tests<3>(1, 3, 2, 32);
   run_dot_transform_inverse_tests<3>(1, 4, 3, 64);
 }
 
-TEST(DiscretizedFunctionTest, DotTransformConsistent1DFE1) {
+TEST(DiscretizedFunction, DotTransformConsistent1DFE1) {
   run_dot_transform_consistent_tests<1>(1, 3, 10, 128);
   run_dot_transform_consistent_tests<1>(1, 4, 9, 256);
 }
 
-TEST(DiscretizedFunctionTest, DotTransformConsistent1DFE2) {
+TEST(DiscretizedFunction, DotTransformConsistent1DFE2) {
   run_dot_transform_consistent_tests<1>(2, 4, 7, 128);
   run_dot_transform_consistent_tests<1>(2, 4, 7, 256);
 }
 
-TEST(DiscretizedFunctionTest, DotTransformConsistent2DFE1) {
+TEST(DiscretizedFunction, DotTransformConsistent2DFE1) {
   run_dot_transform_consistent_tests<2>(1, 3, 5, 128);
   run_dot_transform_consistent_tests<2>(1, 4, 4, 256);
 }
 
-TEST(DiscretizedFunctionTest, DotTransformConsistent2DFE2) {
+TEST(DiscretizedFunction, DotTransformConsistent2DFE2) {
   run_dot_transform_consistent_tests<2>(2, 4, 4, 128);
   run_dot_transform_consistent_tests<2>(2, 4, 4, 256);
 }
 
-TEST(DiscretizedFunctionTest, DotTransformConsistent3DFE1) {
+TEST(DiscretizedFunction, DotTransformConsistent3DFE1) {
   run_dot_transform_consistent_tests<3>(1, 3, 2, 32);
   run_dot_transform_consistent_tests<3>(1, 4, 3, 64);
 }

@@ -102,6 +102,8 @@ class MeasuredValues {
     return *this;
   }
 
+  static MeasuredValues<dim> noise(std::shared_ptr<SpaceTimeGrid<dim>> grid);
+
   static MeasuredValues<dim> noise(const MeasuredValues<dim>& like);
 
   static MeasuredValues<dim> noise(const MeasuredValues<dim>& like, double norm);

@@ -8,6 +8,7 @@
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/function.h>
 #include <deal.II/base/logstream.h>
+#include <deal.II/base/mpi.h>
 #include <deal.II/base/numbers.h>
 #include <deal.II/base/point.h>
 #include <deal.II/base/quadrature.h>
@@ -132,6 +133,8 @@ void demo() {
 }
 
 int main(int argc, char *argv[]) {
+  Utilities::MPI::MPI_InitFinalize mpi_init(argc, argv);
+
   try {
     demo<2>();
   } catch (std::exception &exc) {

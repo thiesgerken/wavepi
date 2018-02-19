@@ -24,21 +24,26 @@ namespace wavepi {
 namespace measurements {
 
 template <int dim>
-MeasuredValues<dim> MeasuredValues<dim>::noise(const MeasuredValues<dim>& like) {
-  MeasuredValues<dim> res(like.grid);
+MeasuredValues<dim> MeasuredValues<dim>::noise(std::shared_ptr<SpaceTimeGrid<dim>> grid) {
+  MeasuredValues<dim> res(grid);
 
   std::default_random_engine generator;
   std::uniform_real_distribution<double> distribution(-1, 1);
 
-  for (size_t i = 0; i < like.size(); i++)
+  for (size_t i = 0; i < grid->size(); i++)
     res[i] = distribution(generator);
 
   return res;
 }
 
 template <int dim>
+MeasuredValues<dim> MeasuredValues<dim>::noise(const MeasuredValues<dim>& like) {
+  return noise(like.grid);
+}
+
+template <int dim>
 MeasuredValues<dim> MeasuredValues<dim>::noise(const MeasuredValues<dim>& like, double norm) {
-  auto res = noise(like);
+  auto res = noise(like.grid);
   res *= norm / res.norm();
 
   return res;

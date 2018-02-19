@@ -215,6 +215,8 @@ void run_discretized_test(int fe_order, int quad_order, int refines) {
 
   timer.restart();
   DiscretizedFunction<dim> sol_cont = wave_eq.run();
+  sol_cont.set_norm(Norm::L2L2);
+
   timer.stop();
   deallog << "continuous params: " << std::fixed << timer.wall_time() << " s of wall time" << std::endl;
   EXPECT_GT(sol_cont.norm(), 0.0);
@@ -243,6 +245,7 @@ void run_discretized_test(int fe_order, int quad_order, int refines) {
 
   timer.restart();
   DiscretizedFunction<dim> sol_disc = wave_eq.run();
+  sol_disc.set_norm(Norm::L2L2);
   timer.stop();
   deallog << "all discretized: " << std::fixed << timer.wall_time() << " s of wall time" << std::endl;
   EXPECT_GT(sol_disc.norm(), 0.0);
@@ -259,6 +262,7 @@ void run_discretized_test(int fe_order, int quad_order, int refines) {
 
   timer.restart();
   DiscretizedFunction<dim> sol_disc_except_q = wave_eq.run();
+  sol_disc_except_q.set_norm(Norm::L2L2);
   timer.stop();
   deallog << "all discretized, q disguised: " << std::fixed << timer.wall_time() << " s of wall time" << std::endl;
   EXPECT_GT(sol_disc_except_q.norm(), 0.0);
@@ -270,6 +274,7 @@ void run_discretized_test(int fe_order, int quad_order, int refines) {
 
   timer.restart();
   DiscretizedFunction<dim> sol_disc_except_a = wave_eq.run();
+  sol_disc_except_a.set_norm(Norm::L2L2);
   timer.stop();
   deallog << "all discretized, a disguised: " << std::fixed << timer.wall_time() << " s of wall time" << std::endl;
   EXPECT_GT(sol_disc_except_a.norm(), 0.0);
@@ -284,6 +289,7 @@ void run_discretized_test(int fe_order, int quad_order, int refines) {
 
   timer.restart();
   DiscretizedFunction<dim> sol_disguised = wave_eq.run();
+  sol_disguised.set_norm(Norm::L2L2);
   timer.stop();
   deallog << "all discretized and disguised as continuous: " << std::fixed << timer.wall_time() << " s of wall time"
           << std::endl
@@ -365,8 +371,14 @@ void run_reference_test(std::shared_ptr<SpaceTimeMesh<dim>> mesh, Point<dim, int
   DiscretizedFunction<dim> solv = solu.derivative();
   solu.throw_away_derivative();
 
+  solu.set_norm(Norm::L2L2);
+  solv.set_norm(Norm::L2L2);
+
   DiscretizedFunction<dim> refu(mesh, *u);
   DiscretizedFunction<dim> refv(mesh, *v);
+
+  refu.set_norm(Norm::L2L2);
+  refv.set_norm(Norm::L2L2);
 
   DiscretizedFunction<dim> tmp(solu);
   tmp -= refu;
@@ -396,6 +408,9 @@ void run_reference_test(std::shared_ptr<SpaceTimeMesh<dim>> mesh, Point<dim, int
   solu = wave_eq.run();
   solv = solu.derivative();
   solu.throw_away_derivative();
+
+  solu.set_norm(Norm::L2L2);
+  solv.set_norm(Norm::L2L2);
 
   tmp = solu;
   tmp -= refu;
@@ -505,25 +520,25 @@ void run_reference_test_refined(int fe_order, int quad_order, int refines, Point
   run_reference_test<dim>(mesh, k, constants, expect, save);
 }
 
-TEST(WaveEquationTest, DiscretizedParameters1DFE1) { run_discretized_test<1>(1, 3, 8); }
+TEST(WaveEquation, DiscretizedParameters1DFE1) { run_discretized_test<1>(1, 3, 8); }
 
-TEST(WaveEquationTest, DiscretizedParameters1DFE2) { run_discretized_test<1>(2, 4, 8); }
+TEST(WaveEquation, DiscretizedParameters1DFE2) { run_discretized_test<1>(2, 4, 8); }
 
-TEST(WaveEquationTest, DiscretizedParameters2DFE1) { run_discretized_test<2>(1, 3, 3); }
+TEST(WaveEquation, DiscretizedParameters2DFE1) { run_discretized_test<2>(1, 3, 3); }
 
-TEST(WaveEquationTest, DiscretizedParameters2DFE2) { run_discretized_test<2>(2, 4, 3); }
+TEST(WaveEquation, DiscretizedParameters2DFE2) { run_discretized_test<2>(2, 4, 3); }
 
-TEST(WaveEquationTest, DiscretizedParameters3DFE1) { run_discretized_test<3>(1, 3, 1); }
+TEST(WaveEquation, DiscretizedParameters3DFE1) { run_discretized_test<3>(1, 3, 1); }
 
-TEST(WaveEquationTest, ReferenceTest1DFE1) {
+TEST(WaveEquation, ReferenceTest1DFE1) {
   for (int steps = 128; steps <= 1024; steps *= 2)
     run_reference_test_constant<1>(1, 3, 10, Point<1, int>(2), Point<2>(1.0, 1.5), 2 * numbers::PI, steps, steps >= 64);
 
-  for (int refine = 9; refine >= 1; refine--)
+  for (int refine = 7; refine >= 1; refine--)
     run_reference_test_constant<1>(1, 3, refine, Point<1, int>(2), Point<2>(1.0, 1.5), 2 * numbers::PI, 1024, false);
 }
 
-TEST(WaveEquationTest, ReferenceTest1DFE2) {
+TEST(WaveEquation, ReferenceTest1DFE2) {
   for (int steps = 16; steps <= 128; steps *= 2)
     run_reference_test_constant<1>(2, 4, 7, Point<1, int>(2), Point<2>(1.0, 1.5), 2 * numbers::PI, steps, steps >= 64);
 
@@ -531,40 +546,34 @@ TEST(WaveEquationTest, ReferenceTest1DFE2) {
     run_reference_test_constant<1>(2, 4, refine, Point<1, int>(2), Point<2>(1.0, 1.5), 2 * numbers::PI, 128, false);
 }
 
-TEST(WaveEquationTest, ReferenceTest2DFE1) {
+TEST(WaveEquation, ReferenceTest2DFE1) {
   for (int steps = 16; steps <= 256; steps *= 2)
-    run_reference_test_constant<2>(1, 3, 6, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, steps,
+    run_reference_test_constant<2>(1, 3, 5, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, steps,
                                    steps >= 64);
 
   for (int refine = 5; refine >= 1; refine--)
     run_reference_test_constant<2>(1, 3, refine, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, 256, false);
 }
 
-TEST(WaveEquationTest, ReferenceTestAdaptive2DFE1) {
-  run_reference_test_adaptive<2>(1, 3, 4, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, 256, true);
+TEST(WaveEquation, ReferenceTestAdaptive2DFE1) {
+  for (int steps = 16; steps <= 256; steps *= 2)
+    run_reference_test_adaptive<2>(1, 3, 5, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, steps,
+                                   steps >= 64, false);
 
-  //   for (int steps = 16; steps <= 256; steps *= 2)
-  //      run_reference_test_adaptive<2>(1, 3, 5, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, steps,
-  //            steps >= 64, false);
-  //
-  //   for (int refine = 5; refine >= 1; refine--)
-  //      run_reference_test_adaptive<2>(1, 3, refine, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI,
-  //            256, false);
+  for (int refine = 5; refine >= 1; refine--)
+    run_reference_test_adaptive<2>(1, 3, refine, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, 256, false);
 }
 
-TEST(WaveEquationTest, ReferenceTestRefined2DFE1) {
-  run_reference_test_refined<2>(1, 3, 4, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, 256, true);
+TEST(WaveEquation, ReferenceTestRefined2DFE1) {
+  for (int steps = 16; steps <= 256; steps *= 2)
+    run_reference_test_adaptive<2>(1, 3, 5, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, steps,
+                                   steps >= 64, false);
 
-  //   for (int steps = 16; steps <= 256; steps *= 2)
-  //      run_reference_test_adaptive<2>(1, 3, 5, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, steps,
-  //            steps >= 64, false);
-  //
-  //   for (int refine = 5; refine >= 1; refine--)
-  //      run_reference_test_adaptive<2>(1, 3, refine, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI,
-  //            256, false);
+  for (int refine = 5; refine >= 1; refine--)
+    run_reference_test_adaptive<2>(1, 3, refine, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, 256, false);
 }
 
-TEST(WaveEquationTest, ReferenceTest3DFE1) {
+TEST(WaveEquation, ReferenceTest3DFE1) {
   for (int steps = 8; steps <= 32; steps *= 2)
     run_reference_test_constant<3>(1, 3, 3, Point<3, int>(1, 2, 3), Point<2>(0.7, 1.2), 2 * numbers::PI, steps,
                                    steps >= 32);
