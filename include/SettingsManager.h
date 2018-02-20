@@ -72,6 +72,7 @@ class SettingsManager {
   static const std::string KEY_PROBLEM_DATA_CONFIG;
   static const std::string KEY_PROBLEM_DATA_I;
   static const std::string KEY_PROBLEM_DATA_I_MEASURE;
+  static const std::string KEY_PROBLEM_DATA_I_SENSOR_DISTRIBUTION;
 
   /**
    * possible problems
@@ -91,7 +92,12 @@ class SettingsManager {
   /**
    * possible measurement operators
    */
-  enum class Measure { identical = 1, grid = 2 };
+  enum class Measure { identical = 1, convolution = 2, delta = 3 };
+
+  /**
+   * possible sensor distributions
+   */
+  enum class SensorDistribution { grid = 1 };
 
   /**
    * possible measurement types
@@ -145,6 +151,7 @@ class SettingsManager {
 
   static const size_t num_configurations = 2;
   std::vector<Measure> measures;
+  std::vector<SensorDistribution> sensor_distributions;
   MeasureType measure_type;
 
   std::map<std::string, double> shape_options;

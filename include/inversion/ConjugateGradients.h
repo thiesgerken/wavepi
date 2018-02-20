@@ -162,7 +162,6 @@ class ConjugateGradients : public LinearRegularization<Param, Sol, Exact> {
     double x2  = -p / 2 - rad;
 
     if (0 <= x1 && x1 <= 1) return x1;
-
     if (0 <= x2 && x2 <= 1) return x2;
 
     AssertThrow(false, ExcMessage("compute_safeguarding_factor: cannot get solutions between 0 and 1"));

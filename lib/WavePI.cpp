@@ -26,8 +26,10 @@
 #include <inversion/PostProcessor.h>
 #include <inversion/REGINN.h>
 #include <inversion/Regularization.h>
-#include <measurements/GridPointMeasure.h>
-#include <measurements/MeasuredValues.h>
+#include <measurements/ConvolutionMeasure.h>
+#include <measurements/DeltaMeasure.h>
+#include <measurements/SensorDistribution.h>
+#include <measurements/SensorValues.h>
 #include <problems/AProblem.h>
 #include <problems/CProblem.h>
 #include <problems/NuProblem.h>
@@ -51,6 +53,7 @@ using namespace dealii;
 using namespace wavepi::forward;
 using namespace wavepi::base;
 using namespace wavepi::inversion;
+using namespace wavepi::measurements;
 using namespace wavepi::problems;
 
 template <int dim, typename Meas>
@@ -88,27 +91,38 @@ Point<dim> WavePI<dim, Meas>::make_point(double x, double y, double z) {
   }
 }
 
-#define get_measure_tuple(D)                                                                                     \
-  template <>                                                                                                    \
-  std::shared_ptr<Measure<DiscretizedFunction<D>, MeasuredValues<D>>> WavePI<D, MeasuredValues<D>>::get_measure( \
-      size_t config_idx) {                                                                                       \
-    cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM);                                                    \
-    cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM_DATA);                                               \
-    cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM_DATA_I + Utilities::int_to_string(config_idx, 1));   \
-    std::shared_ptr<Measure<Param, MeasuredValues<D>>> measure;                                                  \
-    if (cfg->measures[config_idx] == SettingsManager::Measure::grid) {                                           \
-      auto my_measure = std::make_shared<GridPointMeasure<D>>();                                                 \
-      my_measure->get_parameters(*cfg->prm);                                                                     \
-      measure = my_measure;                                                                                      \
-    } else                                                                                                       \
-      AssertThrow(false, ExcInternalError());                                                                    \
-    cfg->prm->leave_subsection();                                                                                \
-    cfg->prm->leave_subsection();                                                                                \
-    cfg->prm->leave_subsection();                                                                                \
-    return measure;                                                                                              \
+#define get_measure_tuple(DIM)                                                                                       \
+  template <>                                                                                                        \
+  std::shared_ptr<Measure<DiscretizedFunction<DIM>, SensorValues<DIM>>> WavePI<DIM, SensorValues<DIM>>::get_measure( \
+      size_t config_idx) {                                                                                           \
+    cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM);                                                        \
+    cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM_DATA);                                                   \
+    cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM_DATA_I + Utilities::int_to_string(config_idx, 1));       \
+    std::shared_ptr<SensorDistribution<DIM>> sensor_distribution;                                                    \
+    if (cfg->sensor_distributions[config_idx] == SettingsManager::SensorDistribution::grid) {                        \
+      auto my_distribution = std::make_shared<GridDistribution<DIM>>();                                              \
+      my_distribution->get_parameters(*cfg->prm);                                                                    \
+      sensor_distribution = my_distribution;                                                                         \
+    } else                                                                                                           \
+      AssertThrow(false, ExcInternalError());                                                                        \
+    std::shared_ptr<Measure<Param, SensorValues<DIM>>> measure;                                                      \
+    if (cfg->measures[config_idx] == SettingsManager::Measure::convolution) {                                        \
+      auto my_measure = std::make_shared<ConvolutionMeasure<DIM>>(sensor_distribution);                              \
+      my_measure->get_parameters(*cfg->prm);                                                                         \
+      measure = my_measure;                                                                                          \
+    } else if (cfg->measures[config_idx] == SettingsManager::Measure::delta) {                                       \
+      measure = std::make_shared<DeltaMeasure<DIM>>(sensor_distribution);                                            \
+    } else                                                                                                           \
+      AssertThrow(false, ExcInternalError());                                                                        \
+    cfg->prm->leave_subsection();                                                                                    \
+    cfg->prm->leave_subsection();                                                                                    \
+    cfg->prm->leave_subsection();                                                                                    \
+    return measure;                                                                                                  \
   }
 
-get_measure_tuple(1) get_measure_tuple(2) get_measure_tuple(3)
+get_measure_tuple(1)      //
+    get_measure_tuple(2)  //
+    get_measure_tuple(3)  //
 #define get_measure_cont(D)                                                                                    \
   template <>                                                                                                  \
   std::shared_ptr<Measure<DiscretizedFunction<D>, DiscretizedFunction<D>>>                                     \
@@ -127,10 +141,12 @@ get_measure_tuple(1) get_measure_tuple(2) get_measure_tuple(3)
     return measure;                                                                                            \
   }
 
-    get_measure_cont(1) get_measure_cont(2) get_measure_cont(3)
+    get_measure_cont(1)  //
+    get_measure_cont(2)  //
+    get_measure_cont(3)  //
 
-        template <int dim, typename Meas>
-        void WavePI<dim, Meas>::initialize_mesh() {
+    template <int dim, typename Meas>
+    void WavePI<dim, Meas>::initialize_mesh() {
   LogStream::Prefix p("initialize_mesh");
 
   auto triangulation = std::make_shared<Triangulation<dim>>();
@@ -351,12 +367,12 @@ void WavePI<dim, Meas>::run() {
 }
 
 template class WavePI<1, DiscretizedFunction<1>>;
-template class WavePI<1, MeasuredValues<1>>;
+template class WavePI<1, SensorValues<1>>;
 
 template class WavePI<2, DiscretizedFunction<2>>;
-template class WavePI<2, MeasuredValues<2>>;
+template class WavePI<2, SensorValues<2>>;
 
 template class WavePI<3, DiscretizedFunction<3>>;
-template class WavePI<3, MeasuredValues<3>>;
+template class WavePI<3, SensorValues<3>>;
 
 } /* namespace wavepi */

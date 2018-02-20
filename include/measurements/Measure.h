@@ -8,25 +8,12 @@
 #ifndef INCLUDE_MEASUREMENTS_MEASURE_H_
 #define INCLUDE_MEASUREMENTS_MEASURE_H_
 
-#include <base/DiscretizedFunction.h>
-#include <base/MacroFunctionParser.h>
-#include <base/SpaceTimeGrid.h>
-#include <base/SpaceTimeMesh.h>
-#include <base/Tuple.h>
-#include <measurements/MeasuredValues.h>
-
-#include <memory>
-#include <vector>
-
 namespace wavepi {
 
 /**
  * Measurement operators (and adjoints) as well as the needed structure to have measurements.
  */
 namespace measurements {
-
-using namespace dealii;
-using namespace wavepi::base;
 
 /**
  * Interface for linear Measurements. `Measurement` will most likely be `std::vector<double>`.
@@ -44,7 +31,6 @@ class Measure {
 
   /**
    * Compute the adjoint of what `evaluate` does.
-   * This function should ask `Sol` and `Measurement` for the required spaces.
    */
   virtual Sol adjoint(const Measurement& measurements) = 0;
 };

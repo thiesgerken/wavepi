@@ -6,7 +6,6 @@ SET(LIBSOURCES
         DiscretizedFunction.cpp 
         MacroFunctionParser.cpp 
         RadialParsedFunction.cpp 
-        SpaceTimeGrid.cpp
         Transformation.cpp
         Util.cpp   
     )

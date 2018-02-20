@@ -1,8 +1,9 @@
 # file(GLOB LIBSOURCES *.cpp)
 SET(LIBSOURCES
-    PointMeasure.cpp 
-    GridPointMeasure.cpp 
-    MeasuredValues.cpp
+    ConvolutionMeasure.cpp 
+    DeltaMeasure.cpp
+    SensorValues.cpp
+    SensorDistribution.cpp
    )
     
 add_library(wavepi_measurements ${LIBSOURCES})

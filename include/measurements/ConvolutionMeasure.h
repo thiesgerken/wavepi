@@ -1,12 +1,12 @@
 /*
- * PointMeasure.h
+ * ConvolutionMeasure.h
  *
  *  Created on: 31.08.2017
  *      Author: thies
  */
 
-#ifndef INCLUDE_MEASUREMENTS_POINTMEASURE_H_
-#define INCLUDE_MEASUREMENTS_POINTMEASURE_H_
+#ifndef INCLUDE_MEASUREMENTS_CONVOLUTIONMEASURE_H_
+#define INCLUDE_MEASUREMENTS_CONVOLUTIONMEASURE_H_
 
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/function.h>
@@ -23,9 +23,10 @@
 
 #include <base/DiscretizedFunction.h>
 #include <base/LightFunction.h>
-#include <base/SpaceTimeGrid.h>
 #include <base/SpaceTimeMesh.h>
 #include <measurements/Measure.h>
+#include <measurements/SensorDistribution.h>
+#include <measurements/SensorValues.h>
 
 #include <list>
 #include <memory>
@@ -41,9 +42,9 @@ using namespace wavepi::base;
  * Point measurements, implemented as scalar product between the given field and a delta-approximating function.
  */
 template <int dim>
-class PointMeasure : public Measure<DiscretizedFunction<dim>, MeasuredValues<dim>> {
+class ConvolutionMeasure : public Measure<DiscretizedFunction<dim>, SensorValues<dim>> {
  public:
-  virtual ~PointMeasure() = default;
+  virtual ~ConvolutionMeasure() = default;
 
   /**
    * @param points Points in space and time (last dimension is time) where you want those point measurements.
@@ -51,30 +52,23 @@ class PointMeasure : public Measure<DiscretizedFunction<dim>, MeasuredValues<dim
    * @param delta_scale_space Desired support radius in space
    * @param delta_scale_time Desired support radius in time
    */
-  PointMeasure(std::shared_ptr<SpaceTimeGrid<dim>> points, std::shared_ptr<LightFunction<dim>> delta_shape,
-               double delta_scale_space, double delta_scale_time);
+  ConvolutionMeasure(std::shared_ptr<SensorDistribution<dim>> points, std::shared_ptr<LightFunction<dim>> delta_shape,
+                     double delta_scale_space, double delta_scale_time);
 
   /**
-   * Does not initialize most of the values, you have to use get_parameters afterwards and use `set_measurement_points`.
-   * *
+   * Does not initialize most of the values, you have to use get_parameters afterwards.
    */
-  PointMeasure();
+  ConvolutionMeasure(std::shared_ptr<SensorDistribution<dim>> points);
 
   static void declare_parameters(ParameterHandler& prm);
   void get_parameters(ParameterHandler& prm);
 
-  virtual MeasuredValues<dim> evaluate(const DiscretizedFunction<dim>& field);
+  virtual SensorValues<dim> evaluate(const DiscretizedFunction<dim>& field);
 
   /**
    * Adjoint, discretized on the mesh last used for evaluate
    */
-  virtual DiscretizedFunction<dim> adjoint(const MeasuredValues<dim>& measurements);
-
-  const std::shared_ptr<SpaceTimeGrid<dim>>& get_measurement_points() const { return measurement_points; }
-
-  void set_measurement_points(const std::shared_ptr<SpaceTimeGrid<dim>>& measurement_points) {
-    this->measurement_points = measurement_points;
-  }
+  virtual DiscretizedFunction<dim> adjoint(const SensorValues<dim>& measurements);
 
   class HatShape : public LightFunction<dim> {
    public:
@@ -134,7 +128,7 @@ class PointMeasure : public Measure<DiscretizedFunction<dim>, MeasuredValues<dim
 
  protected:
   std::shared_ptr<SpaceTimeMesh<dim>> mesh;
-  std::shared_ptr<SpaceTimeGrid<dim>> measurement_points;
+  std::shared_ptr<SensorDistribution<dim>> sensor_distribution;
   std::shared_ptr<LightFunction<dim>> delta_shape;
 
   double delta_scale_space;
@@ -150,4 +144,4 @@ class PointMeasure : public Measure<DiscretizedFunction<dim>, MeasuredValues<dim
 }  // namespace measurements
 } /* namespace wavepi */
 
-#endif /* INCLUDE_MEASUREMENTS_POINTMEASURE_H_ */
+#endif /* INCLUDE_MEASUREMENTS_CONVOLUTIONMEASURE_H_ */

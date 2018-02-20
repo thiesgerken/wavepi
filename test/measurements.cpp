@@ -26,13 +26,13 @@
 #include <forward/WaveEquation.h>
 #include <forward/WaveEquationAdjoint.h>
 #include <forward/WaveEquationBase.h>
-#include <measurements/GridPointMeasure.h>
 #include <measurements/Measure.h>
-#include <measurements/PointMeasure.h>
 #include <problems/QProblem.h>
 #include <problems/WaveProblem.h>
 
 #include <gtest/gtest.h>
+#include <measurements/ConvolutionMeasure.h>
+#include <measurements/SensorDistribution.h>
 
 #include <stddef.h>
 #include <cmath>
@@ -56,7 +56,7 @@ void run_grid_measure_adjoint_test(int fe_order, int quad_order, int refines, in
   Util::set_all_boundary_ids(*triangulation, 0);
   triangulation->refine_global(refines);
 
-  double t_start = 0.0, t_end = 2.0, dt = t_end / n_steps;
+  double t_start = 0.0, t_end = 1.0, dt = t_end / n_steps;
   std::vector<double> times;
 
   for (size_t i = 0; t_start + i * dt <= t_end; i++)
@@ -70,23 +70,23 @@ void run_grid_measure_adjoint_test(int fe_order, int quad_order, int refines, in
   deallog << std::endl << "----------  n_dofs / timestep: " << mesh->get_dof_handler(0)->n_dofs();
   deallog << ", n_steps: " << times.size() << "  ----------" << std::endl;
 
-  std::vector<double> mtimes;
-  for (size_t i = 0; i < 10; i++)
-    mtimes.push_back(i * 0.1);
+  std::vector<double> mtimes(2, 0.0);
+  for (size_t i = 0; i < mtimes.size(); i++)
+    mtimes[i] = (i + 1.0) / (mtimes.size() + 1.0);
 
   std::vector<std::vector<double>> spatial_points;
   for (size_t d = 0; d < dim; d++) {
-    std::vector<double> tmp;
+    std::vector<double> tmp(2, 0.0);
 
-    for (size_t i = 0; i < 10; i++)
-      tmp.push_back((i + 1.0) / 2.0 * 0.1);
+    for (size_t i = 0; i < tmp.size(); i++)
+      tmp[i] = ((i + 1.0) / (tmp.size() + 1.0)) * 2.0 - 1.0;
 
     spatial_points.push_back(tmp);
   }
 
-  auto grid = std::make_shared<SpaceTimeGrid<dim>>(mtimes, spatial_points);
-  auto my_measure =
-      std::make_shared<PointMeasure<dim>>(grid, std::make_shared<typename PointMeasure<dim>::HatShape>(), 0.1, 0.1);
+  auto grid       = std::make_shared<GridDistribution<dim>>(mtimes, spatial_points);
+  auto my_measure = std::make_shared<ConvolutionMeasure<dim>>(
+      grid, std::make_shared<typename ConvolutionMeasure<dim>::HatShape>(), 0.1, 0.2);
 
   double tol = 1e-06;
 
@@ -94,15 +94,25 @@ void run_grid_measure_adjoint_test(int fe_order, int quad_order, int refines, in
     DiscretizedFunction<dim> f = DiscretizedFunction<dim>::noise(mesh);
     f.set_norm(Norm::L2L2);
 
-    MeasuredValues<dim> g = MeasuredValues<dim>::noise(grid);
+    SensorValues<dim> g = SensorValues<dim>::noise(grid);
 
-    auto Psif    = my_measure->evaluate(f);
+    Timer eval_timer;
+    eval_timer.start();
+    auto Psif = my_measure->evaluate(f);
+    eval_timer.stop();
+
+    Timer adj_timer;
+    adj_timer.start();
     auto PsiAdjg = my_measure->adjoint(g);
-    PsiAdjg.set_norm(Norm::L2L2);
+    AssertThrow(PsiAdjg.get_norm() == Norm::L2L2, ExcInternalError());
+    adj_timer.stop();
 
     double dot_Psif_g    = Psif * g;
     double dot_f_Psiadjg = f * PsiAdjg;
     double mfg_err       = std::abs(dot_Psif_g - dot_f_Psiadjg) / (std::abs(dot_Psif_g) + 1e-300);
+
+    deallog << "wall time evaluate: " << std::fixed << eval_timer.wall_time() << " s" << std::endl;
+    deallog << "wall time adjoint: " << std::fixed << adj_timer.wall_time() << " s" << std::endl;
 
     deallog << std::scientific << "(Ψf, g) = " << dot_Psif_g << ", (f, Ψ*g) = " << dot_f_Psiadjg
             << ", rel. error = " << mfg_err << std::endl;
@@ -115,26 +125,11 @@ void run_grid_measure_adjoint_test(int fe_order, int quad_order, int refines, in
 
 }  // namespace
 
-TEST(Measurements, PointMeasureAdjointness1DFE1) {
-  run_grid_measure_adjoint_test<1>(1, 3, 10, 128);
-  run_grid_measure_adjoint_test<1>(1, 4, 9, 256);
-}
-TEST(Measurements, PointMeasureAdjointness1DFE2) {
-  run_grid_measure_adjoint_test<1>(2, 4, 7, 128);
-  run_grid_measure_adjoint_test<1>(2, 4, 7, 256);
-}
+TEST(Measurements, ConvolutionMeasureAdjointness1DFE1) { run_grid_measure_adjoint_test<1>(1, 4, 9, 256); }
+TEST(Measurements, ConvolutionMeasureAdjointness1DFE2) { run_grid_measure_adjoint_test<1>(2, 4, 7, 128); }
 
-TEST(Measurements, PointMeasureAdjointness2DFE1) {
-  run_grid_measure_adjoint_test<2>(1, 3, 5, 128);
-  run_grid_measure_adjoint_test<2>(1, 4, 4, 256);
-}
+TEST(Measurements, ConvolutionMeasureAdjointness2DFE1) { run_grid_measure_adjoint_test<2>(1, 4, 5, 256); }
 
-TEST(Measurements, PointMeasureAdjointness2DFE2) {
-  run_grid_measure_adjoint_test<2>(2, 4, 4, 128);
-  run_grid_measure_adjoint_test<2>(2, 4, 4, 256);
-}
+TEST(Measurements, ConvolutionMeasureAdjointness2DFE2) { run_grid_measure_adjoint_test<2>(2, 4, 5, 128); }
 
-TEST(Measurements, PointMeasureAdjointness3DFE1) {
-  run_grid_measure_adjoint_test<3>(1, 3, 2, 128);
-  run_grid_measure_adjoint_test<3>(1, 4, 2, 256);
-}
+TEST(Measurements, ConvolutionMeasureAdjointness3DFE1) { run_grid_measure_adjoint_test<3>(1, 4, 4, 128); }

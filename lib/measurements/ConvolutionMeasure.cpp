@@ -1,27 +1,20 @@
 /*
- * PointMeasure.cpp
+ * ConvolutionMeasure.cpp
  *
  *  Created on: 31.08.2017
  *      Author: thies
  */
 
-#include <deal.II/base/exceptions.h>
-#include <deal.II/base/function.h>
-#include <deal.II/base/quadrature.h>
-#include <deal.II/base/types.h>
-#include <deal.II/base/work_stream.h>
-#include <deal.II/dofs/dof_handler.h>
-#include <deal.II/fe/fe.h>
-#include <deal.II/fe/fe_update_flags.h>
-#include <deal.II/fe/fe_values.h>
-#include <deal.II/lac/vector.h>
-#include <deal.II/numerics/vector_tools.h>
-
-#include <measurements/PointMeasure.h>
-
+#include <base/Norm.h>
+#include <deal.II/base/logstream.h>
+#include <deal.II/base/timer.h>
+#include <measurements/ConvolutionMeasure.h>
+#include <measurements/SensorValues.h>
 #include <stddef.h>
-#include <list>
-#include <utility>
+#include <cmath>
+#include <iostream>
+#include <string>
+#include <vector>
 
 namespace wavepi {
 namespace measurements {
@@ -30,26 +23,26 @@ using namespace dealii;
 using namespace wavepi::base;
 
 template <int dim>
-PointMeasure<dim>::PointMeasure(std::shared_ptr<SpaceTimeGrid<dim>> points,
-                                std::shared_ptr<LightFunction<dim>> delta_shape, double delta_scale_space,
-                                double delta_scale_time)
+ConvolutionMeasure<dim>::ConvolutionMeasure(std::shared_ptr<SensorDistribution<dim>> points,
+                                            std::shared_ptr<LightFunction<dim>> delta_shape, double delta_scale_space,
+                                            double delta_scale_time)
     : mesh(),
-      measurement_points(points),
+      sensor_distribution(points),
       delta_shape(delta_shape),
       delta_scale_space(delta_scale_space),
       delta_scale_time(delta_scale_time) {}
 
 template <int dim>
-PointMeasure<dim>::PointMeasure()
-    : mesh(), measurement_points(), delta_shape(), delta_scale_space(0.0), delta_scale_time(0.0) {}
+ConvolutionMeasure<dim>::ConvolutionMeasure(std::shared_ptr<SensorDistribution<dim>> points)
+    : mesh(), sensor_distribution(points), delta_shape(), delta_scale_space(0.0), delta_scale_time(0.0) {}
 
 template <int dim>
-std::vector<std::vector<std::pair<size_t, double>>> PointMeasure<dim>::compute_jobs() const {
+std::vector<std::vector<std::pair<size_t, double>>> ConvolutionMeasure<dim>::compute_jobs() const {
   std::vector<std::vector<std::pair<size_t, double>>> jobs(mesh->length());
 
   size_t sensor_offset = 0;
-  for (size_t mti = 0; mti < measurement_points->get_times().size(); mti++) {
-    double mtime = measurement_points->get_times()[mti];
+  for (size_t mti = 0; mti < sensor_distribution->get_times().size(); mti++) {
+    double mtime = sensor_distribution->get_times()[mti];
 
     for (size_t ti = 0; ti < mesh->get_times().size(); ti++) {
       double t = mesh->get_time(ti);
@@ -66,24 +59,25 @@ std::vector<std::vector<std::pair<size_t, double>>> PointMeasure<dim>::compute_j
       // norm correction
       factor *= delta_scale_time * pow(delta_scale_space, dim);
 
-      for (size_t msi = 0; msi < measurement_points->get_points()[mti].size(); msi++)
+      for (size_t msi = 0; msi < sensor_distribution->get_points(mti).size(); msi++)
         jobs[ti].emplace_back(msi + sensor_offset, factor);
     }
 
-    sensor_offset += measurement_points->get_points()[mti].size();
+    sensor_offset += sensor_distribution->get_points(mti).size();
   }
 
   return jobs;
 }
 
 template <int dim>
-MeasuredValues<dim> PointMeasure<dim>::evaluate(const DiscretizedFunction<dim>& field) {
+SensorValues<dim> ConvolutionMeasure<dim>::evaluate(const DiscretizedFunction<dim>& field) {
   AssertThrow(delta_shape && delta_scale_space > 0 && delta_scale_time > 0, ExcNotInitialized());
-  AssertThrow(measurement_points && measurement_points->size(), ExcNotInitialized());
+  AssertThrow(sensor_distribution && sensor_distribution->size(), ExcNotInitialized());
   this->mesh = field.get_mesh();
 
   LightFunctionWrapper wrapper(delta_shape, delta_scale_space, delta_scale_time);
-  MeasuredValues<dim> res(measurement_points);
+  SensorValues<dim> res(sensor_distribution);
+
   auto jobs = compute_jobs();
 
   for (size_t ji = 0; ji < jobs.size(); ji++) {
@@ -93,7 +87,7 @@ MeasuredValues<dim> PointMeasure<dim>::evaluate(const DiscretizedFunction<dim>& 
     wrapper.set_time(mesh->get_time(ji));
 
     for (size_t k = 0; k < jobs[ji].size(); k++) {
-      wrapper.set_offset((*measurement_points)[jobs[ji][k].first]);
+      wrapper.set_offset((*sensor_distribution)[jobs[ji][k].first]);
 
       interp_shape = 0.0;
       VectorTools::interpolate(*dof, wrapper, interp_shape);
@@ -108,9 +102,9 @@ MeasuredValues<dim> PointMeasure<dim>::evaluate(const DiscretizedFunction<dim>& 
 }
 
 template <int dim>
-DiscretizedFunction<dim> PointMeasure<dim>::adjoint(const MeasuredValues<dim>& measurements) {
+DiscretizedFunction<dim> ConvolutionMeasure<dim>::adjoint(const SensorValues<dim>& measurements) {
   AssertThrow(delta_shape && delta_scale_space > 0 && delta_scale_time > 0, ExcNotInitialized());
-  AssertThrow(mesh && measurement_points && measurement_points->size(), ExcNotInitialized());
+  AssertThrow(mesh && sensor_distribution && sensor_distribution->size(), ExcNotInitialized());
 
   DiscretizedFunction<dim> res(mesh);
   auto jobs = compute_jobs();
@@ -125,7 +119,7 @@ DiscretizedFunction<dim> PointMeasure<dim>::adjoint(const MeasuredValues<dim>& m
     for (size_t i = 0; i < jobs[ji].size(); i++) {
       size_t sensor_idx = jobs[ji][i].first;
 
-      wrapper.set_offset((*measurement_points)[sensor_idx]);
+      wrapper.set_offset((*sensor_distribution)[sensor_idx]);
 
       tmp = 0.0;
 
@@ -137,6 +131,7 @@ DiscretizedFunction<dim> PointMeasure<dim>::adjoint(const MeasuredValues<dim>& m
     }
   }
 
+  // indicate which norm we used for the adjoint
   res.set_norm(Norm::L2L2);
   res.dot_mult_mass_and_transform_inverse();
 
@@ -144,8 +139,8 @@ DiscretizedFunction<dim> PointMeasure<dim>::adjoint(const MeasuredValues<dim>& m
 }
 
 template <int dim>
-void PointMeasure<dim>::declare_parameters(ParameterHandler& prm) {
-  prm.enter_subsection("PointMeasure");
+void ConvolutionMeasure<dim>::declare_parameters(ParameterHandler& prm) {
+  prm.enter_subsection("ConvolutionMeasure");
   {
     prm.declare_entry("radius space", "0.2", Patterns::Double(0), "scaling of shape function in spatial variables");
     prm.declare_entry("radius time", "0.2", Patterns::Double(0), "scaling of shape function in time variable");
@@ -156,8 +151,8 @@ void PointMeasure<dim>::declare_parameters(ParameterHandler& prm) {
 }
 
 template <int dim>
-void PointMeasure<dim>::get_parameters(ParameterHandler& prm) {
-  prm.enter_subsection("PointMeasure");
+void ConvolutionMeasure<dim>::get_parameters(ParameterHandler& prm) {
+  prm.enter_subsection("ConvolutionMeasure");
   {
     auto shape_desc = prm.get("shape");
 
@@ -177,9 +172,9 @@ void PointMeasure<dim>::get_parameters(ParameterHandler& prm) {
   prm.leave_subsection();
 }
 
-template class PointMeasure<1>;
-template class PointMeasure<2>;
-template class PointMeasure<3>;
+template class ConvolutionMeasure<1>;
+template class ConvolutionMeasure<2>;
+template class ConvolutionMeasure<3>;
 
 }  // namespace measurements
 } /* namespace wavepi */

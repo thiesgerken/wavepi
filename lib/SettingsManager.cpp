@@ -10,12 +10,13 @@
 #include <deal.II/base/utilities.h>
 
 #include <base/DiscretizedFunction.h>
+#include <base/Tuple.h>
 #include <forward/WaveEquationBase.h>
 #include <inversion/InversionProgress.h>
 #include <inversion/NonlinearLandweber.h>
 #include <inversion/REGINN.h>
-#include <measurements/GridPointMeasure.h>
-#include <measurements/PointMeasure.h>
+#include <measurements/ConvolutionMeasure.h>
+#include <measurements/SensorDistribution.h>
 
 #include <SettingsManager.h>
 
@@ -64,12 +65,13 @@ const std::string SettingsManager::KEY_PROBLEM_PARAM_Q   = "parameter q";
 const std::string SettingsManager::KEY_PROBLEM_PARAM_C   = "parameter c";
 const std::string SettingsManager::KEY_PROBLEM_PARAM_NU  = "parameter nu";
 
-const std::string SettingsManager::KEY_PROBLEM_DATA           = "data";
-const std::string SettingsManager::KEY_PROBLEM_DATA_COUNT     = "number of right hand sides";
-const std::string SettingsManager::KEY_PROBLEM_DATA_RHS       = "right hand sides";
-const std::string SettingsManager::KEY_PROBLEM_DATA_CONFIG    = "configurations";
-const std::string SettingsManager::KEY_PROBLEM_DATA_I         = "config ";  // + number
-const std::string SettingsManager::KEY_PROBLEM_DATA_I_MEASURE = "measure";
+const std::string SettingsManager::KEY_PROBLEM_DATA                       = "data";
+const std::string SettingsManager::KEY_PROBLEM_DATA_COUNT                 = "number of right hand sides";
+const std::string SettingsManager::KEY_PROBLEM_DATA_RHS                   = "right hand sides";
+const std::string SettingsManager::KEY_PROBLEM_DATA_CONFIG                = "configurations";
+const std::string SettingsManager::KEY_PROBLEM_DATA_I                     = "config ";  // + number
+const std::string SettingsManager::KEY_PROBLEM_DATA_I_MEASURE             = "measure";
+const std::string SettingsManager::KEY_PROBLEM_DATA_I_SENSOR_DISTRIBUTION = "sensor distribution";
 
 const std::string SettingsManager::KEY_INVERSION        = "inversion";
 const std::string SettingsManager::KEY_INVERSION_TAU    = "tau";
@@ -175,9 +177,14 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
       for (size_t i = 0; i < num_configurations; i++) {
         prm->enter_subsection(KEY_PROBLEM_DATA_I + Utilities::int_to_string(i, 1));
 
-        GridPointMeasure<2>::declare_parameters(*prm);
-        prm->declare_entry(KEY_PROBLEM_DATA_I_MEASURE, "Identical", Patterns::Selection("Identical|Grid"),
+        ConvolutionMeasure<2>::declare_parameters(*prm);
+        GridDistribution<2>::declare_parameters(*prm);
+
+        prm->declare_entry(KEY_PROBLEM_DATA_I_MEASURE, "Identical", Patterns::Selection("Identical|Convolution|Delta"),
                            "type of measurements");
+
+        prm->declare_entry(KEY_PROBLEM_DATA_I_SENSOR_DISTRIBUTION, "Grid", Patterns::Selection("Grid"),
+                           "in case of simulated sensors, their location on the mesh");
 
         prm->leave_subsection();
       }
@@ -408,8 +415,8 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
         if (measure_desc == "Identical") {
           measures.push_back(Measure::identical);
           my_measure_type = MeasureType::discretized_function;
-        } else if (measure_desc == "Grid") {
-          measures.push_back(Measure::grid);
+        } else if (measure_desc == "Convolution") {
+          measures.push_back(Measure::convolution);
           my_measure_type = MeasureType::vector;
         } else {
           AssertThrow(false, ExcMessage("Unknown Measure: " + measure_desc));
@@ -417,7 +424,13 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
 
         measure_types.push_back(my_measure_type);
 
-        GridPointMeasure<2>::declare_parameters(*prm);
+        auto distrib_desc = prm->get(KEY_PROBLEM_DATA_I_SENSOR_DISTRIBUTION);
+
+        if (distrib_desc == "Grid") {
+          sensor_distributions.push_back(SettingsManager::SensorDistribution::grid);
+        } else {
+          AssertThrow(false, ExcMessage("Unknown Measure: " + measure_desc));
+        }
 
         prm->leave_subsection();
       }

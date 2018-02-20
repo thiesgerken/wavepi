@@ -1,68 +1,62 @@
 /*
- * MeasuredValues.h
+ * SensorValues.h
  *
  *  Created on: 30.08.2017
  *      Author: thies
  */
 
-#ifndef INCLUDE_MEASUREMENTS_MEASUREDVALUES_H_
-#define INCLUDE_MEASUREMENTS_MEASUREDVALUES_H_
+#ifndef INCLUDE_MEASUREMENTS_SENSORVALUES_H_
+#define INCLUDE_MEASUREMENTS_SENSORVALUES_H_
 
-#include <base/SpaceTimeGrid.h>
 #include <deal.II/base/exceptions.h>
-#include <deal.II/base/mpi.h>
+#include <measurements/SensorDistribution.h>
 #include <stddef.h>
-#include <tgmath.h>
-#include <algorithm>
-#include <cmath>
 #include <memory>
-#include <random>
 #include <string>
 #include <vector>
 
 namespace wavepi {
 namespace measurements {
 using namespace dealii;
-using namespace wavepi::base;
 
 /**
  * `std::vector<dim>` with vector space functionality and l2-norms and scalar products.
  */
 template <int dim>
-class MeasuredValues {
+class SensorValues {
  public:
-  explicit MeasuredValues(std::shared_ptr<SpaceTimeGrid<dim>> grid) : grid(grid), elements(grid->size()) {}
+  explicit SensorValues(std::shared_ptr<SensorDistribution<dim>> grid) : grid(grid), elements(grid->size()) {}
 
-  MeasuredValues(MeasuredValues&& o) : grid(std::move(o.grid)), elements(std::move(o.elements)) {}
+  SensorValues(SensorValues&& o) : grid(std::move(o.grid)), elements(std::move(o.elements)) {}
 
-  MeasuredValues(const MeasuredValues& o) : grid(o.grid), elements(o.elements) {}
+  SensorValues(const SensorValues& o) : grid(o.grid), elements(o.elements) {}
 
-  MeasuredValues<dim>& operator+=(const MeasuredValues<dim>& o) {
+  SensorValues<dim>& operator+=(const SensorValues<dim>& o) {
     add(1.0, o);
 
     return *this;
   }
 
-  MeasuredValues<dim>& operator-=(const MeasuredValues<dim>& o) {
+  SensorValues<dim>& operator-=(const SensorValues<dim>& o) {
     add(-1.0, o);
 
     return *this;
   }
 
-  MeasuredValues<dim>& operator*=(const double factor) {
+  SensorValues<dim>& operator*=(const double factor) {
     for (size_t i = 0; i < this->size(); i++)
       elements[i] *= factor;
 
     return *this;
   }
 
-  MeasuredValues<dim>& operator/=(const double factor) { return *this *= (1.0 / factor); }
+  SensorValues<dim>& operator/=(const double factor) { return *this *= (1.0 / factor); }
 
   double norm() const { return sqrt(this->dot(*this)); }
 
-  double dot(const MeasuredValues<dim>& o) const { return (*this) * o; }
+  double dot(const SensorValues<dim>& o) const { return (*this) * o; }
 
-  double operator*(const MeasuredValues<dim>& o) const {
+  double operator*(const SensorValues<dim>& o) const {
     AssertThrow(o.size() == this->size() && o.grid == this->grid, ExcInternalError());
 
     double tmp = 0.0;
@@ -73,7 +67,7 @@ class MeasuredValues {
     return tmp;
   }
 
-  void add(const double a, const MeasuredValues<dim>& o) {
+  void add(const double a, const SensorValues<dim>& o) {
     AssertThrow(o.size() == this->size() && o.grid == this->grid, ExcInternalError());
 
     for (size_t i = 0; i < this->size(); i++)
@@ -83,30 +77,30 @@ class MeasuredValues {
   /**
    * scale by s and add a*V
    */
-  void sadd(const double s, const double a, const MeasuredValues<dim>& o) {
+  void sadd(const double s, const double a, const SensorValues<dim>& o) {
     AssertThrow(o.size() == this->size() && o.grid == this->grid, ExcInternalError());
 
     for (size_t i = 0; i < this->size(); i++)
       elements[i] = s * elements[i] + a * o[i];
   }
 
-  MeasuredValues<dim>& operator=(MeasuredValues<dim>&& o) {
+  SensorValues<dim>& operator=(SensorValues<dim>&& o) {
     elements = std::move(o.elements);
 
     return *this;
   }
 
-  MeasuredValues<dim>& operator=(const MeasuredValues<dim>& o) {
+  SensorValues<dim>& operator=(const SensorValues<dim>& o) {
     elements = o.elements;
 
     return *this;
   }
 
-  static MeasuredValues<dim> noise(std::shared_ptr<SpaceTimeGrid<dim>> grid);
+  static SensorValues<dim> noise(std::shared_ptr<SensorDistribution<dim>> grid);
 
-  static MeasuredValues<dim> noise(const MeasuredValues<dim>& like);
+  static SensorValues<dim> noise(const SensorValues<dim>& like);
 
-  static MeasuredValues<dim> noise(const MeasuredValues<dim>& like, double norm);
+  static SensorValues<dim> noise(const SensorValues<dim>& like, double norm);
 
   size_t size() const { return elements.size(); }
 
@@ -123,11 +117,6 @@ class MeasuredValues {
   }
 
   void write_pvd(std::string path, std::string filename, std::string name) const;
-
-  /**
-   * Only in 1D: write space + time data as 2D vts file
-   */
-  void write_vts(std::string path, std::string filename, std::string name) const;
 
 #ifdef WAVEPI_MPI
   /**
@@ -148,7 +137,7 @@ class MeasuredValues {
    * reduce the stuff in source using the given operation, everyone gets the result in this object
    * (should be empty before!)
    */
-  void mpi_all_reduce(MeasuredValues<dim> source, MPI_Op op);
+  void mpi_all_reduce(SensorValues<dim> source, MPI_Op op);
 
   /**
    * @}
@@ -156,11 +145,11 @@ class MeasuredValues {
 #endif
 
  private:
-  std::shared_ptr<SpaceTimeGrid<dim>> grid;
+  std::shared_ptr<SensorDistribution<dim>> grid;
   std::vector<double> elements;
 };
 
 } /* namespace measurements */
 } /* namespace wavepi */
 
-#endif /* INCLUDE_MEASUREMENTS_MEASUREDVALUES_H_ */
+#endif /* INCLUDE_MEASUREMENTS_SENSORVALUES_H_ */
