@@ -118,6 +118,8 @@ class SensorValues {
 
   void write_pvd(std::string path, std::string filename, std::string name) const;
 
+  double relative_error(const SensorValues<dim>& other) const;
+
 #ifdef WAVEPI_MPI
   /**
    * @name MPI support
@@ -139,17 +141,17 @@ class SensorValues {
    */
   void mpi_all_reduce(SensorValues<dim> source, MPI_Op op);
 
-  /**
-   * @}
-   */
+/**
+ * @}
+ */
 #endif
 
  private:
   std::shared_ptr<SensorDistribution<dim>> grid;
   std::vector<double> elements;
-};
+};  // namespace measurements
 
-} /* namespace measurements */
+}  // namespace measurements
 } /* namespace wavepi */
 
 #endif /* INCLUDE_MEASUREMENTS_SENSORVALUES_H_ */

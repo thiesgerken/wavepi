@@ -31,25 +31,63 @@ class SensorDistribution {
    * @param times times used in this grid in ascending order.
    * @param spatial points at each time step (same length as `times`, inner vector may be differently sized)
    */
-  SensorDistribution(const std::vector<double>& times, const std::vector<std::vector<Point<dim>>>& points);
+  SensorDistribution(const std::vector<double>& times, const std::vector<std::vector<Point<dim>>>& points_per_time);
 
   SensorDistribution() = default;
 
+  /**
+   * total number of points
+   */
   inline size_t size() const { return space_time_points.size(); }
 
+  /**
+   * access every point, ordering given by `times()`.
+   */
   inline const Point<dim + 1>& operator[](const size_t i) const {
     Assert(i < size(), ExcIndexRange(i, 0, size()));
 
     return space_time_points[i];
   }
 
+  /**
+   * get times that are used in measurement points
+   */
   inline const std::vector<double>& get_times() const { return times; }
 
-  inline const std::vector<Point<dim + 1>>& get_space_time_points() const { return space_time_points; }
-
-  inline const std::vector<Point<dim>>& get_points(size_t time_index) const {
+  /**
+   * get points that belong to one time (-index)
+   */
+  inline const std::vector<Point<dim>>& get_points_per_time(size_t time_index) const {
     Assert(time_index < times.size(), ExcIndexRange(time_index, 0, times.size()));
-    return points[time_index];
+    return points_per_time[time_index];
+  }
+
+  virtual bool times_per_point_available() const { return !times.size() || points.size(); }
+
+  virtual size_t index_times_per_point(size_t point_index __attribute((unused)),
+                                       size_t time_index __attribute((unused))) {
+    AssertThrow(times_per_point_available(), ExcMessage("!times_per_point_available()"));
+    AssertThrow(false, ExcMessage("index_times_per_point() not implemented although times_per_point_available()"));
+    return 0;
+  }
+
+  /**
+   * get points that are used in measurement points. Might not be supported for every distribution, use
+   * `times_per_point_available` before.
+   */
+  inline const std::vector<Point<dim>>& get_points() const {
+    Assert(times_per_point_available(), ExcMessage("!times_per_point_available()"));
+    return points;
+  }
+
+  /**
+   * get times that belong to one point (-index). Might not be supported for every distribution, use
+   * `times_per_point_available` before.
+   */
+  inline const std::vector<double>& get_times_per_point(size_t point_index) const {
+    Assert(times_per_point_available(), ExcMessage("!times_per_point_available()"));
+    Assert(point_index < points.size(), ExcIndexRange(point_index, 0, points.size()));
+    return times_per_point[point_index];
   }
 
   virtual void write_pvd(const std::vector<double>& values __attribute((unused)),
@@ -60,16 +98,21 @@ class SensorDistribution {
   }
 
  protected:
-  std::vector<double> times;
-  std::vector<std::vector<Point<dim>>> points;
-  std::vector<Point<dim + 1>> space_time_points;  // waste of memory, but easier access
+  // waste of memory, but easier access: different data structures depending on what the user wants to do
 
-  void update_points(const std::vector<double>& times, const std::vector<std::vector<Point<dim>>>& points);
+  std::vector<double> times;
+  std::vector<std::vector<Point<dim>>> points_per_time;
+
+  std::vector<Point<dim>> points;
+  std::vector<std::vector<double>> times_per_point;
+
+  std::vector<Point<dim + 1>> space_time_points;
+
+  void update_points(const std::vector<double>& times, const std::vector<std::vector<Point<dim>>>& points_per_time);
 };
 
 /**
- * Point measurements on a grid (in space and time),
- * implemented as scalar product between the given field and a delta-approximating function.
+ * distribution on a grid in time and space
  */
 template <int dim>
 class GridDistribution : public SensorDistribution<dim> {
@@ -103,6 +146,8 @@ class GridDistribution : public SensorDistribution<dim> {
 
   virtual void write_pvd(const std::vector<double>& values, std::string path, std::string filename,
                          std::string name) override;
+
+  virtual size_t index_times_per_point(size_t point_index, size_t time_index) override;
 
  private:
   // grid extents

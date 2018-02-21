@@ -59,11 +59,11 @@ std::vector<std::vector<std::pair<size_t, double>>> ConvolutionMeasure<dim>::com
       // norm correction
       factor *= delta_scale_time * pow(delta_scale_space, dim);
 
-      for (size_t msi = 0; msi < sensor_distribution->get_points(mti).size(); msi++)
+      for (size_t msi = 0; msi < sensor_distribution->get_points_per_time(mti).size(); msi++)
         jobs[ti].emplace_back(msi + sensor_offset, factor);
     }
 
-    sensor_offset += sensor_distribution->get_points(mti).size();
+    sensor_offset += sensor_distribution->get_points_per_time(mti).size();
   }
 
   return jobs;
@@ -133,6 +133,8 @@ DiscretizedFunction<dim> ConvolutionMeasure<dim>::adjoint(const SensorValues<dim
 
   // indicate which norm we used for the adjoint
   res.set_norm(Norm::L2L2);
+
+  // res has coefficients in there, not dot products.
   res.dot_mult_mass_and_transform_inverse();
 
   return res;

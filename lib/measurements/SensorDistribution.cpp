@@ -20,24 +20,24 @@ using namespace dealii;
 
 template <int dim>
 SensorDistribution<dim>::SensorDistribution(const std::vector<double> &times,
-                                            const std::vector<std::vector<Point<dim>>> &points) {
-  update_points(times, points);
+                                            const std::vector<std::vector<Point<dim>>> &points_per_time) {
+  update_points(times, points_per_time);
 }
 
 template <int dim>
 void SensorDistribution<dim>::update_points(const std::vector<double> &times,
-                                            const std::vector<std::vector<Point<dim>>> &points) {
-  AssertThrow(times.size() == points.size(), ExcDimensionMismatch(times.size(), points.size()));
+                                            const std::vector<std::vector<Point<dim>>> &points_per_time) {
+  AssertThrow(times.size() == points_per_time.size(), ExcDimensionMismatch(times.size(), points_per_time.size()));
   size_t expected_size = 0;
 
-  for (auto x : points)
+  for (auto x : points_per_time)
     expected_size += x.size();
 
   space_time_points.clear();
   space_time_points.reserve(expected_size);
 
   for (size_t i = 0; i < times.size(); i++)
-    for (auto x : points[i]) {
+    for (auto x : points_per_time[i]) {
       Point<dim + 1> pt;
 
       for (size_t d = 0; d < dim; d++)
@@ -48,8 +48,11 @@ void SensorDistribution<dim>::update_points(const std::vector<double> &times,
       space_time_points.push_back(pt);
     }
 
-  this->times  = times;
-  this->points = points;
+  this->times           = times;
+  this->points_per_time = points_per_time;
+
+  this->points.clear();
+  this->times_per_point.clear();
 }
 
 template <>
@@ -60,17 +63,24 @@ void GridDistribution<1>::update_grid(const std::vector<double> &times,
   Assert(points_per_dim.size() == 1, ExcInternalError());
   size_t nb_points = points_per_dim[0].size();
 
-  std::vector<Point<1>> points_per_time(nb_points);
+  std::vector<Point<1>> points_each_time(nb_points);
 
   for (size_t ix = 0; ix < points_per_dim[0].size(); ix++)
-    points_per_time[ix] = Point<1>(points_per_dim[0][ix]);
+    points_each_time[ix] = Point<1>(points_per_dim[0][ix]);
 
-  std::vector<std::vector<Point<1>>> points(times.size());
+  std::vector<std::vector<Point<1>>> points_per_time(times.size());
 
   for (size_t i = 0; i < times.size(); i++)
-    points[i] = points_per_time;
+    points_per_time[i] = points_each_time;
 
-  update_points(times, points);
+  update_points(times, points_per_time);
+
+  // update times_per_point and points now (cleared by update_points!)
+  points = points_each_time;
+  times_per_point.reserve(nb_points);
+
+  for (size_t ix = 0; ix < nb_points; ix++)
+    times_per_point.push_back(times);
 }
 
 template <>
@@ -81,18 +91,25 @@ void GridDistribution<2>::update_grid(const std::vector<double> &times,
   Assert(points_per_dim.size() == 2, ExcInternalError());
   size_t nb_points = points_per_dim[0].size() * points_per_dim[1].size();
 
-  std::vector<Point<2>> points_per_time(nb_points);
+  std::vector<Point<2>> points_each_time(nb_points);
 
   for (size_t ix = 0; ix < points_per_dim[0].size(); ix++)
     for (size_t iy = 0; iy < points_per_dim[1].size(); iy++)
-      points_per_time[ix * points_per_dim[1].size() + iy] = Point<2>(points_per_dim[0][ix], points_per_dim[1][iy]);
+      points_each_time[ix * points_per_dim[1].size() + iy] = Point<2>(points_per_dim[0][ix], points_per_dim[1][iy]);
 
-  std::vector<std::vector<Point<2>>> points(times.size());
+  std::vector<std::vector<Point<2>>> points_per_time(times.size());
 
   for (size_t i = 0; i < times.size(); i++)
-    points[i] = points_per_time;
+    points_per_time[i] = points_each_time;
 
-  update_points(times, points);
+  update_points(times, points_per_time);
+
+  // update times_per_point and points now (cleared by update_points!)
+  points = points_each_time;
+  times_per_point.reserve(nb_points);
+
+  for (size_t ix = 0; ix < nb_points; ix++)
+    times_per_point.push_back(times);
 }
 
 template <>
@@ -103,20 +120,27 @@ void GridDistribution<3>::update_grid(const std::vector<double> &times,
   Assert(points_per_dim.size() == 3, ExcInternalError());
   size_t nb_points = points_per_dim[0].size() * points_per_dim[1].size() * points_per_dim[2].size();
 
-  std::vector<Point<3>> points_per_time(nb_points);
+  std::vector<Point<3>> points_each_time(nb_points);
 
   for (size_t ix = 0; ix < points_per_dim[0].size(); ix++)
     for (size_t iy = 0; iy < points_per_dim[1].size(); iy++)
       for (size_t iz = 0; iz < points_per_dim[2].size(); iz++)
-        points_per_time[ix * points_per_dim[1].size() * points_per_dim[2].size() + iy * points_per_dim[2].size() + iz] =
-            Point<3>(points_per_dim[0][ix], points_per_dim[1][iy], points_per_dim[2][iz]);
+        points_each_time[ix * points_per_dim[1].size() * points_per_dim[2].size() + iy * points_per_dim[2].size() +
+                         iz] = Point<3>(points_per_dim[0][ix], points_per_dim[1][iy], points_per_dim[2][iz]);
 
-  std::vector<std::vector<Point<3>>> points(times.size());
+  std::vector<std::vector<Point<3>>> points_per_time(times.size());
 
   for (size_t i = 0; i < times.size(); i++)
-    points[i] = points_per_time;
+    points_per_time[i] = points_each_time;
 
-  update_points(times, points);
+  update_points(times, points_per_time);
+
+  // update times_per_point and points now (cleared by update_points!)
+  points = points_each_time;
+  times_per_point.reserve(nb_points);
+
+  for (size_t ix = 0; ix < nb_points; ix++)
+    times_per_point.push_back(times);
 }
 
 template <int dim>
@@ -191,12 +215,17 @@ std::vector<double> GridDistribution<dim>::parse_description(const std::string d
 }
 
 template <int dim>
+size_t GridDistribution<dim>::index_times_per_point(size_t point_index, size_t time_index) {
+  return time_index * this->points_per_time[0].size() + point_index;
+}
+
+template <int dim>
 void GridDistribution<dim>::write_pvd(const std::vector<double> &values, std::string path, std::string filename,
                                       std::string name) {
   size_t extentX           = points_per_dim[0].size() - 1;
   size_t extentY           = dim > 1 ? points_per_dim[1].size() - 1 : 0;
   size_t extentZ           = dim > 2 ? points_per_dim[2].size() - 1 : 0;
-  size_t nb_spatial_points = this->points[0].size();
+  size_t nb_spatial_points = this->points_per_time[0].size();
 
   std::ofstream fpvd(path + filename + ".pvd", std::ios::out | std::ios::trunc);
   fpvd.precision(8);
@@ -234,7 +263,7 @@ void GridDistribution<dim>::write_pvd(const std::vector<double> &values, std::st
     fvts.precision(6);
     fvts << std::fixed;
 
-    for (auto p : this->points[ti])
+    for (auto p : this->points_per_time[ti])
       fvts << p(0) << " " << (dim > 1 ? p(1) : 0.0) << " " << (dim > 2 ? p(2) : 0.0) << " ";
 
     fvts << std::endl

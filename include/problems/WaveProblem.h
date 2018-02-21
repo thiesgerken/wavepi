@@ -421,7 +421,7 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
       // TODO: one application of dot_transform / dot_transform inverse could be omitted because the above adjoint-calls
       // also need it. Problem: then the subproblems would need to be concerned about the transformation, right now they
       // can just ignore this. Solution: instead of adjoint use transpose?
-      if (!std::static_pointer_cast<IdentityTransform<dim>, Transformation<dim>>(transform)) {
+      if (!std::dynamic_pointer_cast<IdentityTransform<dim>, Transformation<dim>>(transform)) {
         result.dot_transform();
         result = transform->inverse_derivative_transpose(*current_param_transformed, result);
         result.dot_transform_inverse();

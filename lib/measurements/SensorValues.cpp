@@ -51,6 +51,15 @@ SensorValues<dim> SensorValues<dim>::noise(const SensorValues<dim>& like, double
 }
 
 template <int dim>
+double SensorValues<dim>::relative_error(const SensorValues<dim>& other) const {
+  SensorValues<dim> tmp(*this);
+  tmp -= other;
+
+  double denom = this->norm();
+  return tmp.norm() / (denom == 0.0 ? 1.0 : denom);
+}
+
+template <int dim>
 void SensorValues<dim>::write_pvd(std::string path, std::string filename, std::string name) const {
   AssertThrow(grid, ExcNotInitialized());
 
