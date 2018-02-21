@@ -418,6 +418,9 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
         } else if (measure_desc == "Convolution") {
           measures.push_back(Measure::convolution);
           my_measure_type = MeasureType::vector;
+        } else if (measure_desc == "Delta") {
+          measures.push_back(Measure::delta);
+          my_measure_type = MeasureType::vector;
         } else {
           AssertThrow(false, ExcMessage("Unknown Measure: " + measure_desc));
         }
