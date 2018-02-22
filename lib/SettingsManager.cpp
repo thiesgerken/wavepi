@@ -469,7 +469,8 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
 }
 
 void SettingsManager::log_parameters() {
-  unsigned int prev_console = deallog.depth_console(100);
+  size_t mpi_rank           = Utilities::MPI::this_mpi_process(MPI_COMM_WORLD);
+  unsigned int prev_console = mpi_rank > 0 ? 0 : deallog.depth_console(100);
   unsigned int prev_file    = deallog.depth_file(100);
 
   prm->log_parameters(deallog);

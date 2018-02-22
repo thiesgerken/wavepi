@@ -47,7 +47,8 @@ class CProblem : public WaveProblem<dim, Measurement> {
 
  protected:
   virtual std::unique_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>> derivative(size_t i) {
-    AssertThrow(this->fields[i], ExcInternalError());
+    // when using MPI, fields[i] may be zero.
+    // AssertThrow(this->fields[i], ExcInternalError());
 
     return std::make_unique<CProblem<dim, Measurement>::Linearization>(this->wave_equation, this->adjoint_solver,
                                                                        this->current_param, this->fields[i],
@@ -97,7 +98,8 @@ class CProblem : public WaveProblem<dim, Measurement> {
       this->c = c;
       this->u = u;
 
-      Assert(u->has_derivative(), ExcInternalError());
+      // when using MPI, fields[i] may be zero.
+      Assert(!u || u->has_derivative(), ExcInternalError());
 
       this->rhs     = std::make_shared<L2RightHandSide<dim>>(this->u);
       this->rhs_adj = std::make_shared<L2RightHandSide<dim>>(this->u);
@@ -115,6 +117,9 @@ class CProblem : public WaveProblem<dim, Measurement> {
     }
 
     virtual DiscretizedFunction<dim> forward(const DiscretizedFunction<dim>& h) {
+      // when using MPI u may be zero. Then this function must not be called.
+      AssertThrow(u, ExcInternalError());
+
       auto Mh = std::make_shared<DiscretizedFunction<dim>>(h);
       *Mh *= -1.0;
       Mh->pointwise_multiplication(u->derivative());
@@ -132,6 +137,9 @@ class CProblem : public WaveProblem<dim, Measurement> {
     }
 
     virtual DiscretizedFunction<dim> adjoint(const DiscretizedFunction<dim>& g) {
+      // when using MPI u may be zero. Then this function must not be called.
+      AssertThrow(u, ExcInternalError());
+
       /* L*  */
       auto tmp = std::make_shared<DiscretizedFunction<dim>>(g);
       tmp->set_norm(this->norm_codomain);
