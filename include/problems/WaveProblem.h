@@ -112,8 +112,8 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
       result_fields[i] = forward(i);
       fw_timer.stop();
 
-      // TODO: Isend or Ibcast (and wait for those requests as well) -> better
-      // performance for more than one pde / node
+      // Possible improvement: use Isend or Ibcast (and wait for those requests as well) ->
+      // better performance for more than one pde / node?
       comm_timer.start();
       for (size_t k = 0; k < n_procs; k++)
         if (k != rank) {
@@ -138,7 +138,8 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
       deallog << "rank " << rank << " looking at field " << i << std::endl;
 
       fw_timer.start();
-      forward(i, result_fields[i]);
+      // DEBUG TODO
+      // forward(i, result_fields[i]);
       fw_timer.stop();
     }
 
@@ -276,12 +277,11 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
 
       deallog << "rank " << rank << " entering parallel section" << std::endl;
       std::vector<std::vector<MPI_Request>> recv_requests(measures.size());
-      std::vector<DiscretizedFunction<dim>> result_fields(measures.size(), DiscretizedFunction<dim>(h.get_mesh()));
 
       for (size_t i = 0; i < measures.size(); i++) {
-        result_fields[i].set_norm(norm_codomain);
+        result.push_back(measures[i]->zero());
 
-        if (i % n_procs != rank) result_fields[i].mpi_irecv(i % n_procs, recv_requests[i]);
+        if (i % n_procs != rank) result[i].mpi_irecv(i % n_procs, recv_requests[i]);
       }
 
       for (size_t i = 0; i < measures.size(); i++) {
@@ -290,19 +290,22 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
         deallog << "rank " << rank << " working on field " << i << std::endl;
 
         fw_timer.start();
-        result_fields[i] = sub_problems[i]->forward(h_transformed);
+        auto field = sub_problems[i]->forward(h_transformed);
         fw_timer.stop();
 
-        AssertThrow(result_fields[i].get_norm() == norm_codomain,
-                    ExcMessage("Output of Linearization has unexpected norm"));
+        AssertThrow(field.get_norm() == norm_codomain, ExcMessage("Output of Linearization has unexpected norm"));
 
-        // TODO: Isend or Ibcast (and wait for those requests as well) ->
-        // better performance for more than one pde / node
+        meas_timer.start();
+        result[i] = measures[i]->evaluate(field);
+        meas_timer.stop();
+
+        // Possible improvement: use Isend or Ibcast (and wait for those requests as well) ->
+        // better performance for more than one pde / node?
         comm_timer.start();
         for (size_t k = 0; k < n_procs; k++)
           if (k != rank) {
-            deallog << "rank " << rank << " sending field " << i << " to rank " << k << std::endl;
-            result_fields[i].mpi_send(k);
+            deallog << "rank " << rank << " sending measurement " << i << " to rank " << k << std::endl;
+            result[i].mpi_send(k);
           }
         comm_timer.stop();
       }
@@ -317,14 +320,6 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
       comm_timer.stop();
 
       deallog << "rank " << rank << " exiting parallel section" << std::endl;
-
-      // everyone does the measurements
-      // TODO: could be done in parallel as well
-      // would need some kind of allocating function that uses the field
-      meas_timer.start();
-      for (size_t i = 0; i < measures.size(); i++)
-        result.push_back(measures[i]->evaluate(result_fields[i]));
-      meas_timer.stop();
 #else
       for (size_t i = 0; i < measures.size(); i++) {
         fw_timer.start();
