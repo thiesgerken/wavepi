@@ -106,13 +106,18 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
     result.reserve(right_hand_sides.size());
 
     deallog << "rank " << rank << " entering parallel section" << std::endl;
-    std::vector<std::vector<MPI_Request>> recv_requests(right_hand_sides.size());
 
+    // memory for requests, some are not used.
+    std::vector<std::vector<MPI_Request>> recv_requests(right_hand_sides.size());
+    std::vector<std::vector<MPI_Request>> send_requests(right_hand_sides.size() * n_procs);
+
+    comm_timer.start();
     for (size_t i = 0; i < right_hand_sides.size(); i++) {
       result.push_back(measures[i]->zero());
 
       if (i % n_procs != rank) result[i].mpi_irecv(i % n_procs, recv_requests[i]);
     }
+    comm_timer.stop();
 
     for (size_t i = 0; i < right_hand_sides.size(); i++) {
       if (i % n_procs != rank) continue;
@@ -130,23 +135,28 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
       result[i] = measures[i]->evaluate(field);
       meas_timer.stop();
 
-      // Possible improvement: use Isend or Ibcast (and wait for those requests as well) ->
-      // better performance for more than one pde / node?
       comm_timer.start();
       for (size_t k = 0; k < n_procs; k++)
         if (k != rank) {
           deallog << "rank " << rank << " sending measurement " << i << " to rank " << k << std::endl;
-          result[i].mpi_send(k);
+          result[i].mpi_isend(k, send_requests[i * n_procs + k]);
         }
       comm_timer.stop();
     }
 
-    deallog << "rank " << rank << " waiting on Irecvs " << std::endl;
-
+    deallog << "rank " << rank << " waiting on Irecvs" << std::endl;
     comm_timer.start();
-    for (size_t i = 0; i < right_hand_sides.size(); i++)
+    for (size_t i = 0; i < recv_requests.size(); i++)
       for (size_t j = 0; j < recv_requests[i].size(); j++) {
         MPI_Wait(&recv_requests[i][j], MPI_STATUS_IGNORE);
+      }
+    comm_timer.stop();
+
+    deallog << "rank " << rank << " waiting on Isends" << std::endl;
+    comm_timer.start();
+    for (size_t i = 0; i < send_requests.size(); i++)
+      for (size_t j = 0; j < send_requests[i].size(); j++) {
+        MPI_Wait(&send_requests[i][j], MPI_STATUS_IGNORE);
       }
     comm_timer.stop();
 
@@ -276,13 +286,18 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
       size_t rank    = Utilities::MPI::this_mpi_process(MPI_COMM_WORLD);
 
       deallog << "rank " << rank << " entering parallel section" << std::endl;
-      std::vector<std::vector<MPI_Request>> recv_requests(measures.size());
 
+      // memory for requests, some are not used.
+      std::vector<std::vector<MPI_Request>> recv_requests(measures.size());
+      std::vector<std::vector<MPI_Request>> send_requests(measures.size() * n_procs);
+
+      comm_timer.start();
       for (size_t i = 0; i < measures.size(); i++) {
         result.push_back(measures[i]->zero());
 
         if (i % n_procs != rank) result[i].mpi_irecv(i % n_procs, recv_requests[i]);
       }
+      comm_timer.stop();
 
       for (size_t i = 0; i < measures.size(); i++) {
         if (i % n_procs != rank) continue;
@@ -302,23 +317,28 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
         result[i] = measures[i]->evaluate(field);
         meas_timer.stop();
 
-        // Possible improvement: use Isend or Ibcast (and wait for those requests as well) ->
-        // better performance for more than one pde / node?
         comm_timer.start();
         for (size_t k = 0; k < n_procs; k++)
           if (k != rank) {
             deallog << "rank " << rank << " sending measurement " << i << " to rank " << k << std::endl;
-            result[i].mpi_send(k);
+            result[i].mpi_isend(k, send_requests[i * n_procs + k]);
           }
         comm_timer.stop();
       }
 
       deallog << "rank " << rank << " waiting on Irecvs " << std::endl;
-
       comm_timer.start();
-      for (size_t i = 0; i < measures.size(); i++)
+      for (size_t i = 0; i < recv_requests.size(); i++)
         for (size_t j = 0; j < recv_requests[i].size(); j++) {
           MPI_Wait(&recv_requests[i][j], MPI_STATUS_IGNORE);
+        }
+      comm_timer.stop();
+
+      deallog << "rank " << rank << " waiting on Isends" << std::endl;
+      comm_timer.start();
+      for (size_t i = 0; i < send_requests.size(); i++)
+        for (size_t j = 0; j < send_requests[i].size(); j++) {
+          MPI_Wait(&send_requests[i][j], MPI_STATUS_IGNORE);
         }
       comm_timer.stop();
 

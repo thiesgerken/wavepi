@@ -1700,6 +1700,29 @@ void DiscretizedFunction<dim>::mpi_send(size_t destination) {
 }
 
 template <int dim>
+void DiscretizedFunction<dim>::mpi_isend(size_t destination, std::vector<MPI_Request>& reqs) {
+  AssertThrow(reqs.size() == 0, ExcInternalError());
+
+  reqs.reserve(function_coefficients.size());
+
+  for (size_t i = 0; i < mesh->length(); i++) {
+    reqs.emplace_back();
+    MPI_Isend(&function_coefficients[i][0], function_coefficients[i].size(), MPI_DOUBLE, destination, 1, MPI_COMM_WORLD,
+              &reqs[i]);
+  }
+
+  if (store_derivative) {
+    reqs.reserve(function_coefficients.size() + derivative_coefficients.size());
+
+    for (size_t i = 0; i < mesh->length(); i++) {
+      reqs.emplace_back();
+      MPI_Isend(&derivative_coefficients[i][0], derivative_coefficients[i].size(), MPI_DOUBLE, destination, 1,
+                MPI_COMM_WORLD, &reqs[function_coefficients.size() + i]);
+    }
+  }
+}
+
+template <int dim>
 void DiscretizedFunction<dim>::mpi_all_reduce(DiscretizedFunction<dim> source, MPI_Op op) {
   for (size_t i = 0; i < mesh->length(); i++)
     MPI_Allreduce(&source.function_coefficients[i][0], &function_coefficients[i][0], function_coefficients[i].size(),

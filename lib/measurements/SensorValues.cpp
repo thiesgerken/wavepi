@@ -81,6 +81,14 @@ void SensorValues<dim>::mpi_send(size_t destination) {
 }
 
 template <int dim>
+void SensorValues<dim>::mpi_isend(size_t destination, std::vector<MPI_Request>& reqs) {
+  AssertThrow(reqs.size() == 0, ExcInternalError());
+
+  reqs.emplace_back();
+  MPI_Isend(&elements[0], elements.size(), MPI_DOUBLE, destination, 1, MPI_COMM_WORLD, &reqs[0]);
+}
+
+template <int dim>
 void SensorValues<dim>::mpi_all_reduce(SensorValues<dim> source, MPI_Op op) {
   MPI_Allreduce(&source.elements[0], &elements[0], elements.size(), MPI_DOUBLE, op, MPI_COMM_WORLD);
 }

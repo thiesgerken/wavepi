@@ -136,14 +136,19 @@ class SensorValues {
   void mpi_send(size_t destination);
 
   /**
+   * send the data of this object to another process, nonblocking
+   */
+  void mpi_isend(size_t destination, std::vector<MPI_Request>& reqs);
+
+  /**
    * reduce the stuff in source using the given operation, everyone gets the result in this object
    * (should be empty before!)
    */
   void mpi_all_reduce(SensorValues<dim> source, MPI_Op op);
 
-/**
- * @}
- */
+  /**
+   * @}
+   */
 #endif
 
  private:

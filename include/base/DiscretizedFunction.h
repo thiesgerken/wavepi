@@ -494,7 +494,7 @@ class DiscretizedFunction : public Function<dim> {
    */
 
   /**
-   * set up irecvs on the data of this object
+   * set up irecvs on the data of this object, nonblocking
    */
   void mpi_irecv(size_t source, std::vector<MPI_Request>& reqs);
 
@@ -502,6 +502,11 @@ class DiscretizedFunction : public Function<dim> {
    * send the data of this object to another process
    */
   void mpi_send(size_t destination);
+
+  /**
+   * send the data of this object to another process, nonblocking
+   */
+  void mpi_isend(size_t destination, std::vector<MPI_Request>& reqs);
 
   /**
    * reduce the stuff in source using the given operation, everyone gets the result in this object
