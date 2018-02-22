@@ -12,7 +12,6 @@
 
 namespace wavepi {
 namespace inversion {
-using namespace dealii;
 
 struct LinearProblemStats {
  public:
@@ -28,7 +27,8 @@ struct LinearProblemStats {
   double time_measure_forward;
   double time_measure_adjoint;
 
-  double time_communication;
+  double time_forward_communication;
+  double time_adjoint_communication;
 };
 
 template <typename Param, typename Sol>

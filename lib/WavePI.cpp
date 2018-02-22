@@ -28,6 +28,7 @@
 #include <inversion/Regularization.h>
 #include <measurements/ConvolutionMeasure.h>
 #include <measurements/DeltaMeasure.h>
+#include <measurements/FieldMeasure.h>
 #include <measurements/SensorDistribution.h>
 #include <measurements/SensorValues.h>
 #include <problems/AProblem.h>
@@ -58,15 +59,6 @@ using namespace wavepi::problems;
 
 template <int dim, typename Meas>
 WavePI<dim, Meas>::WavePI(std::shared_ptr<SettingsManager> cfg) : cfg(cfg) {
-  measures.clear();
-  for (auto config_idx : cfg->configs)
-    measures.push_back(get_measure(config_idx));
-
-  for (auto expr : cfg->exprs_rhs)
-    pulses.push_back(std::make_shared<MacroFunctionParser<dim>>(expr, cfg->constants_for_exprs));
-
-  AssertThrow(pulses.size() == measures.size(), ExcInternalError());
-
   DiscretizedFunction<dim>::h1l2_alpha = cfg->norm_h1l2_alpha;
   DiscretizedFunction<dim>::h2l2_alpha = cfg->norm_h2l2_alpha;
   DiscretizedFunction<dim>::h2l2_beta  = cfg->norm_h2l2_beta;
@@ -94,7 +86,7 @@ Point<dim> WavePI<dim, Meas>::make_point(double x, double y, double z) {
 #define get_measure_tuple(DIM)                                                                                       \
   template <>                                                                                                        \
   std::shared_ptr<Measure<DiscretizedFunction<DIM>, SensorValues<DIM>>> WavePI<DIM, SensorValues<DIM>>::get_measure( \
-      size_t config_idx) {                                                                                           \
+      size_t config_idx, std::shared_ptr<SpaceTimeMesh<DIM>> mesh, Norm norm) {                                      \
     cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM);                                                        \
     cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM_DATA);                                                   \
     cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM_DATA_I + Utilities::int_to_string(config_idx, 1));       \
@@ -107,11 +99,11 @@ Point<dim> WavePI<dim, Meas>::make_point(double x, double y, double z) {
       AssertThrow(false, ExcInternalError());                                                                        \
     std::shared_ptr<Measure<Param, SensorValues<DIM>>> measure;                                                      \
     if (cfg->measures[config_idx] == SettingsManager::Measure::convolution) {                                        \
-      auto my_measure = std::make_shared<ConvolutionMeasure<DIM>>(sensor_distribution);                              \
+      auto my_measure = std::make_shared<ConvolutionMeasure<DIM>>(mesh, sensor_distribution, norm);                  \
       my_measure->get_parameters(*cfg->prm);                                                                         \
       measure = my_measure;                                                                                          \
     } else if (cfg->measures[config_idx] == SettingsManager::Measure::delta) {                                       \
-      measure = std::make_shared<DeltaMeasure<DIM>>(sensor_distribution);                                            \
+      measure = std::make_shared<DeltaMeasure<DIM>>(mesh, sensor_distribution, norm);                                \
     } else                                                                                                           \
       AssertThrow(false, ExcInternalError());                                                                        \
     cfg->prm->leave_subsection();                                                                                    \
@@ -126,13 +118,14 @@ get_measure_tuple(1)      //
 #define get_measure_cont(D)                                                                                    \
   template <>                                                                                                  \
   std::shared_ptr<Measure<DiscretizedFunction<D>, DiscretizedFunction<D>>>                                     \
-  WavePI<D, DiscretizedFunction<D>>::get_measure(size_t config_idx) {                                          \
+  WavePI<D, DiscretizedFunction<D>>::get_measure(size_t config_idx, std::shared_ptr<SpaceTimeMesh<D>> mesh,    \
+                                                 Norm norm) {                                                  \
     cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM);                                                  \
     cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM_DATA);                                             \
     cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM_DATA_I + Utilities::int_to_string(config_idx, 1)); \
     std::shared_ptr<Measure<Param, DiscretizedFunction<D>>> measure;                                           \
-    if (cfg->measures[config_idx] == SettingsManager::Measure::identical) {                                    \
-      measure = std::make_shared<IdenticalMeasure<DiscretizedFunction<D>>>();                                  \
+    if (cfg->measures[config_idx] == SettingsManager::Measure::field) {                                        \
+      measure = std::make_shared<FieldMeasure<D>>(mesh, norm);                                                 \
     } else                                                                                                     \
       AssertThrow(false, ExcInternalError());                                                                  \
     cfg->prm->leave_subsection();                                                                              \
@@ -215,6 +208,16 @@ get_measure_tuple(1)      //
 
   // (in case of !store_derivative)
   deallog << "expected size of a DiscretizedFunction<dim>: " << mem / (1024 * 1024) << " MiB" << std::endl;
+
+  // initialize measurement configurations
+  measures.clear();
+  for (auto config_idx : cfg->configs)
+    measures.push_back(get_measure(config_idx, mesh, cfg->norm_codomain));
+
+  for (auto expr : cfg->exprs_rhs)
+    pulses.push_back(std::make_shared<MacroFunctionParser<dim>>(expr, cfg->constants_for_exprs));
+
+  AssertThrow(pulses.size() == measures.size(), ExcInternalError());
 }
 
 template <int dim, typename Meas>
@@ -367,13 +370,20 @@ void WavePI<dim, Meas>::run() {
     deallog << "measure adjoint      : " << stats->calls_measure_adjoint << " calls, average "
             << stats->time_measure_adjoint / stats->calls_measure_adjoint << " s per call" << std::endl;
 
-    if (Utilities::MPI::n_mpi_processes(MPI_COMM_WORLD) > 1)
-      deallog << "mpi communication    : " << stats->time_communication << " s, average "
-              << stats->time_communication /
-                     (stats->calls_forward + stats->calls_linearization_forward + stats->calls_linearization_adjoint)
-              << " s per pde solution" << std::endl;
+    if (Utilities::MPI::n_mpi_processes(MPI_COMM_WORLD) > 1) {
+      deallog << std::endl << "Additional time needed for MPI communication:" << std::endl;
+      deallog << "forward              : " << stats->time_forward_communication << " s, average "
+              << stats->time_forward_communication / stats->calls_forward << " s per call" << std::endl;
+      deallog << "linearization forward: " << stats->time_linearization_forward_communication << " s, average "
+              << stats->time_linearization_forward_communication / stats->calls_linearization_forward << " s per call"
+              << std::endl;
+      deallog << "linearization adjoint: " << stats->time_linearization_adjoint_communication << " s, average "
+              << stats->time_linearization_adjoint_communication / stats->calls_linearization_adjoint << " s per call"
+              << std::endl;
+    }
 
-    deallog << "total wall time      : " << (int)std::floor(timer_total.wall_time() / 60) << "min "
+    deallog << std::endl
+            << "total wall time      : " << (int)std::floor(timer_total.wall_time() / 60) << "min "
             << (int)std::floor(std::fmod(timer_total.wall_time(), 60)) << "s" << std::endl;
   }
 }

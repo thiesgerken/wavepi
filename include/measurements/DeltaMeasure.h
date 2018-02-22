@@ -52,21 +52,24 @@ class DeltaMeasure : public Measure<DiscretizedFunction<dim>, SensorValues<dim>>
    * @param delta_scale_space Desired support radius in space
    * @param delta_scale_time Desired support radius in time
    */
-  DeltaMeasure(std::shared_ptr<SensorDistribution<dim>> points);
+  DeltaMeasure(std::shared_ptr<SpaceTimeMesh<dim>> mesh, std::shared_ptr<SensorDistribution<dim>> points, Norm norm);
 
   static void declare_parameters(ParameterHandler& prm);
   void get_parameters(ParameterHandler& prm);
 
-  virtual SensorValues<dim> evaluate(const DiscretizedFunction<dim>& field);
+  virtual SensorValues<dim> zero() override;
+
+  virtual SensorValues<dim> evaluate(const DiscretizedFunction<dim>& field) override;
 
   /**
    * Adjoint, discretized on the mesh last used for evaluate
    */
-  virtual DiscretizedFunction<dim> adjoint(const SensorValues<dim>& measurements);
+  virtual DiscretizedFunction<dim> adjoint(const SensorValues<dim>& measurements) override;
 
  private:
-  std::shared_ptr<SensorDistribution<dim>> sensor_distribution;
   std::shared_ptr<SpaceTimeMesh<dim>> mesh;
+  std::shared_ptr<SensorDistribution<dim>> sensor_distribution;
+  Norm norm;
 };
 
 }  // namespace measurements

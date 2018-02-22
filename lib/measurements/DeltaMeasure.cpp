@@ -27,12 +27,17 @@ using namespace dealii;
 using namespace wavepi::base;
 
 template <int dim>
-DeltaMeasure<dim>::DeltaMeasure(std::shared_ptr<SensorDistribution<dim>> points) : sensor_distribution(points) {}
+DeltaMeasure<dim>::DeltaMeasure(std::shared_ptr<SpaceTimeMesh<dim>> mesh,
+                                std::shared_ptr<SensorDistribution<dim>> points, Norm norm)
+    : mesh(mesh), sensor_distribution(points), norm(norm) {
+  AssertThrow(mesh, ExcNotInitialized());
+}
 
 template <int dim>
 SensorValues<dim> DeltaMeasure<dim>::evaluate(const DiscretizedFunction<dim>& field) {
   AssertThrow(sensor_distribution && sensor_distribution->size(), ExcNotInitialized());
-  this->mesh = field.get_mesh();
+  AssertThrow(mesh == field.get_mesh(), ExcMessage("DeltaMeasure called with different meshes"));
+  AssertThrow(norm == field.get_norm(), ExcMessage("DeltaMeasure called with different norms"));
 
   SensorValues<dim> res(sensor_distribution);
   auto mapping = StaticMappingQ1<dim>::mapping;
@@ -104,6 +109,11 @@ SensorValues<dim> DeltaMeasure<dim>::evaluate(const DiscretizedFunction<dim>& fi
   }
 
   return res;
+}
+
+template <int dim>
+SensorValues<dim> DeltaMeasure<dim>::zero() {
+  return SensorValues<dim>(sensor_distribution);
 }
 
 template <int dim>
@@ -179,7 +189,7 @@ DiscretizedFunction<dim> DeltaMeasure<dim>::adjoint(const SensorValues<dim>& mea
   }
 
   // indicate which norm we used for the adjoint
-  res.set_norm(Norm::L2L2);
+  res.set_norm(norm);
   res.dot_transform_inverse();
 
   return res;

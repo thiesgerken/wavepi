@@ -92,7 +92,7 @@ class SettingsManager {
   /**
    * possible measurement operators
    */
-  enum class Measure { identical = 1, convolution = 2, delta = 3 };
+  enum class Measure { field = 1, convolution = 2, delta = 3 };
 
   /**
    * possible sensor distributions

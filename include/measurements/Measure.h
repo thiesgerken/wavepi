@@ -33,20 +33,11 @@ class Measure {
    * Compute the adjoint of what `evaluate` does.
    */
   virtual Sol adjoint(const Measurement& measurements) = 0;
-};
 
-/**
- * No real measurement, just returns the argument.
- * This way one can still reconstruct from the whole field even when the rest of the code expects measurement operators.
- */
-template <typename Sol>
-class IdenticalMeasure : public Measure<Sol, Sol> {
- public:
-  virtual ~IdenticalMeasure() = default;
-
-  virtual Sol evaluate(const Sol& field) { return field; }
-
-  virtual Sol adjoint(const Sol& measurements) { return measurements; }
+  /**
+   * allocate memory for a measurement (e.g. to be received by MPI)
+   */
+  virtual Measurement zero() = 0;
 };
 
 }  // namespace measurements

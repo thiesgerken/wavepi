@@ -26,6 +26,7 @@
 #include <forward/WaveEquation.h>
 #include <forward/WaveEquationAdjoint.h>
 #include <forward/WaveEquationBase.h>
+#include <measurements/FieldMeasure.h>
 #include <measurements/Measure.h>
 #include <problems/QProblem.h>
 #include <problems/WaveProblem.h>
@@ -46,6 +47,7 @@ using namespace dealii;
 using namespace wavepi::forward;
 using namespace wavepi::base;
 using namespace wavepi::problems;
+using namespace wavepi::measurements;
 
 template <int dim>
 class TestF : public Function<dim> {
@@ -397,7 +399,7 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
   estimate.set_norm(Norm::L2L2);
 
   std::vector<std::shared_ptr<Measure<DiscretizedFunction<dim>, DiscretizedFunction<dim>>>> measures;
-  measures.push_back(std::make_shared<IdenticalMeasure<DiscretizedFunction<dim>>>());
+  measures.push_back(std::make_shared<FieldMeasure<dim>>(mesh, Norm::L2L2));
 
   std::map<std::string, double> consts;
   std::vector<std::shared_ptr<Function<dim>>> pulses;

@@ -173,7 +173,7 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
     stats->calls_measure_forward++;
     stats->time_measure_forward += meas_timer.wall_time();
 
-    stats->time_communication += comm_timer.wall_time();
+    stats->time_forward_communication += comm_timer.wall_time();
 
     return result;
   }
@@ -346,7 +346,7 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
       stats->calls_measure_forward++;
       stats->time_measure_forward += meas_timer.wall_time();
 
-      stats->time_communication += comm_timer.wall_time();
+      stats->time_forward_communication += comm_timer.wall_time();
 
       if (parent_stats) {
         parent_stats->calls_linearization_forward++;
@@ -355,7 +355,7 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
         parent_stats->calls_measure_forward++;
         parent_stats->time_measure_forward += meas_timer.wall_time();
 
-        parent_stats->time_communication += comm_timer.wall_time();
+        parent_stats->time_linearization_forward_communication += comm_timer.wall_time();
       }
 
       return result;
@@ -418,7 +418,7 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
       }
 #endif
 
-      // TODO: one application of dot_transform / dot_transform inverse could be omitted because the above adjoint-calls
+      // one application of dot_transform / dot_transform inverse could be omitted because the above adjoint-calls
       // also need it. Problem: then the subproblems would need to be concerned about the transformation, right now they
       // can just ignore this. Solution: instead of adjoint use transpose?
       if (!std::dynamic_pointer_cast<IdentityTransform<dim>, Transformation<dim>>(transform)) {
@@ -433,7 +433,7 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
       stats->calls_measure_adjoint++;
       stats->time_measure_adjoint += adj_meas_timer.wall_time();
 
-      stats->time_communication += comm_timer.wall_time();
+      stats->time_adjoint_communication += comm_timer.wall_time();
 
       if (parent_stats) {
         parent_stats->calls_linearization_adjoint++;
@@ -442,7 +442,7 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
         parent_stats->calls_measure_adjoint++;
         parent_stats->time_measure_adjoint += adj_meas_timer.wall_time();
 
-        parent_stats->time_communication += comm_timer.wall_time();
+        parent_stats->time_linearization_adjoint_communication += comm_timer.wall_time();
       }
 
       return result;

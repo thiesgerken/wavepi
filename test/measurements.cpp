@@ -94,9 +94,9 @@ void run_sensor_measure_adjoint_test(MeasureType measure_type, int fe_order, int
 
   if (measure_type == MeasureType::convolution)
     measure = std::make_shared<ConvolutionMeasure<dim>>(
-        grid, std::make_shared<typename ConvolutionMeasure<dim>::HatShape>(), 0.1, 0.2);
+        mesh, grid, Norm::L2L2, std::make_shared<typename ConvolutionMeasure<dim>::HatShape>(), 0.1, 0.2);
   else if (measure_type == MeasureType::delta)
-    measure = std::make_shared<DeltaMeasure<dim>>(grid);
+    measure = std::make_shared<DeltaMeasure<dim>>(mesh, grid, Norm::L2L2);
 
   double tol = 1e-06;
 
@@ -174,8 +174,8 @@ void run_delta_measure_implementation_test(int fe_order, int quad_order, int ref
   }
 
   auto grid     = std::make_shared<GridDistribution<dim>>(mtimes, spatial_points);
-  auto measure  = std::make_shared<DeltaMeasure<dim>>(grid);
-  auto ameasure = std::make_shared<DeltaMeasure<dim>>(grid);
+  auto measure  = std::make_shared<DeltaMeasure<dim>>(mesh, grid, Norm::L2L2);
+  auto ameasure = std::make_shared<DeltaMeasure<dim>>(amesh, grid, Norm::L2L2);
 
   double tol = 1e-06;
 

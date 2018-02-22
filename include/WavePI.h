@@ -77,7 +77,8 @@ class WavePI {
    */
   static Point<dim> make_point(double x, double y, double z);
 
-  std::shared_ptr<Measure<Param, Meas>> get_measure(size_t config_idx);
+  std::shared_ptr<Measure<Param, Meas>> get_measure(size_t config_idx, std::shared_ptr<SpaceTimeMesh<dim>> mesh,
+                                                    Norm norm);
 
   void initialize_mesh();
   void initialize_problem();

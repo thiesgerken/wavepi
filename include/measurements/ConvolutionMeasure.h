@@ -52,23 +52,27 @@ class ConvolutionMeasure : public Measure<DiscretizedFunction<dim>, SensorValues
    * @param delta_scale_space Desired support radius in space
    * @param delta_scale_time Desired support radius in time
    */
-  ConvolutionMeasure(std::shared_ptr<SensorDistribution<dim>> points, std::shared_ptr<LightFunction<dim>> delta_shape,
-                     double delta_scale_space, double delta_scale_time);
+  ConvolutionMeasure(std::shared_ptr<SpaceTimeMesh<dim>> mesh, std::shared_ptr<SensorDistribution<dim>> points,
+                     Norm norm, std::shared_ptr<LightFunction<dim>> delta_shape, double delta_scale_space,
+                     double delta_scale_time);
 
   /**
    * Does not initialize most of the values, you have to use get_parameters afterwards.
    */
-  ConvolutionMeasure(std::shared_ptr<SensorDistribution<dim>> points);
+  ConvolutionMeasure(std::shared_ptr<SpaceTimeMesh<dim>> mesh, std::shared_ptr<SensorDistribution<dim>> points,
+                     Norm norm);
+
+  virtual SensorValues<dim> zero() override;
 
   static void declare_parameters(ParameterHandler& prm);
   void get_parameters(ParameterHandler& prm);
 
-  virtual SensorValues<dim> evaluate(const DiscretizedFunction<dim>& field);
+  virtual SensorValues<dim> evaluate(const DiscretizedFunction<dim>& field) override;
 
   /**
    * Adjoint, discretized on the mesh last used for evaluate
    */
-  virtual DiscretizedFunction<dim> adjoint(const SensorValues<dim>& measurements);
+  virtual DiscretizedFunction<dim> adjoint(const SensorValues<dim>& measurements) override;
 
   class HatShape : public LightFunction<dim> {
    public:
@@ -129,8 +133,9 @@ class ConvolutionMeasure : public Measure<DiscretizedFunction<dim>, SensorValues
  protected:
   std::shared_ptr<SpaceTimeMesh<dim>> mesh;
   std::shared_ptr<SensorDistribution<dim>> sensor_distribution;
-  std::shared_ptr<LightFunction<dim>> delta_shape;
+  Norm norm;
 
+  std::shared_ptr<LightFunction<dim>> delta_shape;
   double delta_scale_space;
   double delta_scale_time;
 

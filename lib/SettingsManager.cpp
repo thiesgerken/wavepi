@@ -180,7 +180,7 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
         ConvolutionMeasure<2>::declare_parameters(*prm);
         GridDistribution<2>::declare_parameters(*prm);
 
-        prm->declare_entry(KEY_PROBLEM_DATA_I_MEASURE, "Identical", Patterns::Selection("Identical|Convolution|Delta"),
+        prm->declare_entry(KEY_PROBLEM_DATA_I_MEASURE, "Field", Patterns::Selection("Field|Convolution|Delta"),
                            "type of measurements");
 
         prm->declare_entry(KEY_PROBLEM_DATA_I_SENSOR_DISTRIBUTION, "Grid", Patterns::Selection("Grid"),
@@ -412,8 +412,8 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
         auto measure_desc = prm->get(KEY_PROBLEM_DATA_I_MEASURE);
         MeasureType my_measure_type;
 
-        if (measure_desc == "Identical") {
-          measures.push_back(Measure::identical);
+        if (measure_desc == "Field") {
+          measures.push_back(Measure::field);
           my_measure_type = MeasureType::discretized_function;
         } else if (measure_desc == "Convolution") {
           measures.push_back(Measure::convolution);
