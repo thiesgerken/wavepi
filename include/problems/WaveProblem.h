@@ -160,7 +160,7 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
       fw_timer.stop();
 
       // could be moved into `forward` again ...
-      field.throw_away_derivative();
+      fwd.throw_away_derivative();
 
       meas_timer.start();
       result.push_back(measures[i]->evaluate(fwd));
@@ -287,7 +287,10 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
       for (size_t i = 0; i < measures.size(); i++) {
         if (i % n_procs != rank) continue;
 
-        deallog << "rank " << rank << " working on field " << i << std::endl;
+        // Not initialized if not my job, so this checks for serious programming errors.
+        AssertThrow(sub_problems[i], ExcInternalError());
+
+        deallog << "rank " << rank << " working on task " << i << std::endl;
 
         fw_timer.start();
         auto field = sub_problems[i]->forward(h_transformed);
@@ -376,6 +379,9 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
       for (size_t i = 0; i < measures.size(); i++) {
         if (i % n_procs != rank) continue;
 
+        // Not initialized if not my job, so this checks for serious programming errors.
+        AssertThrow(sub_problems[i], ExcInternalError());
+
         deallog << "rank " << rank << " working on task " << i << std::endl;
 
         adj_meas_timer.start();
@@ -444,10 +450,7 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
     }
 
     virtual DiscretizedFunction<dim> zero() {
-      auto res = sub_problems[0]->zero();
-      AssertThrow(res.get_norm() == norm_domain, ExcMessage("sub_problems[0]->zero() has unexpected norm"));
-
-      return res;
+      return DiscretizedFunction<dim>(current_param_transformed->get_mesh(), false, norm_domain);
     }
 
     virtual std::shared_ptr<LinearProblemStats> get_statistics() { return stats; }
