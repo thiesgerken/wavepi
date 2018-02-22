@@ -65,8 +65,22 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
 
     std::vector<std::shared_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>>> derivs;
 
+#ifdef WAVEPI_MPI
+    size_t n_procs = Utilities::MPI::n_mpi_processes(MPI_COMM_WORLD);
+    size_t rank    = Utilities::MPI::this_mpi_process(MPI_COMM_WORLD);
+
+    // only add those derivatives that I am responsible for
+    // (the others did not receive the field, so they cannot do anything anyway)
+    // This loop would work without MPI, but it is more readable to have different implementations here.
+    for (size_t i = 0; i < right_hand_sides.size(); i++)
+      if (i % n_procs == rank)
+        derivs.push_back(derivative(i));
+      else
+        derivs.push_back(0);
+#else
     for (size_t i = 0; i < right_hand_sides.size(); i++)
       derivs.push_back(derivative(i));
+#endif
 
     return std::make_unique<WaveProblem<dim, Measurement>::Linearization>(derivs, measures, current_param_transformed,
                                                                           transform, stats, norm_domain, norm_codomain);
@@ -94,13 +108,10 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
     deallog << "rank " << rank << " entering parallel section" << std::endl;
     std::vector<std::vector<MPI_Request>> recv_requests(right_hand_sides.size());
 
-    std::vector<DiscretizedFunction<dim>> result_fields(right_hand_sides.size(),
-                                                        DiscretizedFunction<dim>(param.get_mesh(), true));
-
     for (size_t i = 0; i < right_hand_sides.size(); i++) {
-      result_fields[i].set_norm(norm_codomain);
+      result.push_back(measures[i]->zero());
 
-      if (i % n_procs != rank) result_fields[i].mpi_irecv(i % n_procs, recv_requests[i]);
+      if (i % n_procs != rank) result[i].mpi_irecv(i % n_procs, recv_requests[i]);
     }
 
     for (size_t i = 0; i < right_hand_sides.size(); i++) {
@@ -109,16 +120,20 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
       deallog << "rank " << rank << " working on field " << i << std::endl;
 
       fw_timer.start();
-      result_fields[i] = forward(i);
+      auto field = forward(i);
       fw_timer.stop();
+
+      meas_timer.start();
+      result[i] = measures[i]->evaluate(field);
+      meas_timer.stop();
 
       // Possible improvement: use Isend or Ibcast (and wait for those requests as well) ->
       // better performance for more than one pde / node?
       comm_timer.start();
       for (size_t k = 0; k < n_procs; k++)
         if (k != rank) {
-          deallog << "rank " << rank << " sending field " << i << " to rank " << k << std::endl;
-          result_fields[i].mpi_send(k);
+          deallog << "rank " << rank << " sending measurement " << i << " to rank " << k << std::endl;
+          result[i].mpi_send(k);
         }
       comm_timer.stop();
     }
@@ -132,28 +147,7 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
       }
     comm_timer.stop();
 
-    for (size_t i = 0; i < right_hand_sides.size(); i++) {
-      if (i % n_procs == rank) continue;
-
-      deallog << "rank " << rank << " looking at field " << i << std::endl;
-
-      fw_timer.start();
-      // DEBUG TODO
-      // forward(i, result_fields[i]);
-      fw_timer.stop();
-    }
-
     deallog << "rank " << rank << " exiting parallel section" << std::endl;
-
-    // everyone does the measurements
-    // TODO: could be done in parallel as well
-    // would need some kind of allocating function that uses the field
-    meas_timer.start();
-    for (size_t i = 0; i < right_hand_sides.size(); i++) {
-      result_fields[i].throw_away_derivative();
-      result.push_back(measures[i]->evaluate(result_fields[i]));
-    }
-    meas_timer.stop();
 #else
     Tuple<Measurement> result;
 
