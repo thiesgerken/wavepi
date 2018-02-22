@@ -342,15 +342,15 @@ void WavePI<dim, Meas>::run() {
   auto reconstruction = regularization->invert(*data, cfg->tau * cfg->epsilon * data->norm(), param_exact);
 
   // transform back and output errors in the untransformed setting
-  transform->transform_inverse(reconstruction);
+  reconstruction = transform->transform_inverse(reconstruction);
 
   double norm_exact = 0.0;
   double err        = reconstruction.absolute_error(*param_exact_untransformed, &norm_exact);
 
   if (norm_exact > 1e-16)
-    deallog << "Relative error of the reconstruction" << err / norm_exact << std::endl;
+    deallog << "Relative error of the reconstruction: " << err / norm_exact << std::endl;
   else
-    deallog << "Absolute error of the reconstruction" << err << std::endl;
+    deallog << "Absolute error of the reconstruction: " << err << std::endl;
 
   if (problem->get_statistics()) {
     auto stats = problem->get_statistics();
