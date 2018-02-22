@@ -16,6 +16,7 @@
 #include <inversion/NonlinearLandweber.h>
 #include <inversion/REGINN.h>
 #include <measurements/ConvolutionMeasure.h>
+#include <measurements/GridDistribution.h>
 #include <measurements/SensorDistribution.h>
 
 #include <SettingsManager.h>

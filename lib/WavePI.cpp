@@ -29,6 +29,7 @@
 #include <measurements/ConvolutionMeasure.h>
 #include <measurements/DeltaMeasure.h>
 #include <measurements/FieldMeasure.h>
+#include <measurements/GridDistribution.h>
 #include <measurements/SensorDistribution.h>
 #include <measurements/SensorValues.h>
 #include <problems/AProblem.h>

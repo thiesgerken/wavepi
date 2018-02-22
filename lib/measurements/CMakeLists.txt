@@ -4,6 +4,8 @@ SET(LIBSOURCES
     DeltaMeasure.cpp
     SensorValues.cpp
     SensorDistribution.cpp
+    GridDistribution.cpp
+    CubeBoundaryDistribution.cpp
    )
     
 add_library(wavepi_measurements ${LIBSOURCES})

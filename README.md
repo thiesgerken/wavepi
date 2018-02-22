@@ -11,11 +11,11 @@ This is a work in progress, cf. [issue tracker](https://git.thiesgerken.de/thies
 ## Dependencies
 
  * `cmake   >= 2.8.8`
- * `deal-ii >= 8.5.0`
+ * `deal.II >= 8.5.0`
  * `boost   >= 1.56 `
  * `gtest   >= 1.8.0` (optional)
 
-Note that deali-ii has to be configured with [TBB](https://www.threadingbuildingblocks.org/) support (either bundled or external)
+Note that `deal.II` has to be configured with [TBB](https://www.threadingbuildingblocks.org/), MPI and UMFPACK support (either bundled or external)
 
 ## How to Build
 
@@ -44,7 +44,7 @@ Use the same command with `Debug` to go back. There are also `make` targets that
 
 ## MPI
 
-Add `-DWAVEPI_WITH_MPI` to the `cmake` invokation to enable MPI support. In this case, MPI is used to parallelize PDE solutions for different right hand sides. 
+Add `-DWAVEPI_WITH_MPI` to the `cmake` invokation to enable MPI support. In this case, MPI is used to parallelize PDE solutions for different right hand sides.
 
 ## Tests
 
