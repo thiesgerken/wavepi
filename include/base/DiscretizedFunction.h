@@ -230,7 +230,7 @@ class DiscretizedFunction : public Function<dim> {
 
   /**
    * Calculate the absolute error to a given continuous function.
-   * Used the norm specified by `set_norm`.
+   * Uses the norm specified by `set_norm`.
    *
    * @param other The other function.
    */
@@ -238,7 +238,7 @@ class DiscretizedFunction : public Function<dim> {
 
   /**
    * Calculate the absolute error to a given continuous function.
-   * Used the norm specified by `set_norm`.
+   * Uses the norm specified by `set_norm`.
    *
    * @param other The other function.
    * @param norm_out `double` that is filled with the norm of `other`, or `nullptr`.

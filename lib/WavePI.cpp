@@ -264,11 +264,12 @@ void WavePI<dim, Meas>::initialize_problem() {
   }
 
   // transform param_exact
-  param_exact = transform->transform(param_exact);
+  param_exact_untransformed = param_exact;
+  param_exact               = transform->transform(param_exact);
 
   problem->set_norm_domain(cfg->norm_domain);
   problem->set_norm_codomain(cfg->norm_codomain);
-}  // namespace wavepi
+}
 
 template <int dim, typename Meas>
 void WavePI<dim, Meas>::generate_data() {
@@ -338,7 +339,18 @@ void WavePI<dim, Meas>::run() {
 
   cfg->log_parameters();
 
-  regularization->invert(*data, cfg->tau * cfg->epsilon * data->norm(), param_exact);
+  auto reconstruction = regularization->invert(*data, cfg->tau * cfg->epsilon * data->norm(), param_exact);
+
+  // transform back and output errors in the untransformed setting
+  transform->transform_inverse(reconstruction);
+
+  double norm_exact = 0.0;
+  double err        = reconstruction.absolute_error(*param_exact_untransformed, &norm_exact);
+
+  if (norm_exact > 1e-16)
+    deallog << "Relative error of the reconstruction" << err / norm_exact << std::endl;
+  else
+    deallog << "Absolute error of the reconstruction" << err << std::endl;
 
   if (problem->get_statistics()) {
     auto stats = problem->get_statistics();
