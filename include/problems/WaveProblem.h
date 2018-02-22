@@ -123,6 +123,9 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
       auto field = forward(i);
       fw_timer.stop();
 
+      // could be moved into forward again ...
+      field.throw_away_derivative();
+
       meas_timer.start();
       result[i] = measures[i]->evaluate(field);
       meas_timer.stop();
@@ -155,6 +158,9 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
       fw_timer.start();
       auto fwd = forward(i);
       fw_timer.stop();
+
+      // could be moved into `forward` again ...
+      field.throw_away_derivative();
 
       meas_timer.start();
       result.push_back(measures[i]->evaluate(fwd));
