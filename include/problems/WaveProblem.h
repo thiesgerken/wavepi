@@ -288,6 +288,7 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
       deallog << "rank " << rank << " entering parallel section" << std::endl;
 
       // memory for requests, some are not used.
+      // Idea: Use Broadcasts instead (better for many nodes)
       std::vector<std::vector<MPI_Request>> recv_requests(measures.size());
       std::vector<std::vector<MPI_Request>> send_requests(measures.size() * n_procs);
 
