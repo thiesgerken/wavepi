@@ -52,10 +52,16 @@ class GridDistribution : public SensorDistribution<dim> {
   virtual size_t index_times_per_point(size_t point_index, size_t time_index) override;
 
  private:
-  // grid extents
+  /**
+   * grid description
+   */
   std::vector<std::vector<double>> points_per_dim;
 
   void update_grid(const std::vector<double>& times, const std::vector<std::vector<double>>& points_per_dim);
+
+  /**
+   * parse interval formats in settings file
+   */
   static std::vector<double> parse_description(const std::string description, bool is_time = false);
 };
 

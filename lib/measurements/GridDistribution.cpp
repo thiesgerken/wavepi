@@ -141,9 +141,7 @@ void GridDistribution<dim>::get_parameters(ParameterHandler &prm) {
 
     std::vector<std::vector<double>> spatial_points;
     spatial_points.emplace_back(parse_description(prm.get("points x")));
-
     if (dim > 1) spatial_points.emplace_back(parse_description(prm.get("points y")));
-
     if (dim > 2) spatial_points.emplace_back(parse_description(prm.get("points z")));
 
     auto temporal_points = parse_description(prm.get("points t"), true);

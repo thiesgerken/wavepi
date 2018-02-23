@@ -27,6 +27,7 @@
 #include <inversion/REGINN.h>
 #include <inversion/Regularization.h>
 #include <measurements/ConvolutionMeasure.h>
+#include <measurements/CubeBoundaryDistribution.h>
 #include <measurements/DeltaMeasure.h>
 #include <measurements/FieldMeasure.h>
 #include <measurements/GridDistribution.h>
@@ -94,6 +95,10 @@ Point<dim> WavePI<dim, Meas>::make_point(double x, double y, double z) {
     std::shared_ptr<SensorDistribution<DIM>> sensor_distribution;                                                    \
     if (cfg->sensor_distributions[config_idx] == SettingsManager::SensorDistribution::grid) {                        \
       auto my_distribution = std::make_shared<GridDistribution<DIM>>();                                              \
+      my_distribution->get_parameters(*cfg->prm);                                                                    \
+      sensor_distribution = my_distribution;                                                                         \
+    } else if (cfg->sensor_distributions[config_idx] == SettingsManager::SensorDistribution::cube_boundary) {        \
+      auto my_distribution = std::make_shared<CubeBoundaryDistribution<DIM>>();                                      \
       my_distribution->get_parameters(*cfg->prm);                                                                    \
       sensor_distribution = my_distribution;                                                                         \
     } else                                                                                                           \
@@ -372,7 +377,7 @@ void WavePI<dim, Meas>::run() {
             << stats->time_measure_adjoint / stats->calls_measure_adjoint << " s per call" << std::endl;
 
     if (Utilities::MPI::n_mpi_processes(MPI_COMM_WORLD) > 1) {
-      deallog << std::endl << "Additional time needed for MPI communication:" << std::endl;
+      deallog << "Additional time needed for MPI communication:" << std::endl;
       deallog << "forward              : " << stats->time_forward_communication << " s, average "
               << stats->time_forward_communication / stats->calls_forward << " s per call" << std::endl;
       deallog << "linearization forward: " << stats->time_linearization_forward_communication << " s, average "
@@ -383,8 +388,7 @@ void WavePI<dim, Meas>::run() {
               << std::endl;
     }
 
-    deallog << std::endl
-            << "total wall time      : " << (int)std::floor(timer_total.wall_time() / 60) << "min "
+    deallog << "total wall time      : " << (int)std::floor(timer_total.wall_time() / 60) << "min "
             << (int)std::floor(std::fmod(timer_total.wall_time(), 60)) << "s" << std::endl;
   }
 }

@@ -97,7 +97,7 @@ class SettingsManager {
   /**
    * possible sensor distributions
    */
-  enum class SensorDistribution { grid = 1 };
+  enum class SensorDistribution { grid = 1, cube_boundary = 2 };
 
   /**
    * possible measurement types

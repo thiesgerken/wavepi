@@ -52,11 +52,23 @@ class CubeBoundaryDistribution : public SensorDistribution<dim> {
   virtual size_t index_times_per_point(size_t point_index, size_t time_index) override;
 
  private:
-  // grid description
+  /**
+   * grid description
+   */
   std::vector<std::vector<double>> points_per_dim;
 
   void update_grid(const std::vector<double>& times, const std::vector<std::vector<double>>& points_per_dim);
+
+  /**
+   * parse interval formats in settings file. Different from the same function for `GridDistribution` because here the
+   * spatial bounds are exclusive.
+   */
   static std::vector<double> parse_description(const std::string description, bool is_time = false);
+
+  /**
+   * pad the values with zero so that they can be output using `GridDistribution::write_pvd`
+   */
+  std::vector<double> spread_to_grid(const std::vector<double>& values);
 };
 
 } /* namespace measurements */

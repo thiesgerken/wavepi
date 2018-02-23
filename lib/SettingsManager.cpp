@@ -16,6 +16,7 @@
 #include <inversion/NonlinearLandweber.h>
 #include <inversion/REGINN.h>
 #include <measurements/ConvolutionMeasure.h>
+#include <measurements/CubeBoundaryDistribution.h>
 #include <measurements/GridDistribution.h>
 #include <measurements/SensorDistribution.h>
 
@@ -180,11 +181,12 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
 
         ConvolutionMeasure<2>::declare_parameters(*prm);
         GridDistribution<2>::declare_parameters(*prm);
+        CubeBoundaryDistribution<2>::declare_parameters(*prm);
 
         prm->declare_entry(KEY_PROBLEM_DATA_I_MEASURE, "Field", Patterns::Selection("Field|Convolution|Delta"),
                            "type of measurements");
 
-        prm->declare_entry(KEY_PROBLEM_DATA_I_SENSOR_DISTRIBUTION, "Grid", Patterns::Selection("Grid"),
+        prm->declare_entry(KEY_PROBLEM_DATA_I_SENSOR_DISTRIBUTION, "Grid", Patterns::Selection("Grid|CubeBoundary"),
                            "in case of simulated sensors, their location on the mesh");
 
         prm->leave_subsection();
@@ -258,23 +260,18 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
 
       if (generator == "hyper_cube") {
         if (!shape_options.count("left")) shape_options.emplace("left", -5.0);
-
         if (!shape_options.count("right")) shape_options.emplace("right", 5.0);
 
         shape = MeshShape::hyper_cube;
       } else if (generator == "hyper_L") {
         if (!shape_options.count("left")) shape_options.emplace("left", -5.0);
-
         if (!shape_options.count("right")) shape_options.emplace("right", 5.0);
 
         shape = MeshShape::hyper_L;
       } else if (generator == "hyper_ball") {
         if (!shape_options.count("center_x")) shape_options.emplace("center_x", 0.0);
-
         if (!shape_options.count("center_y")) shape_options.emplace("center_y", 0.0);
-
         if (!shape_options.count("center_z")) shape_options.emplace("center_z", 0.0);
-
         if (!shape_options.count("radius")) shape_options.emplace("radius", 1.0);
 
         shape = MeshShape::hyper_ball;
@@ -284,7 +281,7 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
         AssertThrow(dimension > 1, ExcMessage("cheese only makes sense for dim > 1."));
         shape = MeshShape::cheese;
       } else {
-        AssertThrow(false, ExcMessage("Unknown grid generator:" + generator));
+        AssertThrow(false, ExcMessage("Unknown mesh generator:" + generator));
       }
     }
     prm->leave_subsection();
@@ -432,8 +429,10 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
 
         if (distrib_desc == "Grid") {
           sensor_distributions.push_back(SettingsManager::SensorDistribution::grid);
+        } else if (distrib_desc == "CubeBoundary") {
+          sensor_distributions.push_back(SettingsManager::SensorDistribution::cube_boundary);
         } else {
-          AssertThrow(false, ExcMessage("Unknown Measure: " + measure_desc));
+          AssertThrow(false, ExcMessage("Unknown sensor distribution: " + distrib_desc));
         }
 
         prm->leave_subsection();
@@ -481,4 +480,3 @@ void SettingsManager::log_parameters() {
 }
 
 }  // namespace wavepi
-/* namespace wavepi */

@@ -29,6 +29,7 @@
 #include <forward/WaveEquationBase.h>
 #include <measurements/ConvolutionMeasure.h>
 #include <measurements/DeltaMeasure.h>
+#include <measurements/GridDistribution.h>
 #include <measurements/Measure.h>
 #include <measurements/SensorDistribution.h>
 #include <problems/QProblem.h>
