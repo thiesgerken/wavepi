@@ -65,17 +65,8 @@ class CProblem : public WaveProblem<dim, Measurement> {
     // save a copy of res (with derivative)
     this->fields[i] = std::make_shared<DiscretizedFunction<dim>>(res);
 
-    // is done in WaveProblem before measurements and must not be done here.
-    // res.throw_away_derivative();
-
+    res.throw_away_derivative();
     return res;
-  }
-
-  virtual void forward(size_t i, const DiscretizedFunction<dim>& u) {
-    AssertThrow(u.has_derivative(), ExcInternalError());
-
-    // save a copy of res (with derivative)
-    this->fields[i] = std::make_shared<DiscretizedFunction<dim>>(u);
   }
 
  private:

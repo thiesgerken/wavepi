@@ -128,9 +128,6 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
       auto field = forward(i);
       fw_timer.stop();
 
-      // could be moved into forward again ...
-      field.throw_away_derivative();
-
       meas_timer.start();
       result[i] = measures[i]->evaluate(field);
       meas_timer.stop();
@@ -168,9 +165,6 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
       fw_timer.start();
       auto fwd = forward(i);
       fw_timer.stop();
-
-      // could be moved into `forward` again ...
-      fwd.throw_away_derivative();
 
       meas_timer.start();
       result.push_back(measures[i]->evaluate(fwd));
@@ -235,14 +229,6 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
    * @param rhs_index index of right hand side to use
    */
   virtual DiscretizedFunction<dim> forward(size_t rhs_index) = 0;
-
-  /**
-   * `forward(size_t)` could want to save information about the solution,
-   * but when using MPI, this is not called. This function gets the function
-   * that another process computed and can save it if needed.
-   */
-  virtual void forward(size_t rhs_index __attribute__((unused)),
-                       const DiscretizedFunction<dim> &u __attribute__((unused))) {}
 
  private:
   std::vector<std::shared_ptr<Measure<DiscretizedFunction<dim>, Measurement>>> measures;

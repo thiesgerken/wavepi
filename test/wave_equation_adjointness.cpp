@@ -484,74 +484,140 @@ void run_l2_q_adjoint_test(int fe_order, int quad_order, int refines, int n_step
 }
 }  // namespace
 
-TEST(WaveEquationAdjointness, Backwards1DFE1) {
-  const int dim = 1;
+template <int dim>
+void run_wave_adjoint_test(int fe_order, int quad_order, int refines, int n_steps,
+                           typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver, bool set_nu, double tol) {
+  AssertThrow(adjoint_solver == WaveEquationBase<dim>::WaveEquationAdjoint ||
+                  adjoint_solver == WaveEquationBase<dim>::WaveEquationBackwards,
+              ExcInternalError());
 
+  auto triangulation = std::make_shared<Triangulation<dim>>();
+  GridGenerator::hyper_cube(*triangulation, -1, 1);
+  Util::set_all_boundary_ids(*triangulation, 0);
+  triangulation->refine_global(refines);
+
+  double t_start = 0.0, t_end = 2.0, dt = t_end / n_steps;
+  std::vector<double> times;
+
+  for (size_t i = 0; t_start + i * dt <= t_end; i++)
+    times.push_back(t_start + i * dt);
+
+  std::shared_ptr<SpaceTimeMesh<dim>> mesh =
+      std::make_shared<ConstantMesh<dim>>(times, FE_Q<dim>(fe_order), QGauss<dim>(quad_order), triangulation);
+
+  deallog << std::endl << "----------  n_dofs / timestep: " << mesh->get_dof_handler(0)->n_dofs();
+  deallog << ", n_steps: " << times.size() << "  ----------" << std::endl;
+
+  WaveEquation<dim> wave_eq(mesh);
+  wave_eq.set_param_a(std::make_shared<TestA<dim>>());
+  wave_eq.set_param_c(std::make_shared<TestC<dim>>());
+  wave_eq.set_param_q(std::make_shared<TestQ<dim>>());
+
+  if (set_nu) wave_eq.set_param_nu(std::make_shared<TestNu<dim>>());
+
+  WaveEquationAdjoint<dim> wave_eq_adj(wave_eq);
+
+  bool use_adj   = adjoint_solver == WaveEquationBase<dim>::WaveEquationAdjoint;
+  double err_avg = 0.0;
+
+  for (size_t i = 0; i < 10; i++) {
+    auto f = std::make_shared<DiscretizedFunction<dim>>(DiscretizedFunction<dim>::noise(mesh));
+    f->set_norm(Norm::L2L2);
+    *f *= 1.0 / f->norm();
+
+    auto g = std::make_shared<DiscretizedFunction<dim>>(DiscretizedFunction<dim>::noise(mesh));
+    g->set_norm(Norm::L2L2);
+    *g *= 1.0 / g->norm();
+
+    wave_eq.set_run_direction(WaveEquation<dim>::Forward);
+    wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(f));
+    DiscretizedFunction<dim> sol_f = wave_eq.run();
+    sol_f.set_norm(Norm::L2L2);
+    EXPECT_GT(sol_f.norm(), 0.0);
+
+    auto g_time_mass = std::make_shared<DiscretizedFunction<dim>>(*g);
+    g_time_mass->set_norm(Norm::L2L2);
+    g_time_mass->dot_solve_mass_and_transform();
+
+    DiscretizedFunction<dim> adj_g(mesh);
+    if (use_adj) {
+      wave_eq_adj.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(g_time_mass));
+      adj_g = wave_eq_adj.run();
+    } else {
+      wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(g_time_mass));
+      wave_eq.set_run_direction(WaveEquation<dim>::Backward);
+      adj_g = wave_eq.run();
+      adj_g.throw_away_derivative();
+    }
+
+    adj_g.set_norm(Norm::L2L2);
+    adj_g.dot_mult_mass_and_transform_inverse();
+    EXPECT_GT(adj_g.norm(), 0.0);
+
+    double dot_solf_g = sol_f * (*g);
+    double dot_f_adjg = (*f) * adj_g;
+    double fg_err     = std::abs(dot_solf_g - dot_f_adjg) / (std::abs(dot_solf_g) + 1e-300);
+
+    // deallog << std::scientific << "(Lf, g) = " << dot_solf_g << ", (f, L*g) = " << dot_f_adjg
+    //        << ", rel. error = " << fg_err << std::endl;
+
+    // EXPECT_LT(zz_err, tol);
+    err_avg = (i * err_avg + fg_err) / (i + 1);
+  }
+
+  deallog << std::scientific << "average relative error = " << err_avg << std::endl;
+  EXPECT_LT(err_avg, tol);
+
+}  // namespace
+
+TEST(WaveEquationAdjointness, Backwards1DFE1) {
   for (int i = 4; i < 9; i += 2)
-    run_l2_q_adjoint_test<dim>(1, 3, 6, 1 << i, WaveEquationBase<dim>::WaveEquationBackwards, false, 1e-4);
+    run_wave_adjoint_test<1>(1, 3, 6, 1 << i, WaveEquationBase<1>::WaveEquationBackwards, false, 1e-1);
 }
 
 TEST(WaveEquationAdjointness, Adjoint1DFE1) {
-  const int dim = 1;
-
   for (int i = 4; i < 9; i += 2)
-    run_l2_q_adjoint_test<dim>(1, 3, 6, 1 << i, WaveEquationBase<dim>::WaveEquationAdjoint, false, 1e-4);
+    run_wave_adjoint_test<1>(1, 3, 6, 1 << i, WaveEquationBase<1>::WaveEquationAdjoint, false, 1e-1);
 }
 
 TEST(WaveEquationAdjointness, Backwards1DFE2) {
-  const int dim = 1;
-
   for (int i = 4; i < 9; i += 2)
-    run_l2_q_adjoint_test<dim>(2, 6, 4, 1 << i, WaveEquationBase<dim>::WaveEquationBackwards, false, 1e-4);
+    run_wave_adjoint_test<1>(2, 6, 4, 1 << i, WaveEquationBase<1>::WaveEquationBackwards, false, 1e-1);
 }
 
 TEST(WaveEquationAdjointness, Adjoint1DFE2) {
-  const int dim = 1;
-
   for (int i = 4; i < 9; i += 2)
-    run_l2_q_adjoint_test<dim>(2, 6, 4, 1 << i, WaveEquationBase<dim>::WaveEquationAdjoint, false, 1e-4);
+    run_wave_adjoint_test<1>(2, 6, 4, 1 << i, WaveEquationBase<1>::WaveEquationAdjoint, false, 1e-1);
 }
 
 TEST(WaveEquationAdjointness, Backwards2DFE1) {
-  const int dim = 2;
-
-  for (int i = 4; i < 9; i += 2)
-    run_l2_q_adjoint_test<dim>(1, 3, 4, 1 << i, WaveEquationBase<dim>::WaveEquationBackwards, false, 1e-4);
+  for (int i = 4; i < 10; i += 1)
+    run_wave_adjoint_test<2>(1, 3, 5, 1 << i, WaveEquationBase<2>::WaveEquationBackwards, false, 1e-1);
 }
 
 TEST(WaveEquationAdjointness, BackwardsNu2DFE1) {
-  const int dim = 2;
+  // this is more for demonstration purposes that backwards does not work well in this case
 
-  // this is more for demonstration purposes that backwards does not work here
-
-  for (int i = 6; i < 9; i += 2)
-    run_l2_q_adjoint_test<dim>(1, 3, 4, 1 << i, WaveEquationBase<dim>::WaveEquationBackwards, true, 1e100);
+  for (int i = 4; i < 10; i += 1)
+    run_wave_adjoint_test<2>(1, 3, 5, 1 << i, WaveEquationBase<2>::WaveEquationBackwards, true, 1e-1);
 }
 
 TEST(WaveEquationAdjointness, Adjoint2DFE1) {
-  const int dim = 2;
-
-  for (int i = 4; i < 9; i += 2)
-    run_l2_q_adjoint_test<dim>(1, 3, 4, 1 << i, WaveEquationBase<dim>::WaveEquationAdjoint, false, 1e-4);
+  for (int i = 4; i < 10; i += 1)
+    run_wave_adjoint_test<2>(1, 3, 5, 1 << i, WaveEquationBase<2>::WaveEquationAdjoint, false, 1e-1);
 }
 
 TEST(WaveEquationAdjointness, AdjointNu2DFE1) {
-  const int dim = 2;
-
-  for (int i = 6; i < 9; i += 2)
-    run_l2_q_adjoint_test<dim>(1, 3, 4, 1 << i, WaveEquationBase<dim>::WaveEquationAdjoint, true, 1e-1);
+  for (int i = 4; i < 10; i += 1)
+    run_wave_adjoint_test<2>(1, 3, 5, 1 << i, WaveEquationBase<2>::WaveEquationAdjoint, true, 1e-1);
 }
 
 TEST(WaveEquationAdjointness, Adjoint3DFE1) {
-  const int dim = 3;
-
   for (int i = 4; i < 9; i += 2)
-    run_l2_q_adjoint_test<dim>(1, 3, 2, 1 << i, WaveEquationBase<dim>::WaveEquationAdjoint, false, 1e-4);
+    run_wave_adjoint_test<3>(1, 3, 2, 1 << i, WaveEquationBase<3>::WaveEquationAdjoint, false, 1e-1);
 }
 
 TEST(WaveEquationAdjointness, Backwards3DFE1) {
-  const int dim = 3;
-
   for (int i = 4; i < 9; i += 2)
-    run_l2_q_adjoint_test<dim>(1, 3, 2, 1 << i, WaveEquationBase<dim>::WaveEquationBackwards, false, 1e-4);
+    run_wave_adjoint_test<3>(1, 3, 2, 1 << i, WaveEquationBase<3>::WaveEquationBackwards, false, 1e-1);
 }
