@@ -313,7 +313,7 @@ void WaveEquation<dim>::solve_u() {
 
   double norm_rhs = system_rhs.l2_norm();
 
-  SolverControl solver_control(2000, this->tolerance * norm_rhs);
+  SolverControl solver_control(this->solver_max_iter, this->solver_tolerance * norm_rhs);
   SolverCG<> cg(solver_control);
 
   // Fewer (~half) iterations using preconditioner, but at least in 2D this is still not worth the effort
@@ -338,7 +338,7 @@ void WaveEquation<dim>::solve_v() {
 
   double norm_rhs = system_rhs.l2_norm();
 
-  SolverControl solver_control(2000, this->tolerance * norm_rhs);
+  SolverControl solver_control(this->solver_max_iter, this->solver_tolerance * norm_rhs);
   SolverCG<> cg(solver_control);
 
   // See the comment in solve_u about preconditioning
