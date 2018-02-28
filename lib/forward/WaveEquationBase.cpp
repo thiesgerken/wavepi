@@ -27,6 +27,8 @@ void WaveEquationBase<dim>::declare_parameters(ParameterHandler &prm) {
         "theta", "0.5", Patterns::Double(0, 1),
         "parameter θ in the time discretization (θ=1 -> backward euler, θ=0 -> forward euler, θ=0.5 -> Crank-Nicolson");
     prm.declare_entry("tol", "1e-8", Patterns::Double(0, 1), "rel. tolerance for the solution of linear systems");
+    prm.declare_entry("max iter", "10000", Patterns::Integer(0),
+                      "maximum iteration threshold for the solution of linear systems");
   }
   prm.leave_subsection();
 }
@@ -35,8 +37,9 @@ template <int dim>
 void WaveEquationBase<dim>::get_parameters(ParameterHandler &prm) {
   prm.enter_subsection("WaveEquation");
   {
-    theta     = prm.get_double("theta");
-    tolerance = prm.get_double("tol");
+    theta                  = prm.get_double("theta");
+    this->solver_tolerance = prm.get_double("tol");
+    this->solver_max_iter  = prm.get_double("max iter");
   }
   prm.leave_subsection();
 }

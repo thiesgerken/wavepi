@@ -60,9 +60,13 @@ class WaveEquationBase {
 
   inline void set_mesh(std::shared_ptr<SpaceTimeMesh<dim>> mesh) { this->mesh = mesh; }
 
-  inline double get_tolerance() const { return tolerance; }
+  inline double get_tolerance() const { return solver_tolerance; }
 
-  inline void set_tolerance(double tolerance) { this->tolerance = tolerance; }
+  inline void set_tolerance(double solver_tolerance) { this->solver_tolerance = solver_tolerance; }
+
+  inline int get_max_iter() const { return solver_max_iter; }
+
+  inline void set_max_iter(int solver_max_iter) { this->solver_max_iter = solver_max_iter; }
 
   inline std::shared_ptr<Function<dim>> get_param_a() const { return param_a; }
 
@@ -119,7 +123,9 @@ class WaveEquationBase {
   void fill_C(DoFHandler<dim> &dof_handler, SparseMatrix<double> &destination);
 
   double theta;
-  double tolerance = 1e-8;
+
+  double solver_tolerance = 1e-8;
+  int solver_max_iter     = 10000;
 
   // treat DiscretizedFunctions as params and right hand side differently
   // < 0 -> no (better if much coupling present), > 0 -> yes, = 0 automatically (default)

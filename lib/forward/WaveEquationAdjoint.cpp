@@ -246,6 +246,7 @@ void WaveEquationAdjoint<dim>::assemble_u(size_t i) {
 
     system_rhs_u = rhs;
 
+    system_matrix = 0.0;  // important because it still holds the matrix for v !!
     system_matrix.add(1.0 / (time_step * time_step), matrix_C);
     system_matrix.add(theta / time_step, matrix_B);
     system_matrix.add(theta * theta, matrix_A);
@@ -423,7 +424,7 @@ void WaveEquationAdjoint<dim>::solve_u() {
 
   double norm_rhs = system_rhs_u.l2_norm();
 
-  SolverControl solver_control(2000, this->tolerance * norm_rhs);
+  SolverControl solver_control(this->solver_max_iter, this->solver_tolerance * norm_rhs);
   SolverCG<> cg(solver_control);
 
   // Fewer (~half) iterations using preconditioner, but at least in 2D this is still not worth the effort
@@ -448,7 +449,7 @@ void WaveEquationAdjoint<dim>::solve_v() {
 
   double norm_rhs = system_rhs_v.l2_norm();
 
-  SolverControl solver_control(2000, this->tolerance * norm_rhs);
+  SolverControl solver_control(this->solver_max_iter, this->solver_tolerance * norm_rhs);
   SolverCG<> cg(solver_control);
 
   // See the comment in solve_u about preconditioning
@@ -500,7 +501,7 @@ DiscretizedFunction<dim> WaveEquationAdjoint<dim>::run() {
     assemble_matrices();
     assembly_timer.stop();
 
-    // finish assembling of rhs_u
+    // finish assembling of rhs_v
     // and solve for $v^i$
     assemble_v(i);
     solve_v();
@@ -532,12 +533,10 @@ DiscretizedFunction<dim> WaveEquationAdjoint<dim>::run() {
 template <int dim>
 DiscretizedFunction<dim> WaveEquationAdjoint<dim>::apply_R_transpose(const DiscretizedFunction<dim>& u) {
   DiscretizedFunction<dim> res(mesh, false);
-  dof_handler = mesh->get_dof_handler(mesh->length() - 1);
+  Vector<double> tmp;
 
   for (size_t j = 0; j < mesh->length(); j++) {
     size_t i = mesh->length() - 1 - j;
-
-    Vector<double> tmp;
 
     if (i != mesh->length() - 1) {
       tmp.reinit(u[i + 1].size());
@@ -545,7 +544,7 @@ DiscretizedFunction<dim> WaveEquationAdjoint<dim>::apply_R_transpose(const Discr
       tmp.equ(theta * (1 - theta), u[i + 1]);
       tmp.add(1 - theta, u.get_derivative_coefficients(i + 1));
 
-      dof_handler = mesh->transfer(i + 1, i, {&tmp});
+      mesh->transfer(i + 1, i, {&tmp});
     } else
       tmp.reinit(u[i].size());
 

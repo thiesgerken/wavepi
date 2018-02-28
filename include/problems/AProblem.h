@@ -59,22 +59,12 @@ class AProblem : public WaveProblem<dim, Measurement> {
 
     DiscretizedFunction<dim> res = this->wave_equation.run();
     res.set_norm(this->norm_codomain);
-
-    // is also done in WaveProblem before measurements
-    // but we want to prevent network traffic for derivative.
     res.throw_away_derivative();
 
     // save a copy of res
     this->fields[i] = std::make_shared<DiscretizedFunction<dim>>(res);
 
     return res;
-  }
-
-  virtual void forward(size_t i, const DiscretizedFunction<dim>& u) {
-    AssertThrow(!u.has_derivative(), ExcInternalError());
-
-    // save a copy of res (without derivative)
-    this->fields[i] = std::make_shared<DiscretizedFunction<dim>>(u);
   }
 
  private:
