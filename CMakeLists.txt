@@ -20,7 +20,7 @@ find_package(deal.II 8.5.0 REQUIRED QUIET
   )
 
 find_package(Boost 1.56 REQUIRED COMPONENTS
-             filesystem program_options)
+             filesystem program_options regex)
 
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
 
