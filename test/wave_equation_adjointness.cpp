@@ -520,8 +520,9 @@ void run_wave_adjoint_test(int fe_order, int quad_order, int refines, int n_step
 
   bool use_adj   = adjoint_solver == WaveEquationBase<dim>::WaveEquationAdjoint;
   double err_avg = 0.0;
+  double err_simple;
 
-  for (size_t i = 0; i < 5; i++) {
+  for (size_t i = 0; i < 11; i++) {
     std::shared_ptr<DiscretizedFunction<dim>> f, g;
 
     if (i == 0) {
@@ -587,10 +588,10 @@ void run_wave_adjoint_test(int fe_order, int quad_order, int refines, int n_step
     double fg_err     = std::abs(dot_solf_g - dot_f_adjg) / (std::abs(dot_solf_g) + 1e-300);
 
     if (i == 0) {
-      deallog << "simple f,g: " << std::scientific << "(Lf, g) = " << dot_solf_g << ", (f, L*g) = " << dot_f_adjg
-              << std::endl;
+      // deallog << "simple f,g: " << std::scientific << "(Lf, g) = " << dot_solf_g << ", (f, L*g) = " << dot_f_adjg
+      //         << std::endl;
+      err_simple = fg_err;
       deallog << std::scientific << "        relative error for simple f,g = " << fg_err << std::endl;
-      EXPECT_LT(fg_err, tol);
     } else
       err_avg = ((i - 1) * err_avg + fg_err) / i;
 
@@ -601,6 +602,7 @@ void run_wave_adjoint_test(int fe_order, int quad_order, int refines, int n_step
   }
 
   deallog << std::scientific << "average relative error for random f,g = " << err_avg << std::endl;
+  EXPECT_LT(err_simple, tol);
   EXPECT_LT(err_avg, tol);
 }
 }  // namespace
