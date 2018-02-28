@@ -41,7 +41,9 @@ using namespace wavepi::base;
 template <int dim>
 class TestF : public Function<dim> {
  public:
-  double value(const Point<dim> &p, const unsigned int component = 0) const {
+  virtual ~TestF() = default;
+
+  double value(const Point<dim> &p, const unsigned int component = 0) const override {
     Assert(component == 0, ExcIndexRange(component, 0, 1));
     if ((this->get_time() <= 1) && (p.norm() < 0.5))
       return std::sin(this->get_time() * 2 * numbers::PI);
@@ -51,32 +53,11 @@ class TestF : public Function<dim> {
 };
 
 template <int dim>
-class TestF2 : public Function<dim> {
- public:
-  TestF2() : Function<dim>() {}
-  double value(const Point<dim> &p, const unsigned int component = 0) const {
-    Assert(component == 0, ExcIndexRange(component, 0, 1));
-    if ((this->get_time() <= 0.5) && (p.distance(actor_position) < 0.4))
-      return std::sin(this->get_time() * 2 * numbers::PI);
-    else
-      return 0.0;
-  }
-
- private:
-  static const Point<dim> actor_position;
-};
-
-template <>
-const Point<1> TestF2<1>::actor_position = Point<1>(1.0);
-template <>
-const Point<2> TestF2<2>::actor_position = Point<2>(1.0, 0.5);
-template <>
-const Point<3> TestF2<3>::actor_position = Point<3>(1.0, 0.5, 0.0);
-
-template <int dim>
 class TestG : public Function<dim> {
  public:
-  double value(const Point<dim> &p, const unsigned int component = 0) const {
+  virtual ~TestG() = default;
+
+  double value(const Point<dim> &p, const unsigned int component = 0) const override {
     Assert(component == 0, ExcIndexRange(component, 0, 1));
 
     Point<dim> pc = Point<dim>::unit_vector(0);
@@ -92,7 +73,9 @@ class TestG : public Function<dim> {
 template <int dim>
 class TestH : public Function<dim> {
  public:
-  double value(const Point<dim> &p, const unsigned int component = 0) const {
+  virtual ~TestH() = default;
+
+  virtual double value(const Point<dim> &p, const unsigned int component = 0) const override {
     Assert(component == 0, ExcIndexRange(component, 0, 1));
 
     return p.norm() * this->get_time();
@@ -114,7 +97,9 @@ double c_squared(const Point<dim> &p, double t) {
 template <int dim>
 class TestC : public Function<dim> {
  public:
-  double value(const Point<dim> &p, const unsigned int component = 0) const {
+  virtual ~TestC() = default;
+
+  virtual double value(const Point<dim> &p, const unsigned int component = 0) const override {
     Assert(component == 0, ExcIndexRange(component, 0, 1));
 
     return 1.0 / (rho(p, this->get_time()) * c_squared(p, this->get_time()));
@@ -124,7 +109,9 @@ class TestC : public Function<dim> {
 template <int dim>
 class TestA : public Function<dim> {
  public:
-  double value(const Point<dim> &p, const unsigned int component = 0) const {
+  virtual ~TestA() = default;
+
+  virtual double value(const Point<dim> &p, const unsigned int component = 0) const override {
     Assert(component == 0, ExcIndexRange(component, 0, 1));
 
     return 1.0 / rho(p, this->get_time());
@@ -134,18 +121,48 @@ class TestA : public Function<dim> {
 template <int dim>
 class TestNu : public Function<dim> {
  public:
-  double value(const Point<dim> &p, const unsigned int component = 0) const {
+  virtual ~TestNu() = default;
+
+  virtual double value(const Point<dim> &p, const unsigned int component = 0) const override {
     Assert(component == 0, ExcIndexRange(component, 0, 1));
 
-    return std::abs(p[0]) * this->get_time();
+    // do not just change this, reference_test_nu needs this
+    return p.norm() * this->get_time();
   }
+};
+
+template <int dim>
+class RhsTestNu : public Function<dim> {
+ public:
+  virtual ~RhsTestNu() = default;
+
+  virtual double value(const Point<dim> &p, const unsigned int component = 0) const override {
+    Assert(component == 0, ExcIndexRange(component, 0, 1));
+
+    // do not just change this, reference_test_nu needs this
+    return nu.value(p, 0) * v->value(p, 0);
+  }
+
+  virtual void set_time(double time) override {
+    Function<dim>::set_time(time);
+    nu.set_time(time);
+    v->set_time(time);
+  }
+
+ public:
+  RhsTestNu(std::shared_ptr<Function<dim>> v) : v(v) { AssertThrow(v, ExcNotInitialized()); }
+
+ private:
+  std::shared_ptr<Function<dim>> v;  // pointer to u'
+  TestNu<dim> nu;
 };
 
 template <int dim>
 class TestQ : public Function<dim> {
  public:
-  TestQ() : Function<dim>() {}
-  double value(const Point<dim> &p, const unsigned int component = 0) const {
+  virtual ~TestQ() = default;
+
+  virtual double value(const Point<dim> &p, const unsigned int component = 0) const override {
     Assert(component == 0, ExcIndexRange(component, 0, 1));
 
     return p.norm() < 0.5 ? std::sin(this->get_time() / 2 * 2 * numbers::PI) : 0.0;
@@ -165,10 +182,13 @@ template <int dim>
 class DiscretizedFunctionDisguise : public Function<dim> {
  public:
   DiscretizedFunctionDisguise(std::shared_ptr<DiscretizedFunction<dim>> base) : base(base) {}
+  virtual ~DiscretizedFunctionDisguise() = default;
 
-  double value(const Point<dim> &p, const unsigned int component = 0) const { return base->value(p, component); }
+  virtual double value(const Point<dim> &p, const unsigned int component = 0) const override {
+    return base->value(p, component);
+  }
 
-  void set_time(const double new_time) {
+  virtual void set_time(const double new_time) override {
     Function<dim>::set_time(new_time);
     base->set_time(new_time);
   }
@@ -328,7 +348,9 @@ void run_discretized_test(int fe_order, int quad_order, int refines) {
 template <int dim>
 class SeparationAnsatz : public Function<dim> {
  public:
-  double value(const Point<dim> &p, const unsigned int component = 0) const {
+  virtual ~SeparationAnsatz() = default;
+
+  virtual double value(const Point<dim> &p, const unsigned int component = 0) const override {
     Assert(component == 0, ExcIndexRange(component, 0, 1));
 
     double res = 1;
@@ -449,6 +471,106 @@ void run_reference_test_constant(int fe_order, int quad_order, int refines, Poin
   std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, fe, quad, triangulation);
 
   run_reference_test<dim>(mesh, k, constants, expect, save);
+}
+
+template <int dim>
+void run_reference_test_nu(int fe_order, int quad_order, int refines, Point<dim, int> k, Point<2> constants,
+                           double t_end, int steps, bool expect = true, bool save = false) {
+  auto triangulation = std::make_shared<Triangulation<dim>>();
+  GridGenerator::hyper_cube(*triangulation, 0.0, numbers::PI);
+  Util::set_all_boundary_ids(*triangulation, 0);
+  triangulation->refine_global(refines);
+
+  double t_start = 0.0, dt = t_end / steps;
+  std::vector<double> times;
+
+  for (size_t i = 0; t_start + i * dt <= t_end; i++)
+    times.push_back(t_start + i * dt);
+
+  FE_Q<dim> fe(fe_order);
+  Quadrature<dim> quad = QGauss<dim>(quad_order);  // exact in poly degree 2n-1 (needed: fe_dim^3)
+
+  std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, fe, quad, triangulation);
+  deallog << std::endl << "----------  n_dofs(0): " << mesh->get_dof_handler(0)->n_dofs();
+  deallog << ", n_steps: " << mesh->get_times().size() << "  ----------" << std::endl;
+
+  Point<2> derivative_constants;
+  derivative_constants[0] = -constants[1] * std::sqrt(k.square());
+  derivative_constants[1] = constants[0] * std::sqrt(k.square());
+
+  auto u = std::make_shared<SeparationAnsatz<dim>>(k, constants);
+  auto v = std::make_shared<SeparationAnsatz<dim>>(k, derivative_constants);
+
+  WaveEquation<dim> wave_eq(mesh);
+  wave_eq.set_param_nu(std::make_shared<TestNu<dim>>());
+  wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(std::make_shared<RhsTestNu<dim>>(v)));
+
+  wave_eq.set_initial_values_u(u);
+  wave_eq.set_initial_values_v(v);
+
+  wave_eq.set_run_direction(WaveEquation<dim>::Forward);
+  DiscretizedFunction<dim> solu = wave_eq.run();
+  DiscretizedFunction<dim> solv = solu.derivative();
+  solu.throw_away_derivative();
+
+  solu.set_norm(Norm::L2L2);
+  solv.set_norm(Norm::L2L2);
+
+  DiscretizedFunction<dim> refu(mesh, *u);
+  DiscretizedFunction<dim> refv(mesh, *v);
+
+  refu.set_norm(Norm::L2L2);
+  refv.set_norm(Norm::L2L2);
+
+  DiscretizedFunction<dim> tmp(solu);
+  tmp -= refu;
+  double err_u = tmp.norm() / refu.norm();
+
+  tmp = solv;
+  tmp -= refv;
+  double err_v = tmp.norm() / refv.norm();
+
+  if (expect) {
+    EXPECT_LT(err_u, 1e-1);
+    EXPECT_LT(err_v, 1e-1);
+  }
+
+  if (save) {
+    solu.write_pvd("./", "solu", "u");
+    refu.write_pvd("./", "refu", "uref");
+
+    DiscretizedFunction<dim> tmp(solu);
+    tmp -= refu;
+    tmp.write_pvd("./", "diff", "udiff");
+  }
+
+  deallog << std::scientific << "forward : rerr(u) = " << err_u << ", rerr(v) = " << err_v << std::endl;
+
+  // backward does not work for nu > 0
+  /*
+  wave_eq.set_run_direction(WaveEquation<dim>::Backward);
+  solu = wave_eq.run();
+  solv = solu.derivative();
+  solu.throw_away_derivative();
+
+  solu.set_norm(Norm::L2L2);
+  solv.set_norm(Norm::L2L2);
+
+  tmp = solu;
+  tmp -= refu;
+  err_u = tmp.norm() / refu.norm();
+
+  tmp = solv;
+  tmp -= refv;
+  err_v = tmp.norm() / refv.norm();
+
+  if (expect) {
+    EXPECT_LT(err_u, 1e-1);
+    EXPECT_LT(err_v, 1e-1);
+  }
+
+  deallog << std::scientific << "backward: rerr(u) = " << err_u << ", rerr(v) = " << err_v << std::endl << std::endl;
+  */
 }
 
 template <int dim>
@@ -581,4 +703,36 @@ TEST(WaveEquation, ReferenceTest3DFE1) {
   for (int refine = 2; refine >= 0; refine--)
     run_reference_test_constant<3>(1, 3, refine, Point<3, int>(1, 2, 3), Point<2>(0.7, 1.2), 2 * numbers::PI, 32,
                                    false);
+}
+
+TEST(WaveEquation, ReferenceTestNu1DFE1) {
+  for (int steps = 128; steps <= 1024; steps *= 2)
+    run_reference_test_nu<1>(1, 3, 10, Point<1, int>(2), Point<2>(1.0, 1.5), 2 * numbers::PI, steps, steps >= 64);
+
+  for (int refine = 7; refine >= 1; refine--)
+    run_reference_test_nu<1>(1, 3, refine, Point<1, int>(2), Point<2>(1.0, 1.5), 2 * numbers::PI, 1024, false);
+}
+
+TEST(WaveEquation, ReferenceTestNu1DFE2) {
+  for (int steps = 16; steps <= 128; steps *= 2)
+    run_reference_test_nu<1>(2, 4, 7, Point<1, int>(2), Point<2>(1.0, 1.5), 2 * numbers::PI, steps, steps >= 64);
+
+  for (int refine = 6; refine >= 1; refine--)
+    run_reference_test_nu<1>(2, 4, refine, Point<1, int>(2), Point<2>(1.0, 1.5), 2 * numbers::PI, 128, false);
+}
+
+TEST(WaveEquation, ReferenceTestNu2DFE1) {
+  for (int steps = 16; steps <= 512; steps *= 2)
+    run_reference_test_nu<2>(1, 3, 6, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, steps, steps >= 64);
+
+  for (int refine = 5; refine >= 1; refine--)
+    run_reference_test_nu<2>(1, 3, refine, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, 256, false);
+}
+
+TEST(WaveEquation, ReferenceTestNu3DFE1) {
+  for (int steps = 8; steps <= 32; steps *= 2)
+    run_reference_test_nu<3>(1, 3, 3, Point<3, int>(1, 2, 3), Point<2>(0.7, 1.2), 2 * numbers::PI, steps, steps >= 32);
+
+  for (int refine = 2; refine >= 0; refine--)
+    run_reference_test_nu<3>(1, 3, refine, Point<3, int>(1, 2, 3), Point<2>(0.7, 1.2), 2 * numbers::PI, 32, false);
 }

@@ -268,7 +268,7 @@ void WaveEquation<dim>::assemble_u(double time_step) {
   system_matrix.add(theta * theta, matrix_A);
 
   // system_matrix contains
-  // theta^2 * A^{n+1} + theta * B^{n+1} + 1/dt^2 C^{n+1}
+  // theta^2 * A^{n+1} + theta/dt * B^{n+1} + 1/dt^2 C^{n+1}
 
   // needed, because hanging node constraints are not already built into the sparsity pattern
   constraints->condense(system_matrix, system_rhs);
@@ -294,7 +294,7 @@ void WaveEquation<dim>::assemble_v(double time_step) {
   system_matrix.copy_from(matrix_C);
   system_matrix *= 1.0 / time_step;
 
-  system_matrix.add(time_step, matrix_B);
+  system_matrix.add(theta, matrix_B);
 
   // system_matrix contains
   // theta * B^{n+1} + 1/dt C^{n+1}
