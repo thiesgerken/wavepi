@@ -148,8 +148,6 @@ class CProblem : public WaveProblem<dim, Measurement> {
       res.dot_mult_mass_and_transform_inverse();
 
       /* M*  */
-
-      // numerical adjoint
       res.dot_transform();
       res.throw_away_derivative();
       res = res.calculate_derivative_transpose();
@@ -158,12 +156,6 @@ class CProblem : public WaveProblem<dim, Measurement> {
 
       res.set_norm(this->norm_domain);
       res.dot_transform_inverse();
-
-      // analytical adjoint (does not work)
-      /*
-       res = res.calculate_derivative();
-       res.pointwise_multiplication(u->derivative());
-       */
 
       return res;
     }
