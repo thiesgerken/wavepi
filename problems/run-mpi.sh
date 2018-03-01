@@ -22,7 +22,7 @@ cp ../$1 $1
 
 cp $1 wavepi.cfg
 wavepi --export Diff -c $1 > wavepi-diff.cfg
-wavepi --export -c $1 > wavepi-full.cfg
+wavepi --export -c $1 > wavepi.cfg
 
 mpirun --bind-to none -np 2 --hostfile ../hostfile wavepi -c $1
 

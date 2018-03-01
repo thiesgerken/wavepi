@@ -20,9 +20,8 @@ mkdir -p $NAME
 cd $NAME
 cp ../$1 $1
 
-cp $1 wavepi.cfg
 wavepi --export Diff -c $1 > wavepi-diff.cfg
-wavepi --export -c $1 > wavepi-full.cfg
+wavepi --export -c $1 > wavepi.cfg
 
 wavepi -c $1
 
