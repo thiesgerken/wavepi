@@ -24,7 +24,7 @@ cp $1 wavepi.cfg
 wavepi --export Diff -c $1 > wavepi-diff.cfg
 wavepi --export -c $1 > wavepi.cfg
 
-mpirun --bind-to none -np 2 --hostfile ../hostfile wavepi -c $1
+mpirun --bind-to none -np 2 wavepi -c $1
 
 cat wavepi.log | wavepi-logfilter 2 > wavepi.2.log
 cat wavepi.log | wavepi-logfilter 100 | xz > wavepi.log.xz
