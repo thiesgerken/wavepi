@@ -1,24 +1,32 @@
 #!/bin/bash
 
-echo $1
+#
+# wavepi executable has to be in path!
 
-if [[ ! -f $1.cfg ]]; then
- echo "$1.cfg not found"
+NAME=${1%%.*}
+echo $NAME
+
+if [[ ! -f $1 ]]; then
+ echo "$1 not found"
  exit 1
 fi
 
-if [[ -d $1 ]]; then
- echo "directory $1 exists"
+if [[ -d $NAME ]]; then
+ echo "directory $NAME exists"
  exit 2
 fi
 
-mkdir -p $1
-cd $1
-cp ../$1.cfg wavepi.cfg
-../../build/wavepi --export-config -c wavepi.cfg > wavepi_exported.cfg
-../../build/wavepi -c wavepi.cfg
-cat wavepi.log | ../../build/wavepi_logfilter 2 > wavepi.2.log
-cat wavepi.log | ../../build/wavepi_logfilter 4 | xz > wavepi.4.log.xz
-# rm wavepi.log
+mkdir -p $NAME
+cd $NAME
+cp ../$1 $1
 
+cp $1 wavepi.cfg
+wavepi --export Diff -c $1 > wavepi-diff.cfg
+wavepi --export -c $1 > wavepi-full.cfg
+
+wavepi -c $1
+
+cat wavepi.log | wavepi-logfilter 2 > wavepi.2.log
+cat wavepi.log | wavepi-logfilter 100 | xz > wavepi.log.xz
+rm wavepi.log
 cd ..
