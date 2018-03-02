@@ -158,7 +158,7 @@ int main(int argc, char *argv[]) {
     std::ofstream logout;
 
     if (cfg->log_file.size()) {
-      if (mpi_rank > 0) cfg->log_file = cfg->log_file + std::to_string(mpi_rank);
+      if (mpi_size > 1) cfg->log_file = cfg->log_file + std::to_string(mpi_rank);
 
       logout = std::ofstream(cfg->log_file);
       deallog.attach(logout);
