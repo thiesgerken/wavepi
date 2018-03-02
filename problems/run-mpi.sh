@@ -26,7 +26,7 @@ wavepi --export -c $1 > wavepi.cfg
 
 mpirun --bind-to none -np 2 ~/wavepi/build/wavepi -c $1
 
-for i in {0:9}; do
+for i in {0..9}; do
   if [[ -f wavepi.log$i ]]; then
     cat wavepi.log$i | wavepi-logfilter 2 > wavepi.2.log$i
     cat wavepi.log$i | wavepi-logfilter 100 | xz > wavepi.log$i.xz

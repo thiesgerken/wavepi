@@ -8,8 +8,12 @@
 #ifndef INCLUDE_BASE_NORM_H_
 #define INCLUDE_BASE_NORM_H_
 
+#include <deal.II/base/exceptions.h>
+#include <string>
+
 namespace wavepi {
 namespace base {
+using namespace dealii;
 
 /**
  * possible norm settings
@@ -44,6 +48,8 @@ enum class Norm {
    */
   H2L2
 };
+
+std::string to_string(const Norm &norm);
 
 }  // namespace base
 }  // namespace wavepi
