@@ -34,6 +34,7 @@ AdaptiveMesh<dim>::AdaptiveMesh(std::vector<double> times, FE_Q<dim> fe, Quadrat
   vector_sizes      = std::vector<size_t>(this->length(), 0);
   sparsity_patterns = std::vector<std::shared_ptr<SparsityPattern>>(this->length());
   mass_matrices     = std::vector<std::shared_ptr<SparseMatrix<double>>>(this->length());
+  laplace_matrices  = std::vector<std::shared_ptr<SparseMatrix<double>>>(this->length());
   constraints       = std::vector<std::shared_ptr<ConstraintMatrix>>(this->length());
 
   working_time_idx = 0;
@@ -49,6 +50,7 @@ template <int dim>
 void AdaptiveMesh<dim>::reset() {
   vector_sizes      = std::vector<size_t>(this->length(), 0);
   mass_matrices     = std::vector<std::shared_ptr<SparseMatrix<double>>>(this->length());
+  laplace_matrices  = std::vector<std::shared_ptr<SparseMatrix<double>>>(this->length());
   sparsity_patterns = std::vector<std::shared_ptr<SparsityPattern>>(this->length());
   constraints       = std::vector<std::shared_ptr<ConstraintMatrix>>(this->length());
 
@@ -109,6 +111,26 @@ std::shared_ptr<SparseMatrix<double>> AdaptiveMesh<dim>::get_mass_matrix(size_t 
   }
 
   return mass_matrices[idx];
+}
+
+template <int dim>
+std::shared_ptr<SparseMatrix<double>> AdaptiveMesh<dim>::get_laplace_matrix(size_t idx) {
+  Assert(idx >= 0 && idx < this->length(), ExcIndexRange(idx, 0, this->length()));
+
+  if (!laplace_matrices[idx]) {
+    //{
+    //   LogStream::Prefix p("AdaptiveMesh");
+    //   deallog << "making laplace matrix for time step " << idx << std::endl;
+    //}
+
+    get_sparsity_pattern(idx);
+    get_dof_handler(idx);
+
+    laplace_matrices[idx] = std::make_shared<SparseMatrix<double>>(*sparsity_patterns[idx]);
+    dealii::MatrixCreator::create_laplace_matrix(*working_dof_handler, quad, *laplace_matrices[idx]);
+  }
+
+  return laplace_matrices[idx];
 }
 
 template <int dim>
@@ -377,11 +399,12 @@ void AdaptiveMesh<dim>::generate_backward_patches() {
 }
 
 template <int dim>
-void AdaptiveMesh<dim>::refine_and_coarsen(std::vector<size_t> refine_intervals,
-                                           std::vector<size_t> coarsen_time_points,
-                                           std::vector<std::vector<bool>> refine_trias,
-                                           std::vector<std::vector<bool>> coarsen_trias,
-                                           std::initializer_list<DiscretizedFunction<dim> *> interpolate_vectors) {
+void AdaptiveMesh<dim>::refine_and_coarsen(std::vector<size_t> refine_intervals __attribute((unused)),
+                                           std::vector<size_t> coarsen_time_points __attribute((unused)),
+                                           std::vector<std::vector<bool>> refine_trias __attribute((unused)),
+                                           std::vector<std::vector<bool>> coarsen_trias __attribute((unused)),
+                                           std::initializer_list<DiscretizedFunction<dim> *> interpolate_vectors
+                                           __attribute((unused))) {
   // TODO: implement refine_and_coarsen
   AssertThrow(false, ExcNotImplemented());
 }

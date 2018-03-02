@@ -259,6 +259,8 @@ void run_dot_transform_inverse_test(int fe_order, int quad_order, int refines, i
     DiscretizedFunction<dim> x = DiscretizedFunction<dim>::noise(mesh);
     x.set_norm(norm);
 
+    EXPECT_GT(x.norm(), 0);
+
     auto trans_x = x;
     trans_x.dot_transform();
     trans_x.dot_transform_inverse();
@@ -268,15 +270,23 @@ void run_dot_transform_inverse_test(int fe_order, int quad_order, int refines, i
 
     auto solve_trans_x = x;
     solve_trans_x.dot_solve_mass_and_transform();
-    solve_trans_x.dot_mult_mass_and_transform_inverse();
+    solve_trans_x.dot_transform_inverse();
+
+    x.solve_mass();
     solve_trans_x -= x;
     double err_solve_trans = solve_trans_x.norm() / x.norm();
 
-    deallog << std::scientific << "‖x - T^{-1} T x‖ / ‖x‖         = " << err_trans << std::endl;
+    auto mult_trans_x = x;
+    mult_trans_x.dot_mult_mass_and_transform_inverse();
+    mult_trans_x.dot_transform();
 
-    // for our dot products T and M commute,
-    // T^{-1}M T M^{-1} = T^{-1}M M^{-1} T which should be the identity
-    deallog << std::scientific << "‖x - T^{-1}M T M^{-1} x‖ / ‖x‖ = " << err_solve_trans << std::endl;
+    x.mult_mass();
+    mult_trans_x -= x;
+    double err_mult_trans = mult_trans_x.norm() / x.norm();
+
+    deallog << std::scientific << "‖x - T^{-1} T x‖ / ‖x‖         = " << err_trans << std::endl;
+    deallog << std::scientific << "‖M^{-1} x - T^{-1}T M^{-1} x‖ / ‖M^{-1} x‖ = " << err_solve_trans << std::endl;
+    deallog << std::scientific << "‖M x - T T^{-1} M x‖ / ‖M x‖ = " << err_mult_trans << std::endl;
 
     EXPECT_LT(err_trans, tol);
     EXPECT_LT(err_solve_trans, tol);
@@ -407,6 +417,9 @@ void run_dot_norm_tests(int fe_order, int quad_order, int refines, int n_steps) 
   deallog << "== norm=H1L2 ==" << std::endl;
   run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, Norm::H1L2);
 
+  deallog << "== norm=H1H1 ==" << std::endl;
+  run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, Norm::H1H1);
+
   deallog << "== norm=H2L2 ==" << std::endl;
   run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, Norm::H2L2);
 }
@@ -422,6 +435,9 @@ void run_dot_transform_inverse_tests(int fe_order, int quad_order, int refines, 
   deallog << "== norm=H1L2 ==" << std::endl;
   run_dot_transform_inverse_test<dim>(fe_order, quad_order, refines, n_steps, Norm::H1L2);
 
+  deallog << "== norm=H1H1 ==" << std::endl;
+  run_dot_transform_inverse_test<dim>(fe_order, quad_order, refines, n_steps, Norm::H1H1);
+
   deallog << "== norm=H2L2 ==" << std::endl;
   run_dot_transform_inverse_test<dim>(fe_order, quad_order, refines, n_steps, Norm::H2L2);
 }
@@ -436,6 +452,9 @@ void run_dot_transform_consistent_tests(int fe_order, int quad_order, int refine
 
   deallog << "== norm=H1L2 ==" << std::endl;
   run_dot_transform_consistent_test<dim>(fe_order, quad_order, refines, n_steps, Norm::H1L2);
+
+  deallog << "== norm=H1H1 ==" << std::endl;
+  run_dot_transform_consistent_test<dim>(fe_order, quad_order, refines, n_steps, Norm::H1H1);
 
   deallog << "== norm=H2L2 ==" << std::endl;
   run_dot_transform_consistent_test<dim>(fe_order, quad_order, refines, n_steps, Norm::H2L2);

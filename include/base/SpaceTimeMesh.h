@@ -66,6 +66,13 @@ class SpaceTimeMesh {
   virtual std::shared_ptr<SparseMatrix<double>> get_mass_matrix(size_t idx) = 0;
 
   /**
+   * get a laplace matrix for the selected time index.
+   * If this is not in storage (yet), then the result of get_dof_handler is used to create one
+   * Might invalidate the last return value of get_dof_handler!
+   */
+  virtual std::shared_ptr<SparseMatrix<double>> get_laplace_matrix(size_t idx) = 0;
+
+  /**
    * get the sparsity pattern for the selected time index.
    * If this is not in storage (yet), then the result of get_dof_handler is used to create one
    * Might invalidate the last return value of get_dof_handler!

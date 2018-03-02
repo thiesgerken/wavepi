@@ -84,7 +84,7 @@ class WavePI {
   void initialize_problem();
   void generate_data();
 
-  void log_error(const DiscretizedFunction<dim>& reconstruction, Norm norm);
+  void log_error(DiscretizedFunction<dim>& reconstruction, Norm norm);
 };
 
 } /* namespace wavepi */

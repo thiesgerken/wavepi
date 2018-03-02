@@ -53,6 +53,8 @@ class SettingsManager {
   static const std::string KEY_PROBLEM_NORM_H1L2ALPHA;
   static const std::string KEY_PROBLEM_NORM_H2L2ALPHA;
   static const std::string KEY_PROBLEM_NORM_H2L2BETA;
+  static const std::string KEY_PROBLEM_NORM_H1H1ALPHA;
+  static const std::string KEY_PROBLEM_NORM_H1H1GAMMA;
 
   static const std::string KEY_PROBLEM_EPSILON;
   static const std::string KEY_PROBLEM_CONSTANTS;
@@ -137,6 +139,8 @@ class SettingsManager {
   double norm_h1l2_alpha;
   double norm_h2l2_alpha;
   double norm_h2l2_beta;
+  double norm_h1h1_alpha;
+  double norm_h1h1_gamma;
 
   std::map<std::string, double> constants_for_exprs;
   std::string expr_initial_guess;

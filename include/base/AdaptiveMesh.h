@@ -45,22 +45,24 @@ class AdaptiveMesh : public SpaceTimeMesh<dim> {
 
   virtual size_t n_dofs(size_t idx);
 
-  virtual std::shared_ptr<SparseMatrix<double>> get_mass_matrix(size_t idx);
+  virtual std::shared_ptr<SparseMatrix<double>> get_mass_matrix(size_t idx) override;
 
-  virtual std::shared_ptr<SparsityPattern> get_sparsity_pattern(size_t idx);
+  virtual std::shared_ptr<SparseMatrix<double>> get_laplace_matrix(size_t idx) override;
 
-  virtual std::shared_ptr<ConstraintMatrix> get_constraint_matrix(size_t idx);
+  virtual std::shared_ptr<SparsityPattern> get_sparsity_pattern(size_t idx) override;
 
-  virtual std::shared_ptr<DoFHandler<dim>> get_dof_handler(size_t idx);
+  virtual std::shared_ptr<ConstraintMatrix> get_constraint_matrix(size_t idx) override;
 
-  virtual std::shared_ptr<Triangulation<dim>> get_triangulation(size_t idx);
+  virtual std::shared_ptr<DoFHandler<dim>> get_dof_handler(size_t idx) override;
+
+  virtual std::shared_ptr<Triangulation<dim>> get_triangulation(size_t idx) override;
 
   virtual std::shared_ptr<DoFHandler<dim>> transfer(size_t source_time_index, size_t target_time_index,
-                                                    std::initializer_list<Vector<double> *> vectors);
+                                                    std::initializer_list<Vector<double> *> vectors) override;
 
-  virtual size_t memory_consumption() const;
+  virtual size_t memory_consumption() const override;
 
-  virtual bool allows_parallel_access() const { return false; }
+  virtual bool allows_parallel_access() const override { return false; }
 
   /**
    * refine / coarsen this Adaptive Mesh.
@@ -125,6 +127,11 @@ class AdaptiveMesh : public SpaceTimeMesh<dim> {
    * all the mass matrices (or empty `std::shared_ptr` if they have not been constructed yet)
    */
   std::vector<std::shared_ptr<SparseMatrix<double>>> mass_matrices;
+
+  /**
+   * all the laplace matrices (or empty `std::shared_ptr` if they have not been constructed yet)
+   */
+  std::vector<std::shared_ptr<SparseMatrix<double>>> laplace_matrices;
 
   /**
    * all the constraint matrices (or empty `std::shared_ptr` if they have not been constructed yet)

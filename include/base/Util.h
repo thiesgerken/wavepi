@@ -29,6 +29,8 @@ class Util {
   template <int dim>
   static void set_all_boundary_ids(Triangulation<dim> &tria, int id);
 
+  static std::string format_duration(const double seconds);
+
  private:
   Util(){};
 };

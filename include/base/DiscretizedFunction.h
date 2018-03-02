@@ -38,6 +38,8 @@ class DiscretizedFunction : public Function<dim> {
   static double h1l2_alpha;
   static double h2l2_alpha;
   static double h2l2_beta;
+  static double h1h1_alpha;
+  static double h1h1_gamma;
 
   virtual ~DiscretizedFunction() = default;
 
@@ -590,6 +592,20 @@ class DiscretizedFunction : public Function<dim> {
   void dot_transform_inverse_h1l2();
   void dot_solve_mass_and_transform_h1l2();
   void dot_mult_mass_and_transform_inverse_h1l2();
+
+  /**
+   * @}
+   *
+   * @name Functions for `Norm::H1H1`
+   */
+
+  double norm_h1h1() const;
+  double dot_h1h1(const DiscretizedFunction<dim>& V) const;
+
+  void dot_transform_h1h1();
+  void dot_transform_inverse_h1h1();
+  void dot_solve_mass_and_transform_h1h1();
+  void dot_mult_mass_and_transform_inverse_h1h1();
 
   /**
    * @}

@@ -38,6 +38,18 @@ std::shared_ptr<SparseMatrix<double>> ConstantMesh<dim>::get_mass_matrix(size_t 
 }
 
 template <int dim>
+std::shared_ptr<SparseMatrix<double>> ConstantMesh<dim>::get_laplace_matrix(size_t time_index) {
+  if (!laplace_matrix) {
+    get_sparsity_pattern(time_index);
+
+    laplace_matrix = std::make_shared<SparseMatrix<double>>(*sparsity_pattern);
+    dealii::MatrixCreator::create_laplace_matrix(*dof_handler, quad, *laplace_matrix);
+  }
+
+  return laplace_matrix;
+}
+
+template <int dim>
 std::shared_ptr<ConstraintMatrix> ConstantMesh<dim>::get_constraint_matrix(size_t idx __attribute((unused))) {
   if (!constraints) {
     constraints = std::make_shared<ConstraintMatrix>();

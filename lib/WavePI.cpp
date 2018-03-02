@@ -64,6 +64,8 @@ WavePI<dim, Meas>::WavePI(std::shared_ptr<SettingsManager> cfg) : cfg(cfg) {
   DiscretizedFunction<dim>::h1l2_alpha = cfg->norm_h1l2_alpha;
   DiscretizedFunction<dim>::h2l2_alpha = cfg->norm_h2l2_alpha;
   DiscretizedFunction<dim>::h2l2_beta  = cfg->norm_h2l2_beta;
+  DiscretizedFunction<dim>::h1h1_alpha = cfg->norm_h1h1_alpha;
+  DiscretizedFunction<dim>::h1h1_gamma = cfg->norm_h1h1_gamma;
 
   initial_guess = std::make_shared<MacroFunctionParser<dim>>(cfg->expr_initial_guess, cfg->constants_for_exprs);
 
@@ -299,7 +301,8 @@ void WavePI<dim, Meas>::generate_data() {
 }
 
 template <int dim, typename Meas>
-void WavePI<dim, Meas>::log_error(const DiscretizedFunction<dim>& reconstruction, Norm norm) {
+void WavePI<dim, Meas>::log_error(DiscretizedFunction<dim>& reconstruction, Norm norm) {
+  Norm old_norm = reconstruction.get_norm();
   reconstruction.set_norm(norm);
 
   double norm_exact = 0.0;
@@ -309,6 +312,8 @@ void WavePI<dim, Meas>::log_error(const DiscretizedFunction<dim>& reconstruction
     deallog << "Relative " << to_string(norm) << " error of the reconstruction: " << err / norm_exact << std::endl;
   else
     deallog << "Absolute " << to_string(norm) << " error of the reconstruction: " << err << std::endl;
+
+  reconstruction.set_norm(old_norm);
 }
 
 template <int dim, typename Meas>
@@ -366,8 +371,10 @@ void WavePI<dim, Meas>::run() {
   // transform back and output errors in the untransformed setting
   reconstruction = transform->transform_inverse(reconstruction);
 
+  log_error(reconstruction, Norm::Coefficients);
   log_error(reconstruction, Norm::L2L2);
   log_error(reconstruction, Norm::H1L2);
+  log_error(reconstruction, Norm::H1H1);
   log_error(reconstruction, Norm::H2L2);
 
   if (problem->get_statistics()) {
@@ -375,30 +382,36 @@ void WavePI<dim, Meas>::run() {
     LogStream::Prefix p("stats");
 
     deallog << "forward              : " << stats->calls_forward << " calls, average "
-            << stats->time_forward / stats->calls_forward << "s per call" << std::endl;
+            << Util::format_duration(stats->time_forward / stats->calls_forward) << " per call" << std::endl;
     deallog << "linearization forward: " << stats->calls_linearization_forward << " calls, average "
-            << stats->time_linearization_forward / stats->calls_linearization_forward << "s per call" << std::endl;
+            << Util::format_duration(stats->time_linearization_forward / stats->calls_linearization_forward)
+            << " per call" << std::endl;
     deallog << "linearization adjoint: " << stats->calls_linearization_adjoint << " calls, average "
-            << stats->time_linearization_adjoint / stats->calls_linearization_adjoint << "s per call" << std::endl;
+            << Util::format_duration(stats->time_linearization_adjoint / stats->calls_linearization_adjoint)
+            << " per call" << std::endl;
     deallog << "measure forward      : " << stats->calls_measure_forward << " calls, average "
-            << stats->time_measure_forward / stats->calls_measure_forward << "s per call" << std::endl;
+            << Util::format_duration(stats->time_measure_forward / stats->calls_measure_forward) << " per call"
+            << std::endl;
     deallog << "measure adjoint      : " << stats->calls_measure_adjoint << " calls, average "
-            << stats->time_measure_adjoint / stats->calls_measure_adjoint << "s per call" << std::endl;
+            << Util::format_duration(stats->time_measure_adjoint / stats->calls_measure_adjoint) << " per call"
+            << std::endl;
 
     if (Utilities::MPI::n_mpi_processes(MPI_COMM_WORLD) > 1) {
       deallog << "Additional time needed for MPI communication:" << std::endl;
-      deallog << "forward              : average " << stats->time_forward_communication / stats->calls_forward
-              << "s per call" << std::endl;
+      deallog << "forward              : average "
+              << Util::format_duration(stats->time_forward_communication / stats->calls_forward) << " per call"
+              << std::endl;
       deallog << "linearization forward: average "
-              << stats->time_linearization_forward_communication / stats->calls_linearization_forward << "s per call"
-              << std::endl;
+              << Util::format_duration(stats->time_linearization_forward_communication /
+                                       stats->calls_linearization_forward)
+              << " per call" << std::endl;
       deallog << "linearization adjoint: average "
-              << stats->time_linearization_adjoint_communication / stats->calls_linearization_adjoint << "s per call"
-              << std::endl;
+              << Util::format_duration(stats->time_linearization_adjoint_communication /
+                                       stats->calls_linearization_adjoint)
+              << " per call" << std::endl;
     }
 
-    deallog << "total wall time      : " << (int)std::floor(timer_total.wall_time() / 60) << "min "
-            << (int)std::floor(std::fmod(timer_total.wall_time(), 60)) << "s" << std::endl;
+    deallog << "total wall time      : " << Util::format_duration(timer_total.wall_time()) << std::endl;
   }
 }
 

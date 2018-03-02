@@ -46,7 +46,13 @@ enum class Norm {
    * H^2([0,T], L^2(\Omega)) norm, using the trapezoidal rule in time (approximation),
    * the mass matrix in space (exact) and finite differences of order h^2 (inner) and h (boundary)
    */
-  H2L2
+  H2L2,
+
+  /**
+   * H^1([0,T], H^1(\Omega)) norm, using the trapezoidal rule in time (approximation),
+   * the mass+laplace matrix in space (exact) and finite differences of order h^2 (inner) and h (boundary)
+   */
+  H1H1
 };
 
 std::string to_string(const Norm &norm);

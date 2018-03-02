@@ -7,6 +7,7 @@
 
 #include <base/Util.h>
 #include <deal.II/base/geometry_info.h>
+#include <iomanip>
 
 namespace wavepi {
 namespace base {
@@ -43,6 +44,30 @@ void Util::set_all_boundary_ids(Triangulation<dim> &tria, int id) {
       if (cell->face(face)->at_boundary()) cell->face(face)->set_boundary_id(id);
     }
   }
+}
+
+std::string Util::format_duration(const double seconds) {
+  std::stringstream ss;
+  ss << std::fixed << std::setprecision(1);
+
+  if (seconds < 1e-6)
+    ss << seconds * 1e9 << "ns";
+  else if (seconds < 1e-3)
+    ss << seconds * 1e6 << "µs";
+  else if (seconds < 1)
+    ss << seconds * 1e3 << "ms";
+  else if (seconds < 60)
+    ss << seconds << "s";
+  else if (seconds < 60 * 60)
+    ss << std::setprecision(0) << seconds / 60 << "min " << ((int)seconds) % 60 << "s";
+  else if (seconds < 24 * 60 * 60)
+    ss << std::setprecision(0) << seconds / 3600 << "h " << (((int)seconds) % 3600) / 60 << "min "
+       << ((int)seconds) % 60 << "s";
+  else
+    ss << std::setprecision(0) << seconds / (24 * 3600) << "d " << (((int)seconds) % (24 * 3600)) / 3600 << "h "
+       << (((int)seconds) % 3600) / 60 << "min " << ((int)seconds) % 60 << "s";
+
+  return ss.str();
 }
 
 template void Util::set_all_boundary_ids(Triangulation<1> &tria, int id);

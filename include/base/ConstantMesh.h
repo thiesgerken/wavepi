@@ -31,24 +31,26 @@ class ConstantMesh : public SpaceTimeMesh<dim> {
 
   ConstantMesh(std::vector<double> times, FE_Q<dim> fe, Quadrature<dim> quad, std::shared_ptr<Triangulation<dim>> tria);
 
-  virtual std::shared_ptr<SparseMatrix<double>> get_mass_matrix(size_t idx);
+  virtual std::shared_ptr<SparseMatrix<double>> get_mass_matrix(size_t idx) override;
 
-  virtual std::shared_ptr<SparsityPattern> get_sparsity_pattern(size_t idx);
+  virtual std::shared_ptr<SparseMatrix<double>> get_laplace_matrix(size_t idx) override;
+
+  virtual std::shared_ptr<SparsityPattern> get_sparsity_pattern(size_t idx) override;
 
   virtual size_t n_dofs(size_t idx);
 
-  virtual std::shared_ptr<DoFHandler<dim>> get_dof_handler(size_t idx);
+  virtual std::shared_ptr<DoFHandler<dim>> get_dof_handler(size_t idx) override;
 
-  virtual std::shared_ptr<ConstraintMatrix> get_constraint_matrix(size_t idx);
+  virtual std::shared_ptr<ConstraintMatrix> get_constraint_matrix(size_t idx) override;
 
-  virtual std::shared_ptr<Triangulation<dim>> get_triangulation(size_t idx);
+  virtual std::shared_ptr<Triangulation<dim>> get_triangulation(size_t idx) override;
 
   virtual std::shared_ptr<DoFHandler<dim>> transfer(size_t source_time_index, size_t target_time_index,
-                                                    std::initializer_list<Vector<double>*> vectors);
+                                                    std::initializer_list<Vector<double>*> vectors) override;
 
-  virtual std::size_t memory_consumption() const;
+  virtual std::size_t memory_consumption() const override;
 
-  virtual bool allows_parallel_access() const { return true; }
+  virtual bool allows_parallel_access() const override { return true; }
 
  private:
   using SpaceTimeMesh<dim>::times;
@@ -58,9 +60,10 @@ class ConstantMesh : public SpaceTimeMesh<dim> {
   std::shared_ptr<Triangulation<dim>> triangulation;
   std::shared_ptr<DoFHandler<dim>> dof_handler;
 
-  // the order here is also important! (mass_matrix is deconstructed first)
+  // the order here is important! (matrices have to be deconstructed first)
   std::shared_ptr<SparsityPattern> sparsity_pattern;
   std::shared_ptr<SparseMatrix<double>> mass_matrix;
+  std::shared_ptr<SparseMatrix<double>> laplace_matrix;
 
   std::shared_ptr<ConstraintMatrix> constraints;
 };

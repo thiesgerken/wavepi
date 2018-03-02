@@ -3,11 +3,27 @@
 #
 # wavepi executable has to be in path!
 
-NAME=${1%%.*}
-echo $NAME
+if [ "$1" == "-f" ]; then
+  FILE=$2
+  NAME=${FILE%%.*}
 
-if [[ ! -f $1 ]]; then
- echo "$1 not found"
+  if [[ ! -f $FILE ]]; then
+   echo "$FILE not found"
+   exit 1
+  fi
+
+  if [[ -d $NAME ]]; then
+   echo "directory $NAME exists, deleting"
+   rm -R $NAME
+  fi
+else
+  FILE=$1
+  NAME=${FILE%%.*}
+  echo $NAME
+fi
+
+if [[ ! -f $FILE ]]; then
+ echo "$FILE not found"
  exit 1
 fi
 
@@ -18,12 +34,12 @@ fi
 
 mkdir -p $NAME
 cd $NAME
-cp ../$1 $1
+cp ../$FILE $FILE
 
-wavepi --export Diff -c $1 > wavepi-diff.cfg
-wavepi --export -c $1 > wavepi.cfg
+wavepi --export Diff -c $FILE > wavepi-diff.cfg
+wavepi --export -c $FILE > wavepi.cfg
 
-wavepi -c $1
+wavepi -c $FILE
 
 cat wavepi.log | wavepi-logfilter 2 > wavepi.2.log
 cat wavepi.log | wavepi-logfilter 100 | xz > wavepi.log.xz
