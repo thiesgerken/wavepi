@@ -25,6 +25,11 @@ def makeVideo(pvdPath, statePath, videoPath, mmin, mmax, dataName):
     # create a new 'PVD Reader'
     pvd = PVDReader(FileName = pvdPath)
 
+    # SliceFile = Slice(pvd)
+    # DataSliceFile = paraview.servermanager.Fetch(pvd)
+    # print(DataSliceFile)
+    # help(DataSliceFile)
+
     # get animation scene
     animationScene1 = GetAnimationScene()
 
@@ -48,11 +53,11 @@ def makeVideo(pvdPath, statePath, videoPath, mmin, mmax, dataName):
     pvdDisplay.OSPRayScaleFunction = 'PiecewiseFunction'
     pvdDisplay.GlyphType = 'Arrow'
 
-    pvdDisplay.ScalarOpacityUnitDistance = 0.08838834764831846
-    pvdDisplay.SetScaleArray = ['POINTS', vectorname]
-    pvdDisplay.ScaleTransferFunction = 'PiecewiseFunction'
-    pvdDisplay.OpacityArray = ['POINTS', vectorname]
-    pvdDisplay.OpacityTransferFunction = 'PiecewiseFunction'
+    # pvdDisplay.ScalarOpacityUnitDistance = 0.08838834764831846
+    # pvdDisplay.SetScaleArray = ['POINTS', vectorname]
+    # pvdDisplay.ScaleTransferFunction = 'PiecewiseFunction'
+    # pvdDisplay.OpacityArray = ['POINTS', vectorname]
+    # pvdDisplay.OpacityTransferFunction = 'PiecewiseFunction'
 
     # show color bar/color legend
     pvdDisplay.SetScalarBarVisibility(renderView1, True)
@@ -82,11 +87,11 @@ def makeVideo(pvdPath, statePath, videoPath, mmin, mmax, dataName):
     warpByScalar1Display.OSPRayScaleFunction = 'PiecewiseFunction'
     warpByScalar1Display.GlyphType = 'Arrow'
 
-    warpByScalar1Display.ScalarOpacityUnitDistance = 0.0933762816403584
-    warpByScalar1Display.SetScaleArray = ['POINTS', vectorname]
-    warpByScalar1Display.ScaleTransferFunction = 'PiecewiseFunction'
-    warpByScalar1Display.OpacityArray = ['POINTS', vectorname]
-    warpByScalar1Display.OpacityTransferFunction = 'PiecewiseFunction'
+    # warpByScalar1Display.ScalarOpacityUnitDistance = 0.0933762816403584
+    # warpByScalar1Display.SetScaleArray = ['POINTS', vectorname]
+    # warpByScalar1Display.ScaleTransferFunction = 'PiecewiseFunction'
+    # warpByScalar1Display.OpacityArray = ['POINTS', vectorname]
+    # warpByScalar1Display.OpacityTransferFunction = 'PiecewiseFunction'
 
     # hide data in view
     Hide(pvd, renderView1)
@@ -146,8 +151,15 @@ def main():
       directory = os.path.dirname(inputfile)
       basename = os.path.splitext(os.path.basename(inputfile))[0]
 
+      # TODO: find out array name automatically, rescale colors and warp factor automatically
+      dataname = basename
+      if dataname.startswith("residual"):
+          dataname = "residual"
+
+      print(dataname)
+
       if inputfile != "":
-        makeVideo(inputfile, os.path.join(directory, basename+".pvsm"), os.path.join(directory, basename+".ogv"), -2, 2, basename);
+        makeVideo(inputfile, os.path.join(directory, basename+".pvsm"), os.path.join(directory, basename+".ogv"), -2, 2, dataname);
 
 if __name__ == "__main__":
    main()

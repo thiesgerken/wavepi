@@ -24,7 +24,7 @@ cp $1 wavepi.cfg
 wavepi --export Diff -c $1 > wavepi-diff.cfg
 wavepi --export -c $1 > wavepi.cfg
 
-mpirun --bind-to none -np 2 ~/wavepi/build/wavepi -c $1
+mpirun --bind-to none -np 2 $(which wavepi) -c $1
 
 for i in {0..9}; do
   if [[ -f wavepi.log$i ]]; then
