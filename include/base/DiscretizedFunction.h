@@ -248,6 +248,15 @@ class DiscretizedFunction : public Function<dim> {
   double absolute_error(Function<dim>& other, double* norm_out) const;
 
   /**
+   * Calculate the absolute error to a given discretized function.
+   * Uses the norm specified by `set_norm`.
+   *
+   * @param other The other function.
+   * @param norm_out `double` that is filled with the norm of `other`, or `nullptr`.
+   */
+  double absolute_error(DiscretizedFunction<dim>& other, double* norm_out) const;
+
+  /**
    * applies the matrix M (spd), which describes the used scalar product, i.e.
    * `this->dot(y) = y^t * M * this` (regarding this and y as long vectors)
    * to this function, that is `this <- B * this`.

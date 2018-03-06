@@ -137,14 +137,16 @@ class AProblem : public WaveProblem<dim, Measurement> {
         Assert(false, ExcInternalError());
 
       res.set_norm(this->norm_codomain);
-      res.dot_mult_mass_and_transform_inverse();
+
+      // res.dot_mult_mass_and_transform_inverse();
+      // res.mult_mass();  // instead of dot_mult_mass_and_transform_inverse+dot_transform
 
       // M* : Y -> X
       // should be - nabla(res)*nabla(u) -> piecewise constant function -> fe spaces do not fit
-      res.dot_transform();
+      // res.dot_transform();
       m_adj->set_a(std::make_shared<DiscretizedFunction<dim>>(res));
       res = m_adj->run_adjoint(res.get_mesh());  // produces `mass * (M* res)`
-      res.solve_mass();
+      // res.solve_mass();
 
       res.set_norm(this->norm_domain);
       res.dot_transform_inverse();

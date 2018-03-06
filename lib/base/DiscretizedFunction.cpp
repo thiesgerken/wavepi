@@ -318,6 +318,21 @@ double DiscretizedFunction<dim>::absolute_error(Function<dim>& other, double* no
 }
 
 template <int dim>
+double DiscretizedFunction<dim>::absolute_error(DiscretizedFunction<dim>& other, double* norm_out) const {
+  LogStream::Prefix p("calculate_error");
+  AssertThrow(other.mesh == mesh, ExcInternalError());
+
+  DiscretizedFunction<dim> tmp = other;
+  tmp.set_norm(norm_type);
+
+  if (norm_out) *norm_out = tmp.norm();
+
+  tmp -= *this;
+
+  return tmp.norm();
+}
+
+template <int dim>
 DiscretizedFunction<dim> DiscretizedFunction<dim>::calculate_derivative_transpose() const {
   AssertThrow(mesh, ExcNotInitialized());
 

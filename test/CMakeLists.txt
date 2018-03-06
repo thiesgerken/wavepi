@@ -8,6 +8,8 @@ if (GTEST_FOUND)
             discretized_function.cpp
             wave_equation.cpp
             wave_equation_adjointness.cpp
+            problem_adjointness.cpp
+            div_right_hand_side.cpp
         )
 
     ADD_EXECUTABLE(wavepi_test ${LIBSOURCES})

@@ -140,10 +140,11 @@ class QProblem : public WaveProblem<dim, Measurement> {
         Assert(false, ExcInternalError());
 
       res.set_norm(this->norm_codomain);
-      res.dot_mult_mass_and_transform_inverse();
+      // res.dot_mult_mass_and_transform_inverse();
+      res.mult_mass();  // instead of dot_mult_mass_and_transform_inverse+dot_transform
 
       // M*
-      res.dot_transform();
+      // res.dot_transform();
       res *= -1.0;
       res.pointwise_multiplication(*u);
 

@@ -317,6 +317,24 @@ void WavePI<dim, Meas>::log_error(DiscretizedFunction<dim>& reconstruction, Norm
 }
 
 template <int dim, typename Meas>
+void WavePI<dim, Meas>::log_error_initial(DiscretizedFunction<dim>& reconstruction_minus_initial, Norm norm,
+                                          DiscretizedFunction<dim>& exact_minus_initial) {
+  Norm old_norm = reconstruction_minus_initial.get_norm();
+  reconstruction_minus_initial.set_norm(norm);
+
+  double norm_exact = 0.0;
+  double err        = reconstruction_minus_initial.absolute_error(exact_minus_initial, &norm_exact);
+
+  if (norm_exact > 1e-16)
+    deallog << "Relative " << to_string(norm) << " error of (reconstruction - initial guess): " << err / norm_exact
+            << std::endl;
+  else
+    deallog << "Absolute " << to_string(norm) << " error of (reconstruction - initial guess): " << err << std::endl;
+
+  reconstruction_minus_initial.set_norm(old_norm);
+}
+
+template <int dim, typename Meas>
 void WavePI<dim, Meas>::run() {
   Timer timer_total;
   timer_total.start();
@@ -376,6 +394,22 @@ void WavePI<dim, Meas>::run() {
   log_error(reconstruction, Norm::H1L2);
   log_error(reconstruction, Norm::H1H1);
   log_error(reconstruction, Norm::H2L2);
+
+  // same for reconstruction - initial guess
+  Param initial_guess_untrans_disc(mesh, *initial_guess);
+  initial_guess_untrans_disc.set_norm(reconstruction.get_norm());
+
+  reconstruction -= initial_guess_untrans_disc;
+
+  Param param_exact_untrans_disc(mesh, *param_exact_untransformed);
+  param_exact_untrans_disc.set_norm(reconstruction.get_norm());
+  param_exact_untrans_disc -= initial_guess_untrans_disc;
+
+  log_error_initial(reconstruction, Norm::Coefficients, param_exact_untrans_disc);
+  log_error_initial(reconstruction, Norm::L2L2, param_exact_untrans_disc);
+  log_error_initial(reconstruction, Norm::H1L2, param_exact_untrans_disc);
+  log_error_initial(reconstruction, Norm::H1H1, param_exact_untrans_disc);
+  log_error_initial(reconstruction, Norm::H2L2, param_exact_untrans_disc);
 
   if (problem->get_statistics()) {
     auto stats = problem->get_statistics();

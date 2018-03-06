@@ -85,6 +85,8 @@ class WavePI {
   void generate_data();
 
   void log_error(DiscretizedFunction<dim>& reconstruction, Norm norm);
+  void log_error_initial(DiscretizedFunction<dim>& reconstruction_minus_initial, Norm norm,
+                         DiscretizedFunction<dim>& exact_minus_initial);
 };
 
 } /* namespace wavepi */
