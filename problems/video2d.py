@@ -2,10 +2,8 @@
 import subprocess, os
 from paraview.simple import *
 
-def makeVideo(pvdPath, statePath, videoPath, mmin, mmax, dataName):
+def makeVideo(pvdPath, statePath, videoPath):
     print("./%s -> ./%s" % (os.path.relpath(pvdPath), os.path.relpath(videoPath)))
-
-    vectorname = dataName # different for e.g. u_h, but not for estimate
 
     # paraview tends to get slow after a while
     if not hasattr(makeVideo, "calls"):
@@ -25,11 +23,6 @@ def makeVideo(pvdPath, statePath, videoPath, mmin, mmax, dataName):
     # create a new 'PVD Reader'
     pvd = PVDReader(FileName = pvdPath)
 
-    # SliceFile = Slice(pvd)
-    # DataSliceFile = paraview.servermanager.Fetch(pvd)
-    # print(DataSliceFile)
-    # help(DataSliceFile)
-
     # get animation scene
     animationScene1 = GetAnimationScene()
 
@@ -39,7 +32,16 @@ def makeVideo(pvdPath, statePath, videoPath, mmin, mmax, dataName):
     # get active view
     renderView1 = GetActiveViewOrCreate('RenderView')
     # uncomment following to set a specific view size
-    renderView1.ViewSize = [1920, 1080]
+    renderView1.ViewSize = [1280, 720]
+
+    #help(renderView1)
+
+    DataSliceFile = paraview.servermanager.Fetch(pvd)
+    dataName = DataSliceFile.GetPointData().GetArrayName(0)
+    vectorname = dataName # different for e.g. u_h, but not for estimate
+
+    print("Array Name = %s" % dataName)
+    print("Finding out min and max values")
 
     # get color transfer function/color map for 'uh'
     uhLUT = GetColorTransferFunction(dataName)
@@ -65,14 +67,41 @@ def makeVideo(pvdPath, statePath, videoPath, mmin, mmax, dataName):
     # get opacity transfer function/opacity map for 'uh'
     uhPWF = GetOpacityTransferFunction(dataName)
 
-    # Rescale transfer function
-    uhLUT.RescaleTransferFunction(mmin, mmax)
-
-    # Rescale transfer function
-    uhPWF.RescaleTransferFunction(mmin, mmax)
-
     #change interaction mode for render view
     renderView1.InteractionMode = '3D'
+
+    # current camera placement for renderView1
+    renderView1.CameraPosition = [-10.506489304234304, -3.6446723986339915, 5.890816961048351]
+    renderView1.CameraFocalPoint = [-0.020474488549963532, 0.2810726692100919, 0.6766885441215358]
+    renderView1.CameraViewUp = [0.4392887049020663, 0.019511778050979575, 0.8981340235525846]
+    renderView1.CameraParallelScale = 0.747010253122867
+
+    # Rescale transfer function
+    uhLUT.RescaleTransferFunction(0, 1)
+
+    # Rescale transfer function
+    uhPWF.RescaleTransferFunction(0, 1)
+
+    amin = 1e300
+    amax = -1e300
+    tsteps = pvd.TimestepValues
+
+    for i in range(len(tsteps)):
+        renderView1.ViewTime = tsteps[i];
+        Render()
+
+        DataSliceFile = paraview.servermanager.Fetch(pvd)
+        myrange = DataSliceFile.GetPointData().GetArray(0).GetRange()
+        if amin > myrange[0]: amin = myrange[0]
+        if amax < myrange[1]: amax = myrange[1]
+
+    print("min value = %f, max value = %f" % (amin, amax))
+
+    # Rescale transfer function
+    uhLUT.RescaleTransferFunction(amin, amax)
+
+    # Rescale transfer function
+    uhPWF.RescaleTransferFunction(amin, amax)
 
     # create a new 'Warp By Scalar'
     warpByScalar1 = WarpByScalar(Input=pvd)
@@ -87,11 +116,11 @@ def makeVideo(pvdPath, statePath, videoPath, mmin, mmax, dataName):
     warpByScalar1Display.OSPRayScaleFunction = 'PiecewiseFunction'
     warpByScalar1Display.GlyphType = 'Arrow'
 
-    # warpByScalar1Display.ScalarOpacityUnitDistance = 0.0933762816403584
-    # warpByScalar1Display.SetScaleArray = ['POINTS', vectorname]
-    # warpByScalar1Display.ScaleTransferFunction = 'PiecewiseFunction'
-    # warpByScalar1Display.OpacityArray = ['POINTS', vectorname]
-    # warpByScalar1Display.OpacityTransferFunction = 'PiecewiseFunction'
+    warpByScalar1Display.ScalarOpacityUnitDistance = 0.0933762816403584
+    #warpByScalar1Display.SetScaleArray = ['POINTS', vectorname]
+    #warpByScalar1Display.ScaleTransferFunction = 'PiecewiseFunction'
+    #warpByScalar1Display.OpacityArray = ['POINTS', vectorname]
+    #warpByScalar1Display.OpacityTransferFunction = 'PiecewiseFunction'
 
     # hide data in view
     Hide(pvd, renderView1)
@@ -100,7 +129,7 @@ def makeVideo(pvdPath, statePath, videoPath, mmin, mmax, dataName):
     warpByScalar1Display.SetScalarBarVisibility(renderView1, True)
 
     # Properties modified on warpByScalar1
-    warpByScalar1.ScaleFactor = 0.7/max(abs(mmax), abs(mmin))
+    warpByScalar1.ScaleFactor = 3/max(abs(amax), abs(amin))
 
     # create a new 'Annotate Time Filter'
     annotateTimeFilter1 = AnnotateTimeFilter(Input=pvd)
@@ -122,14 +151,10 @@ def makeVideo(pvdPath, statePath, videoPath, mmin, mmax, dataName):
     # Properties modified on animationScene1
     animationScene1.Duration = 6
 
-    # current camera placement for renderView1
-    renderView1.CameraPosition = [-10.506489304234304, -3.6446723986339915, 5.890816961048351]
-    renderView1.CameraFocalPoint = [-0.020474488549963532, 0.2810726692100919, 0.6766885441215358]
-    renderView1.CameraViewUp = [0.4392887049020663, 0.019511778050979575, 0.8981340235525846]
-    renderView1.CameraParallelScale = 0.747010253122867
+    print("calling WriteAnimation")
 
     # save animation images/movie
-    WriteAnimation(videoPath, Magnification=1, FrameRate=30.0, Compression=False, ImageResolution=[1920, 1080])
+    WriteAnimation(videoPath, Magnification=1, FrameRate=30.0, Quality=2)
 
     if statePath != "":
       SaveState(statePath)
@@ -151,15 +176,10 @@ def main():
       directory = os.path.dirname(inputfile)
       basename = os.path.splitext(os.path.basename(inputfile))[0]
 
-      # TODO: find out array name automatically, rescale colors and warp factor automatically
-      dataname = basename
-      if dataname.startswith("residual"):
-          dataname = "residual"
-
-      print(dataname)
+      # TODO: hide windows opened by paraview
 
       if inputfile != "":
-        makeVideo(inputfile, os.path.join(directory, basename+".pvsm"), os.path.join(directory, basename+".ogv"), -2, 2, dataname);
+        makeVideo(inputfile, os.path.join(directory, basename+".pvsm"), os.path.join(directory, basename+".ogv"));
 
 if __name__ == "__main__":
    main()
