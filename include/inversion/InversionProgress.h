@@ -348,6 +348,7 @@ class OutputProgressListener : public InversionProgressListener<DiscretizedFunct
         std::string filename = Util::replace(filename_estimate, subs);
 
         if (state.finished) filename = Util::replace(filename_estimate_last, subs);
+        if (state.iteration_number == 0) filename = Util::replace(filename_estimate_first, subs);
 
         boost::filesystem::create_directories(dest);
         deallog << "Saving current estimate in " << dest << std::endl;
@@ -426,6 +427,7 @@ class OutputProgressListener : public InversionProgressListener<DiscretizedFunct
   // destination_prefix has to end with a slash!
   std::string filename_estimate             = "estimate";
   std::string filename_estimate_last        = "reconstruction";
+  std::string filename_estimate_first       = "initial_guess";
   std::string filename_estimate_transformed = "estimate_transformed";
   std::string filename_residual             = "residual";
   std::string filename_exact                = "param";

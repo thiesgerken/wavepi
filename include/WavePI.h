@@ -47,6 +47,9 @@ class WavePI {
    */
   WavePI(std::shared_ptr<SettingsManager> cfg);
 
+  /**
+   * discretize the initial guess, initialize the inversion scheme and run it
+   */
   void run();
 
  private:
@@ -73,16 +76,38 @@ class WavePI {
   std::shared_ptr<Tuple<Meas>> data;  // noisy data
 
   /**
-   * `Point` constructor from three values, neglecting those that are not needed.
+   * convenience `Point` constructor from three values, neglecting those that are not needed.
    */
   static Point<dim> make_point(double x, double y, double z);
 
   std::shared_ptr<Measure<Param, Meas>> get_measure(size_t config_idx, std::shared_ptr<SpaceTimeMesh<dim>> mesh,
                                                     Norm norm);
 
-  void initialize_mesh();
+  /**
+   * create a mesh based on `cfg` and return it.
+   *
+   * @param additional_refines additional global refines to use in space and time domain
+   * @param additional_fe_degrees number to add on `cfg->fe_degree`
+   */
+  std::shared_ptr<SpaceTimeMesh<dim>> initialize_mesh(size_t additional_refines    = 0,
+                                                      size_t additional_fe_degrees = 0) const;
+
+  /**
+   * initializes `wave_eq`, `problem`, `measures`, `pulses`, `param_exact`, `param_exact_untransformed` and `transform`.
+   * Has to be called after `initialize_mesh` was used to create `this->mesh`.
+   */
   void initialize_problem();
-  void generate_data();
+
+  /**
+   * initializes `data`. Has to be called after `initialize_problem`.
+   */
+  void synthesize_data();
+
+  /**
+   * modifies `data` and interpolates it onto the given mesh.
+   * This is only necessary if the field itself is used, otherwise this function does nothing.
+   */
+  void interpolate_data(std::shared_ptr<SpaceTimeMesh<dim>> target_mesh);
 
   void log_error(DiscretizedFunction<dim>& reconstruction, Norm norm);
   void log_error_initial(DiscretizedFunction<dim>& reconstruction_minus_initial, Norm norm,

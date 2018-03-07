@@ -70,6 +70,8 @@ const std::string SettingsManager::KEY_PROBLEM_PARAM_C   = "parameter c";
 const std::string SettingsManager::KEY_PROBLEM_PARAM_NU  = "parameter nu";
 
 const std::string SettingsManager::KEY_PROBLEM_DATA                       = "data";
+const std::string SettingsManager::KEY_PROBLEM_DATA_ADDITIONAL_REFINES    = "additional refines";
+const std::string SettingsManager::KEY_PROBLEM_DATA_ADDITIONAL_DEGREE     = "additional fe degrees";
 const std::string SettingsManager::KEY_PROBLEM_DATA_COUNT                 = "number of right hand sides";
 const std::string SettingsManager::KEY_PROBLEM_DATA_RHS                   = "right hand sides";
 const std::string SettingsManager::KEY_PROBLEM_DATA_CONFIG                = "configurations";
@@ -174,6 +176,12 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
 
     prm->enter_subsection(KEY_PROBLEM_DATA);
     {
+      prm->declare_entry(
+          KEY_PROBLEM_DATA_ADDITIONAL_REFINES, "0", Patterns::Integer(0),
+          "Additional global refines to perform in space and time for data synthesis (to avoid inverse crime)");
+      prm->declare_entry(KEY_PROBLEM_DATA_ADDITIONAL_DEGREE, "0", Patterns::Integer(0),
+                         "Additional finite element degrees to use for data synthesis (to avoid inverse crime)");
+
       prm->declare_entry(KEY_PROBLEM_DATA_COUNT, "1", Patterns::Integer(1), "Number of right hand sides");
 
       prm->declare_entry(KEY_PROBLEM_DATA_CONFIG, "0", Patterns::Anything(),
@@ -396,6 +404,9 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
     {
       num_rhs   = prm->get_integer(KEY_PROBLEM_DATA_COUNT);
       exprs_rhs = Utilities::split_string_list(prm->get(KEY_PROBLEM_DATA_RHS), ';');
+
+      synthesis_additional_refines    = prm->get_integer(KEY_PROBLEM_DATA_ADDITIONAL_REFINES);
+      synthesis_additional_fe_degrees = prm->get_integer(KEY_PROBLEM_DATA_ADDITIONAL_DEGREE);
 
       configs.clear();
       measures.clear();

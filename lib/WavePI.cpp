@@ -87,7 +87,7 @@ Point<dim> WavePI<dim, Meas>::make_point(double x, double y, double z) {
   }
 }
 
-#define get_measure_tuple(DIM)                                                                                       \
+#define get_measure_meas(DIM)                                                                                        \
   template <>                                                                                                        \
   std::shared_ptr<Measure<DiscretizedFunction<DIM>, SensorValues<DIM>>> WavePI<DIM, SensorValues<DIM>>::get_measure( \
       size_t config_idx, std::shared_ptr<SpaceTimeMesh<DIM>> mesh, Norm norm) {                                      \
@@ -120,9 +120,9 @@ Point<dim> WavePI<dim, Meas>::make_point(double x, double y, double z) {
     return measure;                                                                                                  \
   }
 
-get_measure_tuple(1)      //
-    get_measure_tuple(2)  //
-    get_measure_tuple(3)  //
+get_measure_meas(1)      //
+    get_measure_meas(2)  //
+    get_measure_meas(3)  //
 #define get_measure_cont(D)                                                                                    \
   template <>                                                                                                  \
   std::shared_ptr<Measure<DiscretizedFunction<D>, DiscretizedFunction<D>>>                                     \
@@ -146,8 +146,32 @@ get_measure_tuple(1)      //
     get_measure_cont(2)  //
     get_measure_cont(3)  //
 
+// ignore the additional time steps and interpolate at original time steps to new mesh
+#define interpolate_data_cont(D)                                                                            \
+  template <>                                                                                               \
+  void WavePI<D, DiscretizedFunction<D>>::interpolate_data(std::shared_ptr<SpaceTimeMesh<D>> target_mesh) { \
+    size_t skip = (1 << cfg->synthesis_additional_refines) - 1;                                             \
+    DiscretizedFunction<dim> data_new(target_mesh, false, data->get_norm());                                \
+    for (size_t i = 0; i < mesh->length(); i += skip)                                                       \
+      ;  // TODO TODO                                                                                                 \
+  }
+
+    interpolate_data_cont(1)  //
+    interpolate_data_cont(2)  //
+    interpolate_data_cont(3)  //
+
+// do nothing, just keep the sensor values
+#define interpolate_data_meas(D) \
+  template <>                    \
+  void WavePI<D, SensorValues<D>>::interpolate_data(std::shared_ptr<SpaceTimeMesh<D>> target_mesh) {}
+
+    interpolate_data_meas(1)  //
+    interpolate_data_meas(2)  //
+    interpolate_data_meas(3)  //
+
     template <int dim, typename Meas>
-    void WavePI<dim, Meas>::initialize_mesh() {
+    std::shared_ptr<SpaceTimeMesh<dim>> WavePI<dim, Meas>::initialize_mesh(size_t additional_refines,
+                                                                           size_t additional_fe_degrees) const {
   LogStream::Prefix p("initialize_mesh");
 
   auto triangulation = std::make_shared<Triangulation<dim>>();
@@ -172,10 +196,24 @@ get_measure_tuple(1)      //
     AssertThrow(false, ExcInternalError());
 
   Util::set_all_boundary_ids(*triangulation, 0);
-  triangulation->refine_global(cfg->initial_refines);
+  triangulation->refine_global(cfg->initial_refines + additional_refines);
 
-  mesh = std::make_shared<ConstantMesh<dim>>(cfg->times, FE_Q<dim>(cfg->fe_degree), QGauss<dim>(cfg->quad_order),
-                                             triangulation);
+  std::vector<double> times = cfg->times;
+
+  for (size_t i = 0; i < additional_refines; i++) {
+    std::vector<double> new_times;
+    new_times.reserve(2 * times.size());
+
+    for (size_t j = 0; j < times.size(); j++) {
+      new_times.push_back(times[j]);
+      if (j + 1 < times.size()) new_times.push_back(0.5 * (times[j] + times[j + 1]));
+
+      times = new_times;
+    }
+  }
+
+  auto mesh = std::make_shared<ConstantMesh<dim>>(times, FE_Q<dim>(cfg->fe_degree + additional_fe_degrees),
+                                                  QGauss<dim>(cfg->quad_order), triangulation);
 
   // auto a_mesh = std::make_shared<AdaptiveMesh<dim>>(cfg->times, FE_Q<dim>(cfg->fe_degree),
   //      QGauss<dim>(cfg->quad_order), triangulation);
@@ -214,8 +252,15 @@ get_measure_tuple(1)      //
   for (size_t i = 0; i < mesh->length(); i++)
     mem += 8 * mesh->n_dofs(i);
 
-  // (in case of !store_derivative)
-  deallog << "expected size of a DiscretizedFunction<dim>: " << mem / (1024 * 1024) << " MiB" << std::endl;
+  // (in case of !store_derivative, twice this amount otherwise)
+  deallog << "expected size of a DiscretizedFunction<" << dim << ">: " << mem / (1024 * 1024) << " MiB" << std::endl;
+
+  return mesh;
+}
+
+template <int dim, typename Meas>
+void WavePI<dim, Meas>::initialize_problem() {
+  LogStream::Prefix p("initialize_problem");
 
   // initialize measurement configurations
   measures.clear();
@@ -226,11 +271,6 @@ get_measure_tuple(1)      //
     pulses.push_back(std::make_shared<MacroFunctionParser<dim>>(expr, cfg->constants_for_exprs));
 
   AssertThrow(pulses.size() == measures.size(), ExcInternalError());
-}
-
-template <int dim, typename Meas>
-void WavePI<dim, Meas>::initialize_problem() {
-  LogStream::Prefix p("initialize_problem");
 
   wave_eq = std::make_shared<WaveEquation<dim>>(mesh);
 
@@ -283,7 +323,7 @@ void WavePI<dim, Meas>::initialize_problem() {
 }
 
 template <int dim, typename Meas>
-void WavePI<dim, Meas>::generate_data() {
+void WavePI<dim, Meas>::synthesize_data() {
   LogStream::Prefix p("generate_data");
   LogStream::Prefix pp("run");  // make logs of forward operator appear in the right level
 
@@ -336,12 +376,49 @@ void WavePI<dim, Meas>::log_error_initial(DiscretizedFunction<dim>& reconstructi
 
 template <int dim, typename Meas>
 void WavePI<dim, Meas>::run() {
-  Timer timer_total;
+  Timer timer_total, timer_data, timer_mesh_problem;
   timer_total.start();
 
-  initialize_mesh();
-  initialize_problem();
-  generate_data();
+  if (cfg->synthesis_additional_refines > 0 || cfg->synthesis_additional_fe_degrees > 0) {
+    timer_data.start();
+    deallog << "Generating mesh for data synthesis" << std::endl;
+    mesh = initialize_mesh(cfg->synthesis_additional_refines, cfg->synthesis_additional_fe_degrees);
+
+    deallog << "Initializing problem for data synthesis" << std::endl;
+    initialize_problem();
+
+    deallog << "Generating synthetic data on fine mesh" << std::endl;
+    synthesize_data();
+    timer_data.stop();
+
+    timer_mesh_problem.start();
+    deallog << "Generating mesh" << std::endl;
+    auto inversion_mesh = initialize_mesh();
+
+    deallog << "Interpolating data from fine mesh" << std::endl;
+    interpolate_data(inversion_mesh);
+
+    deallog << "Initializing problem" << std::endl;
+    mesh = inversion_mesh;
+    initialize_problem();
+    timer_mesh_problem.stop();
+  } else {
+    timer_mesh_problem.start();
+    mesh = initialize_mesh();
+
+    deallog << "Initializing problem" << std::endl;
+    initialize_problem();
+    timer_mesh_problem.stop();
+
+    deallog << "Generating synthetic data (inverse crime)" << std::endl;
+    timer_data.start();
+    synthesize_data();
+    timer_data.stop();
+  }
+
+  deallog << "wall time for data synthesis        : " << Util::format_duration(timer_data.wall_time()) << std::endl;
+  deallog << "wall time for mesh and problem init : " << Util::format_duration(timer_mesh_problem.wall_time())
+          << std::endl;
 
   std::shared_ptr<Regularization<Param, Tuple<Meas>, Exact>> regularization;
 

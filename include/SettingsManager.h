@@ -69,6 +69,8 @@ class SettingsManager {
   static const std::string KEY_INVERSION_TAU;
 
   static const std::string KEY_PROBLEM_DATA;
+  static const std::string KEY_PROBLEM_DATA_ADDITIONAL_REFINES;
+  static const std::string KEY_PROBLEM_DATA_ADDITIONAL_DEGREE;
   static const std::string KEY_PROBLEM_DATA_COUNT;
   static const std::string KEY_PROBLEM_DATA_RHS;
   static const std::string KEY_PROBLEM_DATA_CONFIG;
@@ -152,6 +154,9 @@ class SettingsManager {
   size_t num_rhs;
   std::vector<std::string> exprs_rhs;
   std::vector<size_t> configs;
+
+  size_t synthesis_additional_refines;
+  size_t synthesis_additional_fe_degrees;
 
   static const size_t num_configurations = 2;
   std::vector<Measure> measures;
