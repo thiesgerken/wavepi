@@ -1,9 +1,10 @@
 #!/usr/bin/pvpython
-import subprocess, os
+import subprocess, os, math
 from paraview.simple import *
+import argparse
 
-def makeVideo(pvdPath, statePath, videoPath):
-    print("./%s -> ./%s" % (os.path.relpath(pvdPath), os.path.relpath(videoPath)))
+def makeVideo(pvdPath, statePath, videoPath, dataMin, dataMax):
+    print("./%s" % os.path.relpath(pvdPath))
 
     # paraview tends to get slow after a while
     if not hasattr(makeVideo, "calls"):
@@ -41,7 +42,6 @@ def makeVideo(pvdPath, statePath, videoPath):
     vectorname = dataName # different for e.g. u_h, but not for estimate
 
     print("Array Name = %s" % dataName)
-    print("Finding out min and max values")
 
     # get color transfer function/color map for 'uh'
     uhLUT = GetColorTransferFunction(dataName)
@@ -82,26 +82,32 @@ def makeVideo(pvdPath, statePath, videoPath):
     # Rescale transfer function
     uhPWF.RescaleTransferFunction(0, 1)
 
-    amin = 1e300
-    amax = -1e300
-    tsteps = pvd.TimestepValues
+    if math.isnan(dataMin) or math.isnan(dataMax):
+        print("Finding out min and max values")
 
-    for i in range(len(tsteps)):
-        renderView1.ViewTime = tsteps[i];
-        Render()
+        amin = 1e300
+        amax = -1e300
+        tsteps = pvd.TimestepValues
 
-        DataSliceFile = paraview.servermanager.Fetch(pvd)
-        myrange = DataSliceFile.GetPointData().GetArray(0).GetRange()
-        if amin > myrange[0]: amin = myrange[0]
-        if amax < myrange[1]: amax = myrange[1]
+        for i in range(len(tsteps)):
+            renderView1.ViewTime = tsteps[i];
+            Render()
 
-    print("min value = %f, max value = %f" % (amin, amax))
+            DataSliceFile = paraview.servermanager.Fetch(pvd)
+            myrange = DataSliceFile.GetPointData().GetArray(0).GetRange()
+            if amin > myrange[0]: amin = myrange[0]
+            if amax < myrange[1]: amax = myrange[1]
+
+        if math.isnan(dataMin): dataMin = amin
+        if math.isnan(dataMax): dataMax = amax
+
+    print("min value = %f, max value = %f" % (dataMin, dataMax))
 
     # Rescale transfer function
-    uhLUT.RescaleTransferFunction(amin, amax)
+    uhLUT.RescaleTransferFunction(dataMin, dataMax)
 
     # Rescale transfer function
-    uhPWF.RescaleTransferFunction(amin, amax)
+    uhPWF.RescaleTransferFunction(dataMin, dataMax)
 
     # create a new 'Warp By Scalar'
     warpByScalar1 = WarpByScalar(Input=pvd)
@@ -129,7 +135,7 @@ def makeVideo(pvdPath, statePath, videoPath):
     warpByScalar1Display.SetScalarBarVisibility(renderView1, True)
 
     # Properties modified on warpByScalar1
-    warpByScalar1.ScaleFactor = 3/max(abs(amax), abs(amin))
+    warpByScalar1.ScaleFactor = 3/max(abs(dataMax), abs(dataMin))
 
     # create a new 'Annotate Time Filter'
     annotateTimeFilter1 = AnnotateTimeFilter(Input=pvd)
@@ -151,12 +157,13 @@ def makeVideo(pvdPath, statePath, videoPath):
     # Properties modified on animationScene1
     animationScene1.Duration = 6
 
-    print("calling WriteAnimation")
 
-    # save animation images/movie
-    WriteAnimation(videoPath, Magnification=1, FrameRate=30.0, Quality=2)
+    if videoPath != "":
+      print("Writing %s" % videoPath)
+      WriteAnimation(videoPath, Magnification=1, FrameRate=30.0, Quality=2)
 
     if statePath != "":
+      print("Writing %s" % statePath)
       SaveState(statePath)
 
     Hide(warpByScalar1)
@@ -168,18 +175,35 @@ def makeVideo(pvdPath, statePath, videoPath):
     Delete(pvd)
 
 def main():
-    if len(sys.argv) != 2:
-      print ('video2d.py <inputfile>')
-      sys.exit(1)
-    else:
-      inputfile = os.path.abspath(sys.argv[1]);
-      directory = os.path.dirname(inputfile)
-      basename = os.path.splitext(os.path.basename(inputfile))[0]
+    parser = argparse.ArgumentParser(prog='video2d.py', description='create videos and pvsm files from pvd files with 2D data')
+    parser.add_argument('inputfile', metavar='path', type=str, nargs=1,
+                        help='path to pvd to process')
+    parser.add_argument('--no-video', dest='video', action='store_false',
+                        default=True,
+                        help='do not create .ogv video')
+    parser.add_argument('--no-pvsm', dest='pvsm', action='store_false',
+                        default=True,
+                        help='do not create .pvsm state file')
+    parser.add_argument('--min', dest='min', type=float,
+                        default=float('nan'),
+                        help='fixed min scaling')
+    parser.add_argument('--max', dest='max', type=float,
+                        default=float('nan'),
+                        help='fixed max scaling')
 
-      # TODO: hide windows opened by paraview
+    args = parser.parse_args()
 
-      if inputfile != "":
-        makeVideo(inputfile, os.path.join(directory, basename+".pvsm"), os.path.join(directory, basename+".ogv"));
+    inputfile = os.path.abspath(args.inputfile[0]);
+    directory = os.path.dirname(inputfile)
+    basename = os.path.splitext(os.path.basename(inputfile))[0]
+
+    pvsmfile = ""
+    if args.pvsm: pvsmfile = os.path.join(directory, basename+".pvsm")
+
+    ogvfile = ""
+    if args.video: ogvfile = os.path.join(directory, basename+".ogv")
+
+    if inputfile != "": makeVideo(inputfile, pvsmfile, ogvfile, args.min, args.max);
 
 if __name__ == "__main__":
    main()

@@ -6,6 +6,7 @@
  */
 
 #include <boost/program_options.hpp>
+#include <boost/regex.hpp>
 
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/logstream.h>
@@ -15,17 +16,13 @@
 #include <Version.h>
 #include <WavePI.h>
 #include <base/DiscretizedFunction.h>
-#include <inversion/InversionProgress.h>
+#include <measurements/SensorValues.h>
+
 #include <fstream>
 #include <iostream>
 #include <map>
 #include <memory>
 #include <string>
-
-#include <deal.II/base/mpi.h>
-#include <measurements/SensorValues.h>
-
-#include <boost/regex.hpp>
 
 using namespace dealii;
 using namespace wavepi;
@@ -171,6 +168,7 @@ int main(int argc, char *argv[]) {
 
     if (mpi_rank > 0) {
       deallog << "node " << mpi_rank << " coming online" << std::endl;
+      deallog.push("node" + std::to_string(mpi_rank));
       deallog.depth_console(0);
     } else if (mpi_size > 1)
       deallog << "parallel job on " << mpi_size << " nodes" << std::endl;
