@@ -80,6 +80,12 @@ class WavePI {
    */
   static Point<dim> make_point(double x, double y, double z);
 
+  /**
+   * ignore the additional time steps and interpolate at original time steps (they must exist!) to new mesh
+   */
+  std::shared_ptr<Tuple<DiscretizedFunction<dim>>> interpolate_field(
+      std::shared_ptr<SpaceTimeMesh<dim>> target_mesh, std::shared_ptr<Tuple<DiscretizedFunction<dim>>> data) const;
+
   std::shared_ptr<Measure<Param, Meas>> get_measure(size_t config_idx, std::shared_ptr<SpaceTimeMesh<dim>> mesh,
                                                     Norm norm);
 
