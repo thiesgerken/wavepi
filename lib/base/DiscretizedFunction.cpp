@@ -76,8 +76,9 @@ DiscretizedFunction<dim>::DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>
     : DiscretizedFunction(mesh, false) {}
 
 template <int dim>
-DiscretizedFunction<dim>::DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>> mesh, Function<dim>& function)
-    : store_derivative(false), cur_time_idx(0), mesh(mesh) {
+DiscretizedFunction<dim>::DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>> mesh, Function<dim>& function,
+                                              Norm norm)
+    : norm_type(norm), store_derivative(false), cur_time_idx(0), mesh(mesh) {
   Assert(mesh, ExcNotInitialized());
 
   function_coefficients.reserve(mesh->length());

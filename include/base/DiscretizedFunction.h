@@ -75,7 +75,7 @@ class DiscretizedFunction : public Function<dim> {
    * @param mesh the mesh you want this function to be attached to
    * @param function the function that should be interpolated by this object
    */
-  DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>> mesh, Function<dim>& function);
+  DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>> mesh, Function<dim>& function, Norm norm = Norm::Invalid);
 
   /**
    * Creates a new discretized function and initializes it with zeroes.

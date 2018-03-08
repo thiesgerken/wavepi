@@ -87,6 +87,17 @@ Point<dim> WavePI<dim, Meas>::make_point(double x, double y, double z) {
   }
 }
 
+template <int dim, typename Meas>
+std::shared_ptr<Tuple<DiscretizedFunction<dim>>> WavePI<dim, Meas>::interpolate_field(
+    std::shared_ptr<SpaceTimeMesh<dim>> target_mesh, std::shared_ptr<Tuple<DiscretizedFunction<dim>>> data) const {
+  auto data_new = std::make_shared<Tuple<DiscretizedFunction<dim>>>();
+
+  for (size_t i = 0; i < data->size(); i++)
+    data_new->push_back(DiscretizedFunction<dim>(target_mesh, (*data)[i], (*data)[i].get_norm()));
+
+  return data_new;
+}
+
 #define get_measure_meas(DIM)                                                                                        \
   template <>                                                                                                        \
   std::shared_ptr<Measure<DiscretizedFunction<DIM>, SensorValues<DIM>>> WavePI<DIM, SensorValues<DIM>>::get_measure( \
@@ -146,24 +157,20 @@ get_measure_meas(1)      //
     get_measure_cont(2)  //
     get_measure_cont(3)  //
 
-// ignore the additional time steps and interpolate at original time steps to new mesh
 #define interpolate_data_cont(D)                                                                            \
   template <>                                                                                               \
   void WavePI<D, DiscretizedFunction<D>>::interpolate_data(std::shared_ptr<SpaceTimeMesh<D>> target_mesh) { \
-    size_t skip = (1 << cfg->synthesis_additional_refines) - 1;                                             \
-    DiscretizedFunction<dim> data_new(target_mesh, false, data->get_norm());                                \
-    for (size_t i = 0; i < mesh->length(); i += skip)                                                       \
-      ;  // TODO TODO                                                                                                 \
+    this->data = interpolate_field(target_mesh, data);                                                      \
   }
 
     interpolate_data_cont(1)  //
     interpolate_data_cont(2)  //
     interpolate_data_cont(3)  //
-
 // do nothing, just keep the sensor values
-#define interpolate_data_meas(D) \
-  template <>                    \
-  void WavePI<D, SensorValues<D>>::interpolate_data(std::shared_ptr<SpaceTimeMesh<D>> target_mesh) {}
+#define interpolate_data_meas(D)                                                                  \
+  template <>                                                                                     \
+  void WavePI<D, SensorValues<D>>::interpolate_data(std::shared_ptr<SpaceTimeMesh<D>> target_mesh \
+                                                    __attribute((unused))) {}
 
     interpolate_data_meas(1)  //
     interpolate_data_meas(2)  //
@@ -207,9 +214,9 @@ get_measure_meas(1)      //
     for (size_t j = 0; j < times.size(); j++) {
       new_times.push_back(times[j]);
       if (j + 1 < times.size()) new_times.push_back(0.5 * (times[j] + times[j + 1]));
-
-      times = new_times;
     }
+
+    times = new_times;
   }
 
   auto mesh = std::make_shared<ConstantMesh<dim>>(times, FE_Q<dim>(cfg->fe_degree + additional_fe_degrees),
@@ -246,7 +253,7 @@ get_measure_meas(1)      //
           << std::endl;
   deallog << "cell diameters: minimal = " << dealii::GridTools::minimal_cell_diameter(*triangulation);
   deallog << ", maximal = " << dealii::GridTools::maximal_cell_diameter(*triangulation) << std::endl;
-  deallog << "dt: " << cfg->dt << std::endl;
+  deallog << "dt: " << cfg->dt / (1 << additional_refines) << std::endl;
 
   double mem = 0;
   for (size_t i = 0; i < mesh->length(); i++)
@@ -264,6 +271,8 @@ void WavePI<dim, Meas>::initialize_problem() {
 
   // initialize measurement configurations
   measures.clear();
+  pulses.clear();
+
   for (auto config_idx : cfg->configs)
     measures.push_back(get_measure(config_idx, mesh, cfg->norm_codomain));
 
@@ -394,10 +403,14 @@ void WavePI<dim, Meas>::run() {
     timer_mesh_problem.start();
     deallog << "Generating mesh" << std::endl;
     auto inversion_mesh = initialize_mesh();
+    timer_mesh_problem.stop();
 
+    timer_data.start();
     deallog << "Interpolating data from fine mesh" << std::endl;
     interpolate_data(inversion_mesh);
+    timer_data.stop();
 
+    timer_mesh_problem.start();
     deallog << "Initializing problem" << std::endl;
     mesh = inversion_mesh;
     initialize_problem();
