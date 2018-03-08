@@ -1,0 +1,88 @@
+JobId arch-vm1 Wed Mar  7 15:06:53 2018
+node 1 coming online
+node1::wavepi cbd1f0d6
+node1::Release-Build, compiled on 2018-03-07T13:30:56Z from commit cbd1f0d62252788efb4b378cf0937ff8fbdbd134 ("Last output differently") on branch master
+
+node1:initialize_mesh::Number of active cells: 16384
+node1:initialize_mesh::Number of degrees of freedom in the first spatial mesh: 16641
+node1:initialize_mesh::cell diameters: minimal = 0.0884, maximal = 0.0884
+node1:initialize_mesh::dt: 0.0235
+node1:initialize_mesh::expected size of a DiscretizedFunction<dim>: 32.5 MiB
+node1:REGINN::i=0 : rdisc=0.170, rnorm=0.957, rerr=0.137
+node1:REGINN::2.00 ≤ estimate ≤ 2.00
+node1:REGINN::Solving linear problem using rtol=0.900 and max_iter=1
+node1:REGINN::i=1 : rdisc=0.153, rnorm=0.958, rerr=0.133
+node1:REGINN::1.98 ≤ estimate ≤ 2.10
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.900 and max_iter=2
+node1:REGINN::i=2 : rdisc=0.138, rnorm=0.960, rerr=0.131
+node1:REGINN::1.96 ≤ estimate ≤ 2.20
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.854 and max_iter=2
+node1:REGINN::i=3 : rdisc=0.118, rnorm=0.962, rerr=0.128
+node1:REGINN::1.94 ≤ estimate ≤ 2.33
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.811 and max_iter=2
+node1:REGINN::i=4 : rdisc=0.0957, rnorm=0.965, rerr=0.124
+node1:REGINN::1.91 ≤ estimate ≤ 2.47
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.769 and max_iter=2
+node1:REGINN::i=5 : rdisc=0.0739, rnorm=0.968, rerr=0.121
+node1:REGINN::1.88 ≤ estimate ≤ 2.63
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.730 and max_iter=2
+node1:REGINN::i=6 : rdisc=0.0542, rnorm=0.972, rerr=0.118
+node1:REGINN::1.84 ≤ estimate ≤ 2.79
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.693 and max_iter=2
+node1:REGINN::i=7 : rdisc=0.0378, rnorm=0.977, rerr=0.112
+node1:REGINN::1.81 ≤ estimate ≤ 2.97
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.658 and max_iter=3
+node1:REGINN::i=8 : rdisc=0.0249, rnorm=0.978, rerr=0.108
+node1:REGINN::1.81 ≤ estimate ≤ 2.94
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.624 and max_iter=4
+node1:REGINN::i=9 : rdisc=0.0156, rnorm=0.981, rerr=0.104
+node1:REGINN::1.77 ≤ estimate ≤ 3.02
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.592 and max_iter=4
+node1:REGINN::i=10: rdisc=0.00928, rnorm=0.982, rerr=0.101
+node1:REGINN::1.68 ≤ estimate ≤ 3.11
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.562 and max_iter=4
+node1:REGINN::Linear solver did not achieve desired discrepancy due to max_iter.
+node1:REGINN::i=11: rdisc=0.00523, rnorm=0.984, rerr=0.0980
+node1:REGINN::1.62 ≤ estimate ≤ 3.18
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.533 and max_iter=6
+node1:REGINN::Linear solver did not achieve desired discrepancy due to max_iter.
+node1:REGINN::i=12: rdisc=0.00304, rnorm=0.984, rerr=0.0960
+node1:REGINN::1.60 ≤ estimate ≤ 3.28
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.657 and max_iter=10
+node1:REGINN::i=13: rdisc=0.00200, rnorm=0.985, rerr=0.0947
+node1:REGINN::1.59 ≤ estimate ≤ 3.34
+node1:REGINN::
+node1:REGINN::Target discrepancy reached after 13 iterations.
+node1:REGINN::1.59 ≤ estimate ≤ 3.34
+node1::Relative ℝⁿ error of the reconstruction: 0.0690
+node1::Relative L²([0,T], L²(Ω)) error of the reconstruction: 0.0679
+node1::Relative H¹([0,T], L²(Ω)) error of the reconstruction: 0.0947
+node1::Relative H¹([0,T], H¹(Ω)) error of the reconstruction: 0.478
+node1::Relative H²([0,T], L²(Ω)) error of the reconstruction: 0.319
+node1::Relative ℝⁿ error of (reconstruction - initial guess): 0.608
+node1::Relative L²([0,T], L²(Ω)) error of (reconstruction - initial guess): 0.598
+node1::Relative H¹([0,T], L²(Ω)) error of (reconstruction - initial guess): 0.694
+node1::Relative H¹([0,T], H¹(Ω)) error of (reconstruction - initial guess): 1.11
+node1::Relative H²([0,T], L²(Ω)) error of (reconstruction - initial guess): 1.01
+node1:stats::forward              : 15 calls, average 26.8s per call
+node1:stats::linearization forward: 33 calls, average 20.7s per call
+node1:stats::linearization adjoint: 33 calls, average 23.1s per call
+node1:stats::measure forward      : 48 calls, average 20.4ms per call
+node1:stats::measure adjoint      : 33 calls, average 152.5ms per call
+node1:stats::Additional time needed for MPI communication:
+node1:stats::forward              : average 10.6s per call
+node1:stats::linearization forward: average 7.4s per call
+node1:stats::linearization adjoint: average 16.3s per call
+node1:stats::total wall time      : 48min 42s
