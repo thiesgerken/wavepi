@@ -5,8 +5,12 @@
  *      Author: thies
  */
 
-#include <gtest/gtest.h>
-
+#include <base/ConstantMesh.h>
+#include <base/DiscretizedFunction.h>
+#include <base/Norm.h>
+#include <base/SpaceTimeMesh.h>
+#include <base/Util.h>
+#include <bits/std_abs.h>
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/function.h>
 #include <deal.II/base/logstream.h>
@@ -14,25 +18,16 @@
 #include <deal.II/base/point.h>
 #include <deal.II/base/quadrature.h>
 #include <deal.II/base/quadrature_lib.h>
-#include <deal.II/base/timer.h>
-#include <deal.II/dofs/dof_handler.h>
 #include <deal.II/fe/fe_q.h>
 #include <deal.II/grid/grid_generator.h>
 #include <deal.II/grid/tria.h>
-
-#include <base/ConstantMesh.h>
-#include <base/DiscretizedFunction.h>
-#include <base/SpaceTimeMesh.h>
-#include <base/Util.h>
-#include <forward/L2RightHandSide.h>
-#include <forward/WaveEquation.h>
-#include <forward/WaveEquationAdjoint.h>
-#include <problems/QProblem.h>
-
-#include <bits/std_abs.h>
+#include <gtest/gtest.h>
+#include <norms/H1H1.h>
+#include <norms/H1L2.h>
+#include <norms/H2L2.h>
+#include <norms/L2Coefficients.h>
+#include <norms/L2L2.h>
 #include <stddef.h>
-#include <fstream>
-#include <functional>
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -40,9 +35,8 @@
 namespace {
 
 using namespace dealii;
-using namespace wavepi::forward;
 using namespace wavepi::base;
-using namespace wavepi::problems;
+using namespace wavepi;
 
 template <int dim>
 class TestF : public Function<dim> {
@@ -169,7 +163,8 @@ const Point<3> TestQ<3>::q_position = Point<3>(-1.0, 0.5, 0.0);
 
 // tests whether norm and dot product are consistent
 template <int dim>
-void run_dot_norm_test(int fe_order, int quad_order, int refines, int n_steps, Norm norm) {
+void run_dot_norm_test(int fe_order, int quad_order, int refines, int n_steps,
+                       std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm) {
   auto triangulation = std::make_shared<Triangulation<dim>>();
   GridGenerator::hyper_cube(*triangulation, -1, 1);
   Util::set_all_boundary_ids(*triangulation, 0);
@@ -233,7 +228,8 @@ void run_dot_norm_test(int fe_order, int quad_order, int refines, int n_steps, N
 
 // tests whether mass matrix operations are inverse to each other
 template <int dim>
-void run_dot_transform_inverse_test(int fe_order, int quad_order, int refines, int n_steps, Norm norm) {
+void run_dot_transform_inverse_test(int fe_order, int quad_order, int refines, int n_steps,
+                                    std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm) {
   auto triangulation = std::make_shared<Triangulation<dim>>();
   GridGenerator::hyper_cube(*triangulation, -1, 1);
   Util::set_all_boundary_ids(*triangulation, 0);
@@ -297,7 +293,8 @@ void run_dot_transform_inverse_test(int fe_order, int quad_order, int refines, i
 
 // tests whether dot_transform is consistent with dot
 template <int dim>
-void run_dot_transform_consistent_test(int fe_order, int quad_order, int refines, int n_steps, Norm norm) {
+void run_dot_transform_consistent_test(int fe_order, int quad_order, int refines, int n_steps,
+                                       std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm) {
   auto triangulation = std::make_shared<Triangulation<dim>>();
   GridGenerator::hyper_cube(*triangulation, -1, 1);
   Util::set_all_boundary_ids(*triangulation, 0);
@@ -327,8 +324,8 @@ void run_dot_transform_consistent_test(int fe_order, int quad_order, int refines
     double dot_xy = x * y;
 
     y.dot_transform();
-    x.set_norm(Norm::Coefficients);
-    y.set_norm(Norm::Coefficients);
+    x.set_norm(std::make_shared<norms::L2Coefficients<dim>>());
+    y.set_norm(std::make_shared<norms::L2Coefficients<dim>>());
 
     double dot_xy_via_transform = x * y;
     double err                  = std::abs(dot_xy - dot_xy_via_transform) / (std::abs(dot_xy) + 1e-300);
@@ -366,16 +363,16 @@ void run_derivative_transpose_test(int fe_order, int quad_order, int refines, in
 
   for (int i = 0; i < 10; i++) {
     DiscretizedFunction<dim> x = DiscretizedFunction<dim>::noise(mesh);
-    x.set_norm(Norm::Coefficients);
+    x.set_norm(std::make_shared<norms::L2Coefficients<dim>>());
 
     DiscretizedFunction<dim> y = DiscretizedFunction<dim>::noise(mesh);
-    y.set_norm(Norm::Coefficients);
+    y.set_norm(std::make_shared<norms::L2Coefficients<dim>>());
 
     auto Dy = y.calculate_derivative();
-    Dy.set_norm(Norm::Coefficients);
+    Dy.set_norm(std::make_shared<norms::L2Coefficients<dim>>());
 
     auto Dtx = x.calculate_derivative_transpose();
-    Dtx.set_norm(Norm::Coefficients);
+    Dtx.set_norm(std::make_shared<norms::L2Coefficients<dim>>());
 
     double dot_x_Dy  = x * Dy;
     double dot_Dtx_y = Dtx * y;
@@ -388,10 +385,10 @@ void run_derivative_transpose_test(int fe_order, int quad_order, int refines, in
     EXPECT_LT(err, tol);
 
     auto D2y = y.calculate_second_derivative();
-    D2y.set_norm(Norm::Coefficients);
+    D2y.set_norm(std::make_shared<norms::L2Coefficients<dim>>());
 
     auto D2tx = x.calculate_second_derivative_transpose();
-    D2tx.set_norm(Norm::Coefficients);
+    D2tx.set_norm(std::make_shared<norms::L2Coefficients<dim>>());
 
     double dot_x_D2y  = x * D2y;
     double dot_D2tx_y = D2tx * y;
@@ -409,55 +406,55 @@ void run_derivative_transpose_test(int fe_order, int quad_order, int refines, in
 template <int dim>
 void run_dot_norm_tests(int fe_order, int quad_order, int refines, int n_steps) {
   deallog << "== norm=Vector ==" << std::endl;
-  run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, Norm::Coefficients);
+  run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, std::make_shared<norms::L2Coefficients<dim>>());
 
   deallog << "== norm=L2L2 ==" << std::endl;
-  run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, Norm::L2L2);
+  run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, std::make_shared<norms::L2L2<dim>>());
 
   deallog << "== norm=H1L2 ==" << std::endl;
-  run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, Norm::H1L2);
+  run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, std::make_shared<norms::H1L2<dim>>(0.5));
 
   deallog << "== norm=H1H1 ==" << std::endl;
-  run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, Norm::H1H1);
+  run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, std::make_shared<norms::H1H1<dim>>(0.5, 0.5));
 
   deallog << "== norm=H2L2 ==" << std::endl;
-  run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, Norm::H2L2);
+  run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, std::make_shared<norms::H2L2<dim>>(0.5, 0.25));
 }
 
 template <int dim>
 void run_dot_transform_inverse_tests(int fe_order, int quad_order, int refines, int n_steps) {
   deallog << "== norm=Vector ==" << std::endl;
-  run_dot_transform_inverse_test<dim>(fe_order, quad_order, refines, n_steps, Norm::Coefficients);
+  run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, std::make_shared<norms::L2Coefficients<dim>>());
 
   deallog << "== norm=L2L2 ==" << std::endl;
-  run_dot_transform_inverse_test<dim>(fe_order, quad_order, refines, n_steps, Norm::L2L2);
+  run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, std::make_shared<norms::L2L2<dim>>());
 
   deallog << "== norm=H1L2 ==" << std::endl;
-  run_dot_transform_inverse_test<dim>(fe_order, quad_order, refines, n_steps, Norm::H1L2);
+  run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, std::make_shared<norms::H1L2<dim>>(0.5));
 
   deallog << "== norm=H1H1 ==" << std::endl;
-  run_dot_transform_inverse_test<dim>(fe_order, quad_order, refines, n_steps, Norm::H1H1);
+  run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, std::make_shared<norms::H1H1<dim>>(0.5, 0.5));
 
   deallog << "== norm=H2L2 ==" << std::endl;
-  run_dot_transform_inverse_test<dim>(fe_order, quad_order, refines, n_steps, Norm::H2L2);
+  run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, std::make_shared<norms::H2L2<dim>>(0.5, 0.25));
 }
 
 template <int dim>
 void run_dot_transform_consistent_tests(int fe_order, int quad_order, int refines, int n_steps) {
   deallog << "== norm=Vector ==" << std::endl;
-  run_dot_transform_consistent_test<dim>(fe_order, quad_order, refines, n_steps, Norm::Coefficients);
+  run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, std::make_shared<norms::L2Coefficients<dim>>());
 
   deallog << "== norm=L2L2 ==" << std::endl;
-  run_dot_transform_consistent_test<dim>(fe_order, quad_order, refines, n_steps, Norm::L2L2);
+  run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, std::make_shared<norms::L2L2<dim>>());
 
   deallog << "== norm=H1L2 ==" << std::endl;
-  run_dot_transform_consistent_test<dim>(fe_order, quad_order, refines, n_steps, Norm::H1L2);
+  run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, std::make_shared<norms::H1L2<dim>>(0.5));
 
   deallog << "== norm=H1H1 ==" << std::endl;
-  run_dot_transform_consistent_test<dim>(fe_order, quad_order, refines, n_steps, Norm::H1H1);
+  run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, std::make_shared<norms::H1H1<dim>>(0.5, 0.5));
 
   deallog << "== norm=H2L2 ==" << std::endl;
-  run_dot_transform_consistent_test<dim>(fe_order, quad_order, refines, n_steps, Norm::H2L2);
+  run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, std::make_shared<norms::H2L2<dim>>(0.5, 0.25));
 }
 
 }  // namespace

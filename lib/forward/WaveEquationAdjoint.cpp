@@ -477,7 +477,7 @@ DiscretizedFunction<dim> WaveEquationAdjoint<dim>::run() {
   timer.start();
 
   // this is going to be the result
-  DiscretizedFunction<dim> u(mesh, true);
+  DiscretizedFunction<dim> u(mesh, std::make_shared<InvalidNorm<DiscretizedFunction<dim>>>(), true);
 
   for (size_t j = 0; j < mesh->length(); j++) {
     size_t i = mesh->length() - 1 - j;
@@ -532,7 +532,7 @@ DiscretizedFunction<dim> WaveEquationAdjoint<dim>::run() {
 // also applies Mass matrix afterwards
 template <int dim>
 DiscretizedFunction<dim> WaveEquationAdjoint<dim>::apply_R_transpose(const DiscretizedFunction<dim>& u) {
-  DiscretizedFunction<dim> res(mesh, false);
+  DiscretizedFunction<dim> res(mesh);
   Vector<double> tmp;
 
   for (size_t j = 0; j < mesh->length(); j++) {

@@ -5,6 +5,11 @@
  *      Author: thies
  */
 
+#include <base/AdaptiveMesh.h>
+#include <base/ConstantMesh.h>
+#include <base/DiscretizedFunction.h>
+#include <base/SpaceTimeMesh.h>
+#include <base/Util.h>
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/function.h>
 #include <deal.II/base/logstream.h>
@@ -16,17 +21,10 @@
 #include <deal.II/fe/fe_q.h>
 #include <deal.II/grid/grid_generator.h>
 #include <deal.II/grid/tria.h>
-
-#include <base/AdaptiveMesh.h>
-#include <base/ConstantMesh.h>
-#include <base/DiscretizedFunction.h>
-#include <base/SpaceTimeMesh.h>
-#include <base/Util.h>
 #include <forward/L2RightHandSide.h>
 #include <forward/WaveEquation.h>
-
 #include <gtest/gtest.h>
-
+#include <norms/L2L2.h>
 #include <stddef.h>
 #include <iostream>
 #include <memory>
@@ -37,6 +35,7 @@ namespace {
 using namespace dealii;
 using namespace wavepi::forward;
 using namespace wavepi::base;
+using namespace wavepi;
 
 template <int dim>
 class TestF : public Function<dim> {
@@ -235,7 +234,7 @@ void run_discretized_test(int fe_order, int quad_order, int refines) {
 
   timer.restart();
   DiscretizedFunction<dim> sol_cont = wave_eq.run();
-  sol_cont.set_norm(Norm::L2L2);
+  sol_cont.set_norm(std::make_shared<norms::L2L2<dim>>());
 
   timer.stop();
   deallog << "continuous params: " << std::fixed << timer.wall_time() << " s of wall time" << std::endl;
@@ -265,7 +264,7 @@ void run_discretized_test(int fe_order, int quad_order, int refines) {
 
   timer.restart();
   DiscretizedFunction<dim> sol_disc = wave_eq.run();
-  sol_disc.set_norm(Norm::L2L2);
+  sol_disc.set_norm(std::make_shared<norms::L2L2<dim>>());
   timer.stop();
   deallog << "all discretized: " << std::fixed << timer.wall_time() << " s of wall time" << std::endl;
   EXPECT_GT(sol_disc.norm(), 0.0);
@@ -282,7 +281,7 @@ void run_discretized_test(int fe_order, int quad_order, int refines) {
 
   timer.restart();
   DiscretizedFunction<dim> sol_disc_except_q = wave_eq.run();
-  sol_disc_except_q.set_norm(Norm::L2L2);
+  sol_disc_except_q.set_norm(std::make_shared<norms::L2L2<dim>>());
   timer.stop();
   deallog << "all discretized, q disguised: " << std::fixed << timer.wall_time() << " s of wall time" << std::endl;
   EXPECT_GT(sol_disc_except_q.norm(), 0.0);
@@ -294,7 +293,7 @@ void run_discretized_test(int fe_order, int quad_order, int refines) {
 
   timer.restart();
   DiscretizedFunction<dim> sol_disc_except_a = wave_eq.run();
-  sol_disc_except_a.set_norm(Norm::L2L2);
+  sol_disc_except_a.set_norm(std::make_shared<norms::L2L2<dim>>());
   timer.stop();
   deallog << "all discretized, a disguised: " << std::fixed << timer.wall_time() << " s of wall time" << std::endl;
   EXPECT_GT(sol_disc_except_a.norm(), 0.0);
@@ -309,7 +308,7 @@ void run_discretized_test(int fe_order, int quad_order, int refines) {
 
   timer.restart();
   DiscretizedFunction<dim> sol_disguised = wave_eq.run();
-  sol_disguised.set_norm(Norm::L2L2);
+  sol_disguised.set_norm(std::make_shared<norms::L2L2<dim>>());
   timer.stop();
   deallog << "all discretized and disguised as continuous: " << std::fixed << timer.wall_time() << " s of wall time"
           << std::endl
@@ -393,14 +392,14 @@ void run_reference_test(std::shared_ptr<SpaceTimeMesh<dim>> mesh, Point<dim, int
   DiscretizedFunction<dim> solv = solu.derivative();
   solu.throw_away_derivative();
 
-  solu.set_norm(Norm::L2L2);
-  solv.set_norm(Norm::L2L2);
+  solu.set_norm(std::make_shared<norms::L2L2<dim>>());
+  solv.set_norm(std::make_shared<norms::L2L2<dim>>());
 
   DiscretizedFunction<dim> refu(mesh, *u);
   DiscretizedFunction<dim> refv(mesh, *v);
 
-  refu.set_norm(Norm::L2L2);
-  refv.set_norm(Norm::L2L2);
+  refu.set_norm(std::make_shared<norms::L2L2<dim>>());
+  refv.set_norm(std::make_shared<norms::L2L2<dim>>());
 
   DiscretizedFunction<dim> tmp(solu);
   tmp -= refu;
@@ -431,8 +430,8 @@ void run_reference_test(std::shared_ptr<SpaceTimeMesh<dim>> mesh, Point<dim, int
   solv = solu.derivative();
   solu.throw_away_derivative();
 
-  solu.set_norm(Norm::L2L2);
-  solv.set_norm(Norm::L2L2);
+  solu.set_norm(std::make_shared<norms::L2L2<dim>>());
+  solv.set_norm(std::make_shared<norms::L2L2<dim>>());
 
   tmp = solu;
   tmp -= refu;
@@ -513,14 +512,14 @@ void run_reference_test_nu(int fe_order, int quad_order, int refines, Point<dim,
   DiscretizedFunction<dim> solv = solu.derivative();
   solu.throw_away_derivative();
 
-  solu.set_norm(Norm::L2L2);
-  solv.set_norm(Norm::L2L2);
+  solu.set_norm(std::make_shared<norms::L2L2<dim>>());
+  solv.set_norm(std::make_shared<norms::L2L2<dim>>());
 
   DiscretizedFunction<dim> refu(mesh, *u);
   DiscretizedFunction<dim> refv(mesh, *v);
 
-  refu.set_norm(Norm::L2L2);
-  refv.set_norm(Norm::L2L2);
+  refu.set_norm(std::make_shared<norms::L2L2<dim>>());
+  refv.set_norm(std::make_shared<norms::L2L2<dim>>());
 
   DiscretizedFunction<dim> tmp(solu);
   tmp -= refu;
@@ -637,7 +636,7 @@ void run_reference_test_refined(int fe_order, int quad_order, int refines, Point
   FE_Q<dim> fe(fe_order);
   Quadrature<dim> quad = QGauss<dim>(quad_order);  // exact in poly degree 2n-1 (needed: fe_dim^3)
 
-  auto mesh = std::make_shared<AdaptiveMesh<dim>>(times, fe, quad, triangulation);
+  auto mesh = std::make_shared<ConstantMesh<dim>>(times, fe, quad, triangulation);
 
   run_reference_test<dim>(mesh, k, constants, expect, save);
 }
@@ -688,11 +687,11 @@ TEST(WaveEquation, ReferenceTestAdaptive2DFE1) {
 
 TEST(WaveEquation, ReferenceTestRefined2DFE1) {
   for (int steps = 16; steps <= 256; steps *= 2)
-    run_reference_test_adaptive<2>(1, 3, 5, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, steps,
-                                   steps >= 64, false);
+    run_reference_test_refined<2>(1, 3, 5, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, steps, steps >= 64,
+                                  false);
 
   for (int refine = 5; refine >= 1; refine--)
-    run_reference_test_adaptive<2>(1, 3, refine, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, 256, false);
+    run_reference_test_refined<2>(1, 3, refine, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, 256, false);
 }
 
 TEST(WaveEquation, ReferenceTest3DFE1) {

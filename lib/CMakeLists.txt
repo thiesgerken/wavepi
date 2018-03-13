@@ -1,5 +1,6 @@
 add_subdirectory(base)
 add_subdirectory(forward)
+add_subdirectory(norms)
 add_subdirectory(inversion)
 add_subdirectory(measurements)
 
@@ -74,7 +75,7 @@ list(APPEND LIBSOURCES "${CMAKE_CURRENT_BINARY_DIR}/Version.cpp")
 
 add_library(wavepi ${LIBSOURCES})
 DEAL_II_SETUP_TARGET(wavepi)
-TARGET_LINK_LIBRARIES(wavepi wavepi_base wavepi_measurements wavepi_forward wavepi_inversion)
+TARGET_LINK_LIBRARIES(wavepi wavepi_base wavepi_measurements wavepi_forward wavepi_inversion wavepi_norms)
 
 add_custom_command(TARGET wavepi POST_BUILD 
                    #COMMAND ${CMAKE_COMMAND} -E remove ${CMAKE_BINARY_DIR}/lib/Version.cpp

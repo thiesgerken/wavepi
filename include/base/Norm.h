@@ -15,47 +15,124 @@ namespace wavepi {
 namespace base {
 using namespace dealii;
 
-/**
- * possible norm settings
- */
-enum class Norm {
-  /**
-   * Invalid norm setting. This is the default setting for newly constructed objects.
-   */
-  Invalid = 0,
+template <typename T>
+class Norm {
+ public:
+  virtual ~Norm() = default;
+  Norm()          = default;
 
   /**
-   * 2-norm on the underlying vectors.
-   * Fast, but only a crude approximation (even in case of uniform space-time grids and P1-elements)
+   * returns the norm of `u`.
    */
-  Coefficients,
+  virtual double norm(const T& u) const = 0;
 
   /**
-   * L^2([0,T], L^2(\Omega)) norm, using the trapezoidal rule in time (approximation)
-   * and the mass matrix in space (exact)
+   * returns the scalar product between `u` and `v`.
+   * Throws an error if this norm  does not define a scalar product.
    */
-  L2L2,
+  virtual double dot(const T& u, const T& v) const = 0;
 
   /**
-   * H^1([0,T], L^2(\Omega)) norm, using the trapezoidal rule in time (approximation),
-   * the mass matrix in space (exact) and finite differences of order h^2 (inner) and h (boundary)
+   * applies the matrix M (spd), which describes the used scalar product, i.e.
+   * `this->dot(y) = y^t * M * this` (regarding this and y as long vectors)
+   * to this function, that is `this <- B * this`.
+   *
+   * This function is useful for computing the adjoint A^* of a linear operator A from its transpose A^t:
+   * `x^t A^t M y = (A x, y) = (x, A^* y) = x^t M A^* y` for all `x` and `y`,
+   * hence `A^t M = M A^*`, that is `A^* = M^{-1} A^t M`.
+   *
+   * For the standard vector norm (`L2L2_Vector`) of the coefficients, `M` is equal to the identity.
+   * To get an approximation to the L^2([0,T], L^2(\Omega)) norm (`L2L2_Trapezoidal_Mass`),
+   * `M` is a diagonal block matrix consisting of the mass matrix for every time step and a factor to account for the
+   * trapezoidal rule.
+   *
+   * Throws and error if this norm does not define a scalar product.
    */
-  H1L2,
+  virtual void dot_transform(T& u) const = 0;
 
   /**
-   * H^2([0,T], L^2(\Omega)) norm, using the trapezoidal rule in time (approximation),
-   * the mass matrix in space (exact) and finite differences of order h^2 (inner) and h (boundary)
+   * applies the inverse to `dot_transform`, i.e. it applies `M^{-1}`.
+   * Throws and error if this norm does not define a scalar product.
    */
-  H2L2,
+  virtual void dot_transform_inverse(T& u) const = 0;
 
   /**
-   * H^1([0,T], H^1(\Omega)) norm, using the trapezoidal rule in time (approximation),
-   * the mass+laplace matrix in space (exact) and finite differences of order h^2 (inner) and h (boundary)
+   * same as `dot_transform`, but applies the inverse mass matrix to every time step beforehand.
+   * This allows for some optimization where M is also built using the mass matrices, e.g. for `L2L2_Trapezoidal_Mass`.
+   * In that case only the factors for the trapezoidal rule have to be taken into account.
+   *
+   * Throws and error if this norm does not define a scalar product.
    */
-  H1H1
+  virtual void dot_solve_mass_and_transform(T& u) const = 0;
+
+  /**
+   * same as `dot_transform_inverse`, but applies the mass matrix to every time step beforehand.
+   * This allows for some optimization where M is also built using the mass matrices, e.g. for `L2L2_Trapezoidal_Mass`.
+   * In that case only the inverted factors for the trapezoidal rule have to be taken into account.
+   *
+   * Throws and error if this norm does not define a scalar product.
+   */
+  virtual void dot_mult_mass_and_transform_inverse(T& u) const = 0;
+
+  /**
+   * does this norm define a scalar product?
+   */
+  virtual bool hilbert() const = 0;
+
+  /**
+   * human readable name of the corresponding space, e.g. `L²([0,T], L²(Ω))`.
+   */
+  virtual std::string name() const = 0;
+
+  /**
+   * id of the norm to conclude whether two norms match, e.g. `H¹([0,T], L²(Ω)) with α=0.3`.
+   */
+  virtual std::string unique_id() const = 0;
+
+  /**
+   * are the two norms the same?
+   */
+  bool operator==(const Norm<T>& other) const { return other.unique_id() == this->unique_id(); }
 };
 
-std::string to_string(const Norm &norm);
+template <typename T>
+class InvalidNorm : public Norm<T> {
+ public:
+  virtual ~InvalidNorm() = default;
+  InvalidNorm()          = default;
+
+  virtual double norm(const T& u __attribute((unused))) const override {
+    AssertThrow(false, ExcMessage("call to norm on InvalidNorm"));
+    return 0.0;
+  }
+
+  virtual double dot(const T& u __attribute((unused)), const T& v __attribute((unused))) const override {
+    AssertThrow(false, ExcMessage("call to dot on InvalidNorm"));
+    return 0.0;
+  }
+
+  virtual void dot_transform(T& u __attribute((unused))) const override {
+    AssertThrow(false, ExcMessage("call to dot_transform on InvalidNorm"));
+  }
+
+  virtual void dot_transform_inverse(T& u __attribute((unused))) const override {
+    AssertThrow(false, ExcMessage("call to dot_transform_inverse on InvalidNorm"));
+  }
+
+  virtual void dot_solve_mass_and_transform(T& u __attribute((unused))) const override {
+    AssertThrow(false, ExcMessage("call to dot_solve_mass_and_transform on InvalidNorm"));
+  }
+
+  virtual void dot_mult_mass_and_transform_inverse(T& u __attribute((unused))) const override {
+    AssertThrow(false, ExcMessage("call to dot_mult_mass_and_transform_inverse on InvalidNorm"));
+  }
+
+  virtual bool hilbert() const override { return false; }
+
+  virtual std::string name() const override { return "Invalid"; }
+
+  virtual std::string unique_id() const override { return "Invalid"; }
+};
 
 }  // namespace base
 }  // namespace wavepi

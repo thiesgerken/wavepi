@@ -8,7 +8,6 @@ SET(LIBSOURCES
         RadialParsedFunction.cpp 
         Transformation.cpp
         Util.cpp   
-        Norm.cpp
     )
         
 add_library(wavepi_base ${LIBSOURCES})

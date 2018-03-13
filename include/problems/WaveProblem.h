@@ -88,7 +88,7 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
 
   virtual Tuple<Measurement> forward(const DiscretizedFunction<dim> &param) {
     LogStream::Prefix p("forward");
-    AssertThrow(param.get_norm() == norm_domain, ExcMessage("Argument of Forward Operator has unexpected norm"));
+    AssertThrow(*param.get_norm() == *norm_domain, ExcMessage("Argument of Forward Operator has unexpected norm"));
 
     Timer fw_timer;
     Timer meas_timer;
@@ -185,12 +185,12 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
 
   virtual std::shared_ptr<NonlinearProblemStats> get_statistics() { return stats; }
 
-  const Norm &get_norm_domain() const { return norm_domain; }
+  std::shared_ptr<Norm<DiscretizedFunction<dim>>> get_norm_domain() const { return norm_domain; }
 
   /**
    * Set the norm to use for parameters. Defaults to `Norm::L2L2`.
    */
-  void set_norm_domain(const Norm &norm_domain) { this->norm_domain = norm_domain; }
+  void set_norm_domain(std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm_domain) { this->norm_domain = norm_domain; }
 
   /**
    * Set the norm to use for fields. Defaults to `Norm::L2L2`.
@@ -198,15 +198,17 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
    * inputs to have. Only this way adjoints are calculated correctly.
    *
    */
-  const Norm &get_norm_codomain() const { return norm_codomain; }
+  std::shared_ptr<Norm<DiscretizedFunction<dim>>> get_norm_codomain() const { return norm_codomain; }
 
-  void set_norm_codomain(const Norm &norm_codomain) { this->norm_codomain = norm_codomain; }
+  void set_norm_codomain(std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm_codomain) {
+    this->norm_codomain = norm_codomain;
+  }
 
  protected:
   std::shared_ptr<NonlinearProblemStats> stats;
 
-  Norm norm_domain   = Norm::L2L2;
-  Norm norm_codomain = Norm::L2L2;
+  std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm_domain;
+  std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm_codomain;
 
   WaveEquation<dim> wave_equation;
   typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver;
@@ -244,7 +246,8 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
         std::vector<std::shared_ptr<Measure<DiscretizedFunction<dim>, Measurement>>> measures,
         std::shared_ptr<DiscretizedFunction<dim>> current_param_transformed,
         std::shared_ptr<Transformation<dim>> transform, std::shared_ptr<NonlinearProblemStats> parent_stats,
-        Norm norm_domain, Norm norm_codomain)
+        std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm_domain,
+        std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm_codomain)
         : stats(std::make_shared<LinearProblemStats>()),
           parent_stats(parent_stats),
           sub_problems(sub_problems),
@@ -256,7 +259,7 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
 
     virtual Tuple<Measurement> forward(const DiscretizedFunction<dim> &h) {
       LogStream::Prefix p("lin_forward");
-      AssertThrow(h.get_norm() == norm_domain, ExcMessage("Argument of Linearization has unexpected norm"));
+      AssertThrow(*h.get_norm() == *norm_domain, ExcMessage("Argument of Linearization has unexpected norm"));
 
       Timer fw_timer;
       Timer meas_timer;
@@ -298,7 +301,7 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
         auto field = sub_problems[i]->forward(h_transformed);
         fw_timer.stop();
 
-        AssertThrow(field.get_norm() == norm_codomain, ExcMessage("Output of Linearization has unexpected norm"));
+        AssertThrow(*field.get_norm() == *norm_codomain, ExcMessage("Output of Linearization has unexpected norm"));
 
         meas_timer.start();
         result[i] = measures[i]->evaluate(field);
@@ -395,7 +398,7 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
         auto am = measures[i]->adjoint(g[i]);
         adj_meas_timer.stop();
 
-        AssertThrow(am.get_norm() == norm_codomain, ExcMessage("Output of Measure adjoint has unexpected norm"));
+        AssertThrow(*am.get_norm() == *norm_codomain, ExcMessage("Output of Measure adjoint has unexpected norm"));
 
         adj_timer.start();
         private_result += sub_problems[i]->adjoint(am);
@@ -457,7 +460,7 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
     }
 
     virtual DiscretizedFunction<dim> zero() {
-      return DiscretizedFunction<dim>(current_param_transformed->get_mesh(), false, norm_domain);
+      return DiscretizedFunction<dim>(current_param_transformed->get_mesh(), norm_domain);
     }
 
     virtual std::shared_ptr<LinearProblemStats> get_statistics() { return stats; }
@@ -471,8 +474,8 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
     std::shared_ptr<DiscretizedFunction<dim>> current_param_transformed;
     std::shared_ptr<Transformation<dim>> transform;
 
-    Norm norm_domain;
-    Norm norm_codomain;
+    std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm_domain;
+    std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm_codomain;
   };
 };
 

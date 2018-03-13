@@ -24,7 +24,8 @@ using namespace wavepi::base;
 
 template <int dim>
 ConvolutionMeasure<dim>::ConvolutionMeasure(std::shared_ptr<SpaceTimeMesh<dim>> mesh,
-                                            std::shared_ptr<SensorDistribution<dim>> points, Norm norm,
+                                            std::shared_ptr<SensorDistribution<dim>> points,
+                                            std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm,
                                             std::shared_ptr<LightFunction<dim>> delta_shape, double delta_scale_space,
                                             double delta_scale_time)
     : mesh(mesh),
@@ -33,19 +34,20 @@ ConvolutionMeasure<dim>::ConvolutionMeasure(std::shared_ptr<SpaceTimeMesh<dim>> 
       delta_shape(delta_shape),
       delta_scale_space(delta_scale_space),
       delta_scale_time(delta_scale_time) {
-  AssertThrow(mesh && delta_shape, ExcNotInitialized());
+  AssertThrow(mesh && delta_shape && norm, ExcNotInitialized());
 }
 
 template <int dim>
 ConvolutionMeasure<dim>::ConvolutionMeasure(std::shared_ptr<SpaceTimeMesh<dim>> mesh,
-                                            std::shared_ptr<SensorDistribution<dim>> points, Norm norm)
+                                            std::shared_ptr<SensorDistribution<dim>> points,
+                                            std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm)
     : mesh(mesh),
       sensor_distribution(points),
       norm(norm),
       delta_shape(),
       delta_scale_space(0.0),
       delta_scale_time(0.0) {
-  AssertThrow(mesh, ExcNotInitialized());
+  AssertThrow(mesh && norm, ExcNotInitialized());
 }
 
 template <int dim>
@@ -86,7 +88,7 @@ SensorValues<dim> ConvolutionMeasure<dim>::evaluate(const DiscretizedFunction<di
   AssertThrow(delta_shape && delta_scale_space > 0 && delta_scale_time > 0, ExcNotInitialized());
   AssertThrow(sensor_distribution && sensor_distribution->size(), ExcNotInitialized());
   AssertThrow(mesh == field.get_mesh(), ExcMessage("ConvolutionMeasure called with different meshes"));
-  AssertThrow(norm == field.get_norm(), ExcMessage("ConvolutionMeasure called with different norms"));
+  AssertThrow(*norm == *field.get_norm(), ExcMessage("ConvolutionMeasure called with different norms"));
 
   LightFunctionWrapper wrapper(delta_shape, delta_scale_space, delta_scale_time);
   SensorValues<dim> res(sensor_distribution);

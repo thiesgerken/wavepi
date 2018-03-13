@@ -5,6 +5,11 @@
  *      Author: thies
  */
 
+#include <base/ConstantMesh.h>
+#include <base/DiscretizedFunction.h>
+#include <base/SpaceTimeMesh.h>
+#include <base/Util.h>
+#include <bits/std_abs.h>
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/function.h>
 #include <deal.II/base/logstream.h>
@@ -14,32 +19,17 @@
 #include <deal.II/fe/fe_q.h>
 #include <deal.II/grid/grid_generator.h>
 #include <deal.II/grid/tria.h>
-
-#include <base/ConstantMesh.h>
-#include <base/DiscretizedFunction.h>
-#include <base/MacroFunctionParser.h>
-#include <base/SpaceTimeMesh.h>
-#include <base/Transformation.h>
-#include <base/Tuple.h>
-#include <base/Util.h>
 #include <forward/L2RightHandSide.h>
 #include <forward/VectorRightHandSide.h>
 #include <forward/WaveEquation.h>
 #include <forward/WaveEquationAdjoint.h>
 #include <forward/WaveEquationBase.h>
-#include <measurements/FieldMeasure.h>
-#include <measurements/Measure.h>
-#include <problems/QProblem.h>
-#include <problems/WaveProblem.h>
-
 #include <gtest/gtest.h>
-
+#include <norms/H1L2.h>
+#include <norms/L2L2.h>
 #include <stddef.h>
-#include <cmath>
 #include <iostream>
-#include <map>
 #include <memory>
-#include <string>
 #include <vector>
 
 namespace {
@@ -47,8 +37,7 @@ namespace {
 using namespace dealii;
 using namespace wavepi::forward;
 using namespace wavepi::base;
-using namespace wavepi::problems;
-using namespace wavepi::measurements;
+using namespace wavepi;
 
 template <int dim>
 class TestF : public Function<dim> {
@@ -223,30 +212,30 @@ void run_wave_adjoint_test(int fe_order, int quad_order, int refines, int n_step
       f = std::make_shared<DiscretizedFunction<dim>>(DiscretizedFunction<dim>::noise(mesh));
 
       // make it a bit smoother, random noise might be a bit too harsh
-      f->set_norm(Norm::H1L2);
+      f->set_norm(std::make_shared<norms::H1L2<dim>>(0.5));
       f->dot_transform_inverse();
 
       g = std::make_shared<DiscretizedFunction<dim>>(DiscretizedFunction<dim>::noise(mesh));
 
       // make it a bit smoother, random noise might be a bit too harsh
-      g->set_norm(Norm::H1L2);
+      g->set_norm(std::make_shared<norms::H1L2<dim>>(0.5));
       g->dot_transform_inverse();
     }
 
-    f->set_norm(Norm::L2L2);
+    f->set_norm(std::make_shared<norms::L2L2<dim>>());
     *f *= 1.0 / f->norm();
 
-    g->set_norm(Norm::L2L2);
+    g->set_norm(std::make_shared<norms::L2L2<dim>>());
     *g *= 1.0 / g->norm();
 
     wave_eq.set_run_direction(WaveEquation<dim>::Forward);
     wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(f));
     DiscretizedFunction<dim> sol_f = wave_eq.run();
-    sol_f.set_norm(Norm::L2L2);
+    sol_f.set_norm(std::make_shared<norms::L2L2<dim>>());
     EXPECT_GT(sol_f.norm(), 0.0);
 
     auto g_time_mass = std::make_shared<DiscretizedFunction<dim>>(*g);
-    g_time_mass->set_norm(Norm::L2L2);
+    g_time_mass->set_norm(std::make_shared<norms::L2L2<dim>>());
 
     DiscretizedFunction<dim> adj_g(mesh);
     if (use_adj) {
@@ -257,7 +246,7 @@ void run_wave_adjoint_test(int fe_order, int quad_order, int refines, int n_step
       adj_g = wave_eq_adj.run();
 
       // wave_eq_adj does everything except the multiplication with the mass matrix (to allow for optimization)
-      adj_g.set_norm(Norm::L2L2);
+      adj_g.set_norm(std::make_shared<norms::L2L2<dim>>());
       adj_g.dot_mult_mass_and_transform_inverse();
     } else {
       // dot_transforms not needed here, wave_eq backwards should be the L^2([0,T], L^2)-Adjoint
@@ -266,7 +255,7 @@ void run_wave_adjoint_test(int fe_order, int quad_order, int refines, int n_step
       wave_eq.set_run_direction(WaveEquation<dim>::Backward);
       adj_g = wave_eq.run();
       adj_g.throw_away_derivative();
-      adj_g.set_norm(Norm::L2L2);
+      adj_g.set_norm(std::make_shared<norms::L2L2<dim>>());
     }
 
     EXPECT_GT(adj_g.norm(), 0.0);

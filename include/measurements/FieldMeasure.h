@@ -9,7 +9,9 @@
 #define INCLUDE_MEASUREMENTS_FIELDMEASURE_H_
 
 #include <base/DiscretizedFunction.h>
+#include <base/Norm.h>
 #include <base/SpaceTimeMesh.h>
+#include <deal.II/base/exceptions.h>
 #include <measurements/Measure.h>
 #include <memory>
 
@@ -27,29 +29,30 @@ class FieldMeasure : public Measure<DiscretizedFunction<dim>, DiscretizedFunctio
  public:
   virtual ~FieldMeasure() = default;
 
-  FieldMeasure(std::shared_ptr<SpaceTimeMesh<dim>> mesh, Norm norm) : mesh(mesh), norm(norm) {
-    AssertThrow(mesh, ExcNotInitialized());
+  FieldMeasure(std::shared_ptr<SpaceTimeMesh<dim>> mesh, std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm)
+      : mesh(mesh), norm(norm) {
+    AssertThrow(mesh && norm, ExcNotInitialized());
   }
 
   virtual DiscretizedFunction<dim> evaluate(const DiscretizedFunction<dim>& field) override {
     AssertThrow(mesh == field.get_mesh(), ExcMessage("FieldMeasure called with different meshes"));
-    AssertThrow(norm == field.get_norm(), ExcMessage("FieldMeasure called with different norms"));
+    AssertThrow(*norm == *field.get_norm(), ExcMessage("FieldMeasure called with different norms"));
 
     return field;
   }
 
   virtual DiscretizedFunction<dim> adjoint(const DiscretizedFunction<dim>& measurements) override {
     AssertThrow(mesh == measurements.get_mesh(), ExcMessage("Field measure called with different meshes"));
-    AssertThrow(norm == measurements.get_norm(), ExcMessage("FieldMeasure called with different norms"));
+    AssertThrow(*norm == *measurements.get_norm(), ExcMessage("FieldMeasure called with different norms"));
 
     return measurements;
   }
 
-  virtual DiscretizedFunction<dim> zero() override { return DiscretizedFunction<dim>(mesh, false, norm); }
+  virtual DiscretizedFunction<dim> zero() override { return DiscretizedFunction<dim>(mesh, norm); }
 
  private:
   std::shared_ptr<SpaceTimeMesh<dim>> mesh;
-  Norm norm;
+  std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm;
 };
 
 }  // namespace measurements

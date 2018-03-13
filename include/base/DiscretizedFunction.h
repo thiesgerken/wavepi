@@ -35,12 +35,6 @@ using namespace dealii;
 template <int dim>
 class DiscretizedFunction : public Function<dim> {
  public:
-  static double h1l2_alpha;
-  static double h2l2_alpha;
-  static double h2l2_beta;
-  static double h1h1_alpha;
-  static double h1h1_gamma;
-
   virtual ~DiscretizedFunction() = default;
 
   /**
@@ -63,10 +57,39 @@ class DiscretizedFunction : public Function<dim> {
    * Creates a new discretized function and initializes it with zeroes.
    *
    * @param mesh the mesh you want this function to be attached to
+   * @param norm the norm this function should be measured with
    * @param store_derivative true iff this function should also track the derivative of the function.
+   */
+  DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>> mesh, std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm,
+                      bool store_derivative);
+
+  /**
+   * Creates a new discretized function and initializes it with zeroes.
+   * The resulting object will _not_ keep track of the coefficients of its derivative.
+   *
+   * @param mesh the mesh you want this function to be attached to
    * @param norm the norm this function should be measured with
    */
-  DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>> mesh, bool store_derivative, Norm norm = Norm::Invalid);
+  DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>> mesh, std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm);
+
+  /**
+   * Creates a new discretized function and initializes it with zeroes.
+   * The resulting object will _not_ keep track of the coefficients of its derivative.
+   *
+   * @param mesh the mesh you want this function to be attached to
+   */
+  explicit DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>> mesh);
+
+  /**
+   * Creates a new discretized function from a given (possibly continuous) function.
+   * The resulting object will _not_ keep track of the coefficients of its derivative.
+   *
+   * @param mesh the mesh you want this function to be attached to
+   * @param function the function that should be interpolated by this object
+   * @param norm the norm this function should be measured with
+   */
+  DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>> mesh, Function<dim>& function,
+                      std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm);
 
   /**
    * Creates a new discretized function from a given (possibly continuous) function.
@@ -75,15 +98,7 @@ class DiscretizedFunction : public Function<dim> {
    * @param mesh the mesh you want this function to be attached to
    * @param function the function that should be interpolated by this object
    */
-  DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>> mesh, Function<dim>& function, Norm norm = Norm::Invalid);
-
-  /**
-   * Creates a new discretized function and initializes it with zeroes.
-   * The resulting object will _not_ keep track of the coefficients of its derivative.
-   *
-   * @param mesh the mesh you want this function to be attached to
-   */
-  DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>> mesh);
+  DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>> mesh, Function<dim>& function);
 
   /**
    * move assignment
@@ -195,12 +210,12 @@ class DiscretizedFunction : public Function<dim> {
   /**
    * returns the current norm setting.
    */
-  Norm get_norm() const;
+  const std::shared_ptr<Norm<DiscretizedFunction<dim>>> get_norm() const;
 
   /**
    * equip this object with a given norm setting
    */
-  void set_norm(Norm norm);
+  void set_norm(std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm);
 
   /**
    * returns this object's norm, or throws an error if the norm is set to `Invalid`.
@@ -222,7 +237,7 @@ class DiscretizedFunction : public Function<dim> {
   /**
    * returns whether the used norm also defines a scalar product.
    */
-  bool is_hilbert() const;
+  bool hilbert() const;
 
   /**
    * relative error (using this object's norm settings).
@@ -553,86 +568,14 @@ class DiscretizedFunction : public Function<dim> {
   static DiscretizedFunction<dim> noise(const DiscretizedFunction<dim>& like, double norm);
 
  private:
-  Norm norm_type        = Norm::Invalid;
+  std::shared_ptr<SpaceTimeMesh<dim>> mesh;
+  std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm_;
+
   bool store_derivative = false;
   size_t cur_time_idx   = 0;
 
-  std::shared_ptr<SpaceTimeMesh<dim>> mesh;
-
   std::vector<Vector<double>> function_coefficients;
   std::vector<Vector<double>> derivative_coefficients;
-
-  /**
-   * @name Functions for `Norm::Vector`
-   */
-
-  double norm_vector() const;
-  double dot_vector(const DiscretizedFunction<dim>& V) const;
-
-  void dot_transform_vector();
-  void dot_transform_inverse_vector();
-  void dot_solve_mass_and_transform_vector();
-  void dot_mult_mass_and_transform_inverse_vector();
-
-  /**
-   * @}
-   *
-   * @name Functions for `Norm::L2L2`
-   */
-
-  double norm_l2l2() const;
-  double dot_l2l2(const DiscretizedFunction<dim>& V) const;
-
-  void dot_transform_l2l2();
-  void dot_transform_inverse_l2l2();
-  void dot_solve_mass_and_transform_l2l2();
-  void dot_mult_mass_and_transform_inverse_l2l2();
-
-  /**
-   * @}
-   *
-   * @name Functions for `Norm::H1L2`
-   */
-
-  double norm_h1l2() const;
-  double dot_h1l2(const DiscretizedFunction<dim>& V) const;
-
-  void dot_transform_h1l2();
-  void dot_transform_inverse_h1l2();
-  void dot_solve_mass_and_transform_h1l2();
-  void dot_mult_mass_and_transform_inverse_h1l2();
-
-  /**
-   * @}
-   *
-   * @name Functions for `Norm::H1H1`
-   */
-
-  double norm_h1h1() const;
-  double dot_h1h1(const DiscretizedFunction<dim>& V) const;
-
-  void dot_transform_h1h1();
-  void dot_transform_inverse_h1h1();
-  void dot_solve_mass_and_transform_h1h1();
-  void dot_mult_mass_and_transform_inverse_h1h1();
-
-  /**
-   * @}
-   *
-   * @name Functions for `Norm::H2L2`
-   */
-
-  double norm_h2l2() const;
-  double dot_h2l2(const DiscretizedFunction<dim>& V) const;
-
-  void dot_transform_h2l2();
-  void dot_transform_inverse_h2l2();
-  void dot_solve_mass_and_transform_h2l2();
-  void dot_mult_mass_and_transform_inverse_h2l2();
-
-  /**
-   * @}
-   */
 };
 }  // namespace base
 } /* namespace wavepi */

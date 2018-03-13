@@ -53,14 +53,15 @@ class ConvolutionMeasure : public Measure<DiscretizedFunction<dim>, SensorValues
    * @param delta_scale_time Desired support radius in time
    */
   ConvolutionMeasure(std::shared_ptr<SpaceTimeMesh<dim>> mesh, std::shared_ptr<SensorDistribution<dim>> points,
-                     Norm norm, std::shared_ptr<LightFunction<dim>> delta_shape, double delta_scale_space,
+                     std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm,
+                     std::shared_ptr<LightFunction<dim>> delta_shape, double delta_scale_space,
                      double delta_scale_time);
 
   /**
    * Does not initialize most of the values, you have to use get_parameters afterwards.
    */
   ConvolutionMeasure(std::shared_ptr<SpaceTimeMesh<dim>> mesh, std::shared_ptr<SensorDistribution<dim>> points,
-                     Norm norm);
+                     std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm);
 
   virtual SensorValues<dim> zero() override;
 
@@ -133,7 +134,7 @@ class ConvolutionMeasure : public Measure<DiscretizedFunction<dim>, SensorValues
  protected:
   std::shared_ptr<SpaceTimeMesh<dim>> mesh;
   std::shared_ptr<SensorDistribution<dim>> sensor_distribution;
-  Norm norm;
+  std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm;
 
   std::shared_ptr<LightFunction<dim>> delta_shape;
   double delta_scale_space;

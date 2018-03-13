@@ -32,6 +32,7 @@
 #include <measurements/GridDistribution.h>
 #include <measurements/Measure.h>
 #include <measurements/SensorDistribution.h>
+#include <norms/L2L2.h>
 #include <problems/QProblem.h>
 #include <problems/WaveProblem.h>
 
@@ -49,6 +50,7 @@ namespace {
 
 using namespace dealii;
 using namespace wavepi::base;
+using namespace wavepi;
 using namespace wavepi::measurements;
 
 enum class MeasureType { convolution = 1, delta };
@@ -94,16 +96,17 @@ void run_sensor_measure_adjoint_test(MeasureType measure_type, int fe_order, int
   std::shared_ptr<Measure<DiscretizedFunction<dim>, SensorValues<dim>>> measure;
 
   if (measure_type == MeasureType::convolution)
-    measure = std::make_shared<ConvolutionMeasure<dim>>(
-        mesh, grid, Norm::L2L2, std::make_shared<typename ConvolutionMeasure<dim>::HatShape>(), 0.1, 0.2);
+    measure = std::make_shared<ConvolutionMeasure<dim>>(mesh, grid, std::make_shared<norms::L2L2<dim>>(),
+                                                        std::make_shared<typename ConvolutionMeasure<dim>::HatShape>(),
+                                                        0.1, 0.2);
   else if (measure_type == MeasureType::delta)
-    measure = std::make_shared<DeltaMeasure<dim>>(mesh, grid, Norm::L2L2);
+    measure = std::make_shared<DeltaMeasure<dim>>(mesh, grid, std::make_shared<norms::L2L2<dim>>());
 
   double tol = 1e-06;
 
   for (int i = 0; i < 10; i++) {
     DiscretizedFunction<dim> f = DiscretizedFunction<dim>::noise(mesh);
-    f.set_norm(Norm::L2L2);
+    f.set_norm(std::make_shared<norms::L2L2<dim>>());
 
     SensorValues<dim> g = SensorValues<dim>::noise(grid);
 
@@ -115,7 +118,7 @@ void run_sensor_measure_adjoint_test(MeasureType measure_type, int fe_order, int
     Timer adj_timer;
     adj_timer.start();
     auto PsiAdjg = measure->adjoint(g);
-    AssertThrow(PsiAdjg.get_norm() == Norm::L2L2, ExcInternalError());
+    AssertThrow(*PsiAdjg.get_norm() == norms::L2L2<dim>(), ExcInternalError());
     adj_timer.stop();
 
     double dot_Psif_g    = Psif * g;
@@ -175,14 +178,14 @@ void run_delta_measure_implementation_test(int fe_order, int quad_order, int ref
   }
 
   auto grid     = std::make_shared<GridDistribution<dim>>(mtimes, spatial_points);
-  auto measure  = std::make_shared<DeltaMeasure<dim>>(mesh, grid, Norm::L2L2);
-  auto ameasure = std::make_shared<DeltaMeasure<dim>>(amesh, grid, Norm::L2L2);
+  auto measure  = std::make_shared<DeltaMeasure<dim>>(mesh, grid, std::make_shared<norms::L2L2<dim>>());
+  auto ameasure = std::make_shared<DeltaMeasure<dim>>(amesh, grid, std::make_shared<norms::L2L2<dim>>());
 
   double tol = 1e-06;
 
   for (int i = 0; i < 10; i++) {
     DiscretizedFunction<dim> f = DiscretizedFunction<dim>::noise(mesh);
-    f.set_norm(Norm::L2L2);
+    f.set_norm(std::make_shared<norms::L2L2<dim>>());
 
     DiscretizedFunction<dim> af = DiscretizedFunction<dim>(amesh);
     for (size_t ti = 0; ti < mesh->length(); ti++)
@@ -203,17 +206,17 @@ void run_delta_measure_implementation_test(int fe_order, int quad_order, int ref
 
     timer.restart();
     auto PsiAdjg = measure->adjoint(g);
-    AssertThrow(PsiAdjg.get_norm() == Norm::L2L2, ExcInternalError());
+    AssertThrow(*PsiAdjg.get_norm() == norms::L2L2<dim>(), ExcInternalError());
     timer.stop();
     deallog << "wall time adjoint (ConstantMesh): " << std::fixed << timer.wall_time() << " s" << std::endl;
 
     timer.restart();
     auto aPsiAdjg = ameasure->adjoint(g);
-    AssertThrow(aPsiAdjg.get_norm() == Norm::L2L2, ExcInternalError());
+    AssertThrow(*aPsiAdjg.get_norm() == norms::L2L2<dim>(), ExcInternalError());
     timer.stop();
     deallog << "wall time adjoint (AdaptiveMesh): " << std::fixed << timer.wall_time() << " s" << std::endl;
 
-    DiscretizedFunction<dim> PsiAdjg_copy = DiscretizedFunction<dim>(amesh, false, PsiAdjg.get_norm());
+    DiscretizedFunction<dim> PsiAdjg_copy = DiscretizedFunction<dim>(amesh, PsiAdjg.get_norm());
     for (size_t ti = 0; ti < mesh->length(); ti++)
       PsiAdjg_copy[ti] = PsiAdjg[ti];
 

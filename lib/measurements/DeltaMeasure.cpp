@@ -28,16 +28,17 @@ using namespace wavepi::base;
 
 template <int dim>
 DeltaMeasure<dim>::DeltaMeasure(std::shared_ptr<SpaceTimeMesh<dim>> mesh,
-                                std::shared_ptr<SensorDistribution<dim>> points, Norm norm)
+                                std::shared_ptr<SensorDistribution<dim>> points,
+                                std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm)
     : mesh(mesh), sensor_distribution(points), norm(norm) {
-  AssertThrow(mesh, ExcNotInitialized());
+  AssertThrow(mesh && norm, ExcNotInitialized());
 }
 
 template <int dim>
 SensorValues<dim> DeltaMeasure<dim>::evaluate(const DiscretizedFunction<dim>& field) {
   AssertThrow(sensor_distribution && sensor_distribution->size(), ExcNotInitialized());
   AssertThrow(mesh == field.get_mesh(), ExcMessage("DeltaMeasure called with different meshes"));
-  AssertThrow(norm == field.get_norm(), ExcMessage("DeltaMeasure called with different norms"));
+  AssertThrow(*norm == *field.get_norm(), ExcMessage("DeltaMeasure called with different norms"));
 
   SensorValues<dim> res(sensor_distribution);
   auto mapping = StaticMappingQ1<dim>::mapping;

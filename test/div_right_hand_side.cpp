@@ -5,6 +5,11 @@
  *      Author: thies
  */
 
+#include <base/ConstantMesh.h>
+#include <base/DiscretizedFunction.h>
+#include <base/SpaceTimeMesh.h>
+#include <base/Util.h>
+#include <bits/std_abs.h>
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/function.h>
 #include <deal.II/base/logstream.h>
@@ -14,32 +19,14 @@
 #include <deal.II/fe/fe_q.h>
 #include <deal.II/grid/grid_generator.h>
 #include <deal.II/grid/tria.h>
-
-#include <base/ConstantMesh.h>
-#include <base/DiscretizedFunction.h>
-#include <base/MacroFunctionParser.h>
-#include <base/SpaceTimeMesh.h>
-#include <base/Transformation.h>
-#include <base/Tuple.h>
-#include <base/Util.h>
-#include <forward/L2RightHandSide.h>
-#include <forward/VectorRightHandSide.h>
-#include <forward/WaveEquation.h>
-#include <forward/WaveEquationAdjoint.h>
-#include <forward/WaveEquationBase.h>
-#include <measurements/FieldMeasure.h>
-#include <measurements/Measure.h>
-#include <problems/QProblem.h>
-#include <problems/WaveProblem.h>
-
+#include <forward/DivRightHandSide.h>
+#include <forward/DivRightHandSideAdjoint.h>
 #include <gtest/gtest.h>
-
+#include <norms/H1L2.h>
+#include <norms/L2Coefficients.h>
 #include <stddef.h>
-#include <cmath>
 #include <iostream>
-#include <map>
 #include <memory>
-#include <string>
 #include <vector>
 
 namespace {
@@ -47,8 +34,7 @@ namespace {
 using namespace dealii;
 using namespace wavepi::forward;
 using namespace wavepi::base;
-using namespace wavepi::problems;
-using namespace wavepi::measurements;
+using namespace wavepi;
 
 template <int dim>
 class TestF : public Function<dim> {
@@ -110,26 +96,26 @@ void run_div_rhs_adjoint_test(int fe_order, int quad_order, int refines, int n_s
       f = std::make_shared<DiscretizedFunction<dim>>(DiscretizedFunction<dim>::noise(mesh));
 
       // make it a bit smoother, random noise might be a bit too harsh
-      f->set_norm(Norm::H1L2);
+      f->set_norm(std::make_shared<norms::H1L2<dim>>(0.5));
       f->dot_transform_inverse();
 
       g = std::make_shared<DiscretizedFunction<dim>>(DiscretizedFunction<dim>::noise(mesh));
 
       // make it a bit smoother, random noise might be a bit too harsh
-      g->set_norm(Norm::H1L2);
+      g->set_norm(std::make_shared<norms::H1L2<dim>>(0.5));
       g->dot_transform_inverse();
     }
 
-    f->set_norm(Norm::Coefficients);
+    f->set_norm(std::make_shared<norms::L2Coefficients<dim>>());
     *f *= 1.0 / f->norm();
 
-    g->set_norm(Norm::Coefficients);
+    g->set_norm(std::make_shared<norms::L2Coefficients<dim>>());
     *g *= 1.0 / g->norm();
 
     DivRightHandSide<dim> divrhs(f, f);
     DivRightHandSideAdjoint<dim> divrhs_adj(f, g);
 
-    DiscretizedFunction<dim> sol_f(mesh, false, Norm::Coefficients);
+    DiscretizedFunction<dim> sol_f(mesh, std::make_shared<norms::L2Coefficients<dim>>());
 
     for (size_t i = 0; i < mesh->length(); i++) {
       divrhs.set_time(mesh->get_times()[i]);
@@ -139,7 +125,7 @@ void run_div_rhs_adjoint_test(int fe_order, int quad_order, int refines, int n_s
     EXPECT_GT(sol_f.norm(), 0.0);
 
     auto adj_g = divrhs_adj.run_adjoint(mesh);
-    adj_g.set_norm(Norm::Coefficients);
+    adj_g.set_norm(std::make_shared<norms::L2Coefficients<dim>>());
     EXPECT_GT(adj_g.norm(), 0.0);
 
     double dot_solf_g = sol_f * (*g);

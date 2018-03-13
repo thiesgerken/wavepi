@@ -33,6 +33,7 @@ DiscretizedFunction<dim> IdentityTransform<dim>::inverse_derivative(const Discre
                                                                     const DiscretizedFunction<dim> &h) {
   return h;
 }
+
 template <int dim>
 DiscretizedFunction<dim> IdentityTransform<dim>::inverse_derivative_transpose(const DiscretizedFunction<dim> &param
                                                                               __attribute((unused)),
@@ -60,7 +61,7 @@ template <int dim>
 DiscretizedFunction<dim> LogTransform<dim>::transform(const DiscretizedFunction<dim> &param) {
   AssertThrow(!param.has_derivative(), ExcMessage("Not transforming derivatives!"));
 
-  DiscretizedFunction<dim> tmp(param.get_mesh(), false, param.get_norm());
+  DiscretizedFunction<dim> tmp(param.get_mesh(), param.get_norm());
 
   for (size_t i = 0; i < param.length(); i++)
     for (size_t j = 0; j < param[i].size(); j++) {
@@ -82,7 +83,7 @@ template <int dim>
 DiscretizedFunction<dim> LogTransform<dim>::transform_inverse(const DiscretizedFunction<dim> &param) {
   AssertThrow(!param.has_derivative(), ExcMessage("Not transforming derivatives!"));
 
-  DiscretizedFunction<dim> tmp(param.get_mesh(), false, param.get_norm());
+  DiscretizedFunction<dim> tmp(param.get_mesh(), param.get_norm());
 
   for (size_t i = 0; i < param.length(); i++)
     for (size_t j = 0; j < param[i].size(); j++)
@@ -97,7 +98,7 @@ DiscretizedFunction<dim> LogTransform<dim>::inverse_derivative(const Discretized
   AssertThrow(!param.has_derivative() && !h.has_derivative(), ExcMessage("Not transforming derivatives!"));
   AssertThrow(param.get_mesh() == h.get_mesh(), ExcMessage("LogTransform: meshes must match"));
 
-  DiscretizedFunction<dim> tmp(param.get_mesh(), false, param.get_norm());
+  DiscretizedFunction<dim> tmp(param.get_mesh(), param.get_norm());
 
   for (size_t i = 0; i < param.length(); i++)
     for (size_t j = 0; j < param[i].size(); j++)
@@ -111,7 +112,7 @@ DiscretizedFunction<dim> LogTransform<dim>::inverse_derivative_transpose(const D
   AssertThrow(!param.has_derivative() && !g.has_derivative(), ExcMessage("Not transforming derivatives!"));
   AssertThrow(param.get_mesh() == g.get_mesh(), ExcMessage("LogTransform: meshes must match"));
 
-  DiscretizedFunction<dim> tmp(param.get_mesh(), false, param.get_norm());
+  DiscretizedFunction<dim> tmp(param.get_mesh(), param.get_norm());
 
   for (size_t i = 0; i < param.length(); i++)
     for (size_t j = 0; j < param[i].size(); j++)

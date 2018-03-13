@@ -396,7 +396,7 @@ DiscretizedFunction<dim> WaveEquation<dim>::run() {
   }
 
   // this is going to be the result
-  DiscretizedFunction<dim> u(mesh, true);
+  DiscretizedFunction<dim> u(mesh, std::make_shared<InvalidNorm<DiscretizedFunction<dim>>>(), true);
 
   bool backwards = run_direction == Backward;
   int first_idx  = backwards ? mesh->length() - 1 : 0;

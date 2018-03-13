@@ -5,6 +5,15 @@
  *      Author: thies
  */
 
+#include <base/ConstantMesh.h>
+#include <base/DiscretizedFunction.h>
+#include <base/MacroFunctionParser.h>
+#include <base/Norm.h>
+#include <base/SpaceTimeMesh.h>
+#include <base/Transformation.h>
+#include <base/Tuple.h>
+#include <base/Util.h>
+#include <bits/std_abs.h>
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/function.h>
 #include <deal.II/base/logstream.h>
@@ -14,31 +23,19 @@
 #include <deal.II/fe/fe_q.h>
 #include <deal.II/grid/grid_generator.h>
 #include <deal.II/grid/tria.h>
-
-#include <base/ConstantMesh.h>
-#include <base/DiscretizedFunction.h>
-#include <base/MacroFunctionParser.h>
-#include <base/SpaceTimeMesh.h>
-#include <base/Transformation.h>
-#include <base/Tuple.h>
-#include <base/Util.h>
-#include <forward/L2RightHandSide.h>
-#include <forward/VectorRightHandSide.h>
 #include <forward/WaveEquation.h>
-#include <forward/WaveEquationAdjoint.h>
 #include <forward/WaveEquationBase.h>
+#include <gtest/gtest.h>
 #include <measurements/FieldMeasure.h>
 #include <measurements/Measure.h>
+#include <norms/H1H1.h>
+#include <norms/H1L2.h>
+#include <norms/L2L2.h>
 #include <problems/AProblem.h>
 #include <problems/CProblem.h>
 #include <problems/NuProblem.h>
 #include <problems/QProblem.h>
-#include <problems/WaveProblem.h>
-
-#include <gtest/gtest.h>
-
 #include <stddef.h>
-#include <cmath>
 #include <iostream>
 #include <map>
 #include <memory>
@@ -52,6 +49,7 @@ using namespace wavepi::forward;
 using namespace wavepi::base;
 using namespace wavepi::problems;
 using namespace wavepi::measurements;
+using namespace wavepi;
 
 template <int dim>
 class TestF : public Function<dim> {
@@ -188,8 +186,9 @@ template <>
 const Point<3> TestQ<3>::q_position = Point<3>(-1.0, 0.5, 0.0);
 
 template <int dim, typename ProblemType>
-void run_adjoint_test(int fe_order, int quad_order, int refines, int n_steps, Norm norm_domain, Norm norm_codomain,
-                      double tol) {
+void run_adjoint_test(int fe_order, int quad_order, int refines, int n_steps,
+                      std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm_domain,
+                      std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm_codomain, double tol) {
   auto triangulation = std::make_shared<Triangulation<dim>>();
   GridGenerator::hyper_cube(*triangulation, -1, 1);
   Util::set_all_boundary_ids(*triangulation, 0);
@@ -249,13 +248,13 @@ void run_adjoint_test(int fe_order, int quad_order, int refines, int n_steps, No
       f = std::make_shared<DiscretizedFunction<dim>>(DiscretizedFunction<dim>::noise(mesh));
 
       // make it a bit smoother, random noise might be a bit too harsh
-      f->set_norm(Norm::H1L2);
+      f->set_norm(std::make_shared<norms::H1L2<dim>>(0.5));
       f->dot_transform_inverse();
 
       g = std::make_shared<DiscretizedFunction<dim>>(DiscretizedFunction<dim>::noise(mesh));
 
       // make it a bit smoother, random noise might be a bit too harsh
-      g->set_norm(Norm::H1L2);
+      g->set_norm(std::make_shared<norms::H1L2<dim>>(0.5));
       g->dot_transform_inverse();
     }
 
@@ -301,154 +300,190 @@ void run_adjoint_test(int fe_order, int quad_order, int refines, int n_steps, No
 
 TEST(ProblemAdjointness, AdjointQ1DFE1) {
   for (int i = 3; i < 10; i++)
-    run_adjoint_test<1, QProblem<1, DiscretizedFunction<1>>>(1, 3, 6, 1 << i, Norm::L2L2, Norm::L2L2, 1e-1);
+    run_adjoint_test<1, QProblem<1, DiscretizedFunction<1>>>(1, 3, 6, 1 << i, std::make_shared<norms::L2L2<1>>(),
+                                                             std::make_shared<norms::L2L2<1>>(), 1e-1);
 
   for (int refine = 6; refine >= 1; refine--)
-    run_adjoint_test<1, QProblem<1, DiscretizedFunction<1>>>(1, 3, refine, 1 << 9, Norm::L2L2, Norm::L2L2, 1e-1);
+    run_adjoint_test<1, QProblem<1, DiscretizedFunction<1>>>(1, 3, refine, 1 << 9, std::make_shared<norms::L2L2<1>>(),
+                                                             std::make_shared<norms::L2L2<1>>(), 1e-1);
 }
 
 TEST(ProblemAdjointness, AdjointQ1DFE2) {
   for (int i = 3; i < 10; i++)
-    run_adjoint_test<1, QProblem<1, DiscretizedFunction<1>>>(2, 6, 4, 1 << i, Norm::L2L2, Norm::L2L2, 1e-1);
+    run_adjoint_test<1, QProblem<1, DiscretizedFunction<1>>>(2, 6, 4, 1 << i, std::make_shared<norms::L2L2<1>>(),
+                                                             std::make_shared<norms::L2L2<1>>(), 1e-1);
 
   for (int refine = 4; refine >= 1; refine--)
-    run_adjoint_test<1, QProblem<1, DiscretizedFunction<1>>>(1, 3, refine, 1 << 9, Norm::L2L2, Norm::L2L2, 1e-1);
+    run_adjoint_test<1, QProblem<1, DiscretizedFunction<1>>>(1, 3, refine, 1 << 9, std::make_shared<norms::L2L2<1>>(),
+                                                             std::make_shared<norms::L2L2<1>>(), 1e-1);
 }
 
 TEST(ProblemAdjointness, AdjointQ2DFE1) {
   for (int i = 3; i < 9; i++)
-    run_adjoint_test<2, QProblem<2, DiscretizedFunction<2>>>(1, 3, 5, 1 << i, Norm::L2L2, Norm::L2L2, 1e-1);
+    run_adjoint_test<2, QProblem<2, DiscretizedFunction<2>>>(1, 3, 5, 1 << i, std::make_shared<norms::L2L2<2>>(),
+                                                             std::make_shared<norms::L2L2<2>>(), 1e-1);
 
   for (int refine = 4; refine >= 1; refine--)
-    run_adjoint_test<2, QProblem<2, DiscretizedFunction<2>>>(1, 3, refine, 1 << 8, Norm::L2L2, Norm::L2L2, 1e-1);
+    run_adjoint_test<2, QProblem<2, DiscretizedFunction<2>>>(1, 3, refine, 1 << 8, std::make_shared<norms::L2L2<2>>(),
+                                                             std::make_shared<norms::L2L2<2>>(), 1e-1);
 }
 
 TEST(ProblemAdjointness, AdjointQ2DFE1H1H1) {
   for (int i = 3; i < 9; i++)
-    run_adjoint_test<2, QProblem<2, DiscretizedFunction<2>>>(1, 3, 5, 1 << i, Norm::H1H1, Norm::L2L2, 1e-1);
+    run_adjoint_test<2, QProblem<2, DiscretizedFunction<2>>>(
+        1, 3, 5, 1 << i, std::make_shared<norms::H1H1<2>>(0.5, 0.5), std::make_shared<norms::L2L2<2>>(), 1e-1);
 
   for (int refine = 4; refine >= 1; refine--)
-    run_adjoint_test<2, QProblem<2, DiscretizedFunction<2>>>(1, 3, refine, 1 << 8, Norm::H1H1, Norm::L2L2, 1e-1);
+    run_adjoint_test<2, QProblem<2, DiscretizedFunction<2>>>(
+        1, 3, refine, 1 << 8, std::make_shared<norms::H1H1<2>>(0.5, 0.5), std::make_shared<norms::L2L2<2>>(), 1e-1);
 }
 
 TEST(ProblemAdjointness, AdjointQ3DFE1) {
   for (int i = 3; i < 5; i++)
-    run_adjoint_test<3, QProblem<3, DiscretizedFunction<3>>>(1, 3, 2, 1 << i, Norm::L2L2, Norm::L2L2, 1e-1);
+    run_adjoint_test<3, QProblem<3, DiscretizedFunction<3>>>(1, 3, 2, 1 << i, std::make_shared<norms::L2L2<3>>(),
+                                                             std::make_shared<norms::L2L2<3>>(), 1e-1);
 }
 
 /* A */
 
 TEST(ProblemAdjointness, AdjointA1DFE1) {
   for (int i = 3; i < 10; i++)
-    run_adjoint_test<1, AProblem<1, DiscretizedFunction<1>>>(1, 3, 6, 1 << i, Norm::L2L2, Norm::L2L2, 1e-1);
+    run_adjoint_test<1, AProblem<1, DiscretizedFunction<1>>>(1, 3, 6, 1 << i, std::make_shared<norms::L2L2<1>>(),
+                                                             std::make_shared<norms::L2L2<1>>(), 1e-1);
 
   for (int refine = 6; refine >= 1; refine--)
-    run_adjoint_test<1, AProblem<1, DiscretizedFunction<1>>>(1, 3, refine, 1 << 9, Norm::L2L2, Norm::L2L2, 1e-1);
+    run_adjoint_test<1, AProblem<1, DiscretizedFunction<1>>>(1, 3, refine, 1 << 9, std::make_shared<norms::L2L2<1>>(),
+                                                             std::make_shared<norms::L2L2<1>>(), 1e-1);
 }
 
 TEST(ProblemAdjointness, AdjointA1DFE2) {
   for (int i = 3; i < 10; i++)
-    run_adjoint_test<1, AProblem<1, DiscretizedFunction<1>>>(2, 6, 4, 1 << i, Norm::L2L2, Norm::L2L2, 1e-1);
+    run_adjoint_test<1, AProblem<1, DiscretizedFunction<1>>>(2, 6, 4, 1 << i, std::make_shared<norms::L2L2<1>>(),
+                                                             std::make_shared<norms::L2L2<1>>(), 1e-1);
 
   for (int refine = 4; refine >= 1; refine--)
-    run_adjoint_test<1, AProblem<1, DiscretizedFunction<1>>>(1, 3, refine, 1 << 9, Norm::L2L2, Norm::L2L2, 1e-1);
+    run_adjoint_test<1, AProblem<1, DiscretizedFunction<1>>>(1, 3, refine, 1 << 9, std::make_shared<norms::L2L2<1>>(),
+                                                             std::make_shared<norms::L2L2<1>>(), 1e-1);
 }
 
 TEST(ProblemAdjointness, AdjointA2DFE1) {
   for (int i = 3; i < 9; i++)
-    run_adjoint_test<2, AProblem<2, DiscretizedFunction<2>>>(1, 3, 5, 1 << i, Norm::L2L2, Norm::L2L2, 1e-1);
+    run_adjoint_test<2, AProblem<2, DiscretizedFunction<2>>>(1, 3, 5, 1 << i, std::make_shared<norms::L2L2<2>>(),
+                                                             std::make_shared<norms::L2L2<2>>(), 1e-1);
 
   for (int refine = 4; refine >= 1; refine--)
-    run_adjoint_test<2, AProblem<2, DiscretizedFunction<2>>>(1, 3, refine, 1 << 8, Norm::L2L2, Norm::L2L2, 1e-1);
+    run_adjoint_test<2, AProblem<2, DiscretizedFunction<2>>>(1, 3, refine, 1 << 8, std::make_shared<norms::L2L2<2>>(),
+                                                             std::make_shared<norms::L2L2<2>>(), 1e-1);
 }
 
 TEST(ProblemAdjointness, AdjointA2DFE1H1H1) {
   for (int i = 3; i < 9; i++)
-    run_adjoint_test<2, AProblem<2, DiscretizedFunction<2>>>(1, 3, 5, 1 << i, Norm::H1H1, Norm::L2L2, 1e-1);
+    run_adjoint_test<2, AProblem<2, DiscretizedFunction<2>>>(
+        1, 3, 5, 1 << i, std::make_shared<norms::H1H1<2>>(0.5, 0.5), std::make_shared<norms::L2L2<2>>(), 1e-1);
 
   for (int refine = 4; refine >= 1; refine--)
-    run_adjoint_test<2, AProblem<2, DiscretizedFunction<2>>>(1, 3, refine, 1 << 8, Norm::H1H1, Norm::L2L2, 1e-1);
+    run_adjoint_test<2, AProblem<2, DiscretizedFunction<2>>>(
+        1, 3, refine, 1 << 8, std::make_shared<norms::H1H1<2>>(0.5, 0.5), std::make_shared<norms::L2L2<2>>(), 1e-1);
 }
 
 TEST(ProblemAdjointness, AdjointA3DFE1) {
   for (int i = 3; i < 5; i++)
-    run_adjoint_test<3, AProblem<3, DiscretizedFunction<3>>>(1, 3, 2, 1 << i, Norm::L2L2, Norm::L2L2, 1e-1);
+    run_adjoint_test<3, AProblem<3, DiscretizedFunction<3>>>(1, 3, 2, 1 << i, std::make_shared<norms::L2L2<3>>(),
+                                                             std::make_shared<norms::L2L2<3>>(), 1e-1);
 }
 
 /* Nu */
 
 TEST(ProblemAdjointness, AdjointNu1DFE1) {
   for (int i = 3; i < 10; i++)
-    run_adjoint_test<1, NuProblem<1, DiscretizedFunction<1>>>(1, 3, 6, 1 << i, Norm::L2L2, Norm::L2L2, 1e-1);
+    run_adjoint_test<1, NuProblem<1, DiscretizedFunction<1>>>(1, 3, 6, 1 << i, std::make_shared<norms::L2L2<1>>(),
+                                                              std::make_shared<norms::L2L2<1>>(), 1e-1);
 
   for (int refine = 6; refine >= 1; refine--)
-    run_adjoint_test<1, NuProblem<1, DiscretizedFunction<1>>>(1, 3, refine, 1 << 9, Norm::L2L2, Norm::L2L2, 1e-1);
+    run_adjoint_test<1, NuProblem<1, DiscretizedFunction<1>>>(1, 3, refine, 1 << 9, std::make_shared<norms::L2L2<1>>(),
+                                                              std::make_shared<norms::L2L2<1>>(), 1e-1);
 }
 
 TEST(ProblemAdjointness, AdjointNu1DFE2) {
   for (int i = 3; i < 10; i++)
-    run_adjoint_test<1, NuProblem<1, DiscretizedFunction<1>>>(2, 6, 4, 1 << i, Norm::L2L2, Norm::L2L2, 1e-1);
+    run_adjoint_test<1, NuProblem<1, DiscretizedFunction<1>>>(2, 6, 4, 1 << i, std::make_shared<norms::L2L2<1>>(),
+                                                              std::make_shared<norms::L2L2<1>>(), 1e-1);
 
   for (int refine = 4; refine >= 1; refine--)
-    run_adjoint_test<1, NuProblem<1, DiscretizedFunction<1>>>(1, 3, refine, 1 << 9, Norm::L2L2, Norm::L2L2, 1e-1);
+    run_adjoint_test<1, NuProblem<1, DiscretizedFunction<1>>>(1, 3, refine, 1 << 9, std::make_shared<norms::L2L2<1>>(),
+                                                              std::make_shared<norms::L2L2<1>>(), 1e-1);
 }
 
 TEST(ProblemAdjointness, AdjointNu2DFE1) {
   for (int i = 3; i < 9; i++)
-    run_adjoint_test<2, NuProblem<2, DiscretizedFunction<2>>>(1, 3, 5, 1 << i, Norm::L2L2, Norm::L2L2, 1e-1);
+    run_adjoint_test<2, NuProblem<2, DiscretizedFunction<2>>>(1, 3, 5, 1 << i, std::make_shared<norms::L2L2<2>>(),
+                                                              std::make_shared<norms::L2L2<2>>(), 1e-1);
 
   for (int refine = 4; refine >= 1; refine--)
-    run_adjoint_test<2, NuProblem<2, DiscretizedFunction<2>>>(1, 3, refine, 1 << 8, Norm::L2L2, Norm::L2L2, 1e-1);
+    run_adjoint_test<2, NuProblem<2, DiscretizedFunction<2>>>(1, 3, refine, 1 << 8, std::make_shared<norms::L2L2<2>>(),
+                                                              std::make_shared<norms::L2L2<2>>(), 1e-1);
 }
 
 TEST(ProblemAdjointness, AdjointNu2DFE1H1H1) {
   for (int i = 3; i < 9; i++)
-    run_adjoint_test<2, NuProblem<2, DiscretizedFunction<2>>>(1, 3, 5, 1 << i, Norm::H1H1, Norm::L2L2, 1e-1);
+    run_adjoint_test<2, NuProblem<2, DiscretizedFunction<2>>>(
+        1, 3, 5, 1 << i, std::make_shared<norms::H1H1<2>>(0.5, 0.5), std::make_shared<norms::L2L2<2>>(), 1e-1);
 
   for (int refine = 4; refine >= 1; refine--)
-    run_adjoint_test<2, NuProblem<2, DiscretizedFunction<2>>>(1, 3, refine, 1 << 8, Norm::H1H1, Norm::L2L2, 1e-1);
+    run_adjoint_test<2, NuProblem<2, DiscretizedFunction<2>>>(
+        1, 3, refine, 1 << 8, std::make_shared<norms::H1H1<2>>(0.5, 0.5), std::make_shared<norms::L2L2<2>>(), 1e-1);
 }
 
 TEST(ProblemAdjointness, AdjointNu3DFE1) {
   for (int i = 3; i < 5; i++)
-    run_adjoint_test<3, NuProblem<3, DiscretizedFunction<3>>>(1, 3, 2, 1 << i, Norm::L2L2, Norm::L2L2, 1e-1);
+    run_adjoint_test<3, NuProblem<3, DiscretizedFunction<3>>>(1, 3, 2, 1 << i, std::make_shared<norms::L2L2<3>>(),
+                                                              std::make_shared<norms::L2L2<3>>(), 1e-1);
 }
 
 /* C */
 
 TEST(ProblemAdjointness, AdjointC1DFE1) {
   for (int i = 3; i < 10; i++)
-    run_adjoint_test<1, CProblem<1, DiscretizedFunction<1>>>(1, 3, 6, 1 << i, Norm::L2L2, Norm::L2L2, 1e-1);
+    run_adjoint_test<1, CProblem<1, DiscretizedFunction<1>>>(1, 3, 6, 1 << i, std::make_shared<norms::L2L2<1>>(),
+                                                             std::make_shared<norms::L2L2<1>>(), 1e-1);
 
   for (int refine = 6; refine >= 1; refine--)
-    run_adjoint_test<1, CProblem<1, DiscretizedFunction<1>>>(1, 3, refine, 1 << 9, Norm::L2L2, Norm::L2L2, 1e-1);
+    run_adjoint_test<1, CProblem<1, DiscretizedFunction<1>>>(1, 3, refine, 1 << 9, std::make_shared<norms::L2L2<1>>(),
+                                                             std::make_shared<norms::L2L2<1>>(), 1e-1);
 }
 
 TEST(ProblemAdjointness, AdjointC1DFE2) {
   for (int i = 3; i < 10; i++)
-    run_adjoint_test<1, CProblem<1, DiscretizedFunction<1>>>(2, 6, 4, 1 << i, Norm::L2L2, Norm::L2L2, 1e-1);
+    run_adjoint_test<1, CProblem<1, DiscretizedFunction<1>>>(2, 6, 4, 1 << i, std::make_shared<norms::L2L2<1>>(),
+                                                             std::make_shared<norms::L2L2<1>>(), 1e-1);
 
   for (int refine = 4; refine >= 1; refine--)
-    run_adjoint_test<1, CProblem<1, DiscretizedFunction<1>>>(1, 3, refine, 1 << 9, Norm::L2L2, Norm::L2L2, 1e-1);
+    run_adjoint_test<1, CProblem<1, DiscretizedFunction<1>>>(1, 3, refine, 1 << 9, std::make_shared<norms::L2L2<1>>(),
+                                                             std::make_shared<norms::L2L2<1>>(), 1e-1);
 }
 
 TEST(ProblemAdjointness, AdjointC2DFE1) {
   for (int i = 3; i < 9; i++)
-    run_adjoint_test<2, CProblem<2, DiscretizedFunction<2>>>(1, 3, 5, 1 << i, Norm::L2L2, Norm::L2L2, 1e-1);
+    run_adjoint_test<2, CProblem<2, DiscretizedFunction<2>>>(1, 3, 5, 1 << i, std::make_shared<norms::L2L2<2>>(),
+                                                             std::make_shared<norms::L2L2<2>>(), 1e-1);
 
   for (int refine = 4; refine >= 1; refine--)
-    run_adjoint_test<2, CProblem<2, DiscretizedFunction<2>>>(1, 3, refine, 1 << 8, Norm::L2L2, Norm::L2L2, 1e-1);
+    run_adjoint_test<2, CProblem<2, DiscretizedFunction<2>>>(1, 3, refine, 1 << 8, std::make_shared<norms::L2L2<2>>(),
+                                                             std::make_shared<norms::L2L2<2>>(), 1e-1);
 }
 
 TEST(ProblemAdjointness, AdjointC2DFE1H1H1) {
   for (int i = 3; i < 9; i++)
-    run_adjoint_test<2, CProblem<2, DiscretizedFunction<2>>>(1, 3, 5, 1 << i, Norm::H1H1, Norm::L2L2, 1e-1);
+    run_adjoint_test<2, CProblem<2, DiscretizedFunction<2>>>(
+        1, 3, 5, 1 << i, std::make_shared<norms::H1H1<2>>(0.5, 0.5), std::make_shared<norms::L2L2<2>>(), 1e-1);
 
   for (int refine = 4; refine >= 1; refine--)
-    run_adjoint_test<2, CProblem<2, DiscretizedFunction<2>>>(1, 3, refine, 1 << 8, Norm::H1H1, Norm::L2L2, 1e-1);
+    run_adjoint_test<2, CProblem<2, DiscretizedFunction<2>>>(
+        1, 3, refine, 1 << 8, std::make_shared<norms::H1H1<2>>(0.5, 0.5), std::make_shared<norms::L2L2<2>>(), 1e-1);
 }
 
 TEST(ProblemAdjointness, AdjointC3DFE1) {
   for (int i = 3; i < 5; i++)
-    run_adjoint_test<3, CProblem<3, DiscretizedFunction<3>>>(1, 3, 2, 1 << i, Norm::L2L2, Norm::L2L2, 1e-1);
+    run_adjoint_test<3, CProblem<3, DiscretizedFunction<3>>>(1, 3, 2, 1 << i, std::make_shared<norms::L2L2<3>>(),
+                                                             std::make_shared<norms::L2L2<3>>(), 1e-1);
 }
