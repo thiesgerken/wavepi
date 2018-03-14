@@ -281,7 +281,7 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
         if (!shape_options.count("left")) shape_options.emplace("left", -5.0);
         if (!shape_options.count("right")) shape_options.emplace("right", 5.0);
 
-        shape = MeshShape::hyper_L;
+        shape = MeshShape::hyper_l;
       } else if (generator == "hyper_ball") {
         if (!shape_options.count("center_x")) shape_options.emplace("center_x", 0.0);
         if (!shape_options.count("center_y")) shape_options.emplace("center_y", 0.0);
@@ -309,30 +309,30 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
     std::string norm_domain_s = prm->get(KEY_PROBLEM_NORM_DOMAIN);
 
     if (norm_domain_s == "L2L2")
-      norm_domain = Norm::L2L2;
+      norm_domain = NormType::l2l2;
     else if (norm_domain_s == "H1L2")
-      norm_domain = Norm::H1L2;
-    else if (norm_domain_s == "H1H1")
-      norm_domain = Norm::H1H1;
+      norm_domain = NormType::h1l2;
     else if (norm_domain_s == "H2L2")
-      norm_domain = Norm::H2L2;
+      norm_domain = NormType::h2l2;
+    else if (norm_domain_s == "H1H1")
+      norm_domain = NormType::h1h1;
     else if (norm_domain_s == "Coefficients")
-      norm_domain = Norm::Coefficients;
+      norm_domain = NormType::vector;
     else
       AssertThrow(false, ExcMessage("Cannot parse norm of domain"));
 
     std::string norm_codomain_s = prm->get(KEY_PROBLEM_NORM_CODOMAIN);
 
     if (norm_codomain_s == "L2L2")
-      norm_codomain = Norm::L2L2;
+      norm_codomain = NormType::l2l2;
     else if (norm_codomain_s == "H1L2")
-      norm_codomain = Norm::H1L2;
+      norm_codomain = NormType::h1l2;
     else if (norm_codomain_s == "H2L2")
-      norm_codomain = Norm::H2L2;
+      norm_codomain = NormType::h2l2;
     else if (norm_codomain_s == "H1H1")
-      norm_codomain = Norm::H1H1;
+      norm_codomain = NormType::h1h1;
     else if (norm_codomain_s == "Coefficients")
-      norm_codomain = Norm::Coefficients;
+      norm_codomain = NormType::vector;
     else
       AssertThrow(false, ExcMessage("Cannot parse norm of codomain"));
 
@@ -354,13 +354,13 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
     std::string problem = prm->get(KEY_PROBLEM_TYPE);
 
     if (problem == "L2A" || problem == "a")
-      problem_type = ProblemType::L2A;
+      problem_type = ProblemType::a;
     else if (problem == "L2Q" || problem == "q")
-      problem_type = ProblemType::L2Q;
+      problem_type = ProblemType::q;
     else if (problem == "L2Nu" || problem == "nu")
-      problem_type = ProblemType::L2Nu;
+      problem_type = ProblemType::nu;
     else if (problem == "L2C" || problem == "c")
-      problem_type = ProblemType::L2C;
+      problem_type = ProblemType::c;
     else
       AssertThrow(false, ExcInternalError());
 
@@ -481,9 +481,9 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
     std::string smethod = prm->get(KEY_INVERSION_METHOD);
 
     if (smethod == "REGINN")
-      method = NonlinearMethod::REGINN;
+      method = NonlinearMethod::reginn;
     else if (smethod == "NonlinearLandweber")
-      method = NonlinearMethod::NonlinearLandweber;
+      method = NonlinearMethod::nonlinear_landweber;
     else
       AssertThrow(false, ExcMessage("Unknown Method: " + smethod));
   }

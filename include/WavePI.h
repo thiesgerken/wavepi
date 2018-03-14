@@ -56,6 +56,15 @@ class WavePI {
   std::shared_ptr<SettingsManager> cfg;
   std::vector<std::shared_ptr<Measure<Param, Meas>>> measures;
 
+  std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm_domain;
+  std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm_codomain;
+
+  std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm_vector;
+  std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm_l2l2;
+  std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm_h1l2;
+  std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm_h2l2;
+  std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm_h1h1;
+
   std::shared_ptr<SpaceTimeMesh<dim>> mesh;
   std::shared_ptr<WaveEquation<dim>> wave_eq;
 
@@ -87,7 +96,7 @@ class WavePI {
       std::shared_ptr<SpaceTimeMesh<dim>> target_mesh, std::shared_ptr<Tuple<DiscretizedFunction<dim>>> data) const;
 
   std::shared_ptr<Measure<Param, Meas>> get_measure(size_t config_idx, std::shared_ptr<SpaceTimeMesh<dim>> mesh,
-                                                    Norm norm);
+                                                    std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm);
 
   /**
    * create a mesh based on `cfg` and return it.
@@ -115,8 +124,9 @@ class WavePI {
    */
   void interpolate_data(std::shared_ptr<SpaceTimeMesh<dim>> target_mesh);
 
-  void log_error(DiscretizedFunction<dim>& reconstruction, Norm norm);
-  void log_error_initial(DiscretizedFunction<dim>& reconstruction_minus_initial, Norm norm,
+  void log_error(DiscretizedFunction<dim>& reconstruction, std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm);
+  void log_error_initial(DiscretizedFunction<dim>& reconstruction_minus_initial,
+                         std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm,
                          DiscretizedFunction<dim>& exact_minus_initial);
 };
 

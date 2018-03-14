@@ -5,8 +5,12 @@
  *      Author: thies
  */
 
+#include <WavePI.h>
+#include <base/ConstantMesh.h>
+#include <base/Norm.h>
+#include <base/Transformation.h>
+#include <base/Util.h>
 #include <deal.II/base/exceptions.h>
-#include <deal.II/base/index_set.h>
 #include <deal.II/base/logstream.h>
 #include <deal.II/base/mpi.h>
 #include <deal.II/base/parameter_handler.h>
@@ -17,10 +21,6 @@
 #include <deal.II/grid/grid_generator.h>
 #include <deal.II/grid/grid_tools.h>
 #include <deal.II/grid/tria.h>
-
-#include <base/ConstantMesh.h>
-#include <base/Transformation.h>
-#include <base/Util.h>
 #include <inversion/InversionProgress.h>
 #include <inversion/NonlinearLandweber.h>
 #include <inversion/PostProcessor.h>
@@ -33,39 +33,78 @@
 #include <measurements/GridDistribution.h>
 #include <measurements/SensorDistribution.h>
 #include <measurements/SensorValues.h>
+#include <mpi.h>
+#include <norms/H1H1.h>
+#include <norms/H1L2.h>
+#include <norms/H2L2.h>
+#include <norms/L2Coefficients.h>
+#include <norms/L2L2.h>
 #include <problems/AProblem.h>
 #include <problems/CProblem.h>
 #include <problems/NuProblem.h>
 #include <problems/QProblem.h>
-
-#include <WavePI.h>
-
-#include <stddef.h>
-#include <tgmath.h>
-#include <cmath>
-#include <fstream>
 #include <iostream>
-#include <memory>
-#include <ostream>
 #include <string>
-#include <vector>
+
+//#include <vector>
 
 namespace wavepi {
 
 using namespace dealii;
 using namespace wavepi::forward;
 using namespace wavepi::base;
+using namespace wavepi;
 using namespace wavepi::inversion;
 using namespace wavepi::measurements;
 using namespace wavepi::problems;
 
 template <int dim, typename Meas>
 WavePI<dim, Meas>::WavePI(std::shared_ptr<SettingsManager> cfg) : cfg(cfg) {
-  DiscretizedFunction<dim>::h1l2_alpha = cfg->norm_h1l2_alpha;
-  DiscretizedFunction<dim>::h2l2_alpha = cfg->norm_h2l2_alpha;
-  DiscretizedFunction<dim>::h2l2_beta  = cfg->norm_h2l2_beta;
-  DiscretizedFunction<dim>::h1h1_alpha = cfg->norm_h1h1_alpha;
-  DiscretizedFunction<dim>::h1h1_gamma = cfg->norm_h1h1_gamma;
+  norm_vector = std::make_shared<norms::L2Coefficients<dim>>();
+  norm_l2l2   = std::make_shared<norms::L2L2<dim>>();
+  norm_h1l2   = std::make_shared<norms::H1L2<dim>>(cfg->norm_h1l2_alpha);
+  norm_h2l2   = std::make_shared<norms::H2L2<dim>>(cfg->norm_h2l2_alpha, cfg->norm_h2l2_beta);
+  norm_h1h1   = std::make_shared<norms::H1H1<dim>>(cfg->norm_h1h1_alpha, cfg->norm_h1h1_gamma);
+
+  switch (cfg->norm_codomain) {
+    case SettingsManager::NormType::vector:
+      norm_codomain = norm_vector;
+      break;
+    case SettingsManager::NormType::l2l2:
+      norm_codomain = norm_l2l2;
+      break;
+    case SettingsManager::NormType::h1l2:
+      norm_codomain = norm_h1l2;
+      break;
+    case SettingsManager::NormType::h2l2:
+      norm_codomain = norm_h2l2;
+      break;
+    case SettingsManager::NormType::h1h1:
+      norm_codomain = norm_h1h1;
+      break;
+    default:
+      AssertThrow(false, ExcMessage("WavePI:: unknown norm of codomain"));
+  }
+
+  switch (cfg->norm_domain) {
+    case SettingsManager::NormType::vector:
+      norm_domain = norm_vector;
+      break;
+    case SettingsManager::NormType::l2l2:
+      norm_domain = norm_l2l2;
+      break;
+    case SettingsManager::NormType::h1l2:
+      norm_domain = norm_h1l2;
+      break;
+    case SettingsManager::NormType::h2l2:
+      norm_domain = norm_h2l2;
+      break;
+    case SettingsManager::NormType::h1h1:
+      norm_domain = norm_h1h1;
+      break;
+    default:
+      AssertThrow(false, ExcMessage("WavePI:: unknown norm of codomain"));
+  }
 
   initial_guess = std::make_shared<MacroFunctionParser<dim>>(cfg->expr_initial_guess, cfg->constants_for_exprs);
 
@@ -101,7 +140,8 @@ std::shared_ptr<Tuple<DiscretizedFunction<dim>>> WavePI<dim, Meas>::interpolate_
 #define get_measure_meas(DIM)                                                                                        \
   template <>                                                                                                        \
   std::shared_ptr<Measure<DiscretizedFunction<DIM>, SensorValues<DIM>>> WavePI<DIM, SensorValues<DIM>>::get_measure( \
-      size_t config_idx, std::shared_ptr<SpaceTimeMesh<DIM>> mesh, Norm norm) {                                      \
+      size_t config_idx, std::shared_ptr<SpaceTimeMesh<DIM>> mesh,                                                   \
+      std::shared_ptr<Norm<DiscretizedFunction<DIM>>> norm) {                                                        \
     cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM);                                                        \
     cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM_DATA);                                                   \
     cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM_DATA_I + Utilities::int_to_string(config_idx, 1));       \
@@ -138,7 +178,7 @@ get_measure_meas(1)      //
   template <>                                                                                                  \
   std::shared_ptr<Measure<DiscretizedFunction<D>, DiscretizedFunction<D>>>                                     \
   WavePI<D, DiscretizedFunction<D>>::get_measure(size_t config_idx, std::shared_ptr<SpaceTimeMesh<D>> mesh,    \
-                                                 Norm norm) {                                                  \
+                                                 std::shared_ptr<Norm<DiscretizedFunction<D>>> norm) {         \
     cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM);                                                  \
     cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM_DATA);                                             \
     cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM_DATA_I + Utilities::int_to_string(config_idx, 1)); \
@@ -185,7 +225,7 @@ get_measure_meas(1)      //
 
   if (cfg->shape == SettingsManager::MeshShape::hyper_cube)
     GridGenerator::hyper_cube(*triangulation, cfg->shape_options["left"], cfg->shape_options["right"]);
-  else if (cfg->shape == SettingsManager::MeshShape::hyper_L)
+  else if (cfg->shape == SettingsManager::MeshShape::hyper_l)
     GridGenerator::hyper_L(*triangulation, cfg->shape_options["left"], cfg->shape_options["right"]);
   else if (cfg->shape == SettingsManager::MeshShape::hyper_ball) {
     Point<dim> center =
@@ -274,7 +314,7 @@ void WavePI<dim, Meas>::initialize_problem() {
   pulses.clear();
 
   for (auto config_idx : cfg->configs)
-    measures.push_back(get_measure(config_idx, mesh, cfg->norm_codomain));
+    measures.push_back(get_measure(config_idx, mesh, norm_codomain));
 
   for (auto expr : cfg->exprs_rhs)
     pulses.push_back(std::make_shared<MacroFunctionParser<dim>>(expr, cfg->constants_for_exprs));
@@ -299,22 +339,22 @@ void WavePI<dim, Meas>::initialize_problem() {
     AssertThrow(false, ExcInternalError());
 
   switch (cfg->problem_type) {
-    case SettingsManager::ProblemType::L2Q:
+    case SettingsManager::ProblemType::q:
       /* Reconstruct q */
       param_exact = wave_eq->get_param_q();
       problem     = std::make_shared<QProblem<dim, Meas>>(*wave_eq, pulses, measures, transform);
       break;
-    case SettingsManager::ProblemType::L2C:
+    case SettingsManager::ProblemType::c:
       /* Reconstruct c */
       param_exact = wave_eq->get_param_c();
       problem     = std::make_shared<CProblem<dim, Meas>>(*wave_eq, pulses, measures, transform);
       break;
-    case SettingsManager::ProblemType::L2Nu:
+    case SettingsManager::ProblemType::nu:
       /* Reconstruct nu */
       param_exact = wave_eq->get_param_nu();
       problem     = std::make_shared<NuProblem<dim, Meas>>(*wave_eq, pulses, measures, transform);
       break;
-    case SettingsManager::ProblemType::L2A:
+    case SettingsManager::ProblemType::a:
       /* Reconstruct a */
       param_exact = wave_eq->get_param_a();
       problem     = std::make_shared<AProblem<dim, Meas>>(*wave_eq, pulses, measures, transform);
@@ -327,8 +367,8 @@ void WavePI<dim, Meas>::initialize_problem() {
   param_exact_untransformed = param_exact;
   param_exact               = transform->transform(param_exact);
 
-  problem->set_norm_domain(cfg->norm_domain);
-  problem->set_norm_codomain(cfg->norm_codomain);
+  problem->set_norm_domain(norm_domain);
+  problem->set_norm_codomain(norm_codomain);
 }
 
 template <int dim, typename Meas>
@@ -337,7 +377,7 @@ void WavePI<dim, Meas>::synthesize_data() {
   LogStream::Prefix pp("run");  // make logs of forward operator appear in the right level
 
   DiscretizedFunction<dim> param_exact_disc(mesh, *param_exact);
-  param_exact_disc.set_norm(cfg->norm_domain);
+  param_exact_disc.set_norm(norm_domain);
   Tuple<Meas> data_exact = problem->forward(param_exact_disc);
 
   double data_exact_norm = data_exact.norm();
@@ -350,37 +390,37 @@ void WavePI<dim, Meas>::synthesize_data() {
 }
 
 template <int dim, typename Meas>
-void WavePI<dim, Meas>::log_error(DiscretizedFunction<dim>& reconstruction, Norm norm) {
-  Norm old_norm = reconstruction.get_norm();
+void WavePI<dim, Meas>::log_error(DiscretizedFunction<dim>& reconstruction,
+                                  std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm) {
   reconstruction.set_norm(norm);
 
   double norm_exact = 0.0;
   double err        = reconstruction.absolute_error(*param_exact_untransformed, &norm_exact);
 
   if (norm_exact > 1e-16)
-    deallog << "Relative " << to_string(norm) << " error of the reconstruction: " << err / norm_exact << std::endl;
+    deallog << "Relative " << norm->name() << " error of the reconstruction: " << err / norm_exact << std::endl;
   else
-    deallog << "Absolute " << to_string(norm) << " error of the reconstruction: " << err << std::endl;
+    deallog << "Absolute " << norm->name() << " error of the reconstruction: " << err << std::endl;
 
-  reconstruction.set_norm(old_norm);
+  reconstruction.set_norm(norm_domain);
 }
 
 template <int dim, typename Meas>
-void WavePI<dim, Meas>::log_error_initial(DiscretizedFunction<dim>& reconstruction_minus_initial, Norm norm,
+void WavePI<dim, Meas>::log_error_initial(DiscretizedFunction<dim>& reconstruction_minus_initial,
+                                          std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm,
                                           DiscretizedFunction<dim>& exact_minus_initial) {
-  Norm old_norm = reconstruction_minus_initial.get_norm();
   reconstruction_minus_initial.set_norm(norm);
 
   double norm_exact = 0.0;
   double err        = reconstruction_minus_initial.absolute_error(exact_minus_initial, &norm_exact);
 
   if (norm_exact > 1e-16)
-    deallog << "Relative " << to_string(norm) << " error of (reconstruction - initial guess): " << err / norm_exact
+    deallog << "Relative " << norm->name() << " error of (reconstruction - initial guess): " << err / norm_exact
             << std::endl;
   else
-    deallog << "Absolute " << to_string(norm) << " error of (reconstruction - initial guess): " << err << std::endl;
+    deallog << "Absolute " << norm->name() << " error of (reconstruction - initial guess): " << err << std::endl;
 
-  reconstruction_minus_initial.set_norm(old_norm);
+  reconstruction_minus_initial.set_norm(norm_domain);
 }
 
 template <int dim, typename Meas>
@@ -440,17 +480,17 @@ void WavePI<dim, Meas>::run() {
   auto initial_guess_discretized = std::make_shared<Param>(mesh, *initial_guess_transformed);
 
   // make sure that the initial guess has the right norm
-  initial_guess_discretized->set_norm(cfg->norm_domain);
+  initial_guess_discretized->set_norm(norm_domain);
 
   deallog.pop();
 
   cfg->prm->enter_subsection(SettingsManager::KEY_INVERSION);
   switch (cfg->method) {
-    case SettingsManager::NonlinearMethod::REGINN:
+    case SettingsManager::NonlinearMethod::reginn:
       regularization =
           std::make_shared<REGINN<Param, Tuple<Meas>, Exact>>(problem, initial_guess_discretized, *cfg->prm);
       break;
-    case SettingsManager::NonlinearMethod::NonlinearLandweber:
+    case SettingsManager::NonlinearMethod::nonlinear_landweber:
       regularization = std::make_shared<NonlinearLandweber<Param, Tuple<Meas>, Exact>>(
           problem, initial_guess_discretized, *cfg->prm);
       break;
@@ -479,11 +519,11 @@ void WavePI<dim, Meas>::run() {
   // transform back and output errors in the untransformed setting
   reconstruction = transform->transform_inverse(reconstruction);
 
-  log_error(reconstruction, Norm::Coefficients);
-  log_error(reconstruction, Norm::L2L2);
-  log_error(reconstruction, Norm::H1L2);
-  log_error(reconstruction, Norm::H1H1);
-  log_error(reconstruction, Norm::H2L2);
+  log_error(reconstruction, norm_vector);
+  log_error(reconstruction, norm_l2l2);
+  log_error(reconstruction, norm_h1l2);
+  log_error(reconstruction, norm_h1h1);
+  log_error(reconstruction, norm_h2l2);
 
   // same for reconstruction - initial guess
   Param initial_guess_untrans_disc(mesh, *initial_guess);
@@ -495,11 +535,11 @@ void WavePI<dim, Meas>::run() {
   param_exact_untrans_disc.set_norm(reconstruction.get_norm());
   param_exact_untrans_disc -= initial_guess_untrans_disc;
 
-  log_error_initial(reconstruction, Norm::Coefficients, param_exact_untrans_disc);
-  log_error_initial(reconstruction, Norm::L2L2, param_exact_untrans_disc);
-  log_error_initial(reconstruction, Norm::H1L2, param_exact_untrans_disc);
-  log_error_initial(reconstruction, Norm::H1H1, param_exact_untrans_disc);
-  log_error_initial(reconstruction, Norm::H2L2, param_exact_untrans_disc);
+  log_error_initial(reconstruction, norm_vector, param_exact_untrans_disc);
+  log_error_initial(reconstruction, norm_l2l2, param_exact_untrans_disc);
+  log_error_initial(reconstruction, norm_h1l2, param_exact_untrans_disc);
+  log_error_initial(reconstruction, norm_h1h1, param_exact_untrans_disc);
+  log_error_initial(reconstruction, norm_h2l2, param_exact_untrans_disc);
 
   if (problem->get_statistics()) {
     auto stats = problem->get_statistics();

@@ -81,37 +81,42 @@ class SettingsManager {
   /**
    * possible problems
    */
-  enum class ProblemType { L2Q = 1, L2A = 2, L2C = 3, L2Nu = 4 };
+  enum class ProblemType { q, a, c, nu };
 
   /**
    * possible nonlinear methods
    */
-  enum class NonlinearMethod { REGINN = 1, NonlinearLandweber = 2 };
+  enum class NonlinearMethod { reginn, nonlinear_landweber };
 
   /**
    * possible mesh shapes
    */
-  enum class MeshShape { hyper_cube = 1, hyper_L = 2, hyper_ball = 3, cheese = 4 };
+  enum class MeshShape { hyper_cube, hyper_l, hyper_ball, cheese };
 
   /**
    * possible measurement operators
    */
-  enum class Measure { field = 1, convolution = 2, delta = 3 };
+  enum class Measure { field, convolution, delta };
 
   /**
    * possible sensor distributions
    */
-  enum class SensorDistribution { grid = 1, cube_boundary = 2 };
+  enum class SensorDistribution { grid, cube_boundary };
 
   /**
    * possible measurement types
    */
-  enum class MeasureType { discretized_function = 1, vector = 2 };
+  enum class MeasureType { discretized_function, vector };
 
   /**
    * possible transforms
    */
-  enum class TransformType { identity = 1, log = 2 };
+  enum class TransformType { identity, log };
+
+  /**
+   * possible norms
+   */
+  enum class NormType { vector, l2l2, h1l2, h2l2, h1h1 };
 
   std::shared_ptr<ParameterHandler> prm;
 
@@ -135,12 +140,14 @@ class SettingsManager {
   ProblemType problem_type;
   NonlinearMethod method;
   TransformType transform;
-  Norm norm_domain;
-  Norm norm_codomain;
+  NormType norm_domain;
+  NormType norm_codomain;
 
   double norm_h1l2_alpha;
+
   double norm_h2l2_alpha;
   double norm_h2l2_beta;
+
   double norm_h1h1_alpha;
   double norm_h1h1_gamma;
 

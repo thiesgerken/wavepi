@@ -79,7 +79,8 @@ class CProblem : public WaveProblem<dim, Measurement> {
 
     Linearization(const WaveEquation<dim>& weq, typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver,
                   const std::shared_ptr<DiscretizedFunction<dim>> c, std::shared_ptr<DiscretizedFunction<dim>> u,
-                  Norm norm_domain, Norm norm_codomain)
+                  std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm_domain,
+                  std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm_codomain)
         : weq(weq),
           weq_adj(weq),
           norm_domain(norm_domain),
@@ -173,8 +174,8 @@ class CProblem : public WaveProblem<dim, Measurement> {
     WaveEquation<dim> weq;
     WaveEquationAdjoint<dim> weq_adj;
 
-    Norm norm_domain;
-    Norm norm_codomain;
+    std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm_domain;
+    std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm_codomain;
 
     typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver;
 
