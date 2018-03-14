@@ -94,19 +94,19 @@ double L2L2<dim>::dot(const DiscretizedFunction<dim>& u, const DiscretizedFuncti
 }
 
 template <int dim>
-void L2L2<dim>::dot_transform(DiscretizedFunction<dim>& u) const {
+void L2L2<dim>::dot_transform(DiscretizedFunction<dim>& u) {
   u.mult_mass();
   dot_solve_mass_and_transform(u);
 }
 
 template <int dim>
-void L2L2<dim>::dot_transform_inverse(DiscretizedFunction<dim>& u) const {
+void L2L2<dim>::dot_transform_inverse(DiscretizedFunction<dim>& u) {
   u.solve_mass();
   dot_mult_mass_and_transform_inverse(u);
 }
 
 template <int dim>
-void L2L2<dim>::dot_solve_mass_and_transform(DiscretizedFunction<dim>& u) const {
+void L2L2<dim>::dot_solve_mass_and_transform(DiscretizedFunction<dim>& u) {
   auto mesh = u.get_mesh();
 
   for (size_t i = 0; i < mesh->length(); i++) {
@@ -120,7 +120,7 @@ void L2L2<dim>::dot_solve_mass_and_transform(DiscretizedFunction<dim>& u) const 
 }
 
 template <int dim>
-void L2L2<dim>::dot_mult_mass_and_transform_inverse(DiscretizedFunction<dim>& u) const {
+void L2L2<dim>::dot_mult_mass_and_transform_inverse(DiscretizedFunction<dim>& u) {
   auto mesh = u.get_mesh();
 
   // trapezoidal rule in time:

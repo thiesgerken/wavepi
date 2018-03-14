@@ -93,19 +93,19 @@ double H2L2<dim>::dot(const DiscretizedFunction<dim>& u, const DiscretizedFuncti
 }
 
 template <int dim>
-void H2L2<dim>::dot_transform(DiscretizedFunction<dim>& u) const {
+void H2L2<dim>::dot_transform(DiscretizedFunction<dim>& u) {
   u.mult_mass();
   dot_solve_mass_and_transform(u);
 }
 
 template <int dim>
-void H2L2<dim>::dot_transform_inverse(DiscretizedFunction<dim>& u) const {
+void H2L2<dim>::dot_transform_inverse(DiscretizedFunction<dim>& u) {
   u.solve_mass();
   dot_mult_mass_and_transform_inverse(u);
 }
 
 template <int dim>
-void H2L2<dim>::dot_solve_mass_and_transform(DiscretizedFunction<dim>& u) const {
+void H2L2<dim>::dot_solve_mass_and_transform(DiscretizedFunction<dim>& u) {
   auto mesh = u.get_mesh();
 
   // X = (T + \alpha D^t T D + \beta D_2^t T D_2) * M,
@@ -120,7 +120,6 @@ void H2L2<dim>::dot_solve_mass_and_transform(DiscretizedFunction<dim>& u) const 
     double factor = 0.0;
 
     if (i > 0) factor += std::abs(mesh->get_time(i) - mesh->get_time(i - 1)) / 2.0;
-
     if (i < mesh->length() - 1) factor += std::abs(mesh->get_time(i + 1) - mesh->get_time(i)) / 2.0;
 
     dx[i] *= factor;
@@ -132,19 +131,13 @@ void H2L2<dim>::dot_solve_mass_and_transform(DiscretizedFunction<dim>& u) const 
   auto d2td2x = d2x.calculate_second_derivative_transpose();
 
   // add derivative terms
-  for (size_t i = 0; i < mesh->length(); i++) {
-    u[i].add(alpha_, dtdx[i]);
-    u[i].add(beta_, d2td2x[i]);
-  }
+  u.add(alpha_, dtdx);
+  u.add(beta_, d2td2x);
 }
 
 template <int dim>
-void H2L2<dim>::dot_mult_mass_and_transform_inverse(DiscretizedFunction<dim>& u) const {
-  auto mesh = u.get_mesh();
-
-  LogStream::Prefix p("h2l2_transform");
-  Timer timer;
-  timer.start();
+void H2L2<dim>::factorize_matrix(std::shared_ptr<SpaceTimeMesh<dim>> mesh) {
+  deallog << "factorizing matrix" << std::endl;
 
   SparsityPattern pattern(mesh->length(), mesh->length(), 5);
 
@@ -284,14 +277,24 @@ void H2L2<dim>::dot_mult_mass_and_transform_inverse(DiscretizedFunction<dim>& u)
   for (size_t i = 0; i < mesh->length(); i++)
     matrix.add(i, i, lambdas[i]);
 
+  umfpack.factorize(matrix);
+}
+
+template <int dim>
+void H2L2<dim>::dot_mult_mass_and_transform_inverse(DiscretizedFunction<dim>& u) {
+  auto mesh = u.get_mesh();
+
+  LogStream::Prefix p("h2l2_transform");
+  Timer timer;
+  timer.start();
+
+  if (umfpack.n() != mesh->length()) factorize_matrix(mesh);
+
   // just to be sure
   for (size_t i = 0; i < mesh->length(); i++)
     Assert(u[i].size() == u[0].size(), ExcInternalError());
 
   // solve for every DoF
-  SparseDirectUMFPACK umfpack;
-  umfpack.factorize(matrix);
-
   Vector<double> tmp(mesh->length());
 
   for (size_t i = 0; i < u[0].size(); i++) {

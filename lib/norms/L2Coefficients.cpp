@@ -35,18 +35,18 @@ double L2Coefficients<dim>::dot(const DiscretizedFunction<dim>& u, const Discret
 }
 
 template <int dim>
-void L2Coefficients<dim>::dot_transform(DiscretizedFunction<dim>& u __attribute((unused))) const {}
+void L2Coefficients<dim>::dot_transform(DiscretizedFunction<dim>& u __attribute((unused))) {}
 
 template <int dim>
-void L2Coefficients<dim>::dot_transform_inverse(DiscretizedFunction<dim>& u __attribute((unused))) const {}
+void L2Coefficients<dim>::dot_transform_inverse(DiscretizedFunction<dim>& u __attribute((unused))) {}
 
 template <int dim>
-void L2Coefficients<dim>::dot_solve_mass_and_transform(DiscretizedFunction<dim>& u) const {
+void L2Coefficients<dim>::dot_solve_mass_and_transform(DiscretizedFunction<dim>& u) {
   u.solve_mass();
 }
 
 template <int dim>
-void L2Coefficients<dim>::dot_mult_mass_and_transform_inverse(DiscretizedFunction<dim>& u) const {
+void L2Coefficients<dim>::dot_mult_mass_and_transform_inverse(DiscretizedFunction<dim>& u) {
   u.mult_mass();
 }
 
@@ -57,12 +57,12 @@ bool L2Coefficients<dim>::hilbert() const {
 
 template <int dim>
 std::string L2Coefficients<dim>::name() const {
-  return "(ℝⁿ, ‖	·‖₂)";
+  return "(ℝⁿ, ‖·‖₂)";
 }
 
 template <int dim>
 std::string L2Coefficients<dim>::unique_id() const {
-  return "(ℝⁿ, ‖	·‖₂)";
+  return "(ℝⁿ, ‖·‖₂)";
 }
 
 template class L2Coefficients<1>;

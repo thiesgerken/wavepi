@@ -48,13 +48,13 @@ class Norm {
    *
    * Throws and error if this norm does not define a scalar product.
    */
-  virtual void dot_transform(T& u) const = 0;
+  virtual void dot_transform(T& u) = 0;
 
   /**
    * applies the inverse to `dot_transform`, i.e. it applies `M^{-1}`.
    * Throws and error if this norm does not define a scalar product.
    */
-  virtual void dot_transform_inverse(T& u) const = 0;
+  virtual void dot_transform_inverse(T& u) = 0;
 
   /**
    * same as `dot_transform`, but applies the inverse mass matrix to every time step beforehand.
@@ -63,7 +63,7 @@ class Norm {
    *
    * Throws and error if this norm does not define a scalar product.
    */
-  virtual void dot_solve_mass_and_transform(T& u) const = 0;
+  virtual void dot_solve_mass_and_transform(T& u) = 0;
 
   /**
    * same as `dot_transform_inverse`, but applies the mass matrix to every time step beforehand.
@@ -72,7 +72,7 @@ class Norm {
    *
    * Throws and error if this norm does not define a scalar product.
    */
-  virtual void dot_mult_mass_and_transform_inverse(T& u) const = 0;
+  virtual void dot_mult_mass_and_transform_inverse(T& u) = 0;
 
   /**
    * does this norm define a scalar product?
@@ -111,19 +111,19 @@ class InvalidNorm : public Norm<T> {
     return 0.0;
   }
 
-  virtual void dot_transform(T& u __attribute((unused))) const override {
+  virtual void dot_transform(T& u __attribute((unused))) override {
     AssertThrow(false, ExcMessage("call to dot_transform on InvalidNorm"));
   }
 
-  virtual void dot_transform_inverse(T& u __attribute((unused))) const override {
+  virtual void dot_transform_inverse(T& u __attribute((unused))) override {
     AssertThrow(false, ExcMessage("call to dot_transform_inverse on InvalidNorm"));
   }
 
-  virtual void dot_solve_mass_and_transform(T& u __attribute((unused))) const override {
+  virtual void dot_solve_mass_and_transform(T& u __attribute((unused))) override {
     AssertThrow(false, ExcMessage("call to dot_solve_mass_and_transform on InvalidNorm"));
   }
 
-  virtual void dot_mult_mass_and_transform_inverse(T& u __attribute((unused))) const override {
+  virtual void dot_mult_mass_and_transform_inverse(T& u __attribute((unused))) override {
     AssertThrow(false, ExcMessage("call to dot_mult_mass_and_transform_inverse on InvalidNorm"));
   }
 

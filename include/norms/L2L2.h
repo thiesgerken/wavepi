@@ -31,13 +31,13 @@ class L2L2 : public Norm<DiscretizedFunction<dim>> {
 
   virtual double dot(const DiscretizedFunction<dim>& u, const DiscretizedFunction<dim>& v) const override;
 
-  virtual void dot_transform(DiscretizedFunction<dim>& u) const override;
+  virtual void dot_transform(DiscretizedFunction<dim>& u) override;
 
-  virtual void dot_transform_inverse(DiscretizedFunction<dim>& u) const override;
+  virtual void dot_transform_inverse(DiscretizedFunction<dim>& u) override;
 
-  virtual void dot_solve_mass_and_transform(DiscretizedFunction<dim>& u) const override;
+  virtual void dot_solve_mass_and_transform(DiscretizedFunction<dim>& u) override;
 
-  virtual void dot_mult_mass_and_transform_inverse(DiscretizedFunction<dim>& u) const override;
+  virtual void dot_mult_mass_and_transform_inverse(DiscretizedFunction<dim>& u) override;
 
   virtual bool hilbert() const override;
 

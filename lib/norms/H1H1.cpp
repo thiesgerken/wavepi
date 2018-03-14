@@ -84,7 +84,7 @@ double H1H1<dim>::dot(const DiscretizedFunction<dim>& u, const DiscretizedFuncti
 }
 
 template <int dim>
-void H1H1<dim>::dot_transform(DiscretizedFunction<dim>& u) const {
+void H1H1<dim>::dot_transform(DiscretizedFunction<dim>& u) {
   auto mesh = u.get_mesh();
 
   // X = (T + \alpha_ D^t T D) * (M+gamma_ L),
@@ -120,7 +120,7 @@ void H1H1<dim>::dot_transform(DiscretizedFunction<dim>& u) const {
 }
 
 template <int dim>
-void H1H1<dim>::dot_transform_inverse(DiscretizedFunction<dim>& u) const {
+void H1H1<dim>::dot_transform_inverse(DiscretizedFunction<dim>& u) {
   LogStream::Prefix p("h1h1_transform");
 
   auto mesh = u.get_mesh();
@@ -149,6 +149,32 @@ void H1H1<dim>::dot_transform_inverse(DiscretizedFunction<dim>& u) const {
   }
 
   // time part
+  if (umfpack.n() != mesh->length()) factorize_matrix(mesh);
+
+  // just to be sure
+  for (size_t i = 0; i < mesh->length(); i++)
+    Assert(u[i].size() == u[0].size(), ExcInternalError());
+
+  // solve for every DoF
+  Vector<double> tmp(mesh->length());
+
+  for (size_t i = 0; i < u[0].size(); i++) {
+    for (size_t j = 0; j < mesh->length(); j++)
+      tmp[j] = u[j][i];
+
+    umfpack.solve(tmp);
+
+    for (size_t j = 0; j < mesh->length(); j++)
+      u[j][i] = tmp[j];
+  }
+
+  deallog << "solved in " << timer.wall_time() << "s" << std::endl;
+}
+
+template <int dim>
+void H1H1<dim>::factorize_matrix(std::shared_ptr<SpaceTimeMesh<dim>> mesh) {
+  deallog << "factorizing matrix" << std::endl;
+
   SparsityPattern pattern(mesh->length(), mesh->length(), 3);
 
   pattern.add(0, 0);
@@ -228,31 +254,11 @@ void H1H1<dim>::dot_transform_inverse(DiscretizedFunction<dim>& u) const {
   for (size_t i = 0; i < mesh->length(); i++)
     matrix.add(i, i, lambdas[i]);
 
-  // just to be sure
-  for (size_t i = 0; i < mesh->length(); i++)
-    Assert(u[i].size() == u[0].size(), ExcInternalError());
-
-  // solve for every DoF
-  SparseDirectUMFPACK umfpack;
   umfpack.factorize(matrix);
-
-  Vector<double> tmp(mesh->length());
-
-  for (size_t i = 0; i < u[0].size(); i++) {
-    for (size_t j = 0; j < mesh->length(); j++)
-      tmp[j] = u[j][i];
-
-    umfpack.solve(tmp);
-
-    for (size_t j = 0; j < mesh->length(); j++)
-      u[j][i] = tmp[j];
-  }
-
-  deallog << "solved in " << timer.wall_time() << "s" << std::endl;
 }
 
 template <int dim>
-void H1H1<dim>::dot_solve_mass_and_transform(DiscretizedFunction<dim>& u) const {
+void H1H1<dim>::dot_solve_mass_and_transform(DiscretizedFunction<dim>& u) {
   // X = (T + \alpha_ D^t T D) * (M+gamma_ L),
   // M = blocks of mass matrices, D = derivative, T = trapezoidal rule, L = blocks of laplace matrices
   u.solve_mass();
@@ -260,7 +266,7 @@ void H1H1<dim>::dot_solve_mass_and_transform(DiscretizedFunction<dim>& u) const 
 }
 
 template <int dim>
-void H1H1<dim>::dot_mult_mass_and_transform_inverse(DiscretizedFunction<dim>& u) const {
+void H1H1<dim>::dot_mult_mass_and_transform_inverse(DiscretizedFunction<dim>& u) {
   u.mult_mass();
   dot_transform_inverse(u);
 }

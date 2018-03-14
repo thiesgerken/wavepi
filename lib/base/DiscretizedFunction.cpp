@@ -158,7 +158,7 @@ DiscretizedFunction<dim> DiscretizedFunction<dim>::calculate_derivative() const 
   AssertThrow(mesh->length() > 1, ExcInternalError());
   // AssertThrow(!store_derivative, ExcInternalError()); // why would you want to calculate it in this case?
 
-  DiscretizedFunction<dim> result(mesh);
+  DiscretizedFunction<dim> result(mesh, norm_);
 
   /* implementation for constant mesh */
   /*
@@ -261,7 +261,7 @@ DiscretizedFunction<dim> DiscretizedFunction<dim>::calculate_second_derivative()
   AssertThrow(mesh, ExcNotInitialized());
   AssertThrow(mesh->length() > 1, ExcInternalError());
 
-  DiscretizedFunction<dim> result(mesh);
+  DiscretizedFunction<dim> result(mesh, norm_);
 
   /* implementation for constant mesh */
 
@@ -331,7 +331,7 @@ DiscretizedFunction<dim> DiscretizedFunction<dim>::calculate_derivative_transpos
   // because of the special cases
   AssertThrow(mesh->length() > 3, ExcInternalError());
 
-  DiscretizedFunction<dim> result(mesh);
+  DiscretizedFunction<dim> result(mesh, norm_);
 
   /* implementation for constant mesh */
   /*
@@ -474,7 +474,7 @@ DiscretizedFunction<dim> DiscretizedFunction<dim>::calculate_second_derivative_t
   // because of the special cases
   AssertThrow(mesh->length() > 3, ExcInternalError());
 
-  DiscretizedFunction<dim> result(mesh);
+  DiscretizedFunction<dim> result(mesh, norm_);
 
   /* implementation for constant mesh */
 

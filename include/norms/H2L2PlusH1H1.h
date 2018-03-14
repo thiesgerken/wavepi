@@ -1,36 +1,35 @@
 /*
- * H2L2.h
+ * H2L2PlusH1H1.h
  *
  *  Created on: 13.03.2018
  *      Author: thies
  */
 
-#ifndef INCLUDE_NORMS_H2L2_H_
-#define INCLUDE_NORMS_H2L2_H_
+#ifndef INCLUDE_NORMS_H2L2PLUSH1H1_H_
+#define INCLUDE_NORMS_H2L2PLUSH1H1_H_
 
 #include <base/DiscretizedFunction.h>
 #include <base/Norm.h>
-#include <base/SpaceTimeMesh.h>
-#include <deal.II/lac/sparse_direct.h>
-#include <memory>
 #include <string>
 
 namespace wavepi {
 namespace norms {
 
 using namespace wavepi::base;
-using namespace dealii;
 
 /**
- * H²([0,T], L²(Ω)) norm, using the trapezoidal rule in time (approximation),
+ * H²([0,T], L²(Ω)) ∩ H¹([0,T], H¹(Ω)) norm, using the trapezoidal rule in time (approximation),
  * the mass matrix in space (exact) and finite differences of order h² (inner) and h (boundary)
- * Implements (u,v) = (u,v)_L² + α (u',v')_L² + β (u'', v'')_L² with positive α and β.
+ * Implements (u,v) = (u,v)_L² + ɣ  (∇u,∇v) + α (u',v')_L² + β (u'', v'')_L² with positive α, β and ɣ.
+ *
+ * Can handle adaptive meshes and therefore provides an alternative (albeit much slower) implementation of the other
+ * Sobolev norms.
  */
 template <int dim>
-class H2L2 : public Norm<DiscretizedFunction<dim>> {
+class H2L2PlusH1H1 : public Norm<DiscretizedFunction<dim>> {
  public:
-  virtual ~H2L2() = default;
-  H2L2(double alpha, double beta);
+  virtual ~H2L2PlusH1H1() = default;
+  H2L2PlusH1H1(double alpha, double beta, double gamma);
 
   virtual double norm(const DiscretizedFunction<dim>& u) const override;
 
@@ -56,16 +55,16 @@ class H2L2 : public Norm<DiscretizedFunction<dim>> {
   inline double beta() const { return beta_; }
   inline void beta(double beta) { beta_ = beta; }
 
+  inline double gamma() const { return gamma_; }
+  inline void gamma(double gamma) { gamma_ = gamma; }
+
  private:
   double alpha_;
   double beta_;
-
-  SparseDirectUMFPACK umfpack;
-
-  void factorize_matrix(std::shared_ptr<SpaceTimeMesh<dim>> mesh);
+  double gamma_;
 };
 
 } /* namespace norms */
 } /* namespace wavepi */
 
-#endif /* INCLUDE_NORMS_H2L2_H_ */
+#endif /* INCLUDE_NORMS_H2L2PLUSH1H1_H_ */
