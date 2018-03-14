@@ -424,37 +424,44 @@ void run_dot_norm_tests(int fe_order, int quad_order, int refines, int n_steps) 
 template <int dim>
 void run_dot_transform_inverse_tests(int fe_order, int quad_order, int refines, int n_steps) {
   deallog << "== norm=Vector ==" << std::endl;
-  run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, std::make_shared<norms::L2Coefficients<dim>>());
+  run_dot_transform_inverse_test<dim>(fe_order, quad_order, refines, n_steps,
+                                      std::make_shared<norms::L2Coefficients<dim>>());
 
   deallog << "== norm=L2L2 ==" << std::endl;
-  run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, std::make_shared<norms::L2L2<dim>>());
+  run_dot_transform_inverse_test<dim>(fe_order, quad_order, refines, n_steps, std::make_shared<norms::L2L2<dim>>());
 
   deallog << "== norm=H1L2 ==" << std::endl;
-  run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, std::make_shared<norms::H1L2<dim>>(0.5));
+  run_dot_transform_inverse_test<dim>(fe_order, quad_order, refines, n_steps, std::make_shared<norms::H1L2<dim>>(0.5));
 
   deallog << "== norm=H1H1 ==" << std::endl;
-  run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, std::make_shared<norms::H1H1<dim>>(0.5, 0.5));
+  run_dot_transform_inverse_test<dim>(fe_order, quad_order, refines, n_steps,
+                                      std::make_shared<norms::H1H1<dim>>(0.5, 0.5));
 
   deallog << "== norm=H2L2 ==" << std::endl;
-  run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, std::make_shared<norms::H2L2<dim>>(0.5, 0.25));
+  run_dot_transform_inverse_test<dim>(fe_order, quad_order, refines, n_steps,
+                                      std::make_shared<norms::H2L2<dim>>(0.5, 0.25));
 }
 
 template <int dim>
 void run_dot_transform_consistent_tests(int fe_order, int quad_order, int refines, int n_steps) {
   deallog << "== norm=Vector ==" << std::endl;
-  run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, std::make_shared<norms::L2Coefficients<dim>>());
+  run_dot_transform_consistent_test<dim>(fe_order, quad_order, refines, n_steps,
+                                         std::make_shared<norms::L2Coefficients<dim>>());
 
   deallog << "== norm=L2L2 ==" << std::endl;
-  run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, std::make_shared<norms::L2L2<dim>>());
+  run_dot_transform_consistent_test<dim>(fe_order, quad_order, refines, n_steps, std::make_shared<norms::L2L2<dim>>());
 
   deallog << "== norm=H1L2 ==" << std::endl;
-  run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, std::make_shared<norms::H1L2<dim>>(0.5));
+  run_dot_transform_consistent_test<dim>(fe_order, quad_order, refines, n_steps,
+                                         std::make_shared<norms::H1L2<dim>>(0.5));
 
   deallog << "== norm=H1H1 ==" << std::endl;
-  run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, std::make_shared<norms::H1H1<dim>>(0.5, 0.5));
+  run_dot_transform_consistent_test<dim>(fe_order, quad_order, refines, n_steps,
+                                         std::make_shared<norms::H1H1<dim>>(0.5, 0.5));
 
   deallog << "== norm=H2L2 ==" << std::endl;
-  run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, std::make_shared<norms::H2L2<dim>>(0.5, 0.25));
+  run_dot_transform_consistent_test<dim>(fe_order, quad_order, refines, n_steps,
+                                         std::make_shared<norms::H2L2<dim>>(0.5, 0.25));
 }
 
 }  // namespace
