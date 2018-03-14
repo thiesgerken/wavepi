@@ -1,12 +1,12 @@
 /*
- * H2L2PlusH1H1.h
+ * H2L2PlusL2H1.h
  *
  *  Created on: 13.03.2018
  *      Author: thies
  */
 
-#ifndef INCLUDE_NORMS_H2L2PLUSH1H1_H_
-#define INCLUDE_NORMS_H2L2PLUSH1H1_H_
+#ifndef INCLUDE_NORMS_H2L2PLUSL2H1_H_
+#define INCLUDE_NORMS_H2L2PLUSL2H1_H_
 
 #include <base/DiscretizedFunction.h>
 #include <base/Norm.h>
@@ -18,7 +18,7 @@ namespace norms {
 using namespace wavepi::base;
 
 /**
- * H²([0,T], L²(Ω)) ∩ H¹([0,T], H¹(Ω)) norm, using the trapezoidal rule in time (approximation),
+ * H²([0,T], L²(Ω)) ∩ L²([0,T], H¹(Ω)) norm, using the trapezoidal rule in time (approximation),
  * the mass matrix in space (exact) and finite differences of order h² (inner) and h (boundary)
  * Implements (u,v) = (u,v)_L² + ɣ  (∇u,∇v) + α (u',v')_L² + β (u'', v'')_L² with positive α, β and ɣ.
  *
@@ -26,10 +26,10 @@ using namespace wavepi::base;
  * Sobolev norms.
  */
 template <int dim>
-class H2L2PlusH1H1 : public Norm<DiscretizedFunction<dim>> {
+class H2L2PlusL2H1 : public Norm<DiscretizedFunction<dim>> {
  public:
-  virtual ~H2L2PlusH1H1() = default;
-  H2L2PlusH1H1(double alpha, double beta, double gamma);
+  virtual ~H2L2PlusL2H1() = default;
+  H2L2PlusL2H1(double alpha, double beta, double gamma);
 
   virtual double norm(const DiscretizedFunction<dim>& u) const override;
 
@@ -67,4 +67,4 @@ class H2L2PlusH1H1 : public Norm<DiscretizedFunction<dim>> {
 } /* namespace norms */
 } /* namespace wavepi */
 
-#endif /* INCLUDE_NORMS_H2L2PLUSH1H1_H_ */
+#endif /* INCLUDE_NORMS_H2L2PLUSL2H1_H_ */

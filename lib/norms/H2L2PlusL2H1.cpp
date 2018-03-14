@@ -1,5 +1,5 @@
 /*
- * H2L2PlusH1H1.cpp
+ * H2L2PlusL2H1.cpp
  *
  *  Created on: 13.03.2018
  *      Author: thies
@@ -15,7 +15,7 @@
 #include <norms/H1H1.h>
 #include <norms/H1L2.h>
 #include <norms/H2L2.h>
-#include <norms/H2L2PlusH1H1.h>
+#include <norms/H2L2PlusL2H1.h>
 #include <norms/L2Coefficients.h>
 #include <stddef.h>
 #include <cmath>
@@ -31,10 +31,10 @@ inline double square(const double x) { return x * x; }
 inline double pow4(const double x) { return x * x * x * x; }
 
 template <int dim>
-H2L2PlusH1H1<dim>::H2L2PlusH1H1(double alpha, double beta, double gamma) : alpha_(alpha), beta_(beta), gamma_(gamma) {}
+H2L2PlusL2H1<dim>::H2L2PlusL2H1(double alpha, double beta, double gamma) : alpha_(alpha), beta_(beta), gamma_(gamma) {}
 
 template <int dim>
-double H2L2PlusH1H1<dim>::norm(const DiscretizedFunction<dim>& u) const {
+double H2L2PlusL2H1<dim>::norm(const DiscretizedFunction<dim>& u) const {
   auto mesh = u.get_mesh();
 
   // we may be able to use v, but this might introduce inconsistencies in the adjoints
@@ -66,7 +66,7 @@ double H2L2PlusH1H1<dim>::norm(const DiscretizedFunction<dim>& u) const {
 }
 
 template <int dim>
-double H2L2PlusH1H1<dim>::dot(const DiscretizedFunction<dim>& u, const DiscretizedFunction<dim>& v) const {
+double H2L2PlusL2H1<dim>::dot(const DiscretizedFunction<dim>& u, const DiscretizedFunction<dim>& v) const {
   auto mesh     = u.get_mesh();
   double result = 0.0;
 
@@ -99,7 +99,7 @@ double H2L2PlusH1H1<dim>::dot(const DiscretizedFunction<dim>& u, const Discretiz
 }
 
 template <int dim>
-void H2L2PlusH1H1<dim>::dot_transform(DiscretizedFunction<dim>& u) {
+void H2L2PlusL2H1<dim>::dot_transform(DiscretizedFunction<dim>& u) {
   auto mesh = u.get_mesh();
 
   // X = (T + \alpha D^t T D + \beta D_2^t T D_2) * M + gamma T L,
@@ -138,7 +138,7 @@ void H2L2PlusH1H1<dim>::dot_transform(DiscretizedFunction<dim>& u) {
 }
 
 template <int dim>
-void H2L2PlusH1H1<dim>::dot_transform_inverse(DiscretizedFunction<dim>& u) {
+void H2L2PlusL2H1<dim>::dot_transform_inverse(DiscretizedFunction<dim>& u) {
   LogStream::Prefix p("h2l2plush1h1_transform_inverse");
   // Use CG to invert `dot_transform` (the application of a symmetric+positive definite matrix A)
 
@@ -207,7 +207,7 @@ void H2L2PlusH1H1<dim>::dot_transform_inverse(DiscretizedFunction<dim>& u) {
 // without preconditioning:
 /*
 template <int dim>
-void H2L2PlusH1H1<dim>::dot_transform_inverse(DiscretizedFunction<dim>& u)  {
+void H2L2PlusL2H1<dim>::dot_transform_inverse(DiscretizedFunction<dim>& u)  {
   LogStream::Prefix p("h2l2plush1h1_transform_inverse");
   // Use CG to invert `dot_transform` (the application of a symmetric+positive definite matrix A)
 
@@ -263,36 +263,36 @@ void H2L2PlusH1H1<dim>::dot_transform_inverse(DiscretizedFunction<dim>& u)  {
  */
 
 template <int dim>
-void H2L2PlusH1H1<dim>::dot_solve_mass_and_transform(DiscretizedFunction<dim>& u) {
+void H2L2PlusL2H1<dim>::dot_solve_mass_and_transform(DiscretizedFunction<dim>& u) {
   u.solve_mass();
   dot_transform(u);
 }
 
 template <int dim>
-void H2L2PlusH1H1<dim>::dot_mult_mass_and_transform_inverse(DiscretizedFunction<dim>& u) {
+void H2L2PlusL2H1<dim>::dot_mult_mass_and_transform_inverse(DiscretizedFunction<dim>& u) {
   u.mult_mass();
   dot_transform_inverse(u);
 }
 
 template <int dim>
-bool H2L2PlusH1H1<dim>::hilbert() const {
+bool H2L2PlusL2H1<dim>::hilbert() const {
   return true;
 }
 
 template <int dim>
-std::string H2L2PlusH1H1<dim>::name() const {
-  return "H²([0,T], L²(Ω)) ∩ H¹([0,T], H¹(Ω))";
+std::string H2L2PlusL2H1<dim>::name() const {
+  return "H²([0,T], L²(Ω)) ∩ L²([0,T], H¹(Ω))";
 }
 
 template <int dim>
-std::string H2L2PlusH1H1<dim>::unique_id() const {
-  return "H²([0,T], L²(Ω)) ∩ H¹([0,T], H¹(Ω)) with α=" + std::to_string(alpha_) + ", β=" + std::to_string(beta_) +
+std::string H2L2PlusL2H1<dim>::unique_id() const {
+  return "H²([0,T], L²(Ω)) ∩ L²([0,T], H¹(Ω)) with α=" + std::to_string(alpha_) + ", β=" + std::to_string(beta_) +
          ", ɣ=" + std::to_string(gamma_);
 }
 
-template class H2L2PlusH1H1<1>;
-template class H2L2PlusH1H1<2>;
-template class H2L2PlusH1H1<3>;
+template class H2L2PlusL2H1<1>;
+template class H2L2PlusL2H1<2>;
+template class H2L2PlusL2H1<3>;
 
 } /* namespace norms */
 } /* namespace wavepi */

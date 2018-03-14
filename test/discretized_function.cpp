@@ -26,7 +26,7 @@
 #include <norms/H1H1.h>
 #include <norms/H1L2.h>
 #include <norms/H2L2.h>
-#include <norms/H2L2PlusH1H1.h>
+#include <norms/H2L2PlusL2H1.h>
 #include <norms/L2Coefficients.h>
 #include <norms/L2L2.h>
 #include <stddef.h>
@@ -503,7 +503,7 @@ void run_dot_norm_tests(int fe_order, int quad_order, int refines, int n_steps) 
   run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps, std::make_shared<norms::H2L2<dim>>(0.5, 0.25));
 
   run_dot_norm_test<dim>(fe_order, quad_order, refines, n_steps,
-                         std::make_shared<norms::H2L2PlusH1H1<dim>>(0.5, 0.25, 0.5));
+                         std::make_shared<norms::H2L2PlusL2H1<dim>>(0.5, 0.25, 0.5));
 }
 
 template <int dim>
@@ -522,7 +522,7 @@ void run_dot_transform_inverse_tests(int fe_order, int quad_order, int refines, 
                                       std::make_shared<norms::H2L2<dim>>(0.5, 0.25));
 
   run_dot_transform_inverse_test<dim>(fe_order, quad_order, refines, n_steps,
-                                      std::make_shared<norms::H2L2PlusH1H1<dim>>(0.5, 0.25, 0.5));
+                                      std::make_shared<norms::H2L2PlusL2H1<dim>>(0.5, 0.25, 0.5));
 }
 
 template <int dim>
@@ -545,7 +545,7 @@ void run_dot_transform_consistent_tests(int fe_order, int quad_order, int refine
                                          std::make_shared<norms::H2L2<dim>>(0.5, 0.25));
 
   run_dot_transform_consistent_test<dim>(fe_order, quad_order, refines, n_steps,
-                                         std::make_shared<norms::H2L2PlusH1H1<dim>>(0.5, 0.25, 0.5));
+                                         std::make_shared<norms::H2L2PlusL2H1<dim>>(0.5, 0.25, 0.5));
 }
 
 }  // namespace
