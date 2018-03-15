@@ -40,6 +40,8 @@ set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fuse-ld=gold")
 if(WAVEPI_WITH_MPI)
     message(STATUS "Compiling with MPI support")
     add_definitions(-DWAVEPI_MPI)
+else()
+    message(STATUS "Compiling without MPI support")
 endif()
 
 enable_testing()
