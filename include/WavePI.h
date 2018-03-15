@@ -64,6 +64,7 @@ class WavePI {
   std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm_h1l2;
   std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm_h2l2;
   std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm_h1h1;
+  std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm_h2l2plusl2h1;
 
   std::shared_ptr<SpaceTimeMesh<dim>> mesh;
   std::shared_ptr<WaveEquation<dim>> wave_eq;

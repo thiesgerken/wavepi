@@ -50,16 +50,19 @@ const std::string SettingsManager::KEY_MESH_SHAPE              = "shape";
 const std::string SettingsManager::KEY_MESH_SHAPE_GENERATOR    = "generator name";
 const std::string SettingsManager::KEY_MESH_SHAPE_OPTIONS      = "options";
 
-const std::string SettingsManager::KEY_PROBLEM                = "problem";
-const std::string SettingsManager::KEY_PROBLEM_TYPE           = "type";
-const std::string SettingsManager::KEY_PROBLEM_TRANSFORM      = "transform";
-const std::string SettingsManager::KEY_PROBLEM_NORM_DOMAIN    = "norm of domain";
-const std::string SettingsManager::KEY_PROBLEM_NORM_CODOMAIN  = "norm of codomain";
-const std::string SettingsManager::KEY_PROBLEM_NORM_H1L2ALPHA = "H1L2 alpha";
-const std::string SettingsManager::KEY_PROBLEM_NORM_H2L2ALPHA = "H2L2 alpha";
-const std::string SettingsManager::KEY_PROBLEM_NORM_H2L2BETA  = "H2L2 beta";
-const std::string SettingsManager::KEY_PROBLEM_NORM_H1H1ALPHA = "H1H1 beta";
-const std::string SettingsManager::KEY_PROBLEM_NORM_H1H1GAMMA = "H1H1 gamma";
+const std::string SettingsManager::KEY_PROBLEM                        = "problem";
+const std::string SettingsManager::KEY_PROBLEM_TYPE                   = "type";
+const std::string SettingsManager::KEY_PROBLEM_TRANSFORM              = "transform";
+const std::string SettingsManager::KEY_PROBLEM_NORM_DOMAIN            = "norm of domain";
+const std::string SettingsManager::KEY_PROBLEM_NORM_CODOMAIN          = "norm of codomain";
+const std::string SettingsManager::KEY_PROBLEM_NORM_H1L2ALPHA         = "H1L2 alpha";
+const std::string SettingsManager::KEY_PROBLEM_NORM_H2L2ALPHA         = "H2L2 alpha";
+const std::string SettingsManager::KEY_PROBLEM_NORM_H2L2BETA          = "H2L2 beta";
+const std::string SettingsManager::KEY_PROBLEM_NORM_H1H1ALPHA         = "H1H1 beta";
+const std::string SettingsManager::KEY_PROBLEM_NORM_H1H1GAMMA         = "H1H1 gamma";
+const std::string SettingsManager::KEY_PROBLEM_NORM_H2L2PLUSL2H1ALPHA = "H2L2+L2H1 alpha";
+const std::string SettingsManager::KEY_PROBLEM_NORM_H2L2PLUSL2H1BETA  = "H2L2+L2H1 beta";
+const std::string SettingsManager::KEY_PROBLEM_NORM_H2L2PLUSL2H1GAMMA = "H2L2+L2H1 gamma";
 
 const std::string SettingsManager::KEY_PROBLEM_EPSILON   = "epsilon";
 const std::string SettingsManager::KEY_PROBLEM_CONSTANTS = "constants";
@@ -141,25 +144,37 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
     prm->declare_entry(KEY_PROBLEM_TRANSFORM, "Identity", Patterns::Selection("Identity|Log"),
                        "transformation to apply to the parameter (e.g. to get rid of constraints)");
 
-    prm->declare_entry(KEY_PROBLEM_NORM_DOMAIN, "L2L2", Patterns::Selection("L2L2|H1L2|H2L2|H1H1|Coefficients"),
+    prm->declare_entry(KEY_PROBLEM_NORM_DOMAIN, "L2L2",
+                       Patterns::Selection("L2L2|H1L2|H2L2|H1H1|H2L2PlusL2H1|Coefficients"),
                        "norm to use for parameters (incl. the reconstruction)");
-    prm->declare_entry(KEY_PROBLEM_NORM_CODOMAIN, "L2L2", Patterns::Selection("L2L2|H1L2|H2L2|H1H1|Coefficients"),
+    prm->declare_entry(KEY_PROBLEM_NORM_CODOMAIN, "L2L2",
+                       Patterns::Selection("L2L2|H1L2|H2L2|H1H1|H2L2PlusL2H1|Coefficients"),
                        "Set the norm to use for fields. Be aware that this has "
                        "to match the norm that the measurements expect its "
                        "inputs to have.");
 
     prm->declare_entry(KEY_PROBLEM_NORM_H1L2ALPHA, "0.5", Patterns::Double(0),
                        "Factor α in front of derivative term of H¹([0,T], L²(Ω)) dot product");
+
     prm->declare_entry(KEY_PROBLEM_NORM_H2L2ALPHA, "0.5", Patterns::Double(0),
                        "Factor α in front of first derivative term of "
                        "H²([0,T], L²(Ω)) dot product");
     prm->declare_entry(KEY_PROBLEM_NORM_H2L2BETA, "0.25", Patterns::Double(0),
                        "Factor β in front of second derivative term of "
                        "H²([0,T], L²(Ω)) dot product");
+
     prm->declare_entry(KEY_PROBLEM_NORM_H1H1ALPHA, "0.5", Patterns::Double(0),
                        "Factor α in front of time derivative term of H¹([0,T], H¹(Ω)) dot product");
     prm->declare_entry(KEY_PROBLEM_NORM_H1H1GAMMA, "0.5", Patterns::Double(0),
                        "Factor ɣ in front of gradient term of H¹([0,T], H¹(Ω)) dot product");
+
+    prm->declare_entry(KEY_PROBLEM_NORM_H2L2PLUSL2H1ALPHA, "0.5", Patterns::Double(0),
+                       "Factor α in front of time derivative term of H²([0,T], L²(Ω)) ∩ L²([0,T], H¹(Ω)) dot product");
+    prm->declare_entry(KEY_PROBLEM_NORM_H2L2PLUSL2H1BETA, "0.25", Patterns::Double(0),
+                       "Factor β in front of second time derivative term of "
+                       "H²([0,T], L²(Ω)) ∩ L²([0,T], H¹(Ω)) dot product");
+    prm->declare_entry(KEY_PROBLEM_NORM_H2L2PLUSL2H1GAMMA, "0.5", Patterns::Double(0),
+                       "Factor ɣ in front of gradient term of H²([0,T], L²(Ω)) ∩ L²([0,T], H¹(Ω)) dot product");
 
     prm->declare_entry(KEY_PROBLEM_EPSILON, "1e-2", Patterns::Double(0, 1), "relative noise level ε");
 
@@ -316,6 +331,8 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
       norm_domain = NormType::h2l2;
     else if (norm_domain_s == "H1H1")
       norm_domain = NormType::h1h1;
+    else if (norm_domain_s == "H2L2PlusL2H1")
+      norm_domain = NormType::h2l2plusl2h1;
     else if (norm_domain_s == "Coefficients")
       norm_domain = NormType::vector;
     else
@@ -331,16 +348,24 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
       norm_codomain = NormType::h2l2;
     else if (norm_codomain_s == "H1H1")
       norm_codomain = NormType::h1h1;
+    else if (norm_codomain_s == "H2L2PlusL2H1")
+      norm_codomain = NormType::h2l2plusl2h1;
     else if (norm_codomain_s == "Coefficients")
       norm_codomain = NormType::vector;
     else
       AssertThrow(false, ExcMessage("Cannot parse norm of codomain"));
 
     norm_h1l2_alpha = prm->get_double(KEY_PROBLEM_NORM_H1L2ALPHA);
+
     norm_h2l2_alpha = prm->get_double(KEY_PROBLEM_NORM_H2L2ALPHA);
     norm_h2l2_beta  = prm->get_double(KEY_PROBLEM_NORM_H2L2BETA);
+
     norm_h1h1_alpha = prm->get_double(KEY_PROBLEM_NORM_H1H1ALPHA);
     norm_h1h1_gamma = prm->get_double(KEY_PROBLEM_NORM_H1H1GAMMA);
+
+    norm_h2l2plusl2h1_alpha = prm->get_double(KEY_PROBLEM_NORM_H2L2PLUSL2H1ALPHA);
+    norm_h2l2plusl2h1_beta  = prm->get_double(KEY_PROBLEM_NORM_H2L2PLUSL2H1BETA);
+    norm_h2l2plusl2h1_gamma = prm->get_double(KEY_PROBLEM_NORM_H2L2PLUSL2H1GAMMA);
 
     std::string transform_s = prm->get(KEY_PROBLEM_TRANSFORM);
 

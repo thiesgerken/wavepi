@@ -56,6 +56,10 @@ class SettingsManager {
   static const std::string KEY_PROBLEM_NORM_H1H1ALPHA;
   static const std::string KEY_PROBLEM_NORM_H1H1GAMMA;
 
+  static const std::string KEY_PROBLEM_NORM_H2L2PLUSL2H1ALPHA;
+  static const std::string KEY_PROBLEM_NORM_H2L2PLUSL2H1BETA;
+  static const std::string KEY_PROBLEM_NORM_H2L2PLUSL2H1GAMMA;
+
   static const std::string KEY_PROBLEM_EPSILON;
   static const std::string KEY_PROBLEM_CONSTANTS;
   static const std::string KEY_PROBLEM_GUESS;
@@ -116,7 +120,7 @@ class SettingsManager {
   /**
    * possible norms
    */
-  enum class NormType { vector, l2l2, h1l2, h2l2, h1h1 };
+  enum class NormType { vector, l2l2, h1l2, h2l2, h1h1, h2l2plusl2h1 };
 
   std::shared_ptr<ParameterHandler> prm;
 
@@ -150,6 +154,10 @@ class SettingsManager {
 
   double norm_h1h1_alpha;
   double norm_h1h1_gamma;
+
+  double norm_h2l2plusl2h1_alpha;
+  double norm_h2l2plusl2h1_beta;
+  double norm_h2l2plusl2h1_gamma;
 
   std::map<std::string, double> constants_for_exprs;
   std::string expr_initial_guess;

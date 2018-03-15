@@ -37,6 +37,7 @@
 #include <norms/H1H1.h>
 #include <norms/H1L2.h>
 #include <norms/H2L2.h>
+#include <norms/H2L2PlusL2H1.h>
 #include <norms/L2Coefficients.h>
 #include <norms/L2L2.h>
 #include <problems/AProblem.h>
@@ -60,11 +61,13 @@ using namespace wavepi::problems;
 
 template <int dim, typename Meas>
 WavePI<dim, Meas>::WavePI(std::shared_ptr<SettingsManager> cfg) : cfg(cfg) {
-  norm_vector = std::make_shared<norms::L2Coefficients<dim>>();
-  norm_l2l2   = std::make_shared<norms::L2L2<dim>>();
-  norm_h1l2   = std::make_shared<norms::H1L2<dim>>(cfg->norm_h1l2_alpha);
-  norm_h2l2   = std::make_shared<norms::H2L2<dim>>(cfg->norm_h2l2_alpha, cfg->norm_h2l2_beta);
-  norm_h1h1   = std::make_shared<norms::H1H1<dim>>(cfg->norm_h1h1_alpha, cfg->norm_h1h1_gamma);
+  norm_vector       = std::make_shared<norms::L2Coefficients<dim>>();
+  norm_l2l2         = std::make_shared<norms::L2L2<dim>>();
+  norm_h1l2         = std::make_shared<norms::H1L2<dim>>(cfg->norm_h1l2_alpha);
+  norm_h2l2         = std::make_shared<norms::H2L2<dim>>(cfg->norm_h2l2_alpha, cfg->norm_h2l2_beta);
+  norm_h1h1         = std::make_shared<norms::H1H1<dim>>(cfg->norm_h1h1_alpha, cfg->norm_h1h1_gamma);
+  norm_h2l2plusl2h1 = std::make_shared<norms::H2L2PlusL2H1<dim>>(
+      cfg->norm_h2l2plusl2h1_alpha, cfg->norm_h2l2plusl2h1_beta, cfg->norm_h2l2plusl2h1_gamma);
 
   switch (cfg->norm_codomain) {
     case SettingsManager::NormType::vector:
@@ -81,6 +84,9 @@ WavePI<dim, Meas>::WavePI(std::shared_ptr<SettingsManager> cfg) : cfg(cfg) {
       break;
     case SettingsManager::NormType::h1h1:
       norm_codomain = norm_h1h1;
+      break;
+    case SettingsManager::NormType::h2l2plusl2h1:
+      norm_codomain = norm_h2l2plusl2h1;
       break;
     default:
       AssertThrow(false, ExcMessage("WavePI:: unknown norm of codomain"));
@@ -101,6 +107,9 @@ WavePI<dim, Meas>::WavePI(std::shared_ptr<SettingsManager> cfg) : cfg(cfg) {
       break;
     case SettingsManager::NormType::h1h1:
       norm_domain = norm_h1h1;
+      break;
+    case SettingsManager::NormType::h2l2plusl2h1:
+      norm_domain = norm_h2l2plusl2h1;
       break;
     default:
       AssertThrow(false, ExcMessage("WavePI:: unknown norm of codomain"));
