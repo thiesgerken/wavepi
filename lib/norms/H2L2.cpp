@@ -5,6 +5,7 @@
  *      Author: thies
  */
 
+#include <base/Util.h>
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/logstream.h>
 #include <deal.II/base/timer.h>
@@ -307,7 +308,7 @@ void H2L2<dim>::dot_mult_mass_and_transform_inverse(DiscretizedFunction<dim>& u)
       u[j][i] = tmp[j];
   }
 
-  deallog << "solved in " << timer.wall_time() << "s" << std::endl;
+  deallog << "solved in " << Util::format_duration(timer.wall_time()) << std::endl;
 }
 
 template <int dim>

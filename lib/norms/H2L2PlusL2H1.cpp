@@ -5,6 +5,7 @@
  *      Author: thies
  */
 
+#include <base/Util.h>
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/logstream.h>
 #include <deal.II/base/timer.h>
@@ -140,6 +141,8 @@ void H2L2PlusL2H1<dim>::dot_transform(DiscretizedFunction<dim>& u) {
 template <int dim>
 void H2L2PlusL2H1<dim>::dot_transform_inverse(DiscretizedFunction<dim>& u) {
   LogStream::Prefix p("h2l2plush1h1_transform_inverse");
+  Timer timer;
+  timer.start();
   // Use CG to invert `dot_transform` (the application of a symmetric+positive definite matrix A)
 
   // make sure we use standard dot products everywhere
@@ -155,7 +158,7 @@ void H2L2PlusL2H1<dim>::dot_transform_inverse(DiscretizedFunction<dim>& u) {
   DiscretizedFunction<dim>& r = u;
 
   DiscretizedFunction<dim> h = r;
-  precon->dot_transform_inverse(h);
+  precon->dot_mult_mass_and_transform_inverse(h);  // faster than just transform_inverse, results are better as well
 
   DiscretizedFunction<dim> d = h;
   DiscretizedFunction<dim> x(u.get_mesh(), u.get_norm());  // current estimate, initialize with 0
@@ -172,6 +175,8 @@ void H2L2PlusL2H1<dim>::dot_transform_inverse(DiscretizedFunction<dim>& u) {
   if (disc == 0.0) return;
 
   while (disc / norm_rhs >= tol && iter++ < max_iter) {
+    LogStream::Prefix p("CG");
+
     // z <- A d
     z = d;
     dot_transform(z);
@@ -181,7 +186,7 @@ void H2L2PlusL2H1<dim>::dot_transform_inverse(DiscretizedFunction<dim>& u) {
     r.add(-cg_alpha, z);
 
     h = r;
-    precon->dot_transform_inverse(h);
+    precon->dot_mult_mass_and_transform_inverse(h);
 
     // prepare direction for next step
     double dot_rh_next = r * h;
@@ -202,9 +207,11 @@ void H2L2PlusL2H1<dim>::dot_transform_inverse(DiscretizedFunction<dim>& u) {
   // to be consistent with other norms, they do not change the norm setting as well (although using it after this
   // transform makes little sense)
   u.set_norm(orig_norm);
+  std::cout << "solved in " << Util::format_duration(timer.wall_time()) << " after " << iter << " CG steps"
+            << std::endl;
 }
 
-// without preconditioning:
+// code without preconditioning:
 /*
 template <int dim>
 void H2L2PlusL2H1<dim>::dot_transform_inverse(DiscretizedFunction<dim>& u)  {
