@@ -46,7 +46,7 @@ class CProblem : public WaveProblem<dim, Measurement> {
         fields(measures.size()) {}
 
  protected:
-  virtual std::unique_ptr<LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>>> derivative(size_t i) {
+  virtual std::unique_ptr<LinearizedSubProblem<dim>> derivative(size_t i) {
     AssertThrow(this->fields[i], ExcInternalError());
 
     return std::make_unique<CProblem<dim, Measurement>::Linearization>(this->wave_equation, this->adjoint_solver,
@@ -73,7 +73,7 @@ class CProblem : public WaveProblem<dim, Measurement> {
   // solutions of the last forward problem
   std::vector<std::shared_ptr<DiscretizedFunction<dim>>> fields;
 
-  class Linearization : public LinearProblem<DiscretizedFunction<dim>, DiscretizedFunction<dim>> {
+  class Linearization : public LinearizedSubProblem<dim> {
    public:
     virtual ~Linearization() = default;
 
@@ -123,7 +123,7 @@ class CProblem : public WaveProblem<dim, Measurement> {
       return res;
     }
 
-    virtual DiscretizedFunction<dim> adjoint(const DiscretizedFunction<dim>& g) {
+    virtual DiscretizedFunction<dim> adjoint_notransform(const DiscretizedFunction<dim>& g) {
       /* L*  */
       auto tmp = std::make_shared<DiscretizedFunction<dim>>(g);
       tmp->set_norm(this->norm_codomain);
@@ -158,7 +158,7 @@ class CProblem : public WaveProblem<dim, Measurement> {
       res.pointwise_multiplication(u->derivative());
 
       res.set_norm(this->norm_domain);
-      res.dot_transform_inverse();
+      // res.dot_transform_inverse();
 
       return res;
     }

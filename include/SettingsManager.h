@@ -35,6 +35,7 @@ class SettingsManager {
   static const std::string KEY_LOG;
   static const std::string KEY_LOG_FILE;
   static const std::string KEY_LOG_FILE_DEPTH;
+  static const std::string KEY_LOG_FILE_DEPTH_MPI;
   static const std::string KEY_LOG_CONSOLE_DEPTH;
 
   static const std::string KEY_MESH;
@@ -126,6 +127,7 @@ class SettingsManager {
 
   std::string log_file;
   int log_file_depth;
+  int log_file_depth_mpi;
   int log_console_depth;
 
   int dimension;

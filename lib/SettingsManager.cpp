@@ -37,10 +37,11 @@ const std::string SettingsManager::KEY_GENERAL_DIMENSION  = "dimension";
 const std::string SettingsManager::KEY_GENERAL_FE_DEGREE  = "finite element degree";
 const std::string SettingsManager::KEY_GENERAL_QUAD_ORDER = "quadrature order";
 
-const std::string SettingsManager::KEY_LOG               = "log";
-const std::string SettingsManager::KEY_LOG_FILE          = "file";
-const std::string SettingsManager::KEY_LOG_FILE_DEPTH    = "file depth";
-const std::string SettingsManager::KEY_LOG_CONSOLE_DEPTH = "console depth";
+const std::string SettingsManager::KEY_LOG                = "log";
+const std::string SettingsManager::KEY_LOG_FILE           = "file";
+const std::string SettingsManager::KEY_LOG_FILE_DEPTH     = "file depth";
+const std::string SettingsManager::KEY_LOG_FILE_DEPTH_MPI = "file depth mpi";
+const std::string SettingsManager::KEY_LOG_CONSOLE_DEPTH  = "console depth";
 
 const std::string SettingsManager::KEY_MESH                    = "mesh";
 const std::string SettingsManager::KEY_MESH_END_TIME           = "end time";
@@ -111,8 +112,9 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
   prm->enter_subsection(KEY_LOG);
   {
     prm->declare_entry(KEY_LOG_FILE, "wavepi.log", Patterns::FileName(Patterns::FileName::output), "external log file");
-    prm->declare_entry(KEY_LOG_FILE_DEPTH, "4", Patterns::Integer(0), "depth for the log file");
-    prm->declare_entry(KEY_LOG_CONSOLE_DEPTH, "2", Patterns::Integer(0), "depth for stdout");
+    prm->declare_entry(KEY_LOG_FILE_DEPTH, "6", Patterns::Integer(0), "depth for the log file (root process)");
+    prm->declare_entry(KEY_LOG_FILE_DEPTH_MPI, "4", Patterns::Integer(0), "depth for the log file (other processes)");
+    prm->declare_entry(KEY_LOG_CONSOLE_DEPTH, "2", Patterns::Integer(0), "depth for stdout (root process)");
   }
   prm->leave_subsection();
 
@@ -243,9 +245,10 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
 
   prm->enter_subsection(KEY_LOG);
   {
-    log_file          = prm->get(KEY_LOG_FILE);
-    log_file_depth    = prm->get_integer(KEY_LOG_FILE_DEPTH);
-    log_console_depth = prm->get_integer(KEY_LOG_CONSOLE_DEPTH);
+    log_file           = prm->get(KEY_LOG_FILE);
+    log_file_depth     = prm->get_integer(KEY_LOG_FILE_DEPTH);
+    log_file_depth_mpi = prm->get_integer(KEY_LOG_FILE_DEPTH_MPI);
+    log_console_depth  = prm->get_integer(KEY_LOG_CONSOLE_DEPTH);
   }
   prm->leave_subsection();
 

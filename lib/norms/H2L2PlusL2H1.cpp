@@ -207,8 +207,7 @@ void H2L2PlusL2H1<dim>::dot_transform_inverse(DiscretizedFunction<dim>& u) {
   // to be consistent with other norms, they do not change the norm setting as well (although using it after this
   // transform makes little sense)
   u.set_norm(orig_norm);
-  std::cout << "solved in " << Util::format_duration(timer.wall_time()) << " after " << iter << " CG steps"
-            << std::endl;
+  deallog << "solved in " << Util::format_duration(timer.wall_time()) << " after " << iter << " CG steps" << std::endl;
 }
 
 // code without preconditioning:

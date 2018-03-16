@@ -159,7 +159,7 @@ int main(int argc, char *argv[]) {
 
       logout = std::ofstream(cfg->log_file);
       deallog.attach(logout);
-      deallog.depth_file(cfg->log_file_depth);
+      deallog.depth_file(mpi_rank == 0 ? cfg->log_file_depth : cfg->log_file_depth_mpi);
     }
 
     deallog.depth_console(cfg->log_console_depth);
