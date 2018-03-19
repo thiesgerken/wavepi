@@ -443,7 +443,7 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
         adj_timer.stop();
 
         // dot_transform_inverse is linear, and the same operator for all adjoints
-        result.dot_transform_inverse()
+        result.dot_transform_inverse();
 
         // Norm checking for sub_problems[i]->adjoint(am)
         // not necessary, `+=` would fail.
