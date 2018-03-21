@@ -18,7 +18,7 @@ using namespace dealii;
 
 class RiederToleranceChoice : public ToleranceChoice {
  public:
-  RiederToleranceChoice(double tol_start, double tol_max, double zeta, double beta);
+  RiederToleranceChoice(double tol_start, double tol_max, double zeta, double beta, bool safeguarding);
   RiederToleranceChoice(ParameterHandler &prm);
 
   static void declare_parameters(ParameterHandler &prm);
@@ -37,6 +37,7 @@ class RiederToleranceChoice : public ToleranceChoice {
   double tol_max;
   double zeta;
   double beta;
+  bool safeguarding;
 };
 
 }  // namespace inversion

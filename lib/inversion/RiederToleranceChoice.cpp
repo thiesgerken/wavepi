@@ -16,8 +16,9 @@ namespace inversion {
 
 using namespace dealii;
 
-RiederToleranceChoice::RiederToleranceChoice(double tol_start, double tol_max, double zeta, double beta)
-    : tol_start(tol_start), tol_max(tol_max), zeta(zeta), beta(beta) {}
+RiederToleranceChoice::RiederToleranceChoice(double tol_start, double tol_max, double zeta, double beta,
+                                             bool safeguarding)
+    : tol_start(tol_start), tol_max(tol_max), zeta(zeta), beta(beta), safeguarding(safeguarding) {}
 
 RiederToleranceChoice::RiederToleranceChoice(ParameterHandler &prm) { get_parameters(prm); }
 
@@ -28,6 +29,8 @@ void RiederToleranceChoice::declare_parameters(ParameterHandler &prm) {
     prm.declare_entry("tol max", "0.999", Patterns::Double(0, 1), "rel. maximum tolerance");
     prm.declare_entry("zeta", "0.95", Patterns::Double(0, 1), "factor to decrease tolerance by");
     prm.declare_entry("beta", "1.0", Patterns::Double(0), "allowed speed of iteration numbers");
+    prm.declare_entry("safeguarding", "true", Patterns::Bool(),
+                      "safeguard the outer iteration from over-fulfillment of discrepancy principle");
   }
   prm.leave_subsection();
 }
@@ -35,10 +38,11 @@ void RiederToleranceChoice::declare_parameters(ParameterHandler &prm) {
 void RiederToleranceChoice::get_parameters(ParameterHandler &prm) {
   prm.enter_subsection("RiederToleranceChoice");
   {
-    tol_start = prm.get_double("tol start");
-    tol_max   = prm.get_double("tol max");
-    zeta      = prm.get_double("zeta");
-    beta      = prm.get_double("beta");
+    tol_start    = prm.get_double("tol start");
+    tol_max      = prm.get_double("tol max");
+    zeta         = prm.get_double("zeta");
+    beta         = prm.get_double("beta");
+    safeguarding = prm.get_bool("safeguarding");
   }
   prm.leave_subsection();
 
@@ -61,10 +65,16 @@ double RiederToleranceChoice::calculate_tolerance() const {
 
   double last_discrepancy = (k == 0) ? initial_discrepancy : discrepancies[k - 1];
 
-  if (k < 2)
-    return std::max(tol_max * target_discrepancy / last_discrepancy, tol_tilde);
+  //  if (k < 2)
+  //    return std::max(tol_max * target_discrepancy / last_discrepancy, tol_tilde);
+  //  else
+  //    return tol_max * std::max(target_discrepancy / last_discrepancy, tol_tilde);
+
+  // a bit different, do not multiply with tol_max every time:
+  if (safeguarding)
+    return std::min(tol_max, std::max(target_discrepancy / last_discrepancy, tol_tilde));
   else
-    return tol_max * std::max(target_discrepancy / last_discrepancy, tol_tilde);
+    return std::min(tol_max, tol_tilde);
 }
 
 }  // namespace inversion
