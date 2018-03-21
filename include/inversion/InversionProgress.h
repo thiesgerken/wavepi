@@ -798,9 +798,11 @@ class WatchdogProgressListener : public InversionProgressListener<Param, Sol, Ex
       slope /= var_i;
       double b = avg_disc - slope * avg_i;
 
-      auto prev_prec = deallog.precision(1);
-      deallog << "disc(i) ~ " << slope << " ⋅ i + " << b << " (computed over " << n_discs << " entries)" << std::endl;
-      deallog.precision(prev_prec);
+      if (slope > 0.0 || slope > disc_max_slope) {
+        auto prev_prec = deallog.precision(1);
+        deallog << "disc(i) ~ " << slope << " ⋅ i + " << b << " (computed over " << n_discs << " entries)" << std::endl;
+        deallog.precision(prev_prec);
+      }
 
       if (slope > disc_max_slope) {
         deallog << "slope is too large; Aborting Iteration!" << std::endl;

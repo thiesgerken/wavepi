@@ -307,6 +307,13 @@ class DiscretizedFunction : public Function<dim> {
   void dot_mult_mass_and_transform_inverse();
 
   /**
+   * apply the L^p([0,T], L^p) duality mapping to this vector, i.e. it becomes |f|^{p-1} sign(f).
+   *
+   * @param p space index, has to be larger than 1.
+   */
+  void duality_mapping_lp(double p);
+
+  /**
    * @}
    *
    * @name Access to coefficients
