@@ -72,7 +72,7 @@ class GradientDescent : public LinearRegularization<Param, Sol, Exact> {
 
       Sol Astep(this->problem->forward(step));
 
-      double omega = square(norm_step / Astep.norm());
+      double omega = std::pow(norm_step, q) / square(Astep.norm());
 
       // deallog << "omega = " << omega << std::endl;
       estimate.add(omega, step);
