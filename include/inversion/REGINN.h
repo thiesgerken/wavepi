@@ -69,6 +69,7 @@ class REGINN : public NewtonRegularization<Param, Sol, Exact> {
       FibonacciMaxIterChoice::declare_parameters(prm);
       ConstantMaxIterChoice::declare_parameters(prm);
       Landweber<Param, Sol, Exact>::declare_parameters(prm);
+      GradientDescent<Param, Sol, Exact>::declare_parameters(prm);
       ConjugateGradients<Param, Sol, Exact>::declare_parameters(prm);
       InnerStatOutputProgressListener<Param, Sol, Exact>::declare_parameters(prm);
       WatchdogProgressListener<Param, Sol, Exact>::declare_parameters(prm, true, "linear watchdog", true);
