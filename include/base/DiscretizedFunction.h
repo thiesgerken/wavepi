@@ -314,6 +314,13 @@ class DiscretizedFunction : public Function<dim> {
   void duality_mapping_lp(double p);
 
   /**
+   * returns the p-norm the underlying vector.
+   *
+   * @param p space index, the result is not a norm if p < 1.
+   */
+  double norm_p(double p);
+
+  /**
    * @}
    *
    * @name Access to coefficients

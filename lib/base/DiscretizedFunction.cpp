@@ -712,6 +712,18 @@ void DiscretizedFunction<dim>::duality_mapping_lp(double p) {
 }
 
 template <int dim>
+double DiscretizedFunction<dim>::norm_p(double p) {
+  AssertThrow(p >= 1, ExcMessage("duality_mapping_lp: p has to be >= 1!"));
+  double result = 0.0;
+
+  for (size_t i = 0; i < mesh->length(); i++)
+    for (size_t j = 0; j < function_coefficients[i].size(); j++)
+      result += std::pow(std::abs(function_coefficients[i][j]), p);
+
+  return std::pow(result, 1 / p);
+}
+
+template <int dim>
 bool DiscretizedFunction<dim>::hilbert() const {
   Assert(mesh && norm_, ExcNotInitialized());
   Assert(!store_derivative, ExcInternalError());
