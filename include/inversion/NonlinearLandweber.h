@@ -64,7 +64,7 @@ class NonlinearLandweber : public NewtonRegularization<Param, Sol, Exact> {
     deallog.push("init");
 
     // possible with LW, but currently not implemented.
-    AssertThrow(data.get_norm()->hilbert(), ExcMessage("Landweber: Y is not a Hilbert space!"));
+    AssertThrow(data.hilbert(), ExcMessage("Landweber: Y is not a Hilbert space!"));
 
     Param estimate(*initial_guess);
 

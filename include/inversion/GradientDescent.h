@@ -48,7 +48,7 @@ class GradientDescent : public LinearRegularization<Param, Sol, Exact> {
     AssertThrow(this->problem, ExcInternalError());
 
     // possible, but currently not implemented.
-    AssertThrow(data.get_norm()->hilbert(), ExcMessage("GradientDescent: Y is not a Hilbert space!"));
+    AssertThrow(data.hilbert(), ExcMessage("GradientDescent: Y is not a Hilbert space!"));
 
     Param estimate(this->problem->zero());
     Sol residual(data);

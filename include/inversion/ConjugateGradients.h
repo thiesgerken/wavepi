@@ -61,8 +61,8 @@ class ConjugateGradients : public LinearRegularization<Param, Sol, Exact> {
     Param d(p);                                 // d_k
     Sol q(this->problem->forward(p));           // q_k
 
-    AssertThrow(estimate.get_norm()->hilbert(), ExcMessage("CG: X is not a Hilbert space!"));
-    AssertThrow(data.get_norm()->hilbert(), ExcMessage("CG: Y is not a Hilbert space!"));
+    AssertThrow(estimate.hilbert(), ExcMessage("CG: X is not a Hilbert space!"));
+    AssertThrow(data.hilbert(), ExcMessage("CG: Y is not a Hilbert space!"));
 
     // needs to be outside of the iteration
     double alpha = 0;
