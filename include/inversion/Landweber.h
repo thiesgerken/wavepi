@@ -53,7 +53,7 @@ class Landweber : public LinearRegularization<Param, Sol, Exact> {
 
     // possible with LW, but currently not implemented.
     AssertThrow(estimate.hilbert(), ExcMessage("linear Landweber: X is not a Hilbert space!"));
-    AssertThrow(data.hilbert(), ExcMessage("linear Landweber: Y is not a Hilbert space!"));
+    // AssertThrow(data.hilbert(), ExcMessage("linear Landweber: Y is not a Hilbert space!"));
 
     double discrepancy = residual.norm();
     double norm_data   = data.norm();
