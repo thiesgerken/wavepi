@@ -6,6 +6,7 @@ SET(LIBSOURCES
     H2L2.cpp
     H2L2PlusL2H1.cpp
     L2Coefficients.cpp
+    LPWrapper.cpp
     )
         
 add_library(wavepi_norms ${LIBSOURCES})

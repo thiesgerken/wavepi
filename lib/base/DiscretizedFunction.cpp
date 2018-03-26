@@ -712,8 +712,32 @@ void DiscretizedFunction<dim>::duality_mapping_lp(double p) {
 }
 
 template <int dim>
+void DiscretizedFunction<dim>::duality_mapping(double p) {
+  Assert(mesh && norm_, ExcNotInitialized());
+  Assert(!store_derivative, ExcInternalError());
+
+  norm_->duality_mapping(*this, p);
+}
+
+template <int dim>
+void DiscretizedFunction<dim>::duality_mapping_dual(double q) {
+  Assert(mesh && norm_, ExcNotInitialized());
+  Assert(!store_derivative, ExcInternalError());
+
+  norm_->duality_mapping_dual(*this, q);
+}
+
+template <int dim>
+double DiscretizedFunction<dim>::norm_dual() const {
+  Assert(mesh && norm_, ExcNotInitialized());
+  Assert(!store_derivative, ExcInternalError());
+
+  return norm_->norm_dual(*this);
+}
+
+template <int dim>
 double DiscretizedFunction<dim>::norm_p(double p) {
-  AssertThrow(p >= 1, ExcMessage("duality_mapping_lp: p has to be >= 1!"));
+  AssertThrow(p >= 1, ExcMessage("norm_p: p has to be >= 1!"));
   double result = 0.0;
 
   for (size_t i = 0; i < mesh->length(); i++)

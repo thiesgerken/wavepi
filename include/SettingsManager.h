@@ -50,6 +50,8 @@ class SettingsManager {
   static const std::string KEY_PROBLEM_TYPE;
   static const std::string KEY_PROBLEM_TRANSFORM;
   static const std::string KEY_PROBLEM_NORM_DOMAIN;
+  static const std::string KEY_PROBLEM_NORM_DOMAIN_P_ENABLE;
+  static const std::string KEY_PROBLEM_NORM_DOMAIN_P;
   static const std::string KEY_PROBLEM_NORM_CODOMAIN;
   static const std::string KEY_PROBLEM_NORM_H1L2ALPHA;
   static const std::string KEY_PROBLEM_NORM_H2L2ALPHA;
@@ -148,6 +150,9 @@ class SettingsManager {
   TransformType transform;
   NormType norm_domain;
   NormType norm_codomain;
+
+  double norm_domain_p;
+  bool norm_domain_enable_wrapping;
 
   double norm_h1l2_alpha;
 

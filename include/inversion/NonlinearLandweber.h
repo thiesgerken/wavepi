@@ -33,9 +33,7 @@ class NonlinearLandweber : public NewtonRegularization<Param, Sol, Exact> {
     prm.enter_subsection("NonlinearLandweber");
     {
       prm.declare_entry("omega", "1", Patterns::Double(0), "relaxation factor ω");
-      prm.declare_entry(
-          "p", "2", Patterns::Double(1),
-          "BETA: use L^p([0,T], L^p) as parameter space. norm_domain has to be L^2([0,T], L^2) for this to work.");
+      prm.declare_entry("p", "2", Patterns::Double(1), "Use duality mappings with index p");
     }
     prm.leave_subsection();
   }
@@ -65,6 +63,9 @@ class NonlinearLandweber : public NewtonRegularization<Param, Sol, Exact> {
     AssertThrow(this->problem, ExcInternalError());
     deallog.push("init");
 
+    // possible with LW, but currently not implemented.
+    AssertThrow(data.get_norm()->hilbert(), ExcMessage("Landweber: Y is not a Hilbert space!"));
+
     Param estimate(*initial_guess);
 
     Sol residual(data);
@@ -89,12 +90,12 @@ class NonlinearLandweber : public NewtonRegularization<Param, Sol, Exact> {
 
       Param adj = lp->adjoint(residual);
 
-      estimate.duality_mapping_lp(p);
+      estimate.duality_mapping(p);
 
       // $`c_{k+1} = c_k + \omega (S' c_k)^* (g - S c_k)`$
       estimate.add(omega, adj);
 
-      estimate.duality_mapping_lp(q);
+      estimate.duality_mapping_dual(q);
 
       double norm_estimate = estimate.norm();
       deallog.pop();

@@ -44,8 +44,6 @@ class H1L2 : public Norm<DiscretizedFunction<dim>> {
 
   virtual void dot_mult_mass_and_transform_inverse(DiscretizedFunction<dim>& u) override;
 
-  virtual bool hilbert() const override;
-
   virtual std::string name() const override;
 
   virtual std::string unique_id() const override;

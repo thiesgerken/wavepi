@@ -223,6 +223,11 @@ class DiscretizedFunction : public Function<dim> {
   double norm() const;
 
   /**
+   * returns the norm of this object as an element of the dual space.
+   */
+  double norm_dual() const;
+
+  /**
    * returns the scalar product between this object and another one.
    * Throws an error if the norm is set to `Invalid`, does not define a scalar product
    * or the norms of both functions do not match.
@@ -307,7 +312,7 @@ class DiscretizedFunction : public Function<dim> {
   void dot_mult_mass_and_transform_inverse();
 
   /**
-   * apply the L^p([0,T], L^p) duality mapping to this vector, i.e. it becomes |f|^{p-1} sign(f).
+   * apply the p-duality mapping to this vector, i.e. it becomes |f|^{p-1} sign(f).
    *
    * @param p space index, has to be larger than 1.
    */
@@ -319,6 +324,18 @@ class DiscretizedFunction : public Function<dim> {
    * @param p space index, the result is not a norm if p < 1.
    */
   double norm_p(double p);
+
+  /**
+   * apply the p-duality mapping to a given element. Default implementation works for hilbert spaces (i.e. J_p(x) =
+   * ||x||^{p-2} x).
+   */
+  void duality_mapping(double p);
+
+  /**
+   * apply the q-duality mapping to a given element of the dual space, i.e. the inverse to `duality_mapping` with
+   * p = q/(q-1).
+   */
+  void duality_mapping_dual(double q);
 
   /**
    * @}

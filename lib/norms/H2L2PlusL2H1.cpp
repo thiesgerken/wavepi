@@ -281,11 +281,6 @@ void H2L2PlusL2H1<dim>::dot_mult_mass_and_transform_inverse(DiscretizedFunction<
 }
 
 template <int dim>
-bool H2L2PlusL2H1<dim>::hilbert() const {
-  return true;
-}
-
-template <int dim>
 std::string H2L2PlusL2H1<dim>::name() const {
   return "H²([0,T], L²(Ω)) ∩ L²([0,T], H¹(Ω))";
 }

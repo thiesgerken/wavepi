@@ -135,11 +135,6 @@ void L2L2<dim>::dot_mult_mass_and_transform_inverse(DiscretizedFunction<dim>& u)
 }
 
 template <int dim>
-bool L2L2<dim>::hilbert() const {
-  return true;
-}
-
-template <int dim>
 std::string L2L2<dim>::name() const {
   return "L²([0,T], L²(Ω))";
 }

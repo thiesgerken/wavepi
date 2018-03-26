@@ -641,7 +641,7 @@ class InnerStatOutputProgressListener : public StatOutputProgressListener<Param,
   static void declare_parameters(ParameterHandler& prm) {
     prm.enter_subsection("inner output");
     {
-      prm.declare_entry("interval", "10", Patterns::Integer(0),
+      prm.declare_entry("interval", "0", Patterns::Integer(0),
                         "output stats of inner iteration every n outer iterations, or never if n == 0.");
 
       prm.declare_entry("destination", "./step-{{i}}/", Patterns::DirectoryName(),

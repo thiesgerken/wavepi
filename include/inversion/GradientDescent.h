@@ -28,11 +28,7 @@ class GradientDescent : public LinearRegularization<Param, Sol, Exact> {
 
   static void declare_parameters(ParameterHandler &prm) {
     prm.enter_subsection("GradientDescent");
-    {
-      prm.declare_entry(
-          "p", "2", Patterns::Double(1),
-          "BETA: use L^p([0,T], L^p) as parameter space. norm_domain has to be L^2([0,T], L^2) for this to work.");
-    }
+    { prm.declare_entry("p", "2", Patterns::Double(1), "Use duality mappings with index p"); }
     prm.leave_subsection();
   }
 
@@ -51,6 +47,9 @@ class GradientDescent : public LinearRegularization<Param, Sol, Exact> {
     LogStream::Prefix prefix = LogStream::Prefix("Gradient");
     AssertThrow(this->problem, ExcInternalError());
 
+    // possible, but currently not implemented.
+    AssertThrow(data.get_norm()->hilbert(), ExcMessage("GradientDescent: Y is not a Hilbert space!"));
+
     Param estimate(this->problem->zero());
     Sol residual(data);
 
@@ -67,8 +66,8 @@ class GradientDescent : public LinearRegularization<Param, Sol, Exact> {
     for (int k = 1; discrepancy > target_discrepancy; k++) {
       Param step(this->problem->adjoint(residual));
 
-      double norm_step = step.norm_p(q);
-      step.duality_mapping_lp(q);
+      double norm_step = step.norm_dual();
+      step.duality_mapping_dual(q);
 
       Sol Astep(this->problem->forward(step));
 
