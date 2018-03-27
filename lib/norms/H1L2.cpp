@@ -238,11 +238,6 @@ void H1L2<dim>::factorize_matrix(std::shared_ptr<SpaceTimeMesh<dim>> mesh) {
 }
 
 template <int dim>
-bool H1L2<dim>::hilbert() const {
-  return true;
-}
-
-template <int dim>
 std::string H1L2<dim>::name() const {
   return "H¹([0,T], L²(Ω))";
 }

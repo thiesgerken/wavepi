@@ -1,0 +1,704 @@
+JobId thies-laptop Fri Mar 23 14:19:33 2018
+wavepi 06cd9dbd-dirty
+Release-Build, compiled on 2018-03-23T10:35:34Z from commit 06cd9dbda31b06c5b2317bd59b09791f5fa45156 ("fix params") on branch banach
+
+working directory was dirty, git status: 
+ M include/inversion/GradientDescent.h
+ M problems/param_q/plateau_grad_p2.cfg
+ M problems/param_q/plateau_grad_p2/plateau_grad_p2.cfg
+ M problems/param_q/plateau_grad_p2/wavepi-diff.cfg
+ M problems/param_q/plateau_grad_p2/wavepi.cfg
+?? problems/param_q/plateau_grad_p2/history.csv
+?? problems/param_q/plateau_grad_p2/history.gplot
+?? problems/param_q/plateau_grad_p2/history.png
+?? problems/param_q/plateau_grad_p2/history.svg
+?? problems/param_q/plateau_grad_p2/history_reginn.csv
+?? problems/param_q/plateau_grad_p2/history_reginn.gplot
+?? problems/param_q/plateau_grad_p2/history_reginn.png
+?? problems/param_q/plateau_grad_p2/history_reginn.svg
+
+initialize_mesh::Number of active cells: 1024
+initialize_mesh::Number of degrees of freedom in the first spatial mesh: 1089
+initialize_mesh::cell diameters: minimal = 0.354, maximal = 0.354
+initialize_mesh::dt: 0.0235
+initialize_mesh::expected size of a DiscretizedFunction<2>: 2.13 MiB
+Initializing problem
+Generating synthetic data (inverse crime)
+wall time for data synthesis        : 5.6s
+wall time for mesh and problem init : 34.7ms
+parameters:LogTransform::lower bound: 0.0
+parameters:WaveEquation::max iter: 10000
+parameters:WaveEquation::theta: 0.5
+parameters:WaveEquation::tol: 1e-8
+parameters:constraints::lower bound: -1e300
+parameters:constraints::upper bound: 1e300
+parameters:general::dimension: 2
+parameters:general::finite element degree: 1
+parameters:general::quadrature order: 3
+parameters:inversion::method: REGINN
+parameters:inversion::tau: 2
+parameters:log::console depth: 2
+parameters:log::file: wavepi.log
+parameters:log::file depth: 6
+parameters:log::file depth mpi: 4
+parameters:mesh::end time: 6
+parameters:mesh::initial refines: 5
+parameters:mesh::initial time steps: 256
+parameters:output::data: true
+parameters:output::destination: ./step-{{i}}/
+parameters:output::discrepancy decrease: 0.25
+parameters:output::estimate: true
+parameters:output::estimate transformed: false
+parameters:output::exact: true
+parameters:output::exact transformed: false
+parameters:output::interval: 50
+parameters:output::last: true
+parameters:output::residual: true
+parameters:output::statistics: history
+parameters:problem::H1H1 beta: 0.5
+parameters:problem::H1H1 gamma: 0.5
+parameters:problem::H1L2 alpha: 0.5
+parameters:problem::H2L2 alpha: 0.5
+parameters:problem::H2L2 beta: 0.25
+parameters:problem::H2L2+L2H1 alpha: 0.5
+parameters:problem::H2L2+L2H1 beta: 0.25
+parameters:problem::H2L2+L2H1 gamma: 0.5
+parameters:problem::constants: 
+parameters:problem::epsilon: 1e-2
+parameters:problem::initial guess: 0.0
+parameters:problem::norm of codomain: L2L2
+parameters:problem::norm of domain: Coefficients
+parameters:problem::parameter a: 1.0
+parameters:problem::parameter c: 2.0
+parameters:problem::parameter nu: 0.0
+parameters:problem::parameter q: 2*if(norm{x|y|z} < 1.5, 2.0+abs(sin(t)), 0.0)
+parameters:problem::transform: Identity
+parameters:problem::type: q
+parameters:watchdog::discrepancy increasing: false
+parameters:watchdog::discrepancy slope min values: 40
+parameters:watchdog::discrepancy slope percentage: 0.25
+parameters:watchdog::discrepancy slope threshold: 0.0
+parameters:watchdog::discrepancy threshold: 10.0
+parameters:watchdog::maximum iteration count: 0
+REGINN::Saving exact parameter in ./step-0000/
+REGINN::Saving data in ./step-0000/
+REGINN::Saving current residual in ./step-0000/
+REGINN::Saving current estimate in ./step-0000/
+REGINN::i=0 : rdisc=0.572, rnorm=0.00 , rerr=1.00 
+REGINN::0.00 ≤ estimate ≤ 0.00
+REGINN::Solving linear problem using rtol=0.900 and max_iter=1
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.750, norm=65.2 
+REGINN:Gradient::Target discrepancy reached after 1 iteration.
+REGINN::i=1 : rdisc=0.431, rnorm=0.0730, rerr=0.978
+REGINN::-0.482 ≤ estimate ≤ 1.63
+REGINN::
+REGINN::Solving linear problem using rtol=0.900 and max_iter=2
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.813, norm=116. 
+REGINN:Gradient::Target discrepancy reached after 1 iteration.
+REGINN::i=2 : rdisc=0.336, rnorm=0.184, rerr=0.929
+REGINN::-0.976 ≤ estimate ≤ 4.67
+REGINN::
+REGINN::Solving linear problem using rtol=0.855 and max_iter=2
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.910, norm=37.3 
+REGINN:Gradient::k=2 : rdisc=0.837, norm=56.0 
+REGINN:Gradient::Target discrepancy reached after 2 iterations.
+REGINN::i=3 : rdisc=0.286, rnorm=0.231, rerr=0.906
+REGINN::-1.86 ≤ estimate ≤ 5.26
+REGINN::
+REGINN::Solving linear problem using rtol=0.812 and max_iter=3
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.925, norm=30.0 
+REGINN:Gradient::k=2 : rdisc=0.863, norm=45.1 
+REGINN:Gradient::k=3 : rdisc=0.810, norm=63.1 
+REGINN:Gradient::Target discrepancy reached after 3 iterations.
+REGINN::i=4 : rdisc=0.234, rnorm=0.285, rerr=0.882
+REGINN::-2.81 ≤ estimate ≤ 6.25
+REGINN::
+REGINN::Solving linear problem using rtol=0.772 and max_iter=5
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.915, norm=45.8 
+REGINN:Gradient::k=2 : rdisc=0.848, norm=49.9 
+REGINN:Gradient::k=3 : rdisc=0.793, norm=82.3 
+REGINN:Gradient::k=4 : rdisc=0.748, norm=87.1 
+REGINN:Gradient::Target discrepancy reached after 4 iterations.
+REGINN::i=5 : rdisc=0.179, rnorm=0.372, rerr=0.849
+REGINN::-3.41 ≤ estimate ≤ 7.79
+REGINN::
+REGINN::Solving linear problem using rtol=0.733 and max_iter=7
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.950, norm=25.1 
+REGINN:Gradient::k=2 : rdisc=0.907, norm=28.1 
+REGINN:Gradient::k=3 : rdisc=0.869, norm=47.4 
+REGINN:Gradient::k=4 : rdisc=0.836, norm=51.4 
+REGINN:Gradient::k=5 : rdisc=0.807, norm=67.4 
+REGINN:Gradient::k=6 : rdisc=0.781, norm=71.1 
+REGINN:Gradient::k=7 : rdisc=0.757, norm=84.9 
+REGINN:Gradient::Unsuccessful termination after 7 iterations!
+REGINN::Linear solver did not achieve desired discrepancy due to max_iter.
+REGINN::Saving current residual in ./step-0006/
+REGINN::Saving current estimate in ./step-0006/
+REGINN::i=6 : rdisc=0.137, rnorm=0.452, rerr=0.815
+REGINN::-3.48 ≤ estimate ≤ 8.77
+REGINN::
+REGINN::Solving linear problem using rtol=0.696 and max_iter=11
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.975, norm=8.49 
+REGINN:Gradient::k=2 : rdisc=0.951, norm=13.6 
+REGINN:Gradient::k=3 : rdisc=0.930, norm=19.3 
+REGINN:Gradient::k=4 : rdisc=0.910, norm=26.0 
+REGINN:Gradient::k=5 : rdisc=0.891, norm=30.8 
+REGINN:Gradient::k=6 : rdisc=0.873, norm=37.2 
+REGINN:Gradient::k=7 : rdisc=0.857, norm=41.5 
+REGINN:Gradient::k=8 : rdisc=0.841, norm=47.7 
+REGINN:Gradient::k=9 : rdisc=0.826, norm=51.6 
+REGINN:Gradient::k=10: rdisc=0.812, norm=57.4 
+REGINN:Gradient::k=11: rdisc=0.798, norm=60.9 
+REGINN:Gradient::Unsuccessful termination after 11 iterations!
+REGINN::Linear solver did not achieve desired discrepancy due to max_iter.
+REGINN::i=7 : rdisc=0.110, rnorm=0.501, rerr=0.790
+REGINN::-3.42 ≤ estimate ≤ 9.41
+REGINN::
+REGINN::Solving linear problem using rtol=0.807 and max_iter=18
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.957, norm=21.5 
+REGINN:Gradient::k=2 : rdisc=0.921, norm=22.6 
+REGINN:Gradient::k=3 : rdisc=0.890, norm=38.7 
+REGINN:Gradient::k=4 : rdisc=0.862, norm=40.3 
+REGINN:Gradient::k=5 : rdisc=0.837, norm=53.1 
+REGINN:Gradient::k=6 : rdisc=0.815, norm=54.6 
+REGINN:Gradient::k=7 : rdisc=0.795, norm=65.2 
+REGINN:Gradient::Target discrepancy reached after 7 iterations.
+REGINN::i=8 : rdisc=0.0888, rnorm=0.547, rerr=0.764
+REGINN::-2.92 ≤ estimate ≤ 9.88
+REGINN::
+REGINN::Solving linear problem using rtol=0.766 and max_iter=18
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.978, norm=4.69 
+REGINN:Gradient::k=2 : rdisc=0.958, norm=10.2 
+REGINN:Gradient::k=3 : rdisc=0.940, norm=12.7 
+REGINN:Gradient::k=4 : rdisc=0.922, norm=19.4 
+REGINN:Gradient::k=5 : rdisc=0.905, norm=21.6 
+REGINN:Gradient::k=6 : rdisc=0.888, norm=28.2 
+REGINN:Gradient::k=7 : rdisc=0.872, norm=30.2 
+REGINN:Gradient::k=8 : rdisc=0.857, norm=36.6 
+REGINN:Gradient::k=9 : rdisc=0.842, norm=38.3 
+REGINN:Gradient::k=10: rdisc=0.827, norm=44.5 
+REGINN:Gradient::k=11: rdisc=0.813, norm=46.2 
+REGINN:Gradient::k=12: rdisc=0.800, norm=52.1 
+REGINN:Gradient::k=13: rdisc=0.787, norm=53.6 
+REGINN:Gradient::k=14: rdisc=0.774, norm=59.3 
+REGINN:Gradient::k=15: rdisc=0.761, norm=60.8 
+REGINN:Gradient::Target discrepancy reached after 15 iterations.
+REGINN::i=9 : rdisc=0.0689, rnorm=0.584, rerr=0.741
+REGINN::-2.50 ≤ estimate ≤ 10.2
+REGINN::
+REGINN::Solving linear problem using rtol=0.891 and max_iter=22
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.973, norm=11.0 
+REGINN:Gradient::k=2 : rdisc=0.948, norm=11.6 
+REGINN:Gradient::k=3 : rdisc=0.927, norm=19.4 
+REGINN:Gradient::k=4 : rdisc=0.909, norm=20.4 
+REGINN:Gradient::k=5 : rdisc=0.892, norm=26.7 
+REGINN:Gradient::k=6 : rdisc=0.876, norm=27.8 
+REGINN:Gradient::Target discrepancy reached after 6 iterations.
+REGINN::i=10: rdisc=0.0610, rnorm=0.601, rerr=0.732
+REGINN::-2.38 ≤ estimate ≤ 10.2
+REGINN::
+REGINN::Solving linear problem using rtol=0.846 and max_iter=21
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.988, norm=3.95 
+REGINN:Gradient::k=2 : rdisc=0.977, norm=4.73 
+REGINN:Gradient::k=3 : rdisc=0.966, norm=8.18 
+REGINN:Gradient::k=4 : rdisc=0.955, norm=9.28 
+REGINN:Gradient::k=5 : rdisc=0.944, norm=12.5 
+REGINN:Gradient::k=6 : rdisc=0.934, norm=13.7 
+REGINN:Gradient::k=7 : rdisc=0.923, norm=16.8 
+REGINN:Gradient::k=8 : rdisc=0.913, norm=18.0 
+REGINN:Gradient::k=9 : rdisc=0.903, norm=20.9 
+REGINN:Gradient::k=10: rdisc=0.894, norm=22.1 
+REGINN:Gradient::k=11: rdisc=0.884, norm=24.9 
+REGINN:Gradient::k=12: rdisc=0.875, norm=26.1 
+REGINN:Gradient::k=13: rdisc=0.866, norm=28.8 
+REGINN:Gradient::k=14: rdisc=0.857, norm=30.0 
+REGINN:Gradient::k=15: rdisc=0.849, norm=32.6 
+REGINN:Gradient::k=16: rdisc=0.840, norm=33.7 
+REGINN:Gradient::Target discrepancy reached after 16 iterations.
+REGINN::i=11: rdisc=0.0520, rnorm=0.621, rerr=0.722
+REGINN::-2.32 ≤ estimate ≤ 10.2
+REGINN::
+REGINN::Solving linear problem using rtol=0.942 and max_iter=22
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.991, norm=2.37 
+REGINN:Gradient::k=2 : rdisc=0.983, norm=3.26 
+REGINN:Gradient::k=3 : rdisc=0.974, norm=5.18 
+REGINN:Gradient::k=4 : rdisc=0.966, norm=6.42 
+REGINN:Gradient::k=5 : rdisc=0.958, norm=8.20 
+REGINN:Gradient::k=6 : rdisc=0.950, norm=9.50 
+REGINN:Gradient::k=7 : rdisc=0.942, norm=11.2 
+REGINN:Gradient::Target discrepancy reached after 7 iterations.
+REGINN::i=12: rdisc=0.0491, rnorm=0.628, rerr=0.719
+REGINN::-2.32 ≤ estimate ≤ 10.2
+REGINN::
+REGINN::Solving linear problem using rtol=0.895 and max_iter=23
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.991, norm=2.74 
+REGINN:Gradient::k=2 : rdisc=0.982, norm=3.35 
+REGINN:Gradient::k=3 : rdisc=0.973, norm=5.73 
+REGINN:Gradient::k=4 : rdisc=0.964, norm=6.60 
+REGINN:Gradient::k=5 : rdisc=0.956, norm=8.84 
+REGINN:Gradient::k=6 : rdisc=0.947, norm=9.75 
+REGINN:Gradient::k=7 : rdisc=0.939, norm=11.9 
+REGINN:Gradient::k=8 : rdisc=0.931, norm=12.8 
+REGINN:Gradient::k=9 : rdisc=0.923, norm=14.9 
+REGINN:Gradient::k=10: rdisc=0.915, norm=15.8 
+REGINN:Gradient::k=11: rdisc=0.908, norm=17.8 
+REGINN:Gradient::k=12: rdisc=0.900, norm=18.7 
+REGINN:Gradient::k=13: rdisc=0.893, norm=20.6 
+REGINN:Gradient::Target discrepancy reached after 13 iterations.
+REGINN::i=13: rdisc=0.0443, rnorm=0.641, rerr=0.713
+REGINN::-2.30 ≤ estimate ≤ 10.2
+REGINN::
+REGINN::Solving linear problem using rtol=0.944 and max_iter=20
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.992, norm=1.67 
+REGINN:Gradient::k=2 : rdisc=0.984, norm=2.75 
+REGINN:Gradient::k=3 : rdisc=0.977, norm=3.96 
+REGINN:Gradient::k=4 : rdisc=0.969, norm=5.42 
+REGINN:Gradient::k=5 : rdisc=0.962, norm=6.51 
+REGINN:Gradient::k=6 : rdisc=0.955, norm=8.03 
+REGINN:Gradient::k=7 : rdisc=0.948, norm=9.05 
+REGINN:Gradient::k=8 : rdisc=0.941, norm=10.6 
+REGINN:Gradient::Target discrepancy reached after 8 iterations.
+REGINN::i=14: rdisc=0.0419, rnorm=0.648, rerr=0.710
+REGINN::-2.30 ≤ estimate ≤ 10.1
+REGINN::
+REGINN::Solving linear problem using rtol=0.896 and max_iter=21
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.992, norm=1.52 
+REGINN:Gradient::k=2 : rdisc=0.985, norm=2.62 
+REGINN:Gradient::k=3 : rdisc=0.978, norm=3.67 
+REGINN:Gradient::k=4 : rdisc=0.970, norm=5.16 
+REGINN:Gradient::k=5 : rdisc=0.963, norm=6.11 
+REGINN:Gradient::k=6 : rdisc=0.956, norm=7.63 
+REGINN:Gradient::k=7 : rdisc=0.950, norm=8.52 
+REGINN:Gradient::k=8 : rdisc=0.943, norm=10.0 
+REGINN:Gradient::k=9 : rdisc=0.936, norm=10.9 
+REGINN:Gradient::k=10: rdisc=0.930, norm=12.4 
+REGINN:Gradient::k=11: rdisc=0.924, norm=13.2 
+REGINN:Gradient::k=12: rdisc=0.917, norm=14.7 
+REGINN:Gradient::k=13: rdisc=0.911, norm=15.5 
+REGINN:Gradient::k=14: rdisc=0.905, norm=16.9 
+REGINN:Gradient::k=15: rdisc=0.900, norm=17.7 
+REGINN:Gradient::k=16: rdisc=0.894, norm=19.1 
+REGINN:Gradient::Target discrepancy reached after 16 iterations.
+REGINN::i=15: rdisc=0.0378, rnorm=0.660, rerr=0.705
+REGINN::-2.33 ≤ estimate ≤ 10.3
+REGINN::
+REGINN::Solving linear problem using rtol=0.948 and max_iter=24
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.993, norm=1.28 
+REGINN:Gradient::k=2 : rdisc=0.986, norm=2.39 
+REGINN:Gradient::k=3 : rdisc=0.979, norm=3.23 
+REGINN:Gradient::k=4 : rdisc=0.972, norm=4.71 
+REGINN:Gradient::k=5 : rdisc=0.966, norm=5.45 
+REGINN:Gradient::k=6 : rdisc=0.960, norm=6.97 
+REGINN:Gradient::k=7 : rdisc=0.953, norm=7.66 
+REGINN:Gradient::k=8 : rdisc=0.947, norm=9.16 
+REGINN:Gradient::Target discrepancy reached after 8 iterations.
+REGINN::i=16: rdisc=0.0360, rnorm=0.666, rerr=0.703
+REGINN::-2.36 ≤ estimate ≤ 10.4
+REGINN::
+REGINN::Solving linear problem using rtol=0.901 and max_iter=24
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.993, norm=1.17 
+REGINN:Gradient::k=2 : rdisc=0.987, norm=2.27 
+REGINN:Gradient::k=3 : rdisc=0.980, norm=3.02 
+REGINN:Gradient::k=4 : rdisc=0.974, norm=4.47 
+REGINN:Gradient::k=5 : rdisc=0.968, norm=5.13 
+REGINN:Gradient::k=6 : rdisc=0.962, norm=6.61 
+REGINN:Gradient::k=7 : rdisc=0.956, norm=7.23 
+REGINN:Gradient::k=8 : rdisc=0.950, norm=8.70 
+REGINN:Gradient::k=9 : rdisc=0.944, norm=9.29 
+REGINN:Gradient::k=10: rdisc=0.939, norm=10.7 
+REGINN:Gradient::k=11: rdisc=0.933, norm=11.3 
+REGINN:Gradient::k=12: rdisc=0.928, norm=12.7 
+REGINN:Gradient::k=13: rdisc=0.923, norm=13.3 
+REGINN:Gradient::k=14: rdisc=0.917, norm=14.7 
+REGINN:Gradient::k=15: rdisc=0.912, norm=15.2 
+REGINN:Gradient::k=16: rdisc=0.907, norm=16.5 
+REGINN:Gradient::k=17: rdisc=0.902, norm=17.1 
+REGINN:Gradient::k=18: rdisc=0.898, norm=18.4 
+REGINN:Gradient::Target discrepancy reached after 18 iterations.
+REGINN::Saving current residual in ./step-0017/
+REGINN::Saving current estimate in ./step-0017/
+REGINN::i=17: rdisc=0.0326, rnorm=0.677, rerr=0.698
+REGINN::-2.42 ≤ estimate ≤ 10.5
+REGINN::
+REGINN::Solving linear problem using rtol=0.956 and max_iter=26
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.994, norm=0.980
+REGINN:Gradient::k=2 : rdisc=0.988, norm=2.00 
+REGINN:Gradient::k=3 : rdisc=0.983, norm=2.60 
+REGINN:Gradient::k=4 : rdisc=0.977, norm=3.94 
+REGINN:Gradient::k=5 : rdisc=0.972, norm=4.46 
+REGINN:Gradient::k=6 : rdisc=0.967, norm=5.83 
+REGINN:Gradient::k=7 : rdisc=0.962, norm=6.31 
+REGINN:Gradient::k=8 : rdisc=0.957, norm=7.67 
+REGINN:Gradient::k=9 : rdisc=0.952, norm=8.13 
+REGINN:Gradient::Target discrepancy reached after 9 iterations.
+REGINN::i=18: rdisc=0.0312, rnorm=0.682, rerr=0.696
+REGINN::-2.47 ≤ estimate ≤ 10.5
+REGINN::
+REGINN::Solving linear problem using rtol=0.908 and max_iter=27
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.980, norm=6.74 
+REGINN:Gradient::k=2 : rdisc=0.962, norm=6.90 
+REGINN:Gradient::k=3 : rdisc=0.947, norm=12.0 
+REGINN:Gradient::k=4 : rdisc=0.934, norm=12.3 
+REGINN:Gradient::k=5 : rdisc=0.927, norm=14.3 
+REGINN:Gradient::k=6 : rdisc=0.922, norm=14.6 
+REGINN:Gradient::k=7 : rdisc=0.918, norm=15.6 
+REGINN:Gradient::k=8 : rdisc=0.915, norm=16.0 
+REGINN:Gradient::k=9 : rdisc=0.912, norm=16.9 
+REGINN:Gradient::k=10: rdisc=0.909, norm=17.3 
+REGINN:Gradient::k=11: rdisc=0.906, norm=18.2 
+REGINN:Gradient::Target discrepancy reached after 11 iterations.
+REGINN::i=19: rdisc=0.0285, rnorm=0.693, rerr=0.692
+REGINN::-2.54 ≤ estimate ≤ 10.5
+REGINN::
+REGINN::Solving linear problem using rtol=0.925 and max_iter=20
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.997, norm=0.683
+REGINN:Gradient::k=2 : rdisc=0.994, norm=1.17 
+REGINN:Gradient::k=3 : rdisc=0.991, norm=1.64 
+REGINN:Gradient::k=4 : rdisc=0.987, norm=2.30 
+REGINN:Gradient::k=5 : rdisc=0.985, norm=2.73 
+REGINN:Gradient::k=6 : rdisc=0.982, norm=3.41 
+REGINN:Gradient::k=7 : rdisc=0.979, norm=3.82 
+REGINN:Gradient::k=8 : rdisc=0.976, norm=4.51 
+REGINN:Gradient::k=9 : rdisc=0.973, norm=4.90 
+REGINN:Gradient::k=10: rdisc=0.970, norm=5.59 
+REGINN:Gradient::k=11: rdisc=0.967, norm=5.97 
+REGINN:Gradient::k=12: rdisc=0.965, norm=6.65 
+REGINN:Gradient::k=13: rdisc=0.962, norm=7.03 
+REGINN:Gradient::k=14: rdisc=0.959, norm=7.70 
+REGINN:Gradient::k=15: rdisc=0.957, norm=8.06 
+REGINN:Gradient::k=16: rdisc=0.954, norm=8.73 
+REGINN:Gradient::k=17: rdisc=0.952, norm=9.09 
+REGINN:Gradient::k=18: rdisc=0.949, norm=9.75 
+REGINN:Gradient::k=19: rdisc=0.947, norm=10.1 
+REGINN:Gradient::k=20: rdisc=0.944, norm=10.8 
+REGINN:Gradient::Unsuccessful termination after 20 iterations!
+REGINN::Linear solver did not achieve desired discrepancy due to max_iter.
+REGINN::i=20: rdisc=0.0271, rnorm=0.700, rerr=0.689
+REGINN::-2.59 ≤ estimate ≤ 10.4
+REGINN::
+REGINN::Solving linear problem using rtol=0.959 and max_iter=31
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.997, norm=0.589
+REGINN:Gradient::k=2 : rdisc=0.995, norm=1.01 
+REGINN:Gradient::k=3 : rdisc=0.992, norm=1.42 
+REGINN:Gradient::k=4 : rdisc=0.990, norm=2.00 
+REGINN:Gradient::k=5 : rdisc=0.987, norm=2.37 
+REGINN:Gradient::k=6 : rdisc=0.985, norm=2.97 
+REGINN:Gradient::k=7 : rdisc=0.982, norm=3.33 
+REGINN:Gradient::k=8 : rdisc=0.980, norm=3.93 
+REGINN:Gradient::k=9 : rdisc=0.977, norm=4.27 
+REGINN:Gradient::k=10: rdisc=0.975, norm=4.88 
+REGINN:Gradient::k=11: rdisc=0.973, norm=5.21 
+REGINN:Gradient::k=12: rdisc=0.970, norm=5.81 
+REGINN:Gradient::k=13: rdisc=0.968, norm=6.14 
+REGINN:Gradient::k=14: rdisc=0.966, norm=6.73 
+REGINN:Gradient::k=15: rdisc=0.964, norm=7.05 
+REGINN:Gradient::k=16: rdisc=0.961, norm=7.64 
+REGINN:Gradient::k=17: rdisc=0.959, norm=7.96 
+REGINN:Gradient::k=18: rdisc=0.957, norm=8.54 
+REGINN:Gradient::Target discrepancy reached after 18 iterations.
+REGINN::i=21: rdisc=0.0260, rnorm=0.704, rerr=0.687
+REGINN::-2.62 ≤ estimate ≤ 10.4
+REGINN::
+REGINN::Solving linear problem using rtol=0.911 and max_iter=38
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.998, norm=0.525
+REGINN:Gradient::k=2 : rdisc=0.995, norm=0.895
+REGINN:Gradient::k=3 : rdisc=0.993, norm=1.27 
+REGINN:Gradient::k=4 : rdisc=0.991, norm=1.77 
+REGINN:Gradient::k=5 : rdisc=0.989, norm=2.11 
+REGINN:Gradient::k=6 : rdisc=0.987, norm=2.64 
+REGINN:Gradient::k=7 : rdisc=0.985, norm=2.96 
+REGINN:Gradient::k=8 : rdisc=0.983, norm=3.50 
+REGINN:Gradient::k=9 : rdisc=0.981, norm=3.81 
+REGINN:Gradient::k=10: rdisc=0.978, norm=4.34 
+REGINN:Gradient::k=11: rdisc=0.976, norm=4.64 
+REGINN:Gradient::k=12: rdisc=0.974, norm=5.18 
+REGINN:Gradient::k=13: rdisc=0.972, norm=5.47 
+REGINN:Gradient::k=14: rdisc=0.971, norm=6.00 
+REGINN:Gradient::k=15: rdisc=0.969, norm=6.29 
+REGINN:Gradient::k=16: rdisc=0.967, norm=6.82 
+REGINN:Gradient::k=17: rdisc=0.965, norm=7.11 
+REGINN:Gradient::k=18: rdisc=0.963, norm=7.63 
+REGINN:Gradient::k=19: rdisc=0.961, norm=7.91 
+REGINN:Gradient::k=20: rdisc=0.959, norm=8.42 
+REGINN:Gradient::k=21: rdisc=0.957, norm=8.70 
+REGINN:Gradient::k=22: rdisc=0.955, norm=9.21 
+REGINN:Gradient::k=23: rdisc=0.954, norm=9.49 
+REGINN:Gradient::k=24: rdisc=0.952, norm=9.99 
+REGINN:Gradient::k=25: rdisc=0.950, norm=10.3 
+REGINN:Gradient::k=26: rdisc=0.948, norm=10.8 
+REGINN:Gradient::k=27: rdisc=0.947, norm=11.0 
+REGINN:Gradient::k=28: rdisc=0.945, norm=11.5 
+REGINN:Gradient::k=29: rdisc=0.943, norm=11.8 
+REGINN:Gradient::k=30: rdisc=0.941, norm=12.3 
+REGINN:Gradient::k=31: rdisc=0.940, norm=12.5 
+REGINN:Gradient::k=32: rdisc=0.938, norm=13.0 
+REGINN:Gradient::k=33: rdisc=0.936, norm=13.3 
+REGINN:Gradient::k=34: rdisc=0.935, norm=13.8 
+REGINN:Gradient::k=35: rdisc=0.933, norm=14.0 
+REGINN:Gradient::k=36: rdisc=0.932, norm=14.5 
+REGINN:Gradient::k=37: rdisc=0.930, norm=14.7 
+REGINN:Gradient::k=38: rdisc=0.928, norm=15.2 
+REGINN:Gradient::Unsuccessful termination after 38 iterations!
+REGINN::Linear solver did not achieve desired discrepancy due to max_iter.
+REGINN::i=22: rdisc=0.0243, rnorm=0.712, rerr=0.683
+REGINN::-2.68 ≤ estimate ≤ 10.2
+REGINN::
+REGINN::Solving linear problem using rtol=0.958 and max_iter=56
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.998, norm=0.444
+REGINN:Gradient::k=2 : rdisc=0.997, norm=0.716
+REGINN:Gradient::k=3 : rdisc=0.995, norm=1.03 
+REGINN:Gradient::k=4 : rdisc=0.993, norm=1.41 
+REGINN:Gradient::k=5 : rdisc=0.992, norm=1.70 
+REGINN:Gradient::k=6 : rdisc=0.990, norm=2.09 
+REGINN:Gradient::k=7 : rdisc=0.988, norm=2.37 
+REGINN:Gradient::k=8 : rdisc=0.987, norm=2.77 
+REGINN:Gradient::k=9 : rdisc=0.985, norm=3.04 
+REGINN:Gradient::k=10: rdisc=0.984, norm=3.45 
+REGINN:Gradient::k=11: rdisc=0.982, norm=3.71 
+REGINN:Gradient::k=12: rdisc=0.981, norm=4.11 
+REGINN:Gradient::k=13: rdisc=0.979, norm=4.37 
+REGINN:Gradient::k=14: rdisc=0.978, norm=4.77 
+REGINN:Gradient::k=15: rdisc=0.976, norm=5.03 
+REGINN:Gradient::k=16: rdisc=0.975, norm=5.43 
+REGINN:Gradient::k=17: rdisc=0.973, norm=5.68 
+REGINN:Gradient::k=18: rdisc=0.972, norm=6.08 
+REGINN:Gradient::k=19: rdisc=0.970, norm=6.33 
+REGINN:Gradient::k=20: rdisc=0.969, norm=6.72 
+REGINN:Gradient::k=21: rdisc=0.968, norm=6.97 
+REGINN:Gradient::k=22: rdisc=0.966, norm=7.36 
+REGINN:Gradient::k=23: rdisc=0.965, norm=7.60 
+REGINN:Gradient::k=24: rdisc=0.963, norm=7.99 
+REGINN:Gradient::k=25: rdisc=0.962, norm=8.23 
+REGINN:Gradient::k=26: rdisc=0.961, norm=8.62 
+REGINN:Gradient::k=27: rdisc=0.959, norm=8.86 
+REGINN:Gradient::k=28: rdisc=0.958, norm=9.24 
+REGINN:Gradient::k=29: rdisc=0.957, norm=9.48 
+REGINN:Gradient::Target discrepancy reached after 29 iterations.
+REGINN::i=23: rdisc=0.0234, rnorm=0.717, rerr=0.680
+REGINN::-2.72 ≤ estimate ≤ 10.1
+REGINN::
+REGINN::Solving linear problem using rtol=0.910 and max_iter=67
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.998, norm=0.707
+REGINN:Gradient::k=2 : rdisc=0.996, norm=0.808
+REGINN:Gradient::k=3 : rdisc=0.995, norm=1.43 
+REGINN:Gradient::k=4 : rdisc=0.993, norm=1.58 
+REGINN:Gradient::k=5 : rdisc=0.991, norm=2.19 
+REGINN:Gradient::k=6 : rdisc=0.989, norm=2.35 
+REGINN:Gradient::k=7 : rdisc=0.988, norm=2.94 
+REGINN:Gradient::k=8 : rdisc=0.986, norm=3.11 
+REGINN:Gradient::k=9 : rdisc=0.984, norm=3.69 
+REGINN:Gradient::k=10: rdisc=0.983, norm=3.86 
+REGINN:Gradient::k=11: rdisc=0.981, norm=4.43 
+REGINN:Gradient::k=12: rdisc=0.980, norm=4.60 
+REGINN:Gradient::k=13: rdisc=0.978, norm=5.17 
+REGINN:Gradient::k=14: rdisc=0.976, norm=5.34 
+REGINN:Gradient::k=15: rdisc=0.975, norm=5.90 
+REGINN:Gradient::k=16: rdisc=0.973, norm=6.07 
+REGINN:Gradient::k=17: rdisc=0.972, norm=6.63 
+REGINN:Gradient::k=18: rdisc=0.970, norm=6.80 
+REGINN:Gradient::k=19: rdisc=0.969, norm=7.34 
+REGINN:Gradient::k=20: rdisc=0.967, norm=7.51 
+REGINN:Gradient::k=21: rdisc=0.966, norm=8.05 
+REGINN:Gradient::k=22: rdisc=0.964, norm=8.22 
+REGINN:Gradient::k=23: rdisc=0.963, norm=8.76 
+REGINN:Gradient::k=24: rdisc=0.961, norm=8.92 
+REGINN:Gradient::k=25: rdisc=0.960, norm=9.46 
+REGINN:Gradient::k=26: rdisc=0.958, norm=9.62 
+REGINN:Gradient::k=27: rdisc=0.957, norm=10.1 
+REGINN:Gradient::k=28: rdisc=0.955, norm=10.3 
+REGINN:Gradient::k=29: rdisc=0.954, norm=10.8 
+REGINN:Gradient::k=30: rdisc=0.952, norm=11.0 
+REGINN:Gradient::k=31: rdisc=0.951, norm=11.5 
+REGINN:Gradient::k=32: rdisc=0.950, norm=11.7 
+REGINN:Gradient::k=33: rdisc=0.948, norm=12.2 
+REGINN:Gradient::k=34: rdisc=0.947, norm=12.3 
+REGINN:Gradient::k=35: rdisc=0.946, norm=12.9 
+REGINN:Gradient::k=36: rdisc=0.944, norm=13.0 
+REGINN:Gradient::k=37: rdisc=0.943, norm=13.5 
+REGINN:Gradient::k=38: rdisc=0.942, norm=13.7 
+REGINN:Gradient::k=39: rdisc=0.940, norm=14.2 
+REGINN:Gradient::k=40: rdisc=0.939, norm=14.3 
+REGINN:Gradient::k=41: rdisc=0.938, norm=14.8 
+REGINN:Gradient::k=42: rdisc=0.936, norm=15.0 
+REGINN:Gradient::k=43: rdisc=0.935, norm=15.5 
+REGINN:Gradient::k=44: rdisc=0.934, norm=15.6 
+REGINN:Gradient::k=45: rdisc=0.932, norm=16.1 
+REGINN:Gradient::k=46: rdisc=0.931, norm=16.3 
+REGINN:Gradient::k=47: rdisc=0.930, norm=16.7 
+REGINN:Gradient::k=48: rdisc=0.929, norm=16.9 
+REGINN:Gradient::k=49: rdisc=0.927, norm=17.4 
+REGINN:Gradient::k=50: rdisc=0.926, norm=17.5 
+REGINN:Gradient::k=51: rdisc=0.925, norm=18.0 
+REGINN:Gradient::k=52: rdisc=0.924, norm=18.1 
+REGINN:Gradient::k=53: rdisc=0.923, norm=18.6 
+REGINN:Gradient::k=54: rdisc=0.921, norm=18.8 
+REGINN:Gradient::k=55: rdisc=0.920, norm=19.2 
+REGINN:Gradient::k=56: rdisc=0.919, norm=19.4 
+REGINN:Gradient::k=57: rdisc=0.918, norm=19.8 
+REGINN:Gradient::k=58: rdisc=0.917, norm=20.0 
+REGINN:Gradient::k=59: rdisc=0.916, norm=20.4 
+REGINN:Gradient::k=60: rdisc=0.914, norm=20.6 
+REGINN:Gradient::k=61: rdisc=0.913, norm=21.0 
+REGINN:Gradient::k=62: rdisc=0.912, norm=21.2 
+REGINN:Gradient::k=63: rdisc=0.911, norm=21.6 
+REGINN:Gradient::k=64: rdisc=0.910, norm=21.8 
+REGINN:Gradient::k=65: rdisc=0.909, norm=22.2 
+REGINN:Gradient::Target discrepancy reached after 65 iterations.
+REGINN::i=24: rdisc=0.0214, rnorm=0.726, rerr=0.673
+REGINN::-2.76 ≤ estimate ≤ 9.81
+REGINN::
+REGINN::Solving linear problem using rtol=0.960 and max_iter=94
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.999, norm=0.342
+REGINN:Gradient::k=2 : rdisc=0.998, norm=0.499
+REGINN:Gradient::k=3 : rdisc=0.997, norm=0.738
+REGINN:Gradient::k=4 : rdisc=0.996, norm=0.952
+REGINN:Gradient::k=5 : rdisc=0.995, norm=1.17 
+REGINN:Gradient::k=6 : rdisc=0.994, norm=1.40 
+REGINN:Gradient::k=7 : rdisc=0.993, norm=1.61 
+REGINN:Gradient::k=8 : rdisc=0.992, norm=1.85 
+REGINN:Gradient::k=9 : rdisc=0.991, norm=2.06 
+REGINN:Gradient::k=10: rdisc=0.990, norm=2.30 
+REGINN:Gradient::k=11: rdisc=0.989, norm=2.50 
+REGINN:Gradient::k=12: rdisc=0.988, norm=2.74 
+REGINN:Gradient::k=13: rdisc=0.987, norm=2.94 
+REGINN:Gradient::k=14: rdisc=0.986, norm=3.18 
+REGINN:Gradient::k=15: rdisc=0.986, norm=3.38 
+REGINN:Gradient::k=16: rdisc=0.985, norm=3.62 
+REGINN:Gradient::k=17: rdisc=0.984, norm=3.81 
+REGINN:Gradient::k=18: rdisc=0.983, norm=4.05 
+REGINN:Gradient::k=19: rdisc=0.982, norm=4.25 
+REGINN:Gradient::k=20: rdisc=0.981, norm=4.49 
+REGINN:Gradient::k=21: rdisc=0.980, norm=4.68 
+REGINN:Gradient::k=22: rdisc=0.979, norm=4.92 
+REGINN:Gradient::k=23: rdisc=0.979, norm=5.11 
+REGINN:Gradient::k=24: rdisc=0.978, norm=5.35 
+REGINN:Gradient::k=25: rdisc=0.977, norm=5.54 
+REGINN:Gradient::k=26: rdisc=0.976, norm=5.78 
+REGINN:Gradient::k=27: rdisc=0.975, norm=5.97 
+REGINN:Gradient::k=28: rdisc=0.974, norm=6.20 
+REGINN:Gradient::k=29: rdisc=0.973, norm=6.39 
+REGINN:Gradient::k=30: rdisc=0.973, norm=6.63 
+REGINN:Gradient::k=31: rdisc=0.972, norm=6.81 
+REGINN:Gradient::k=32: rdisc=0.971, norm=7.05 
+REGINN:Gradient::k=33: rdisc=0.970, norm=7.23 
+REGINN:Gradient::k=34: rdisc=0.969, norm=7.47 
+REGINN:Gradient::k=35: rdisc=0.968, norm=7.65 
+REGINN:Gradient::k=36: rdisc=0.968, norm=7.88 
+REGINN:Gradient::k=37: rdisc=0.967, norm=8.07 
+REGINN:Gradient::k=38: rdisc=0.966, norm=8.30 
+REGINN:Gradient::k=39: rdisc=0.965, norm=8.48 
+REGINN:Gradient::k=40: rdisc=0.964, norm=8.71 
+REGINN:Gradient::k=41: rdisc=0.964, norm=8.89 
+REGINN:Gradient::k=42: rdisc=0.963, norm=9.12 
+REGINN:Gradient::k=43: rdisc=0.962, norm=9.30 
+REGINN:Gradient::k=44: rdisc=0.961, norm=9.53 
+REGINN:Gradient::k=45: rdisc=0.960, norm=9.71 
+REGINN:Gradient::k=46: rdisc=0.960, norm=9.94 
+REGINN:Gradient::Target discrepancy reached after 46 iterations.
+REGINN::i=25: rdisc=0.0207, rnorm=0.730, rerr=0.670
+REGINN::-2.85 ≤ estimate ≤ 9.72
+REGINN::
+REGINN::Solving linear problem using rtol=0.968 and max_iter=111
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.999, norm=0.285
+REGINN:Gradient::k=2 : rdisc=0.998, norm=0.419
+REGINN:Gradient::k=3 : rdisc=0.997, norm=0.636
+REGINN:Gradient::k=4 : rdisc=0.997, norm=0.824
+REGINN:Gradient::k=5 : rdisc=0.996, norm=1.03 
+REGINN:Gradient::k=6 : rdisc=0.995, norm=1.23 
+REGINN:Gradient::k=7 : rdisc=0.994, norm=1.42 
+REGINN:Gradient::k=8 : rdisc=0.993, norm=1.63 
+REGINN:Gradient::k=9 : rdisc=0.993, norm=1.82 
+REGINN:Gradient::k=10: rdisc=0.992, norm=2.02 
+REGINN:Gradient::k=11: rdisc=0.991, norm=2.21 
+REGINN:Gradient::k=12: rdisc=0.990, norm=2.42 
+REGINN:Gradient::k=13: rdisc=0.989, norm=2.61 
+REGINN:Gradient::k=14: rdisc=0.989, norm=2.82 
+REGINN:Gradient::k=15: rdisc=0.988, norm=3.00 
+REGINN:Gradient::k=16: rdisc=0.987, norm=3.21 
+REGINN:Gradient::k=17: rdisc=0.986, norm=3.39 
+REGINN:Gradient::k=18: rdisc=0.986, norm=3.60 
+REGINN:Gradient::k=19: rdisc=0.985, norm=3.78 
+REGINN:Gradient::k=20: rdisc=0.984, norm=3.99 
+REGINN:Gradient::k=21: rdisc=0.983, norm=4.17 
+REGINN:Gradient::k=22: rdisc=0.983, norm=4.38 
+REGINN:Gradient::k=23: rdisc=0.982, norm=4.56 
+REGINN:Gradient::k=24: rdisc=0.981, norm=4.76 
+REGINN:Gradient::k=25: rdisc=0.980, norm=4.94 
+REGINN:Gradient::k=26: rdisc=0.980, norm=5.15 
+REGINN:Gradient::k=27: rdisc=0.979, norm=5.32 
+REGINN:Gradient::k=28: rdisc=0.978, norm=5.53 
+REGINN:Gradient::k=29: rdisc=0.977, norm=5.71 
+REGINN:Gradient::k=30: rdisc=0.977, norm=5.91 
+REGINN:Gradient::k=31: rdisc=0.976, norm=6.09 
+REGINN:Gradient::k=32: rdisc=0.975, norm=6.29 
+REGINN:Gradient::k=33: rdisc=0.975, norm=6.46 
+REGINN:Gradient::k=34: rdisc=0.974, norm=6.67 
+REGINN:Gradient::k=35: rdisc=0.973, norm=6.84 
+REGINN:Gradient::k=36: rdisc=0.972, norm=7.05 
+REGINN:Gradient::k=37: rdisc=0.972, norm=7.22 
+REGINN:Gradient::k=38: rdisc=0.971, norm=7.42 
+REGINN:Gradient::k=39: rdisc=0.970, norm=7.59 
+REGINN:Gradient::k=40: rdisc=0.970, norm=7.79 
+REGINN:Gradient::k=41: rdisc=0.969, norm=7.96 
+REGINN:Gradient::k=42: rdisc=0.968, norm=8.16 
+REGINN:Gradient::k=43: rdisc=0.967, norm=8.33 
+REGINN:Gradient::Target discrepancy reached after 43 iterations.
+REGINN::i=26: rdisc=0.0201, rnorm=0.733, rerr=0.668
+REGINN::-2.91 ≤ estimate ≤ 9.64
+REGINN::
+REGINN::Solving linear problem using rtol=0.997 and max_iter=89
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.999, norm=0.386
+REGINN:Gradient::k=2 : rdisc=0.998, norm=0.455
+REGINN:Gradient::k=3 : rdisc=0.997, norm=0.792
+REGINN:Gradient::k=4 : rdisc=0.996, norm=0.895
+REGINN:Gradient::Target discrepancy reached after 4 iterations.
+REGINN::i=27: rdisc=0.0200, rnorm=0.733, rerr=0.667
+REGINN::-2.92 ≤ estimate ≤ 9.63
+REGINN::
+REGINN::Saving current residual in ./step-0027/
+REGINN::Saving current estimate in ./step-0027/
+REGINN::Target discrepancy reached after 27 iterations.
+REGINN::-2.92 ≤ estimate ≤ 9.63
+Relative (ℝⁿ, ‖·‖₂) error of the reconstruction: 0.667
+Relative L²([0,T], L²(Ω)) error of the reconstruction: 0.626
+Relative H¹([0,T], L²(Ω)) error of the reconstruction: 1.22
+Relative H¹([0, T], H¹(Ω)) error of the reconstruction: 2.96
+Relative H²([0,T], L²(Ω)) error of the reconstruction: 3.91
+Relative (ℝⁿ, ‖·‖₂) error of (reconstruction - initial guess): 0.667
+Relative L²([0,T], L²(Ω)) error of (reconstruction - initial guess): 0.626
+Relative H¹([0,T], L²(Ω)) error of (reconstruction - initial guess): 1.22
+Relative H¹([0, T], H¹(Ω)) error of (reconstruction - initial guess): 2.96
+Relative H²([0,T], L²(Ω)) error of (reconstruction - initial guess): 3.91
+stats::forward              : 29 calls, average 5.4s per call
+stats::linearization forward: 426 calls, average 5.0s per call
+stats::linearization adjoint: 426 calls, average 5.1s per call
+stats::measure forward      : 455 calls, average 1.5ms per call
+stats::measure adjoint      : 426 calls, average 1.3ms per call
+stats::total wall time      : 1h 16min 5s

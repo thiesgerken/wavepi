@@ -51,11 +51,14 @@ const std::string SettingsManager::KEY_MESH_SHAPE              = "shape";
 const std::string SettingsManager::KEY_MESH_SHAPE_GENERATOR    = "generator name";
 const std::string SettingsManager::KEY_MESH_SHAPE_OPTIONS      = "options";
 
-const std::string SettingsManager::KEY_PROBLEM                        = "problem";
-const std::string SettingsManager::KEY_PROBLEM_TYPE                   = "type";
-const std::string SettingsManager::KEY_PROBLEM_TRANSFORM              = "transform";
-const std::string SettingsManager::KEY_PROBLEM_NORM_DOMAIN            = "norm of domain";
-const std::string SettingsManager::KEY_PROBLEM_NORM_CODOMAIN          = "norm of codomain";
+const std::string SettingsManager::KEY_PROBLEM                      = "problem";
+const std::string SettingsManager::KEY_PROBLEM_TYPE                 = "type";
+const std::string SettingsManager::KEY_PROBLEM_TRANSFORM            = "transform";
+const std::string SettingsManager::KEY_PROBLEM_NORM_DOMAIN          = "norm of domain";
+const std::string SettingsManager::KEY_PROBLEM_NORM_CODOMAIN        = "norm of codomain";
+const std::string SettingsManager::KEY_PROBLEM_NORM_DOMAIN_P_ENABLE = "domain lp wrapping";
+const std::string SettingsManager::KEY_PROBLEM_NORM_DOMAIN_P        = "domain p";
+
 const std::string SettingsManager::KEY_PROBLEM_NORM_H1L2ALPHA         = "H1L2 alpha";
 const std::string SettingsManager::KEY_PROBLEM_NORM_H2L2ALPHA         = "H2L2 alpha";
 const std::string SettingsManager::KEY_PROBLEM_NORM_H2L2BETA          = "H2L2 beta";
@@ -154,6 +157,11 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
                        "Set the norm to use for fields. Be aware that this has "
                        "to match the norm that the measurements expect its "
                        "inputs to have.");
+
+    prm->declare_entry(KEY_PROBLEM_NORM_DOMAIN_P, "2.0", Patterns::Double(1),
+                       "index p for the l^p-norm. See also " + KEY_PROBLEM_NORM_DOMAIN_P_ENABLE + ".");
+    prm->declare_entry(KEY_PROBLEM_NORM_DOMAIN_P_ENABLE, "false", Patterns::Bool(),
+                       "Wrap the norm of the parameter space inside a l^p-norm");
 
     prm->declare_entry(KEY_PROBLEM_NORM_H1L2ALPHA, "0.5", Patterns::Double(0),
                        "Factor α in front of derivative term of H¹([0,T], L²(Ω)) dot product");
@@ -357,6 +365,9 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
       norm_codomain = NormType::vector;
     else
       AssertThrow(false, ExcMessage("Cannot parse norm of codomain"));
+
+    norm_domain_enable_wrapping = prm->get_bool(KEY_PROBLEM_NORM_DOMAIN_P_ENABLE);
+    norm_domain_p               = prm->get_double(KEY_PROBLEM_NORM_DOMAIN_P);
 
     norm_h1l2_alpha = prm->get_double(KEY_PROBLEM_NORM_H1L2ALPHA);
 

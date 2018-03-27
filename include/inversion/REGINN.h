@@ -69,6 +69,7 @@ class REGINN : public NewtonRegularization<Param, Sol, Exact> {
       FibonacciMaxIterChoice::declare_parameters(prm);
       ConstantMaxIterChoice::declare_parameters(prm);
       Landweber<Param, Sol, Exact>::declare_parameters(prm);
+      GradientDescent<Param, Sol, Exact>::declare_parameters(prm);
       ConjugateGradients<Param, Sol, Exact>::declare_parameters(prm);
       InnerStatOutputProgressListener<Param, Sol, Exact>::declare_parameters(prm);
       WatchdogProgressListener<Param, Sol, Exact>::declare_parameters(prm, true, "linear watchdog", true);
@@ -84,7 +85,7 @@ class REGINN : public NewtonRegularization<Param, Sol, Exact> {
       if (slinear_solver == "ConjugateGradients")
         linear_solver = std::make_shared<ConjugateGradients<Param, Sol, Exact>>(prm);
       else if (slinear_solver == "GradientDescent")
-        linear_solver = std::make_shared<GradientDescent<Param, Sol, Exact>>();
+        linear_solver = std::make_shared<GradientDescent<Param, Sol, Exact>>(prm);
       else if (slinear_solver == "Landweber")
         linear_solver = std::make_shared<Landweber<Param, Sol, Exact>>(prm);
       else

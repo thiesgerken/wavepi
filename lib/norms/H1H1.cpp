@@ -273,11 +273,6 @@ void H1H1<dim>::dot_mult_mass_and_transform_inverse(DiscretizedFunction<dim>& u)
 }
 
 template <int dim>
-bool H1H1<dim>::hilbert() const {
-  return true;
-}
-
-template <int dim>
 std::string H1H1<dim>::name() const {
   return "H¹([0, T], H¹(Ω))";
 }

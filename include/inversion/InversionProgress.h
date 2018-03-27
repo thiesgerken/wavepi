@@ -641,7 +641,7 @@ class InnerStatOutputProgressListener : public StatOutputProgressListener<Param,
   static void declare_parameters(ParameterHandler& prm) {
     prm.enter_subsection("inner output");
     {
-      prm.declare_entry("interval", "10", Patterns::Integer(0),
+      prm.declare_entry("interval", "0", Patterns::Integer(0),
                         "output stats of inner iteration every n outer iterations, or never if n == 0.");
 
       prm.declare_entry("destination", "./step-{{i}}/", Patterns::DirectoryName(),
@@ -798,9 +798,11 @@ class WatchdogProgressListener : public InversionProgressListener<Param, Sol, Ex
       slope /= var_i;
       double b = avg_disc - slope * avg_i;
 
-      auto prev_prec = deallog.precision(1);
-      deallog << "disc(i) ~ " << slope << " ⋅ i + " << b << " (computed over " << n_discs << " entries)" << std::endl;
-      deallog.precision(prev_prec);
+      if (slope > 0.0 || slope > disc_max_slope) {
+        auto prev_prec = deallog.precision(1);
+        deallog << "disc(i) ~ " << slope << " ⋅ i + " << b << " (computed over " << n_discs << " entries)" << std::endl;
+        deallog.precision(prev_prec);
+      }
 
       if (slope > disc_max_slope) {
         deallog << "slope is too large; Aborting Iteration!" << std::endl;

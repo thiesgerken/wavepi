@@ -381,6 +381,10 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
       return result;
     }
 
+    /**
+     * calculates the hilbert space adjoint (dual space of X identified with itself) or the banach space adjoint (Y ->
+     * X*) w.r.t. the standard dot product (matrix transpose).
+     */
     virtual DiscretizedFunction<dim> adjoint(const Tuple<Measurement> &g) {
       LogStream::Prefix p("lin_adjoint");
       Timer adj_timer;
@@ -424,12 +428,6 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
       comm_timer.stop();
 
       deallog << "rank " << rank << " exiting parallel section" << std::endl;
-
-      // dot_transform_inverse is linear, and the same operator for all adjoints
-      adj_timer.start();
-      result.dot_transform_inverse();
-      adj_timer.stop();
-
 #else
       for (size_t i = 0; i < measures.size(); i++) {
         adj_meas_timer.start();
@@ -442,21 +440,21 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
         result += sub_problems[i]->adjoint_notransform(am);
         adj_timer.stop();
 
-        // dot_transform_inverse is linear, and the same operator for all adjoints
-        result.dot_transform_inverse();
-
         // Norm checking for sub_problems[i]->adjoint(am)
         // not necessary, `+=` would fail.
       }
 #endif
 
-      // one application of dot_transform / dot_transform inverse could be omitted because the above adjoint-calls
-      // also need it. Problem: then the subproblems would need to be concerned about the transformation, right now they
-      // can just ignore this. Solution: instead of adjoint use transpose?
       if (!std::dynamic_pointer_cast<IdentityTransform<dim>, Transformation<dim>>(transform)) {
-        result.dot_transform();
         result = transform->inverse_derivative_transpose(*current_param_transformed, result);
+      }
+
+      // dot_transform_inverse is linear, and the same operator for all adjoints
+
+      if (result.get_norm()->hilbert()) {
+        adj_timer.start();
         result.dot_transform_inverse();
+        adj_timer.stop();
       }
 
       stats->calls_adjoint++;

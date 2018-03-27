@@ -51,11 +51,6 @@ void L2Coefficients<dim>::dot_mult_mass_and_transform_inverse(DiscretizedFunctio
 }
 
 template <int dim>
-bool L2Coefficients<dim>::hilbert() const {
-  return true;
-}
-
-template <int dim>
 std::string L2Coefficients<dim>::name() const {
   return "(ℝⁿ, ‖·‖₂)";
 }

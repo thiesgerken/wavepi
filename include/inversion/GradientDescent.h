@@ -26,12 +26,29 @@ class GradientDescent : public LinearRegularization<Param, Sol, Exact> {
  public:
   virtual ~GradientDescent() = default;
 
+  static void declare_parameters(ParameterHandler &prm) {
+    prm.enter_subsection("GradientDescent");
+    { prm.declare_entry("p", "2", Patterns::Double(1), "Use duality mappings with index p"); }
+    prm.leave_subsection();
+  }
+
+  void get_parameters(ParameterHandler &prm) {
+    prm.enter_subsection("GradientDescent");
+    { p = prm.get_double("p"); }
+    prm.leave_subsection();
+  }
+
+  GradientDescent(ParameterHandler &prm) { get_parameters(prm); }
+
   using Regularization<Param, Sol, Exact>::invert;
 
-  virtual Param invert(const Sol& data, double target_discrepancy, std::shared_ptr<Exact> exact_param,
+  virtual Param invert(const Sol &data, double target_discrepancy, std::shared_ptr<Exact> exact_param,
                        std::shared_ptr<InversionProgress<Param, Sol, Exact>> status_out) {
-    LogStream::Prefix p = LogStream::Prefix("Gradient");
+    LogStream::Prefix prefix = LogStream::Prefix("Gradient");
     AssertThrow(this->problem, ExcInternalError());
+
+    // possible, but currently not implemented.
+    // AssertThrow(data.hilbert(), ExcMessage("GradientDescent: Y is not a Hilbert space!"));
 
     Param estimate(this->problem->zero());
     Sol residual(data);
@@ -43,11 +60,18 @@ class GradientDescent : public LinearRegularization<Param, Sol, Exact> {
                                                 target_discrepancy, &data, norm_data, exact_param, false);
     this->progress(status);
 
+    // dual index to p to use in X
+    double q = p / (p - 1);
+
     for (int k = 1; discrepancy > target_discrepancy; k++) {
       Param step(this->problem->adjoint(residual));
+
+      double norm_step = step.norm_dual();
+      step.duality_mapping_dual(q);
+
       Sol Astep(this->problem->forward(step));
 
-      double omega = square(step.norm() / Astep.norm());
+      double omega = std::pow(norm_step, q) / square(Astep.norm());
 
       // deallog << "omega = " << omega << std::endl;
       estimate.add(omega, step);
@@ -71,6 +95,8 @@ class GradientDescent : public LinearRegularization<Param, Sol, Exact> {
   }
 
  private:
+  double p = 2.0;
+
   static inline double square(const double x) { return x * x; }
 };
 

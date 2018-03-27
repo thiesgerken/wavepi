@@ -701,6 +701,53 @@ double DiscretizedFunction<dim>::dot(const DiscretizedFunction<dim>& V) const {
 }
 
 template <int dim>
+void DiscretizedFunction<dim>::duality_mapping_lp(double p) {
+  AssertThrow(p > 1, ExcMessage("duality_mapping_lp: p has to be larger than 1!"));
+
+  for (size_t i = 0; i < mesh->length(); i++)
+    for (size_t j = 0; j < function_coefficients[i].size(); j++)
+      if (function_coefficients[i][j] != 0.0)
+        function_coefficients[i][j] =
+            std::pow(std::abs(function_coefficients[i][j]), p - 2) * function_coefficients[i][j];
+}
+
+template <int dim>
+void DiscretizedFunction<dim>::duality_mapping(double p) {
+  Assert(mesh && norm_, ExcNotInitialized());
+  Assert(!store_derivative, ExcInternalError());
+
+  norm_->duality_mapping(*this, p);
+}
+
+template <int dim>
+void DiscretizedFunction<dim>::duality_mapping_dual(double q) {
+  Assert(mesh && norm_, ExcNotInitialized());
+  Assert(!store_derivative, ExcInternalError());
+
+  norm_->duality_mapping_dual(*this, q);
+}
+
+template <int dim>
+double DiscretizedFunction<dim>::norm_dual() const {
+  Assert(mesh && norm_, ExcNotInitialized());
+  Assert(!store_derivative, ExcInternalError());
+
+  return norm_->norm_dual(*this);
+}
+
+template <int dim>
+double DiscretizedFunction<dim>::norm_p(double p) {
+  AssertThrow(p >= 1, ExcMessage("norm_p: p has to be >= 1!"));
+  double result = 0.0;
+
+  for (size_t i = 0; i < mesh->length(); i++)
+    for (size_t j = 0; j < function_coefficients[i].size(); j++)
+      result += std::pow(std::abs(function_coefficients[i][j]), p);
+
+  return std::pow(result, 1 / p);
+}
+
+template <int dim>
 bool DiscretizedFunction<dim>::hilbert() const {
   Assert(mesh && norm_, ExcNotInitialized());
   Assert(!store_derivative, ExcInternalError());

@@ -27,6 +27,12 @@ class Norm {
   virtual double norm(const T& u) const = 0;
 
   /**
+   * returns the norm of `u` as an element of the dual space.
+   * Default implementation is suitable for hilbert spaces (X = X').
+   */
+  virtual double norm_dual(const T& u) const { return norm(u); }
+
+  /**
    * returns the scalar product between `u` and `v`.
    * Throws an error if this norm  does not define a scalar product.
    */
@@ -75,9 +81,23 @@ class Norm {
   virtual void dot_mult_mass_and_transform_inverse(T& u) = 0;
 
   /**
-   * does this norm define a scalar product?
+   * does this norm define a scalar product? Default implementation returns `true`.
    */
-  virtual bool hilbert() const = 0;
+  virtual bool hilbert() const { return true; }
+
+  /**
+   * apply the p-duality mapping to a given element. Default implementation works for hilbert spaces (i.e. J_p(x) =
+   * ||x||^{p-2} x).
+   */
+  virtual void duality_mapping(T& x, double p) {
+    if (p != 2) x *= std::pow(x.norm(), p - 2);
+  }
+
+  /**
+   * apply the q-duality mapping to a given element of the dual space, i.e. the inverse to `duality_mapping` with
+   * p = q/(q-1). Default implementation works for hilbert spaces (i.e. J_p(x) = ||x||^{q-2} x).
+   */
+  virtual void duality_mapping_dual(T& x, double q) { duality_mapping(x, q); }
 
   /**
    * human readable name of the corresponding space, e.g. `L²([0,T], L²(Ω))`.

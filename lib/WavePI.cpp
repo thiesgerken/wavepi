@@ -40,14 +40,13 @@
 #include <norms/H2L2PlusL2H1.h>
 #include <norms/L2Coefficients.h>
 #include <norms/L2L2.h>
+#include <norms/LPWrapper.h>
 #include <problems/AProblem.h>
 #include <problems/CProblem.h>
 #include <problems/NuProblem.h>
 #include <problems/QProblem.h>
 #include <iostream>
 #include <string>
-
-//#include <vector>
 
 namespace wavepi {
 
@@ -89,7 +88,7 @@ WavePI<dim, Meas>::WavePI(std::shared_ptr<SettingsManager> cfg) : cfg(cfg) {
       norm_codomain = norm_h2l2plusl2h1;
       break;
     default:
-      AssertThrow(false, ExcMessage("WavePI:: unknown norm of codomain"));
+      AssertThrow(false, ExcMessage("unknown norm of codomain"));
   }
 
   switch (cfg->norm_domain) {
@@ -114,6 +113,9 @@ WavePI<dim, Meas>::WavePI(std::shared_ptr<SettingsManager> cfg) : cfg(cfg) {
     default:
       AssertThrow(false, ExcMessage("WavePI:: unknown norm of codomain"));
   }
+
+  if (cfg->norm_domain_enable_wrapping)
+    norm_domain = std::make_shared<norms::LPWrapper<dim>>(norm_domain, cfg->norm_domain_p);
 
   initial_guess = std::make_shared<MacroFunctionParser<dim>>(cfg->expr_initial_guess, cfg->constants_for_exprs);
 
@@ -528,6 +530,9 @@ void WavePI<dim, Meas>::run() {
   // transform back and output errors in the untransformed setting
   reconstruction = transform->transform_inverse(reconstruction);
 
+  log_error(reconstruction, norm_domain);
+  deallog << "reconstruction error in other norms: " << std::endl;
+
   log_error(reconstruction, norm_vector);
   log_error(reconstruction, norm_l2l2);
   log_error(reconstruction, norm_h1l2);
@@ -543,6 +548,9 @@ void WavePI<dim, Meas>::run() {
   Param param_exact_untrans_disc(mesh, *param_exact_untransformed);
   param_exact_untrans_disc.set_norm(reconstruction.get_norm());
   param_exact_untrans_disc -= initial_guess_untrans_disc;
+
+  log_error_initial(reconstruction, norm_domain, param_exact_untrans_disc);
+  deallog << "reconstruction error in other norms: " << std::endl;
 
   log_error_initial(reconstruction, norm_vector, param_exact_untrans_disc);
   log_error_initial(reconstruction, norm_l2l2, param_exact_untrans_disc);

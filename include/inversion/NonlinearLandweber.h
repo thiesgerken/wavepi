@@ -31,19 +31,25 @@ class NonlinearLandweber : public NewtonRegularization<Param, Sol, Exact> {
 
   static void declare_parameters(ParameterHandler &prm) {
     prm.enter_subsection("NonlinearLandweber");
-    { prm.declare_entry("omega", "1", Patterns::Double(0), "relaxation factor ω"); }
+    {
+      prm.declare_entry("omega", "1", Patterns::Double(0), "relaxation factor ω");
+      prm.declare_entry("p", "2", Patterns::Double(1), "Use duality mappings with index p");
+    }
     prm.leave_subsection();
   }
 
   void get_parameters(ParameterHandler &prm) {
     prm.enter_subsection("NonlinearLandweber");
-    { omega = prm.get_double("omega"); }
+    {
+      omega = prm.get_double("omega");
+      p     = prm.get_double("p");
+    }
     prm.leave_subsection();
   }
 
   NonlinearLandweber(std::shared_ptr<NonlinearProblem<Param, Sol>> problem, std::shared_ptr<Param> initial_guess,
                      double omega)
-      : NewtonRegularization<Param, Sol, Exact>(problem), initial_guess(initial_guess), omega(omega) {}
+      : NewtonRegularization<Param, Sol, Exact>(problem), initial_guess(initial_guess), omega(omega), p(2.0) {}
 
   NonlinearLandweber(std::shared_ptr<NonlinearProblem<Param, Sol>> problem, std::shared_ptr<Param> initial_guess,
                      ParameterHandler &prm)
@@ -53,9 +59,12 @@ class NonlinearLandweber : public NewtonRegularization<Param, Sol, Exact> {
 
   virtual Param invert(const Sol &data, double target_discrepancy, std::shared_ptr<Exact> exact_param,
                        std::shared_ptr<InversionProgress<Param, Sol, Exact>> status_out) {
-    LogStream::Prefix p = LogStream::Prefix("Landweber");
+    LogStream::Prefix prefix = LogStream::Prefix("Landweber");
     AssertThrow(this->problem, ExcInternalError());
     deallog.push("init");
+
+    // possible with LW, but currently not implemented.
+    // AssertThrow(data.hilbert(), ExcMessage("Landweber: Y is not a Hilbert space!"));
 
     Param estimate(*initial_guess);
 
@@ -71,25 +80,38 @@ class NonlinearLandweber : public NewtonRegularization<Param, Sol, Exact> {
                                                 target_discrepancy, &data, norm_data, exact_param, false);
     this->progress(status);
 
+    // dual index to p to use in X
+    double q = p / (p - 1);
+
     for (int i = 1; discrepancy > target_discrepancy; i++) {
+      deallog.push("step");  // same log levels as for REGINN for forward/adjoint ops
+
       std::unique_ptr<LinearProblem<Param, Sol>> lp = this->problem->derivative(estimate);
 
       Param adj = lp->adjoint(residual);
 
+      estimate.duality_mapping(p);
+
       // $`c_{k+1} = c_k + \omega (S' c_k)^* (g - S c_k)`$
       estimate.add(omega, adj);
+
+      estimate.duality_mapping_dual(q);
+
       double norm_estimate = estimate.norm();
+      deallog.pop();
 
       // post-processing
       deallog.push("post_processing");
       this->post_process(i, &estimate, norm_estimate);
       deallog.pop();
 
-      // calculate new residual and discrepancy for next step
+      // calculate new residual and discrepancy
+      deallog.push("finish_step");
       residual     = data;
       data_current = this->problem->forward(estimate);
       residual -= data_current;
       discrepancy = residual.norm();
+      deallog.pop();
 
       status = InversionProgress<Param, Sol, Exact>(i, &estimate, norm_estimate, &residual, discrepancy,
                                                     target_discrepancy, &data, norm_data, exact_param, false);
@@ -107,6 +129,7 @@ class NonlinearLandweber : public NewtonRegularization<Param, Sol, Exact> {
 
  private:
   double omega;
+  double p;
   std::shared_ptr<Param> initial_guess;
 };
 
