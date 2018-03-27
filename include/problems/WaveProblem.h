@@ -400,7 +400,17 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
       deallog << "rank " << rank << " entering parallel section" << std::endl;
 
       // sum of local jobs
-      DiscretizedFunction<dim> private_result(zero());
+      std::vector<DiscretizedFunction<dim>> private_results(n_procs, zero());
+
+      // memory for requests, one is not used (where i==rank).
+      std::vector<std::vector<MPI_Request>> recv_requests(n_procs);
+      std::vector<std::vector<MPI_Request>> send_requests(n_procs);
+
+      comm_timer.start();
+      for (size_t i = 0; i < n_procs; i++)
+        if (i != rank) private_results[i].mpi_irecv(i, recv_requests[i]);
+
+      comm_timer.stop();
 
       for (size_t i = 0; i < measures.size(); i++) {
         if (i % n_procs != rank) continue;
@@ -417,16 +427,37 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
         AssertThrow(*am.get_norm() == *norm_codomain, ExcMessage("Output of Measure adjoint has unexpected norm"));
 
         adj_timer.start();
-        private_result += sub_problems[i]->adjoint_notransform(am);
+        private_results[rank] += sub_problems[i]->adjoint_notransform(am);
         adj_timer.stop();
       }
 
-      deallog << "rank " << rank << " performing all_reduce" << std::endl;
-
       comm_timer.start();
-      result.mpi_all_reduce(private_result, MPI_SUM);
-      comm_timer.stop();
 
+      for (size_t i = 0; i < n_procs; i++)
+        if (i != rank) private_results[rank].mpi_isend(i, send_requests[i]);
+
+      deallog << "rank " << rank << " waiting on Irecvs " << std::endl;
+      for (size_t i = 0; i < recv_requests.size(); i++)
+        for (size_t j = 0; j < recv_requests[i].size(); j++) {
+          MPI_Wait(&recv_requests[i][j], MPI_STATUS_IGNORE);
+        }
+
+      deallog << "rank " << rank << " summing all results" << std::endl;
+
+      // faster & more clean & more memory efficient:
+      // result.mpi_all_reduce(private_result, MPI_SUM);
+      // but performs the summing in arbitrary order (and different order for every node!), so the result may lead to
+      // different execution paths in each process ...
+      for (size_t i = 0; i < n_procs; i++)
+        result += private_results[i];
+
+      deallog << "rank " << rank << " waiting on Isends" << std::endl;
+      for (size_t i = 0; i < send_requests.size(); i++)
+        for (size_t j = 0; j < send_requests[i].size(); j++) {
+          MPI_Wait(&send_requests[i][j], MPI_STATUS_IGNORE);
+        }
+
+      comm_timer.stop();
       deallog << "rank " << rank << " exiting parallel section" << std::endl;
 #else
       for (size_t i = 0; i < measures.size(); i++) {
