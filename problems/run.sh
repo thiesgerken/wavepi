@@ -41,7 +41,11 @@ wavepi --export -c $FILE > wavepi.cfg
 
 wavepi -c $FILE
 
+echo "Compressing log files"
+
 cat wavepi.log | wavepi-logfilter 2 > wavepi.2.log
 cat wavepi.log | wavepi-logfilter 100 | xz > wavepi.log.xz
 rm wavepi.log
 cd ..
+
+echo "Finished!"

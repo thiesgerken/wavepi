@@ -70,6 +70,7 @@ class SettingsManager {
   static const std::string KEY_PROBLEM_PARAM_Q;
   static const std::string KEY_PROBLEM_PARAM_C;
   static const std::string KEY_PROBLEM_PARAM_NU;
+  static const std::string KEY_PROBLEM_PARAM_BACKGROUND;
 
   static const std::string KEY_INVERSION;
   static const std::string KEY_INVERSION_METHOD;
@@ -172,6 +173,7 @@ class SettingsManager {
   std::string expr_param_nu;
   std::string expr_param_a;
   std::string expr_param_c;
+  std::string expr_param_background;
 
   size_t num_rhs;
   std::vector<std::string> exprs_rhs;

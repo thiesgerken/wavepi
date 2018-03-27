@@ -81,6 +81,8 @@ class WavePI {
   std::shared_ptr<MacroFunctionParser<dim>> param_a;
   std::shared_ptr<MacroFunctionParser<dim>> param_c;
 
+  std::shared_ptr<MacroFunctionParser<dim>> param_background;
+
   std::vector<std::shared_ptr<Function<dim>>> pulses;
 
   std::shared_ptr<Tuple<Meas>> data;  // noisy data

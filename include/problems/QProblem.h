@@ -40,9 +40,9 @@ class QProblem : public WaveProblem<dim, Measurement> {
 
   QProblem(WaveEquation<dim>& weq, std::vector<std::shared_ptr<Function<dim>>> right_hand_sides,
            std::vector<std::shared_ptr<Measure<DiscretizedFunction<dim>, Measurement>>> measures,
-           std::shared_ptr<Transformation<dim>> transform,
+           std::shared_ptr<Transformation<dim>> transform, std::shared_ptr<DiscretizedFunction<dim>> background_param,
            typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver = WaveEquationBase<dim>::WaveEquationAdjoint)
-      : WaveProblem<dim, Measurement>(weq, right_hand_sides, measures, transform, adjoint_solver),
+      : WaveProblem<dim, Measurement>(weq, right_hand_sides, measures, transform, background_param, adjoint_solver),
         fields(measures.size()) {}
 
  protected:

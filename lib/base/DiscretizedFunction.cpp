@@ -530,6 +530,18 @@ DiscretizedFunction<dim>& DiscretizedFunction<dim>::operator=(double x) {
 
   return *this;
 }
+
+template <int dim>
+DiscretizedFunction<dim>& DiscretizedFunction<dim>::operator+=(double offset) {
+  // note that this is correct independent of store_derivative.
+
+  for (size_t i = 0; i < mesh->length(); i++) {
+    function_coefficients[i].add(offset);
+  }
+
+  return *this;
+}
+
 template <int dim>
 DiscretizedFunction<dim>& DiscretizedFunction<dim>::operator+=(const DiscretizedFunction<dim>& V) {
   AssertThrow(norm_ && V.norm_, ExcNotInitialized());

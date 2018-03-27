@@ -26,6 +26,8 @@ wavepi --export -c $1 > wavepi.cfg
 
 mpirun --bind-to none -np 2 $(which wavepi) -c $1
 
+echo "Compressing log files"
+
 for i in {0..9}; do
   if [[ -f wavepi.log$i ]]; then
     cat wavepi.log$i | wavepi-logfilter 2 > wavepi.2.log$i
@@ -35,3 +37,5 @@ for i in {0..9}; do
 done
 
 cd ..
+
+echo "Finished!"

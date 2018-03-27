@@ -62,10 +62,11 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
   WaveProblem(
       const WaveEquation<dim> &weq, std::vector<std::shared_ptr<Function<dim>>> right_hand_sides,
       std::vector<std::shared_ptr<Measure<DiscretizedFunction<dim>, Measurement>>> measures,
-      std::shared_ptr<Transformation<dim>> transform,
+      std::shared_ptr<Transformation<dim>> transform, std::shared_ptr<DiscretizedFunction<dim>> background_param,
       typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver = WaveEquationBase<dim>::WaveEquationAdjoint)
       : stats(std::make_shared<NonlinearProblemStats>()),
         wave_equation(weq),
+        background_param(background_param),
         adjoint_solver(adjoint_solver),
         right_hand_sides(right_hand_sides),
         measures(measures),
@@ -111,6 +112,9 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
     // save a copy of the (inverse transformed) parameter
     this->current_param             = std::make_shared<DiscretizedFunction<dim>>(transform->transform_inverse(param));
     this->current_param_transformed = std::make_shared<DiscretizedFunction<dim>>(param);
+
+    // subproblems use current_param. Add the background value to it now.
+    if (background_param) current_param->add(1.0, *background_param);
 
 #ifdef WAVEPI_MPI
     size_t n_procs = Utilities::MPI::n_mpi_processes(MPI_COMM_WORLD);
@@ -225,6 +229,7 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
   std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm_codomain;
 
   WaveEquation<dim> wave_equation;
+  std::shared_ptr<DiscretizedFunction<dim>> background_param;
   typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver;
   std::vector<std::shared_ptr<Function<dim>>> right_hand_sides;
 

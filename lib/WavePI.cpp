@@ -123,6 +123,8 @@ WavePI<dim, Meas>::WavePI(std::shared_ptr<SettingsManager> cfg) : cfg(cfg) {
   param_nu = std::make_shared<MacroFunctionParser<dim>>(cfg->expr_param_nu, cfg->constants_for_exprs);
   param_c  = std::make_shared<MacroFunctionParser<dim>>(cfg->expr_param_c, cfg->constants_for_exprs);
   param_q  = std::make_shared<MacroFunctionParser<dim>>(cfg->expr_param_q, cfg->constants_for_exprs);
+
+  param_background = std::make_shared<MacroFunctionParser<dim>>(cfg->expr_param_background, cfg->constants_for_exprs);
 }
 
 template <int dim, typename Meas>
@@ -349,26 +351,32 @@ void WavePI<dim, Meas>::initialize_problem() {
   } else
     AssertThrow(false, ExcInternalError());
 
+  auto param_background_discretized = std::make_shared<Param>(mesh, *param_background);
+
   switch (cfg->problem_type) {
     case SettingsManager::ProblemType::q:
       /* Reconstruct q */
       param_exact = wave_eq->get_param_q();
-      problem     = std::make_shared<QProblem<dim, Meas>>(*wave_eq, pulses, measures, transform);
+      problem =
+          std::make_shared<QProblem<dim, Meas>>(*wave_eq, pulses, measures, transform, param_background_discretized);
       break;
     case SettingsManager::ProblemType::c:
       /* Reconstruct c */
       param_exact = wave_eq->get_param_c();
-      problem     = std::make_shared<CProblem<dim, Meas>>(*wave_eq, pulses, measures, transform);
+      problem =
+          std::make_shared<CProblem<dim, Meas>>(*wave_eq, pulses, measures, transform, param_background_discretized);
       break;
     case SettingsManager::ProblemType::nu:
       /* Reconstruct nu */
       param_exact = wave_eq->get_param_nu();
-      problem     = std::make_shared<NuProblem<dim, Meas>>(*wave_eq, pulses, measures, transform);
+      problem =
+          std::make_shared<NuProblem<dim, Meas>>(*wave_eq, pulses, measures, transform, param_background_discretized);
       break;
     case SettingsManager::ProblemType::a:
       /* Reconstruct a */
       param_exact = wave_eq->get_param_a();
-      problem     = std::make_shared<AProblem<dim, Meas>>(*wave_eq, pulses, measures, transform);
+      problem =
+          std::make_shared<AProblem<dim, Meas>>(*wave_eq, pulses, measures, transform, param_background_discretized);
       break;
     default:
       AssertThrow(false, ExcInternalError());

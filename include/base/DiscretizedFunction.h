@@ -124,6 +124,11 @@ class DiscretizedFunction : public Function<dim> {
    */
 
   /**
+   * perform this <- this + constant function
+   */
+  DiscretizedFunction<dim>& operator+=(double offset);
+
+  /**
    * perform this <- this + V
    */
   DiscretizedFunction<dim>& operator+=(const DiscretizedFunction<dim>& V);
