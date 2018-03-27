@@ -321,10 +321,7 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
 
         comm_timer.start();
         for (size_t k = 0; k < n_procs; k++)
-          if (k != rank) {
-            deallog << "rank " << rank << " sending measurement " << i << " to rank " << k << std::endl;
-            result[i].mpi_isend(k, send_requests[i * n_procs + k]);
-          }
+          if (k != rank) result[i].mpi_isend(k, send_requests[i * n_procs + k]);
         comm_timer.stop();
       }
 
