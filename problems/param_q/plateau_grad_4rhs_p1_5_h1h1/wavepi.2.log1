@@ -1,0 +1,185 @@
+JobId thies-arch1 Mon Mar 26 16:57:57 2018
+node 1 coming online
+node1::wavepi 43eff3ab
+node1::Release-Build, compiled on 2018-03-26T14:41:31Z from commit 43eff3ab6831f421ac47c58b8241dd7cec13aad1 ("Merge branch 'banach' of git.thiesgerken.de:thies/wavepi into banach") on branch banach
+
+node1:initialize_mesh::Number of active cells: 1024
+node1:initialize_mesh::Number of degrees of freedom in the first spatial mesh: 1089
+node1:initialize_mesh::cell diameters: minimal = 0.354, maximal = 0.354
+node1:initialize_mesh::dt: 0.0235
+node1:initialize_mesh::expected size of a DiscretizedFunction<2>: 2.13 MiB
+node1::Initializing problem
+node1::Generating synthetic data (inverse crime)
+node1::wall time for data synthesis        : 2.8s
+node1::wall time for mesh and problem init : 32.1ms
+node1:REGINN::i=0 : rdisc=0.572, rnorm=0.00 , rerr=1.00 
+node1:REGINN::0.00 ≤ estimate ≤ 0.00
+node1:REGINN::Solving linear problem using rtol=0.900 and max_iter=1
+node1:REGINN::i=1 : rdisc=0.418, rnorm=0.0709, rerr=0.989
+node1:REGINN::-0.447 ≤ estimate ≤ 5.08
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.900 and max_iter=2
+node1:REGINN::i=2 : rdisc=0.347, rnorm=0.155, rerr=0.961
+node1:REGINN::-1.72 ≤ estimate ≤ 8.23
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.855 and max_iter=2
+node1:REGINN::i=3 : rdisc=0.294, rnorm=0.202, rerr=0.952
+node1:REGINN::-3.20 ≤ estimate ≤ 9.78
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.812 and max_iter=3
+node1:REGINN::Linear solver did not achieve desired discrepancy due to max_iter.
+node1:REGINN::i=4 : rdisc=0.243, rnorm=0.257, rerr=0.943
+node1:REGINN::-4.76 ≤ estimate ≤ 11.2
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.772 and max_iter=5
+node1:REGINN::i=5 : rdisc=0.182, rnorm=0.356, rerr=0.915
+node1:REGINN::-5.56 ≤ estimate ≤ 14.0
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.733 and max_iter=5
+node1:REGINN::Linear solver did not achieve desired discrepancy due to max_iter.
+node1:REGINN::i=6 : rdisc=0.151, rnorm=0.403, rerr=0.891
+node1:REGINN::-5.24 ≤ estimate ≤ 14.9
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.696 and max_iter=7
+node1:REGINN::Linear solver did not achieve desired discrepancy due to max_iter.
+node1:REGINN::i=7 : rdisc=0.140, rnorm=0.420, rerr=0.881
+node1:REGINN::-5.14 ≤ estimate ≤ 15.1
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.662 and max_iter=12
+node1:REGINN::i=8 : rdisc=0.0922, rnorm=0.522, rerr=0.836
+node1:REGINN::-4.03 ≤ estimate ≤ 16.5
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.629 and max_iter=12
+node1:REGINN::Linear solver did not achieve desired discrepancy due to max_iter.
+node1:REGINN::i=9 : rdisc=0.0796, rnorm=0.524, rerr=0.820
+node1:REGINN::-3.39 ≤ estimate ≤ 16.4
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.597 and max_iter=17
+node1:REGINN::Linear solver did not achieve desired discrepancy due to max_iter.
+node1:REGINN::i=10: rdisc=0.0647, rnorm=0.546, rerr=0.803
+node1:REGINN::-3.56 ≤ estimate ≤ 16.3
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.716 and max_iter=29
+node1:REGINN::i=11: rdisc=0.0455, rnorm=0.616, rerr=0.781
+node1:REGINN::-5.03 ≤ estimate ≤ 17.8
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.680 and max_iter=28
+node1:REGINN::Linear solver did not achieve desired discrepancy due to max_iter.
+node1:REGINN::i=12: rdisc=0.0320, rnorm=0.643, rerr=0.761
+node1:REGINN::-6.11 ≤ estimate ≤ 16.6
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.874 and max_iter=39
+node1:REGINN::i=13: rdisc=0.0283, rnorm=0.656, rerr=0.751
+node1:REGINN::-6.42 ≤ estimate ≤ 15.8
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.896 and max_iter=62
+node1:REGINN::i=14: rdisc=0.0246, rnorm=0.674, rerr=0.736
+node1:REGINN::-6.74 ≤ estimate ≤ 15.0
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.852 and max_iter=44
+node1:REGINN::i=15: rdisc=0.0209, rnorm=0.693, rerr=0.712
+node1:REGINN::-6.35 ≤ estimate ≤ 14.2
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.964 and max_iter=51
+node1:REGINN::i=16: rdisc=0.0201, rnorm=0.693, rerr=0.712
+node1:REGINN::-6.35 ≤ estimate ≤ 14.2
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.916 and max_iter=42
+node1:REGINN::Linear solver did not achieve desired discrepancy due to max_iter.
+node1:REGINN::i=17: rdisc=0.0191, rnorm=0.695, rerr=0.707
+node1:REGINN::-6.20 ≤ estimate ≤ 13.9
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.870 and max_iter=43
+node1:REGINN::Linear solver did not achieve desired discrepancy due to max_iter.
+node1:REGINN::i=18: rdisc=0.0179, rnorm=0.700, rerr=0.697
+node1:REGINN::-5.91 ≤ estimate ≤ 14.2
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.873 and max_iter=85
+node1:REGINN::Linear solver did not achieve desired discrepancy due to max_iter.
+node1:REGINN::i=19: rdisc=0.0167, rnorm=0.706, rerr=0.687
+node1:REGINN::-5.54 ≤ estimate ≤ 14.7
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.936 and max_iter=128
+node1:REGINN::i=20: rdisc=0.0155, rnorm=0.713, rerr=0.676
+node1:REGINN::-5.38 ≤ estimate ≤ 15.4
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.889 and max_iter=110
+node1:REGINN::i=21: rdisc=0.0137, rnorm=0.725, rerr=0.656
+node1:REGINN::-4.88 ≤ estimate ≤ 16.0
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.970 and max_iter=117
+node1:REGINN::i=22: rdisc=0.0133, rnorm=0.725, rerr=0.655
+node1:REGINN::-4.80 ≤ estimate ≤ 16.0
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.921 and max_iter=99
+node1:REGINN::Linear solver did not achieve desired discrepancy due to max_iter.
+node1:REGINN::i=23: rdisc=0.0126, rnorm=0.727, rerr=0.649
+node1:REGINN::-4.51 ≤ estimate ≤ 16.1
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.994 and max_iter=106
+node1:REGINN::i=24: rdisc=0.0126, rnorm=0.727, rerr=0.648
+node1:REGINN::-4.49 ≤ estimate ≤ 16.1
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.945 and max_iter=107
+node1:REGINN::i=25: rdisc=0.0118, rnorm=0.732, rerr=0.640
+node1:REGINN::-4.18 ≤ estimate ≤ 16.2
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.983 and max_iter=34
+node1:REGINN::i=26: rdisc=0.0115, rnorm=0.734, rerr=0.636
+node1:REGINN::-4.12 ≤ estimate ≤ 16.2
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.934 and max_iter=49
+node1:REGINN::Linear solver did not achieve desired discrepancy due to max_iter.
+node1:REGINN::i=27: rdisc=0.0112, rnorm=0.736, rerr=0.633
+node1:REGINN::-3.99 ≤ estimate ≤ 16.2
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.969 and max_iter=72
+node1:REGINN::i=28: rdisc=0.0109, rnorm=0.738, rerr=0.629
+node1:REGINN::-3.82 ≤ estimate ≤ 16.2
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.970 and max_iter=99
+node1:REGINN::i=29: rdisc=0.0105, rnorm=0.740, rerr=0.626
+node1:REGINN::-3.69 ≤ estimate ≤ 16.2
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.971 and max_iter=102
+node1:REGINN::i=30: rdisc=0.0103, rnorm=0.742, rerr=0.622
+node1:REGINN::-3.73 ≤ estimate ≤ 16.2
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.982 and max_iter=135
+node1:REGINN::i=31: rdisc=0.0101, rnorm=0.744, rerr=0.619
+node1:REGINN::-3.89 ≤ estimate ≤ 16.2
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.991 and max_iter=94
+node1:REGINN::i=32: rdisc=0.0100, rnorm=0.744, rerr=0.619
+node1:REGINN::-3.90 ≤ estimate ≤ 16.2
+node1:REGINN::
+node1:REGINN::Solving linear problem using rtol=0.999 and max_iter=13
+node1:REGINN::i=33: rdisc=0.00999, rnorm=0.744, rerr=0.619
+node1:REGINN::-3.90 ≤ estimate ≤ 16.2
+node1:REGINN::
+node1:REGINN::Target discrepancy reached after 33 iterations.
+node1:REGINN::-3.90 ≤ estimate ≤ 16.2
+node1::Relative p-norm on top of (ℝⁿ, ‖·‖₂) with p=1.500000 error of the reconstruction: 0.619
+node1::reconstruction error in other norms: 
+node1::Relative (ℝⁿ, ‖·‖₂) error of the reconstruction: 0.651
+node1::Relative L²([0,T], L²(Ω)) error of the reconstruction: 0.595
+node1::Relative H¹([0,T], L²(Ω)) error of the reconstruction: 1.48
+node1::Relative H¹([0, T], H¹(Ω)) error of the reconstruction: 4.59
+node1::Relative H²([0,T], L²(Ω)) error of the reconstruction: 9.21
+node1::Relative p-norm on top of (ℝⁿ, ‖·‖₂) with p=1.500000 error of (reconstruction - initial guess): 0.619
+node1::reconstruction error in other norms: 
+node1::Relative (ℝⁿ, ‖·‖₂) error of (reconstruction - initial guess): 0.651
+node1::Relative L²([0,T], L²(Ω)) error of (reconstruction - initial guess): 0.595
+node1::Relative H¹([0,T], L²(Ω)) error of (reconstruction - initial guess): 1.48
+node1::Relative H¹([0, T], H¹(Ω)) error of (reconstruction - initial guess): 4.59
+node1::Relative H²([0,T], L²(Ω)) error of (reconstruction - initial guess): 9.21
+node1:stats::forward              : 35 calls, average 3.3s per call
+node1:stats::linearization forward: 878 calls, average 3.2s per call
+node1:stats::linearization adjoint: 878 calls, average 3.2s per call
+node1:stats::measure forward      : 913 calls, average 1.8ms per call
+node1:stats::measure adjoint      : 878 calls, average 1.1ms per call
+node1:stats::Additional time needed for MPI communication:
+node1:stats::forward              : average 146.5ms per call
+node1:stats::linearization forward: average 110.1ms per call
+node1:stats::linearization adjoint: average 304.6ms per call
+node1:stats::total wall time      : 2h 43min 8s
