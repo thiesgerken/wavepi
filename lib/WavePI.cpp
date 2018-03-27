@@ -351,7 +351,7 @@ void WavePI<dim, Meas>::initialize_problem() {
   } else
     AssertThrow(false, ExcInternalError());
 
-  auto param_background_discretized = std::make_shared<Param>(mesh, *param_background);
+  auto param_background_discretized = std::make_shared<Param>(mesh, *param_background, norm_domain);
 
   switch (cfg->problem_type) {
     case SettingsManager::ProblemType::q:
