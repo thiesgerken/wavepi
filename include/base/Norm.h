@@ -15,6 +15,9 @@ namespace wavepi {
 namespace base {
 using namespace dealii;
 
+/**
+ * Class representing a particular norm or scalar product.
+ */
 template <typename T>
 class Norm {
  public:
@@ -39,44 +42,50 @@ class Norm {
   virtual double dot(const T& u, const T& v) const = 0;
 
   /**
-   * applies the matrix M (spd), which describes the used scalar product, i.e.
-   * `this->dot(y) = y^t * M * this` (regarding this and y as long vectors)
-   * to this function, that is `this <- B * this`.
+   * applies the matrix \f$M\f$ (spd), which describes the used scalar product, i.e.
+   * \f$ (u, v)  = u^t M  v\f$ (regarding \f$u\f$ and \f$v\f$ as long vectors)
+   * to \f$u\f$.
    *
-   * This function is useful for computing the adjoint A^* of a linear operator A from its transpose A^t:
-   * `x^t A^t M y = (A x, y) = (x, A^* y) = x^t M A^* y` for all `x` and `y`,
-   * hence `A^t M = M A^*`, that is `A^* = M^{-1} A^t M`.
+   * This function is useful for computing the adjoint \f$A^*\f$ of a linear operator \f$A\f$ from its transpose
+   * \f$A^t\f$: \f$ x^t A^t M y = (A x, y) = (x, A^* y) = x^t M A^* y \f$ for all \f$x\f$ and \f$y\f$, hence \f$A^t M =
+   * M A^*\f$, that is \f$A^* = M^{-1} A^t M\f$.
    *
-   * For the standard vector norm (`L2L2_Vector`) of the coefficients, `M` is equal to the identity.
-   * To get an approximation to the L^2([0,T], L^2(\Omega)) norm (`L2L2_Trapezoidal_Mass`),
+   * For the standard vector norm (`norms::L2Coefficients`) of the coefficients, `M` is equal to the identity.
+   * To get an approximation to the `L²([0,T], L²(Ω))` norm (`norms::L2L2`),
    * `M` is a diagonal block matrix consisting of the mass matrix for every time step and a factor to account for the
    * trapezoidal rule.
    *
-   * Throws and error if this norm does not define a scalar product.
+   * This operation can be seen as the canonical mapping from X to X' (not identified with X) via Riesz.
+   *
+   * Throws an error if this norm does not define a scalar product.
    */
   virtual void dot_transform(T& u) = 0;
 
   /**
-   * applies the inverse to `dot_transform`, i.e. it applies `M^{-1}`.
+   * applies the inverse to `dot_transform`, i.e. it applies \f$M^{-1}\f$.
    * Throws and error if this norm does not define a scalar product.
+   *
+   * This operation can be seen as the canonical mapping from X' (not identified with X) to X via Riesz.
+   *
+   * Throws an error if this norm does not define a scalar product.
    */
   virtual void dot_transform_inverse(T& u) = 0;
 
   /**
    * same as `dot_transform`, but applies the inverse mass matrix to every time step beforehand.
-   * This allows for some optimization where M is also built using the mass matrices, e.g. for `L2L2_Trapezoidal_Mass`.
+   * This allows for some optimization where M is also built using the mass matrices, e.g. for `norms::L2L2`.
    * In that case only the factors for the trapezoidal rule have to be taken into account.
    *
-   * Throws and error if this norm does not define a scalar product.
+   * Throws an error if this norm does not define a scalar product.
    */
   virtual void dot_solve_mass_and_transform(T& u) = 0;
 
   /**
    * same as `dot_transform_inverse`, but applies the mass matrix to every time step beforehand.
-   * This allows for some optimization where M is also built using the mass matrices, e.g. for `L2L2_Trapezoidal_Mass`.
+   * This allows for some optimization where M is also built using the mass matrices, e.g. for `norms::L2L2`.
    * In that case only the inverted factors for the trapezoidal rule have to be taken into account.
    *
-   * Throws and error if this norm does not define a scalar product.
+   * Throws an error if this norm does not define a scalar product.
    */
   virtual void dot_mult_mass_and_transform_inverse(T& u) = 0;
 
@@ -86,8 +95,8 @@ class Norm {
   virtual bool hilbert() const { return true; }
 
   /**
-   * apply the p-duality mapping to a given element. Default implementation works for hilbert spaces (i.e. J_p(x) =
-   * ||x||^{p-2} x).
+   * apply the p-duality mapping to a given element. Default implementation works for hilbert spaces (i.e. \f$J_p(x) =
+   * \|x\|^{p-2} x\f$).
    */
   virtual void duality_mapping(T& x, double p) {
     if (p != 2) x *= std::pow(x.norm(), p - 2);
@@ -95,7 +104,7 @@ class Norm {
 
   /**
    * apply the q-duality mapping to a given element of the dual space, i.e. the inverse to `duality_mapping` with
-   * p = q/(q-1). Default implementation works for hilbert spaces (i.e. J_p(x) = ||x||^{q-2} x).
+   * \f$p = \frac q {q-1}\f$. Default implementation works for hilbert spaces (i.e. \f$J_p(x) = \|x\|^{q-2} x\f$).
    */
   virtual void duality_mapping_dual(T& x, double q) { duality_mapping(x, q); }
 
@@ -115,6 +124,9 @@ class Norm {
   bool operator==(const Norm<T>& other) const { return other.unique_id() == this->unique_id(); }
 };
 
+/**
+ * Dummy norm which should be the default for `T`, so that no wrong assumptions are made.
+ */
 template <typename T>
 class InvalidNorm : public Norm<T> {
  public:
