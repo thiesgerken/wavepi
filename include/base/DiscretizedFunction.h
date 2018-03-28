@@ -577,6 +577,11 @@ class DiscretizedFunction : public Function<dim> {
   void mpi_all_reduce(DiscretizedFunction<dim> source, MPI_Op op);
 
   /**
+   * everyone's version of this object gets overwritten by the stuff `root` has in there.
+   */
+  void mpi_bcast(size_t root);
+
+  /**
    * @}
    */
 #endif

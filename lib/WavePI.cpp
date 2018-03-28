@@ -406,6 +406,20 @@ void WavePI<dim, Meas>::synthesize_data() {
 
   data = std::make_shared<Tuple<Meas>>(data_exact);
   data->add(1.0, Tuple<Meas>::noise(data_exact, cfg->epsilon * data_exact_norm));
+
+#ifdef WAVEPI_MPI
+  size_t mpi_rank = Utilities::MPI::this_mpi_process(MPI_COMM_WORLD);
+
+  if (mpi_rank == 0)
+    deallog << "distributing noisy data to other nodes" << std::endl;
+  else
+    deallog << "rank " << mpi_rank << " waiting for data from root node" << std::endl;
+
+  for (size_t i = 0; i < data->size(); i++)
+    (*data)[i].mpi_bcast(0);
+
+  deallog << "Distribution of data complete." << std::endl;
+#endif
 }
 
 template <int dim, typename Meas>

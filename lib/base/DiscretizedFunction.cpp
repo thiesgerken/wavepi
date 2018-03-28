@@ -1023,6 +1023,17 @@ void DiscretizedFunction<dim>::mpi_send(size_t destination) {
 }
 
 template <int dim>
+void DiscretizedFunction<dim>::mpi_bcast(size_t root) {
+  for (size_t i = 0; i < mesh->length(); i++)
+    MPI_Bcast(&function_coefficients[i][0], function_coefficients[i].size(), MPI_DOUBLE, root, MPI_COMM_WORLD);
+
+  if (store_derivative) {
+    for (size_t i = 0; i < mesh->length(); i++)
+      MPI_Bcast(&derivative_coefficients[i][0], derivative_coefficients[i].size(), MPI_DOUBLE, root, MPI_COMM_WORLD);
+  }
+}
+
+template <int dim>
 void DiscretizedFunction<dim>::mpi_isend(size_t destination, std::vector<MPI_Request>& reqs) {
   AssertThrow(reqs.size() == 0, ExcInternalError());
 

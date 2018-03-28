@@ -93,6 +93,11 @@ void SensorValues<dim>::mpi_all_reduce(SensorValues<dim> source, MPI_Op op) {
   MPI_Allreduce(&source.elements[0], &elements[0], elements.size(), MPI_DOUBLE, op, MPI_COMM_WORLD);
 }
 
+template <int dim>
+void SensorValues<dim>::mpi_bcast(size_t root) {
+  MPI_Bcast(&elements[0], elements.size(), MPI_DOUBLE, root, MPI_COMM_WORLD);
+}
+
 #endif
 
 template class SensorValues<1>;
