@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for f in $(find . -wholename "*$1*"); do
+for f in $(find $1 -wholename "*$2*"); do
   if [ "${f##*.}" == "pvd" ]; then
     if [[ ! -f ${f%.pvd}.ogv ]]; then
       echo $f
