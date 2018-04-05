@@ -1,0 +1,51 @@
+REGINN:Gradient::k=13320: rdisc=0.978, norm=0.485
+REGINN:Gradient::k=13321: rdisc=0.978, norm=0.485
+REGINN:Gradient::k=13322: rdisc=0.978, norm=0.485
+REGINN:Gradient::k=13323: rdisc=0.978, norm=0.485
+REGINN:Gradient::k=13324: rdisc=0.978, norm=0.485
+REGINN:Gradient::k=13325: rdisc=0.978, norm=0.485
+REGINN:Gradient::k=13326: rdisc=0.978, norm=0.485
+REGINN:Gradient::k=13327: rdisc=0.978, norm=0.485
+REGINN:Gradient::k=13328: rdisc=0.978, norm=0.485
+REGINN:Gradient::k=13329: rdisc=0.978, norm=0.485
+REGINN:Gradient::k=13330: rdisc=0.978, norm=0.485
+REGINN:Gradient::k=13331: rdisc=0.978, norm=0.485
+REGINN:Gradient::k=13332: rdisc=0.978, norm=0.485
+Caught signal 2. Issuing a soft-abort.
+REGINN:Gradient::k=13333: rdisc=0.978, norm=0.485
+REGINN:Gradient::Unsuccessful termination after 13333 iterations!
+REGINN::Linear solver did not achieve desired discrepancy.
+REGINN::  Aborting REGINN!
+REGINN::Saving current residual in ./step-0060/
+REGINN::Saving current estimate in ./step-0060/
+REGINN::Unsuccessful termination after 60 iterations!
+REGINN::-5.94 ≤ estimate ≤ 7.02
+Relative p-norm on top of H¹([0, T], H¹(Ω)) with p=2.000000 error of the 
+reconstruction: 0.964
+reconstruction error in other norms:
+Relative (ℝⁿ, ‖·‖₂) error of the reconstruction: 0.925
+Relative L²([0,T], L²(Ω)) error of the reconstruction: 0.893
+Relative H¹([0,T], L²(Ω)) error of the reconstruction: 1.70
+Relative H¹([0, T], H¹(Ω)) error of the reconstruction: 0.868
+Relative H²([0,T], L²(Ω)) error of the reconstruction: 3.60
+Relative p-norm on top of H¹([0, T], H¹(Ω)) with p=2.000000 error of 
+(reconstruction - initial guess): 0.964
+reconstruction error in other norms:
+Relative (ℝⁿ, ‖·‖₂) error of (reconstruction - initial guess): 0.925
+Relative L²([0,T], L²(Ω)) error of (reconstruction - initial guess): 
+0.893
+Relative H¹([0,T], L²(Ω)) error of (reconstruction - initial guess): 
+1.70
+Relative H¹([0, T], H¹(Ω)) error of (reconstruction - initial guess): 
+0.868
+Relative H²([0,T], L²(Ω)) error of (reconstruction - initial guess): 
+3.60
+stats::forward              : 62 calls, average 1.7s per call
+stats::linearization forward: 112256 calls, average 1.7s per call
+stats::linearization adjoint: 112256 calls, average 1.8s per call
+stats::measure forward      : 112318 calls, average 641.0µs per call
+stats::measure adjoint      : 112256 calls, average 450.6µs per call
+stats::total wall time      : 8d 12h 57min 22s
+Compressing log files
+
+log abgebrochen wegen Speichermangel ...
