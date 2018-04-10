@@ -1,0 +1,3196 @@
+JobId thies-arch0 Tue Apr 10 09:24:35 2018
+parallel job on 2 nodes
+wavepi 3fa08ced-dirty
+Release-Build, compiled on 2018-03-28T15:17:13Z from commit 3fa08cedb040cdd8a617b11f141a1a310502145c ("distribute random noise from root to everyone else") on branch master
+
+working directory was dirty, git status: 
+ M problems/q_banach/p1_1_h1h1.cfg
+ M problems/q_banach/p1_5_h1h1.cfg
+ M problems/q_banach/p2_h1h1.cfg
+ M problems/q_banach/p2_h1h1_hilbert.cfg
+ M problems/q_banach/p8_h1h1.cfg
+ M problems/q_banach/rhs4_p1_1_h1h1.cfg
+ M problems/q_banach/rhs4_p1_5_h1h1.cfg
+ M problems/q_banach/rhs4_p2_h1h1_hilbert.cfg
+ M problems/q_banach/rhs4_p8_h1h1.cfg
+?? problems/q_banach/p1_1_h1h1/
+?? problems/q_banach/p1_1_h1h1_gamma/
+?? problems/q_banach/p1_1_l2l2/
+?? problems/q_banach/p1_5_h1h1/
+?? problems/q_banach/p1_5_h1h1_gamma/
+?? problems/q_banach/rhs4_p1_1_h1h1/
+?? problems/q_banach/rhs4_p1_1_h1h1_gamma/
+?? problems/q_banach/rhs4_p1_1_l2l2/
+
+initialize_mesh::Number of active cells: 1024
+initialize_mesh::Number of degrees of freedom in the first spatial mesh: 1089
+initialize_mesh::cell diameters: minimal = 0.354, maximal = 0.354
+initialize_mesh::dt: 0.0235
+initialize_mesh::expected size of a DiscretizedFunction<2>: 2.13 MiB
+Initializing problem
+Generating synthetic data (inverse crime)
+generate_data:run::distributing noisy data to other nodes
+generate_data:run::Distribution of data complete.
+wall time for data synthesis        : 2.3s
+wall time for mesh and problem init : 137.4ms
+parameters:LogTransform::lower bound: 0.0
+parameters:WaveEquation::max iter: 10000
+parameters:WaveEquation::theta: 0.5
+parameters:WaveEquation::tol: 1e-8
+parameters:constraints::lower bound: -1e300
+parameters:constraints::upper bound: 1e300
+parameters:general::dimension: 2
+parameters:general::finite element degree: 1
+parameters:general::quadrature order: 3
+parameters:inversion::method: REGINN
+parameters:inversion::tau: 2
+parameters:log::console depth: 2
+parameters:log::file: wavepi.log
+parameters:log::file depth: 3
+parameters:log::file depth mpi: 3
+parameters:mesh::end time: 6
+parameters:mesh::initial refines: 5
+parameters:mesh::initial time steps: 256
+parameters:output::data: true
+parameters:output::destination: ./step-{{i}}/
+parameters:output::discrepancy decrease: 0.25
+parameters:output::estimate: true
+parameters:output::estimate transformed: false
+parameters:output::exact: true
+parameters:output::exact transformed: false
+parameters:output::interval: 10
+parameters:output::last: true
+parameters:output::residual: true
+parameters:output::statistics: history
+parameters:problem::H1H1 beta: 0.25
+parameters:problem::H1H1 gamma: 5
+parameters:problem::H1L2 alpha: 0.5
+parameters:problem::H2L2 alpha: 0.5
+parameters:problem::H2L2 beta: 0.25
+parameters:problem::H2L2+L2H1 alpha: 0.5
+parameters:problem::H2L2+L2H1 beta: 0.25
+parameters:problem::H2L2+L2H1 gamma: 0.5
+parameters:problem::background parameter: 0.0
+parameters:problem::constants: 
+parameters:problem::domain lp wrapping: true
+parameters:problem::domain p: 8.0
+parameters:problem::epsilon: 5e-3
+parameters:problem::initial guess: 0.0
+parameters:problem::norm of codomain: L2L2
+parameters:problem::norm of domain: L2L2
+parameters:problem::parameter a: 1.0
+parameters:problem::parameter c: 2.0
+parameters:problem::parameter nu: 0.0
+parameters:problem::parameter q: 2*if(norm{x|y|z} < 1.5, 2.0+abs(sin(t)), 0.0)
+parameters:problem::transform: Identity
+parameters:problem::type: q
+parameters:watchdog::discrepancy increasing: false
+parameters:watchdog::discrepancy slope min values: 40
+parameters:watchdog::discrepancy slope percentage: 0.25
+parameters:watchdog::discrepancy slope threshold: 0.0
+parameters:watchdog::discrepancy threshold: 10.0
+parameters:watchdog::maximum iteration count: 0
+REGINN::Saving exact parameter in ./step-0000/
+REGINN::Saving data in ./step-0000/
+REGINN::Saving current residual in ./step-0000/
+REGINN::Saving current estimate in ./step-0000/
+REGINN::i=0 : rdisc=0.572, rnorm=0.00 , rerr=1.00 
+REGINN::0.00 ≤ estimate ≤ 0.00
+REGINN::Solving linear problem using rtol=0.900 and max_iter=1
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.796, norm=0.00139
+REGINN:Gradient::Target discrepancy reached after 1 iteration.
+REGINN::i=1 : rdisc=0.456, rnorm=0.0497, rerr=0.981
+REGINN::-1.58 ≤ estimate ≤ 1.74
+REGINN::
+REGINN::Solving linear problem using rtol=0.900 and max_iter=2
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.825, norm=0.00288
+REGINN:Gradient::Target discrepancy reached after 1 iteration.
+REGINN::i=2 : rdisc=0.370, rnorm=0.147, rerr=0.960
+REGINN::-4.20 ≤ estimate ≤ 4.05
+REGINN::
+REGINN::Solving linear problem using rtol=0.855 and max_iter=2
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.921, norm=0.00104
+REGINN:Gradient::k=2 : rdisc=0.853, norm=0.00169
+REGINN:Gradient::Target discrepancy reached after 2 iterations.
+REGINN::i=3 : rdisc=0.324, rnorm=0.195, rerr=0.966
+REGINN::-5.99 ≤ estimate ≤ 5.70
+REGINN::
+REGINN::Solving linear problem using rtol=0.812 and max_iter=3
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.942, norm=0.000733
+REGINN:Gradient::k=2 : rdisc=0.880, norm=0.00136
+REGINN:Gradient::k=3 : rdisc=0.831, norm=0.00191
+REGINN:Gradient::Unsuccessful termination after 3 iterations!
+REGINN::Linear solver did not achieve desired discrepancy due to max_iter.
+REGINN::i=4 : rdisc=0.275, rnorm=0.258, rerr=0.984
+REGINN::-7.86 ≤ estimate ≤ 7.50
+REGINN::
+REGINN::Solving linear problem using rtol=0.772 and max_iter=5
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.938, norm=0.000826
+REGINN:Gradient::k=2 : rdisc=0.875, norm=0.00129
+REGINN:Gradient::k=3 : rdisc=0.840, norm=0.00170
+REGINN:Gradient::k=4 : rdisc=0.804, norm=0.00211
+REGINN:Gradient::k=5 : rdisc=0.775, norm=0.00245
+REGINN:Gradient::Unsuccessful termination after 5 iterations!
+REGINN::Linear solver did not achieve desired discrepancy due to max_iter.
+REGINN::i=5 : rdisc=0.220, rnorm=0.342, rerr=1.02 
+REGINN::-10.4 ≤ estimate ≤ 9.83
+REGINN::
+REGINN::Solving linear problem using rtol=0.733 and max_iter=8
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.961, norm=0.000480
+REGINN:Gradient::k=2 : rdisc=0.922, norm=0.000771
+REGINN:Gradient::k=3 : rdisc=0.893, norm=0.00111
+REGINN:Gradient::k=4 : rdisc=0.861, norm=0.00141
+REGINN:Gradient::k=5 : rdisc=0.835, norm=0.00169
+REGINN:Gradient::k=6 : rdisc=0.810, norm=0.00197
+REGINN:Gradient::k=7 : rdisc=0.787, norm=0.00222
+REGINN:Gradient::k=8 : rdisc=0.766, norm=0.00247
+REGINN:Gradient::Unsuccessful termination after 8 iterations!
+REGINN::Linear solver did not achieve desired discrepancy due to max_iter.
+REGINN::i=6 : rdisc=0.174, rnorm=0.425, rerr=1.06 
+REGINN::-13.2 ≤ estimate ≤ 12.3
+REGINN::
+REGINN::Solving linear problem using rtol=0.696 and max_iter=13
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.973, norm=0.000276
+REGINN:Gradient::k=2 : rdisc=0.949, norm=0.000467
+REGINN:Gradient::k=3 : rdisc=0.926, norm=0.000693
+REGINN:Gradient::k=4 : rdisc=0.905, norm=0.000892
+REGINN:Gradient::k=5 : rdisc=0.885, norm=0.00109
+REGINN:Gradient::k=6 : rdisc=0.867, norm=0.00128
+REGINN:Gradient::k=7 : rdisc=0.849, norm=0.00146
+REGINN:Gradient::k=8 : rdisc=0.833, norm=0.00163
+REGINN:Gradient::k=9 : rdisc=0.818, norm=0.00180
+REGINN:Gradient::k=10: rdisc=0.803, norm=0.00195
+REGINN:Gradient::k=11: rdisc=0.790, norm=0.00211
+REGINN:Gradient::k=12: rdisc=0.777, norm=0.00225
+REGINN:Gradient::k=13: rdisc=0.765, norm=0.00239
+REGINN:Gradient::Unsuccessful termination after 13 iterations!
+REGINN::Linear solver did not achieve desired discrepancy due to max_iter.
+REGINN::Saving current residual in ./step-0007/
+REGINN::Saving current estimate in ./step-0007/
+REGINN::i=7 : rdisc=0.137, rnorm=0.504, rerr=1.10 
+REGINN::-15.5 ≤ estimate ≤ 14.9
+REGINN::
+REGINN::Solving linear problem using rtol=0.813 and max_iter=21
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.985, norm=0.000167
+REGINN:Gradient::k=2 : rdisc=0.967, norm=0.000305
+REGINN:Gradient::k=3 : rdisc=0.953, norm=0.000432
+REGINN:Gradient::k=4 : rdisc=0.938, norm=0.000571
+REGINN:Gradient::k=5 : rdisc=0.925, norm=0.000691
+REGINN:Gradient::k=6 : rdisc=0.912, norm=0.000822
+REGINN:Gradient::k=7 : rdisc=0.899, norm=0.000936
+REGINN:Gradient::k=8 : rdisc=0.887, norm=0.00106
+REGINN:Gradient::k=9 : rdisc=0.876, norm=0.00117
+REGINN:Gradient::k=10: rdisc=0.865, norm=0.00128
+REGINN:Gradient::k=11: rdisc=0.855, norm=0.00139
+REGINN:Gradient::k=12: rdisc=0.844, norm=0.00150
+REGINN:Gradient::k=13: rdisc=0.835, norm=0.00160
+REGINN:Gradient::k=14: rdisc=0.825, norm=0.00170
+REGINN:Gradient::k=15: rdisc=0.816, norm=0.00180
+REGINN:Gradient::k=16: rdisc=0.807, norm=0.00190
+REGINN:Gradient::Target discrepancy reached after 16 iterations.
+REGINN::i=8 : rdisc=0.113, rnorm=0.565, rerr=1.14 
+REGINN::-15.9 ≤ estimate ≤ 15.3
+REGINN::
+REGINN::Solving linear problem using rtol=0.848 and max_iter=29
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.988, norm=0.000107
+REGINN:Gradient::k=2 : rdisc=0.977, norm=0.000201
+REGINN:Gradient::k=3 : rdisc=0.966, norm=0.000295
+REGINN:Gradient::k=4 : rdisc=0.955, norm=0.000394
+REGINN:Gradient::k=5 : rdisc=0.945, norm=0.000484
+REGINN:Gradient::k=6 : rdisc=0.935, norm=0.000581
+REGINN:Gradient::k=7 : rdisc=0.925, norm=0.000667
+REGINN:Gradient::k=8 : rdisc=0.915, norm=0.000763
+REGINN:Gradient::k=9 : rdisc=0.906, norm=0.000846
+REGINN:Gradient::k=10: rdisc=0.896, norm=0.000939
+REGINN:Gradient::k=11: rdisc=0.887, norm=0.00102
+REGINN:Gradient::k=12: rdisc=0.878, norm=0.00111
+REGINN:Gradient::k=13: rdisc=0.870, norm=0.00119
+REGINN:Gradient::k=14: rdisc=0.861, norm=0.00128
+REGINN:Gradient::k=15: rdisc=0.853, norm=0.00135
+REGINN:Gradient::k=16: rdisc=0.845, norm=0.00143
+REGINN:Gradient::Target discrepancy reached after 16 iterations.
+REGINN::i=9 : rdisc=0.0980, rnorm=0.610, rerr=1.16 
+REGINN::-17.1 ≤ estimate ≤ 16.1
+REGINN::
+REGINN::Solving linear problem using rtol=0.848 and max_iter=32
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.990, norm=8.80e-05
+REGINN:Gradient::k=2 : rdisc=0.980, norm=0.000166
+REGINN:Gradient::k=3 : rdisc=0.971, norm=0.000243
+REGINN:Gradient::k=4 : rdisc=0.961, norm=0.000326
+REGINN:Gradient::k=5 : rdisc=0.952, norm=0.000401
+REGINN:Gradient::k=6 : rdisc=0.943, norm=0.000482
+REGINN:Gradient::k=7 : rdisc=0.934, norm=0.000556
+REGINN:Gradient::k=8 : rdisc=0.925, norm=0.000634
+REGINN:Gradient::k=9 : rdisc=0.917, norm=0.000706
+REGINN:Gradient::k=10: rdisc=0.908, norm=0.000783
+REGINN:Gradient::k=11: rdisc=0.900, norm=0.000853
+REGINN:Gradient::k=12: rdisc=0.892, norm=0.000928
+REGINN:Gradient::k=13: rdisc=0.884, norm=0.000996
+REGINN:Gradient::k=14: rdisc=0.876, norm=0.00107
+REGINN:Gradient::k=15: rdisc=0.868, norm=0.00114
+REGINN:Gradient::k=16: rdisc=0.860, norm=0.00121
+REGINN:Gradient::k=17: rdisc=0.853, norm=0.00127
+REGINN:Gradient::k=18: rdisc=0.845, norm=0.00134
+REGINN:Gradient::Target discrepancy reached after 18 iterations.
+REGINN::Saving current residual in ./step-0010/
+REGINN::Saving current estimate in ./step-0010/
+REGINN::i=10: rdisc=0.0849, rnorm=0.651, rerr=1.19 
+REGINN::-18.6 ≤ estimate ≤ 17.9
+REGINN::
+REGINN::Solving linear problem using rtol=0.865 and max_iter=34
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.991, norm=7.71e-05
+REGINN:Gradient::k=2 : rdisc=0.982, norm=0.000141
+REGINN:Gradient::k=3 : rdisc=0.973, norm=0.000208
+REGINN:Gradient::k=4 : rdisc=0.964, norm=0.000279
+REGINN:Gradient::k=5 : rdisc=0.956, norm=0.000343
+REGINN:Gradient::k=6 : rdisc=0.947, norm=0.000413
+REGINN:Gradient::k=7 : rdisc=0.939, norm=0.000475
+REGINN:Gradient::k=8 : rdisc=0.931, norm=0.000543
+REGINN:Gradient::k=9 : rdisc=0.923, norm=0.000604
+REGINN:Gradient::k=10: rdisc=0.915, norm=0.000671
+REGINN:Gradient::k=11: rdisc=0.907, norm=0.000731
+REGINN:Gradient::k=12: rdisc=0.899, norm=0.000796
+REGINN:Gradient::k=13: rdisc=0.891, norm=0.000855
+REGINN:Gradient::k=14: rdisc=0.884, norm=0.000918
+REGINN:Gradient::k=15: rdisc=0.876, norm=0.000976
+REGINN:Gradient::k=16: rdisc=0.869, norm=0.00104
+REGINN:Gradient::k=17: rdisc=0.862, norm=0.00109
+REGINN:Gradient::Target discrepancy reached after 17 iterations.
+REGINN::i=11: rdisc=0.0748, rnorm=0.684, rerr=1.21 
+REGINN::-19.9 ≤ estimate ≤ 19.3
+REGINN::
+REGINN::Solving linear problem using rtol=0.822 and max_iter=35
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.988, norm=0.000109
+REGINN:Gradient::k=2 : rdisc=0.977, norm=0.000159
+REGINN:Gradient::k=3 : rdisc=0.967, norm=0.000239
+REGINN:Gradient::k=4 : rdisc=0.958, norm=0.000293
+REGINN:Gradient::k=5 : rdisc=0.950, norm=0.000360
+REGINN:Gradient::k=6 : rdisc=0.941, norm=0.000414
+REGINN:Gradient::k=7 : rdisc=0.934, norm=0.000472
+REGINN:Gradient::k=8 : rdisc=0.926, norm=0.000527
+REGINN:Gradient::k=9 : rdisc=0.919, norm=0.000580
+REGINN:Gradient::k=10: rdisc=0.911, norm=0.000636
+REGINN:Gradient::k=11: rdisc=0.904, norm=0.000687
+REGINN:Gradient::k=12: rdisc=0.896, norm=0.000744
+REGINN:Gradient::k=13: rdisc=0.889, norm=0.000794
+REGINN:Gradient::k=14: rdisc=0.882, norm=0.000850
+REGINN:Gradient::k=15: rdisc=0.875, norm=0.000900
+REGINN:Gradient::k=16: rdisc=0.868, norm=0.000953
+REGINN:Gradient::k=17: rdisc=0.861, norm=0.00100
+REGINN:Gradient::k=18: rdisc=0.855, norm=0.00105
+REGINN:Gradient::k=19: rdisc=0.848, norm=0.00110
+REGINN:Gradient::k=20: rdisc=0.841, norm=0.00115
+REGINN:Gradient::k=21: rdisc=0.835, norm=0.00120
+REGINN:Gradient::k=22: rdisc=0.829, norm=0.00125
+REGINN:Gradient::k=23: rdisc=0.822, norm=0.00130
+REGINN:Gradient::k=24: rdisc=0.816, norm=0.00134
+REGINN:Gradient::Target discrepancy reached after 24 iterations.
+REGINN::i=12: rdisc=0.0631, rnorm=0.725, rerr=1.23 
+REGINN::-21.5 ≤ estimate ≤ 21.2
+REGINN::
+REGINN::Solving linear problem using rtol=0.874 and max_iter=41
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.992, norm=5.92e-05
+REGINN:Gradient::k=2 : rdisc=0.983, norm=0.000104
+REGINN:Gradient::k=3 : rdisc=0.975, norm=0.000156
+REGINN:Gradient::k=4 : rdisc=0.967, norm=0.000206
+REGINN:Gradient::k=5 : rdisc=0.960, norm=0.000255
+REGINN:Gradient::k=6 : rdisc=0.952, norm=0.000304
+REGINN:Gradient::k=7 : rdisc=0.944, norm=0.000352
+REGINN:Gradient::k=8 : rdisc=0.937, norm=0.000400
+REGINN:Gradient::k=9 : rdisc=0.930, norm=0.000447
+REGINN:Gradient::k=10: rdisc=0.923, norm=0.000493
+REGINN:Gradient::k=11: rdisc=0.915, norm=0.000539
+REGINN:Gradient::k=12: rdisc=0.909, norm=0.000583
+REGINN:Gradient::k=13: rdisc=0.902, norm=0.000629
+REGINN:Gradient::k=14: rdisc=0.895, norm=0.000672
+REGINN:Gradient::k=15: rdisc=0.888, norm=0.000716
+REGINN:Gradient::k=16: rdisc=0.882, norm=0.000758
+REGINN:Gradient::k=17: rdisc=0.875, norm=0.000802
+REGINN:Gradient::k=18: rdisc=0.869, norm=0.000843
+REGINN:Gradient::Target discrepancy reached after 18 iterations.
+REGINN::i=13: rdisc=0.0561, rnorm=0.750, rerr=1.25 
+REGINN::-22.6 ≤ estimate ≤ 22.3
+REGINN::
+REGINN::Solving linear problem using rtol=0.830 and max_iter=42
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.992, norm=4.96e-05
+REGINN:Gradient::k=2 : rdisc=0.984, norm=9.15e-05
+REGINN:Gradient::k=3 : rdisc=0.976, norm=0.000135
+REGINN:Gradient::k=4 : rdisc=0.969, norm=0.000180
+REGINN:Gradient::k=5 : rdisc=0.961, norm=0.000223
+REGINN:Gradient::k=6 : rdisc=0.954, norm=0.000266
+REGINN:Gradient::k=7 : rdisc=0.947, norm=0.000308
+REGINN:Gradient::k=8 : rdisc=0.940, norm=0.000348
+REGINN:Gradient::k=9 : rdisc=0.933, norm=0.000390
+REGINN:Gradient::k=10: rdisc=0.927, norm=0.000428
+REGINN:Gradient::k=11: rdisc=0.920, norm=0.000470
+REGINN:Gradient::k=12: rdisc=0.913, norm=0.000506
+REGINN:Gradient::k=13: rdisc=0.907, norm=0.000547
+REGINN:Gradient::k=14: rdisc=0.901, norm=0.000583
+REGINN:Gradient::k=15: rdisc=0.895, norm=0.000622
+REGINN:Gradient::k=16: rdisc=0.888, norm=0.000658
+REGINN:Gradient::k=17: rdisc=0.883, norm=0.000696
+REGINN:Gradient::k=18: rdisc=0.877, norm=0.000732
+REGINN:Gradient::k=19: rdisc=0.871, norm=0.000769
+REGINN:Gradient::k=20: rdisc=0.865, norm=0.000804
+REGINN:Gradient::k=21: rdisc=0.859, norm=0.000840
+REGINN:Gradient::k=22: rdisc=0.854, norm=0.000874
+REGINN:Gradient::k=23: rdisc=0.848, norm=0.000909
+REGINN:Gradient::k=24: rdisc=0.842, norm=0.000943
+REGINN:Gradient::k=25: rdisc=0.837, norm=0.000978
+REGINN:Gradient::k=26: rdisc=0.832, norm=0.00101
+REGINN:Gradient::k=27: rdisc=0.826, norm=0.00104
+REGINN:Gradient::Target discrepancy reached after 27 iterations.
+REGINN::i=14: rdisc=0.0478, rnorm=0.780, rerr=1.26 
+REGINN::-23.8 ≤ estimate ≤ 23.8
+REGINN::
+REGINN::Solving linear problem using rtol=0.887 and max_iter=45
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.986, norm=9.63e-05
+REGINN:Gradient::k=2 : rdisc=0.973, norm=0.000128
+REGINN:Gradient::k=3 : rdisc=0.964, norm=0.000186
+REGINN:Gradient::k=4 : rdisc=0.955, norm=0.000219
+REGINN:Gradient::k=5 : rdisc=0.949, norm=0.000260
+REGINN:Gradient::k=6 : rdisc=0.941, norm=0.000295
+REGINN:Gradient::k=7 : rdisc=0.936, norm=0.000322
+REGINN:Gradient::k=8 : rdisc=0.929, norm=0.000359
+REGINN:Gradient::k=9 : rdisc=0.924, norm=0.000383
+REGINN:Gradient::k=10: rdisc=0.918, norm=0.000422
+REGINN:Gradient::k=11: rdisc=0.912, norm=0.000448
+REGINN:Gradient::k=12: rdisc=0.906, norm=0.000485
+REGINN:Gradient::k=13: rdisc=0.900, norm=0.000510
+REGINN:Gradient::k=14: rdisc=0.895, norm=0.000546
+REGINN:Gradient::k=15: rdisc=0.889, norm=0.000572
+REGINN:Gradient::k=16: rdisc=0.884, norm=0.000605
+REGINN:Gradient::Target discrepancy reached after 16 iterations.
+REGINN::i=15: rdisc=0.0431, rnorm=0.797, rerr=1.27 
+REGINN::-24.6 ≤ estimate ≤ 24.6
+REGINN::
+REGINN::Solving linear problem using rtol=0.842 and max_iter=43
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.993, norm=3.65e-05
+REGINN:Gradient::k=2 : rdisc=0.987, norm=6.35e-05
+REGINN:Gradient::k=3 : rdisc=0.981, norm=9.54e-05
+REGINN:Gradient::k=4 : rdisc=0.974, norm=0.000126
+REGINN:Gradient::k=5 : rdisc=0.968, norm=0.000156
+REGINN:Gradient::k=6 : rdisc=0.962, norm=0.000186
+REGINN:Gradient::k=7 : rdisc=0.956, norm=0.000214
+REGINN:Gradient::k=8 : rdisc=0.951, norm=0.000244
+REGINN:Gradient::k=9 : rdisc=0.945, norm=0.000271
+REGINN:Gradient::k=10: rdisc=0.939, norm=0.000300
+REGINN:Gradient::k=11: rdisc=0.934, norm=0.000327
+REGINN:Gradient::k=12: rdisc=0.929, norm=0.000356
+REGINN:Gradient::k=13: rdisc=0.923, norm=0.000382
+REGINN:Gradient::k=14: rdisc=0.918, norm=0.000410
+REGINN:Gradient::k=15: rdisc=0.913, norm=0.000435
+REGINN:Gradient::k=16: rdisc=0.908, norm=0.000463
+REGINN:Gradient::k=17: rdisc=0.903, norm=0.000488
+REGINN:Gradient::k=18: rdisc=0.898, norm=0.000515
+REGINN:Gradient::k=19: rdisc=0.893, norm=0.000540
+REGINN:Gradient::k=20: rdisc=0.888, norm=0.000566
+REGINN:Gradient::k=21: rdisc=0.883, norm=0.000591
+REGINN:Gradient::k=22: rdisc=0.879, norm=0.000616
+REGINN:Gradient::k=23: rdisc=0.874, norm=0.000640
+REGINN:Gradient::k=24: rdisc=0.869, norm=0.000665
+REGINN:Gradient::k=25: rdisc=0.865, norm=0.000689
+REGINN:Gradient::k=26: rdisc=0.860, norm=0.000714
+REGINN:Gradient::k=27: rdisc=0.856, norm=0.000737
+REGINN:Gradient::k=28: rdisc=0.851, norm=0.000761
+REGINN:Gradient::k=29: rdisc=0.847, norm=0.000784
+REGINN:Gradient::k=30: rdisc=0.843, norm=0.000808
+REGINN:Gradient::k=31: rdisc=0.838, norm=0.000831
+REGINN:Gradient::Target discrepancy reached after 31 iterations.
+REGINN::i=16: rdisc=0.0372, rnorm=0.821, rerr=1.29 
+REGINN::-25.6 ≤ estimate ≤ 25.8
+REGINN::
+REGINN::Solving linear problem using rtol=0.919 and max_iter=47
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.993, norm=3.98e-05
+REGINN:Gradient::k=2 : rdisc=0.986, norm=6.01e-05
+REGINN:Gradient::k=3 : rdisc=0.980, norm=9.49e-05
+REGINN:Gradient::k=4 : rdisc=0.973, norm=0.000118
+REGINN:Gradient::k=5 : rdisc=0.967, norm=0.000150
+REGINN:Gradient::k=6 : rdisc=0.961, norm=0.000172
+REGINN:Gradient::k=7 : rdisc=0.956, norm=0.000201
+REGINN:Gradient::k=8 : rdisc=0.950, norm=0.000223
+REGINN:Gradient::k=9 : rdisc=0.945, norm=0.000248
+REGINN:Gradient::k=10: rdisc=0.940, norm=0.000270
+REGINN:Gradient::k=11: rdisc=0.935, norm=0.000292
+REGINN:Gradient::k=12: rdisc=0.930, norm=0.000316
+REGINN:Gradient::k=13: rdisc=0.926, norm=0.000336
+REGINN:Gradient::k=14: rdisc=0.921, norm=0.000360
+REGINN:Gradient::k=15: rdisc=0.916, norm=0.000380
+REGINN:Gradient::Target discrepancy reached after 15 iterations.
+REGINN::i=17: rdisc=0.0345, rnorm=0.832, rerr=1.29 
+REGINN::-26.0 ≤ estimate ≤ 26.3
+REGINN::
+REGINN::Solving linear problem using rtol=0.873 and max_iter=46
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.991, norm=4.94e-05
+REGINN:Gradient::k=2 : rdisc=0.983, norm=6.85e-05
+REGINN:Gradient::k=3 : rdisc=0.977, norm=0.000100
+REGINN:Gradient::k=4 : rdisc=0.971, norm=0.000121
+REGINN:Gradient::k=5 : rdisc=0.967, norm=0.000144
+REGINN:Gradient::k=6 : rdisc=0.961, norm=0.000166
+REGINN:Gradient::k=7 : rdisc=0.957, norm=0.000184
+REGINN:Gradient::k=8 : rdisc=0.952, norm=0.000207
+REGINN:Gradient::k=9 : rdisc=0.948, norm=0.000223
+REGINN:Gradient::k=10: rdisc=0.943, norm=0.000247
+REGINN:Gradient::k=11: rdisc=0.939, norm=0.000264
+REGINN:Gradient::k=12: rdisc=0.934, norm=0.000287
+REGINN:Gradient::k=13: rdisc=0.930, norm=0.000304
+REGINN:Gradient::k=14: rdisc=0.926, norm=0.000326
+REGINN:Gradient::k=15: rdisc=0.922, norm=0.000343
+REGINN:Gradient::k=16: rdisc=0.918, norm=0.000364
+REGINN:Gradient::k=17: rdisc=0.914, norm=0.000381
+REGINN:Gradient::k=18: rdisc=0.910, norm=0.000400
+REGINN:Gradient::k=19: rdisc=0.906, norm=0.000418
+REGINN:Gradient::k=20: rdisc=0.902, norm=0.000437
+REGINN:Gradient::k=21: rdisc=0.898, norm=0.000455
+REGINN:Gradient::k=22: rdisc=0.894, norm=0.000472
+REGINN:Gradient::k=23: rdisc=0.891, norm=0.000491
+REGINN:Gradient::k=24: rdisc=0.887, norm=0.000508
+REGINN:Gradient::k=25: rdisc=0.883, norm=0.000526
+REGINN:Gradient::k=26: rdisc=0.880, norm=0.000543
+REGINN:Gradient::k=27: rdisc=0.876, norm=0.000561
+REGINN:Gradient::k=28: rdisc=0.872, norm=0.000578
+REGINN:Gradient::Target discrepancy reached after 28 iterations.
+REGINN::i=18: rdisc=0.0307, rnorm=0.848, rerr=1.30 
+REGINN::-26.7 ≤ estimate ≤ 27.1
+REGINN::
+REGINN::Solving linear problem using rtol=0.932 and max_iter=43
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.994, norm=2.94e-05
+REGINN:Gradient::k=2 : rdisc=0.989, norm=4.47e-05
+REGINN:Gradient::k=3 : rdisc=0.984, norm=6.78e-05
+REGINN:Gradient::k=4 : rdisc=0.979, norm=8.57e-05
+REGINN:Gradient::k=5 : rdisc=0.975, norm=0.000104
+REGINN:Gradient::k=6 : rdisc=0.970, norm=0.000123
+REGINN:Gradient::k=7 : rdisc=0.966, norm=0.000138
+REGINN:Gradient::k=8 : rdisc=0.962, norm=0.000158
+REGINN:Gradient::k=9 : rdisc=0.958, norm=0.000172
+REGINN:Gradient::k=10: rdisc=0.954, norm=0.000191
+REGINN:Gradient::k=11: rdisc=0.951, norm=0.000206
+REGINN:Gradient::k=12: rdisc=0.947, norm=0.000225
+REGINN:Gradient::k=13: rdisc=0.943, norm=0.000240
+REGINN:Gradient::k=14: rdisc=0.939, norm=0.000259
+REGINN:Gradient::k=15: rdisc=0.935, norm=0.000273
+REGINN:Gradient::k=16: rdisc=0.932, norm=0.000291
+REGINN:Gradient::Target discrepancy reached after 16 iterations.
+REGINN::i=19: rdisc=0.0290, rnorm=0.856, rerr=1.30 
+REGINN::-27.1 ≤ estimate ≤ 27.5
+REGINN::
+REGINN::Solving linear problem using rtol=0.885 and max_iter=44
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.996, norm=1.88e-05
+REGINN:Gradient::k=2 : rdisc=0.992, norm=3.32e-05
+REGINN:Gradient::k=3 : rdisc=0.988, norm=5.06e-05
+REGINN:Gradient::k=4 : rdisc=0.984, norm=6.62e-05
+REGINN:Gradient::k=5 : rdisc=0.980, norm=8.35e-05
+REGINN:Gradient::k=6 : rdisc=0.976, norm=9.88e-05
+REGINN:Gradient::k=7 : rdisc=0.972, norm=0.000115
+REGINN:Gradient::k=8 : rdisc=0.968, norm=0.000131
+REGINN:Gradient::k=9 : rdisc=0.965, norm=0.000147
+REGINN:Gradient::k=10: rdisc=0.961, norm=0.000162
+REGINN:Gradient::k=11: rdisc=0.958, norm=0.000177
+REGINN:Gradient::k=12: rdisc=0.954, norm=0.000192
+REGINN:Gradient::k=13: rdisc=0.951, norm=0.000207
+REGINN:Gradient::k=14: rdisc=0.947, norm=0.000222
+REGINN:Gradient::k=15: rdisc=0.944, norm=0.000235
+REGINN:Gradient::k=16: rdisc=0.941, norm=0.000251
+REGINN:Gradient::k=17: rdisc=0.937, norm=0.000264
+REGINN:Gradient::k=18: rdisc=0.934, norm=0.000279
+REGINN:Gradient::k=19: rdisc=0.931, norm=0.000292
+REGINN:Gradient::k=20: rdisc=0.928, norm=0.000307
+REGINN:Gradient::k=21: rdisc=0.925, norm=0.000320
+REGINN:Gradient::k=22: rdisc=0.922, norm=0.000335
+REGINN:Gradient::k=23: rdisc=0.919, norm=0.000348
+REGINN:Gradient::k=24: rdisc=0.916, norm=0.000362
+REGINN:Gradient::k=25: rdisc=0.913, norm=0.000375
+REGINN:Gradient::k=26: rdisc=0.910, norm=0.000389
+REGINN:Gradient::k=27: rdisc=0.907, norm=0.000402
+REGINN:Gradient::k=28: rdisc=0.904, norm=0.000415
+REGINN:Gradient::k=29: rdisc=0.901, norm=0.000429
+REGINN:Gradient::k=30: rdisc=0.898, norm=0.000441
+REGINN:Gradient::k=31: rdisc=0.895, norm=0.000455
+REGINN:Gradient::k=32: rdisc=0.892, norm=0.000467
+REGINN:Gradient::k=33: rdisc=0.889, norm=0.000481
+REGINN:Gradient::k=34: rdisc=0.887, norm=0.000493
+REGINN:Gradient::k=35: rdisc=0.884, norm=0.000507
+REGINN:Gradient::Target discrepancy reached after 35 iterations.
+REGINN::Saving current residual in ./step-0020/
+REGINN::Saving current estimate in ./step-0020/
+REGINN::i=20: rdisc=0.0261, rnorm=0.870, rerr=1.31 
+REGINN::-27.7 ≤ estimate ≤ 28.2
+REGINN::
+REGINN::Solving linear problem using rtol=0.948 and max_iter=51
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.996, norm=1.76e-05
+REGINN:Gradient::k=2 : rdisc=0.993, norm=2.90e-05
+REGINN:Gradient::k=3 : rdisc=0.989, norm=4.41e-05
+REGINN:Gradient::k=4 : rdisc=0.986, norm=5.69e-05
+REGINN:Gradient::k=5 : rdisc=0.982, norm=7.14e-05
+REGINN:Gradient::k=6 : rdisc=0.979, norm=8.40e-05
+REGINN:Gradient::k=7 : rdisc=0.976, norm=9.78e-05
+REGINN:Gradient::k=8 : rdisc=0.973, norm=0.000111
+REGINN:Gradient::k=9 : rdisc=0.970, norm=0.000123
+REGINN:Gradient::k=10: rdisc=0.966, norm=0.000137
+REGINN:Gradient::k=11: rdisc=0.964, norm=0.000148
+REGINN:Gradient::k=12: rdisc=0.960, norm=0.000162
+REGINN:Gradient::k=13: rdisc=0.957, norm=0.000173
+REGINN:Gradient::k=14: rdisc=0.954, norm=0.000188
+REGINN:Gradient::k=15: rdisc=0.951, norm=0.000199
+REGINN:Gradient::k=16: rdisc=0.948, norm=0.000213
+REGINN:Gradient::k=17: rdisc=0.945, norm=0.000224
+REGINN:Gradient::Target discrepancy reached after 17 iterations.
+REGINN::i=21: rdisc=0.0249, rnorm=0.875, rerr=1.31 
+REGINN::-28.0 ≤ estimate ≤ 28.5
+REGINN::
+REGINN::Solving linear problem using rtol=0.900 and max_iter=52
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.994, norm=3.19e-05
+REGINN:Gradient::k=2 : rdisc=0.989, norm=4.31e-05
+REGINN:Gradient::k=3 : rdisc=0.985, norm=6.19e-05
+REGINN:Gradient::k=4 : rdisc=0.981, norm=7.37e-05
+REGINN:Gradient::k=5 : rdisc=0.978, norm=8.75e-05
+REGINN:Gradient::k=6 : rdisc=0.975, norm=9.93e-05
+REGINN:Gradient::k=7 : rdisc=0.972, norm=0.000110
+REGINN:Gradient::k=8 : rdisc=0.969, norm=0.000122
+REGINN:Gradient::k=9 : rdisc=0.967, norm=0.000131
+REGINN:Gradient::k=10: rdisc=0.964, norm=0.000145
+REGINN:Gradient::k=11: rdisc=0.961, norm=0.000154
+REGINN:Gradient::k=12: rdisc=0.959, norm=0.000167
+REGINN:Gradient::k=13: rdisc=0.956, norm=0.000177
+REGINN:Gradient::k=14: rdisc=0.953, norm=0.000190
+REGINN:Gradient::k=15: rdisc=0.951, norm=0.000199
+REGINN:Gradient::k=16: rdisc=0.948, norm=0.000211
+REGINN:Gradient::k=17: rdisc=0.946, norm=0.000221
+REGINN:Gradient::k=18: rdisc=0.943, norm=0.000232
+REGINN:Gradient::k=19: rdisc=0.941, norm=0.000242
+REGINN:Gradient::k=20: rdisc=0.939, norm=0.000253
+REGINN:Gradient::k=21: rdisc=0.936, norm=0.000263
+REGINN:Gradient::k=22: rdisc=0.934, norm=0.000273
+REGINN:Gradient::k=23: rdisc=0.932, norm=0.000283
+REGINN:Gradient::k=24: rdisc=0.930, norm=0.000293
+REGINN:Gradient::k=25: rdisc=0.927, norm=0.000303
+REGINN:Gradient::k=26: rdisc=0.925, norm=0.000313
+REGINN:Gradient::k=27: rdisc=0.923, norm=0.000323
+REGINN:Gradient::k=28: rdisc=0.921, norm=0.000333
+REGINN:Gradient::k=29: rdisc=0.918, norm=0.000343
+REGINN:Gradient::k=30: rdisc=0.916, norm=0.000352
+REGINN:Gradient::k=31: rdisc=0.914, norm=0.000362
+REGINN:Gradient::k=32: rdisc=0.912, norm=0.000372
+REGINN:Gradient::k=33: rdisc=0.910, norm=0.000382
+REGINN:Gradient::k=34: rdisc=0.908, norm=0.000391
+REGINN:Gradient::k=35: rdisc=0.906, norm=0.000400
+REGINN:Gradient::k=36: rdisc=0.904, norm=0.000410
+REGINN:Gradient::k=37: rdisc=0.902, norm=0.000419
+REGINN:Gradient::k=38: rdisc=0.900, norm=0.000429
+REGINN:Gradient::Target discrepancy reached after 38 iterations.
+REGINN::i=22: rdisc=0.0228, rnorm=0.886, rerr=1.32 
+REGINN::-28.5 ≤ estimate ≤ 29.1
+REGINN::
+REGINN::Solving linear problem using rtol=0.955 and max_iter=55
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.997, norm=1.41e-05
+REGINN:Gradient::k=2 : rdisc=0.994, norm=2.26e-05
+REGINN:Gradient::k=3 : rdisc=0.991, norm=3.47e-05
+REGINN:Gradient::k=4 : rdisc=0.989, norm=4.44e-05
+REGINN:Gradient::k=5 : rdisc=0.986, norm=5.55e-05
+REGINN:Gradient::k=6 : rdisc=0.984, norm=6.53e-05
+REGINN:Gradient::k=7 : rdisc=0.981, norm=7.54e-05
+REGINN:Gradient::k=8 : rdisc=0.979, norm=8.53e-05
+REGINN:Gradient::k=9 : rdisc=0.977, norm=9.44e-05
+REGINN:Gradient::k=10: rdisc=0.974, norm=0.000105
+REGINN:Gradient::k=11: rdisc=0.972, norm=0.000113
+REGINN:Gradient::k=12: rdisc=0.970, norm=0.000124
+REGINN:Gradient::k=13: rdisc=0.968, norm=0.000132
+REGINN:Gradient::k=14: rdisc=0.965, norm=0.000143
+REGINN:Gradient::k=15: rdisc=0.963, norm=0.000151
+REGINN:Gradient::k=16: rdisc=0.961, norm=0.000162
+REGINN:Gradient::k=17: rdisc=0.959, norm=0.000170
+REGINN:Gradient::k=18: rdisc=0.957, norm=0.000180
+REGINN:Gradient::k=19: rdisc=0.955, norm=0.000188
+REGINN:Gradient::Target discrepancy reached after 19 iterations.
+REGINN::i=23: rdisc=0.0219, rnorm=0.891, rerr=1.32 
+REGINN::-28.7 ≤ estimate ≤ 29.4
+REGINN::
+REGINN::Solving linear problem using rtol=0.908 and max_iter=57
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.997, norm=1.92e-05
+REGINN:Gradient::k=2 : rdisc=0.993, norm=2.73e-05
+REGINN:Gradient::k=3 : rdisc=0.990, norm=4.11e-05
+REGINN:Gradient::k=4 : rdisc=0.987, norm=4.99e-05
+REGINN:Gradient::k=5 : rdisc=0.985, norm=6.06e-05
+REGINN:Gradient::k=6 : rdisc=0.983, norm=6.91e-05
+REGINN:Gradient::k=7 : rdisc=0.981, norm=7.79e-05
+REGINN:Gradient::k=8 : rdisc=0.979, norm=8.65e-05
+REGINN:Gradient::k=9 : rdisc=0.977, norm=9.43e-05
+REGINN:Gradient::k=10: rdisc=0.975, norm=0.000104
+REGINN:Gradient::k=11: rdisc=0.973, norm=0.000111
+REGINN:Gradient::k=12: rdisc=0.971, norm=0.000121
+REGINN:Gradient::k=13: rdisc=0.969, norm=0.000129
+REGINN:Gradient::k=14: rdisc=0.967, norm=0.000139
+REGINN:Gradient::k=15: rdisc=0.965, norm=0.000146
+REGINN:Gradient::k=16: rdisc=0.963, norm=0.000156
+REGINN:Gradient::k=17: rdisc=0.961, norm=0.000163
+REGINN:Gradient::k=18: rdisc=0.959, norm=0.000172
+REGINN:Gradient::k=19: rdisc=0.957, norm=0.000180
+REGINN:Gradient::k=20: rdisc=0.955, norm=0.000188
+REGINN:Gradient::k=21: rdisc=0.954, norm=0.000196
+REGINN:Gradient::k=22: rdisc=0.952, norm=0.000203
+REGINN:Gradient::k=23: rdisc=0.950, norm=0.000211
+REGINN:Gradient::k=24: rdisc=0.948, norm=0.000219
+REGINN:Gradient::k=25: rdisc=0.947, norm=0.000227
+REGINN:Gradient::k=26: rdisc=0.945, norm=0.000234
+REGINN:Gradient::k=27: rdisc=0.943, norm=0.000242
+REGINN:Gradient::k=28: rdisc=0.942, norm=0.000249
+REGINN:Gradient::k=29: rdisc=0.940, norm=0.000257
+REGINN:Gradient::k=30: rdisc=0.938, norm=0.000264
+REGINN:Gradient::k=31: rdisc=0.937, norm=0.000272
+REGINN:Gradient::k=32: rdisc=0.935, norm=0.000279
+REGINN:Gradient::k=33: rdisc=0.934, norm=0.000287
+REGINN:Gradient::k=34: rdisc=0.932, norm=0.000294
+REGINN:Gradient::k=35: rdisc=0.931, norm=0.000301
+REGINN:Gradient::k=36: rdisc=0.929, norm=0.000309
+REGINN:Gradient::k=37: rdisc=0.927, norm=0.000316
+REGINN:Gradient::k=38: rdisc=0.926, norm=0.000323
+REGINN:Gradient::k=39: rdisc=0.924, norm=0.000330
+REGINN:Gradient::k=40: rdisc=0.923, norm=0.000338
+REGINN:Gradient::k=41: rdisc=0.921, norm=0.000345
+REGINN:Gradient::k=42: rdisc=0.920, norm=0.000352
+REGINN:Gradient::k=43: rdisc=0.918, norm=0.000359
+REGINN:Gradient::k=44: rdisc=0.917, norm=0.000366
+REGINN:Gradient::k=45: rdisc=0.915, norm=0.000373
+REGINN:Gradient::k=46: rdisc=0.914, norm=0.000380
+REGINN:Gradient::k=47: rdisc=0.913, norm=0.000387
+REGINN:Gradient::k=48: rdisc=0.911, norm=0.000393
+REGINN:Gradient::k=49: rdisc=0.910, norm=0.000401
+REGINN:Gradient::k=50: rdisc=0.908, norm=0.000407
+REGINN:Gradient::k=51: rdisc=0.907, norm=0.000414
+REGINN:Gradient::Target discrepancy reached after 51 iterations.
+REGINN::i=24: rdisc=0.0202, rnorm=0.901, rerr=1.33 
+REGINN::-29.3 ≤ estimate ≤ 29.9
+REGINN::
+REGINN::Solving linear problem using rtol=0.966 and max_iter=70
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.997, norm=1.48e-05
+REGINN:Gradient::k=2 : rdisc=0.995, norm=2.13e-05
+REGINN:Gradient::k=3 : rdisc=0.992, norm=3.31e-05
+REGINN:Gradient::k=4 : rdisc=0.990, norm=4.05e-05
+REGINN:Gradient::k=5 : rdisc=0.988, norm=5.05e-05
+REGINN:Gradient::k=6 : rdisc=0.986, norm=5.76e-05
+REGINN:Gradient::k=7 : rdisc=0.984, norm=6.59e-05
+REGINN:Gradient::k=8 : rdisc=0.982, norm=7.31e-05
+REGINN:Gradient::k=9 : rdisc=0.981, norm=8.00e-05
+REGINN:Gradient::k=10: rdisc=0.979, norm=8.75e-05
+REGINN:Gradient::k=11: rdisc=0.977, norm=9.35e-05
+REGINN:Gradient::k=12: rdisc=0.976, norm=0.000101
+REGINN:Gradient::k=13: rdisc=0.974, norm=0.000107
+REGINN:Gradient::k=14: rdisc=0.973, norm=0.000115
+REGINN:Gradient::k=15: rdisc=0.971, norm=0.000121
+REGINN:Gradient::k=16: rdisc=0.970, norm=0.000129
+REGINN:Gradient::k=17: rdisc=0.968, norm=0.000135
+REGINN:Gradient::k=18: rdisc=0.967, norm=0.000142
+REGINN:Gradient::k=19: rdisc=0.965, norm=0.000149
+REGINN:Gradient::Target discrepancy reached after 19 iterations.
+REGINN::i=25: rdisc=0.0196, rnorm=0.904, rerr=1.33 
+REGINN::-29.5 ≤ estimate ≤ 30.2
+REGINN::
+REGINN::Solving linear problem using rtol=0.917 and max_iter=70
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.998, norm=1.19e-05
+REGINN:Gradient::k=2 : rdisc=0.996, norm=1.77e-05
+REGINN:Gradient::k=3 : rdisc=0.994, norm=2.68e-05
+REGINN:Gradient::k=4 : rdisc=0.992, norm=3.34e-05
+REGINN:Gradient::k=5 : rdisc=0.991, norm=4.09e-05
+REGINN:Gradient::k=6 : rdisc=0.989, norm=4.73e-05
+REGINN:Gradient::k=7 : rdisc=0.988, norm=5.38e-05
+REGINN:Gradient::k=8 : rdisc=0.986, norm=6.05e-05
+REGINN:Gradient::k=9 : rdisc=0.985, norm=6.63e-05
+REGINN:Gradient::k=10: rdisc=0.983, norm=7.34e-05
+REGINN:Gradient::k=11: rdisc=0.982, norm=7.92e-05
+REGINN:Gradient::k=12: rdisc=0.980, norm=8.65e-05
+REGINN:Gradient::k=13: rdisc=0.979, norm=9.23e-05
+REGINN:Gradient::k=14: rdisc=0.977, norm=9.94e-05
+REGINN:Gradient::k=15: rdisc=0.976, norm=0.000105
+REGINN:Gradient::k=16: rdisc=0.975, norm=0.000112
+REGINN:Gradient::k=17: rdisc=0.973, norm=0.000118
+REGINN:Gradient::k=18: rdisc=0.972, norm=0.000124
+REGINN:Gradient::k=19: rdisc=0.971, norm=0.000130
+REGINN:Gradient::k=20: rdisc=0.969, norm=0.000136
+REGINN:Gradient::k=21: rdisc=0.968, norm=0.000142
+REGINN:Gradient::k=22: rdisc=0.967, norm=0.000148
+REGINN:Gradient::k=23: rdisc=0.966, norm=0.000154
+REGINN:Gradient::k=24: rdisc=0.964, norm=0.000160
+REGINN:Gradient::k=25: rdisc=0.963, norm=0.000166
+REGINN:Gradient::k=26: rdisc=0.962, norm=0.000171
+REGINN:Gradient::k=27: rdisc=0.961, norm=0.000177
+REGINN:Gradient::k=28: rdisc=0.960, norm=0.000183
+REGINN:Gradient::k=29: rdisc=0.958, norm=0.000189
+REGINN:Gradient::k=30: rdisc=0.957, norm=0.000195
+REGINN:Gradient::k=31: rdisc=0.956, norm=0.000200
+REGINN:Gradient::k=32: rdisc=0.955, norm=0.000206
+REGINN:Gradient::k=33: rdisc=0.954, norm=0.000212
+REGINN:Gradient::k=34: rdisc=0.952, norm=0.000217
+REGINN:Gradient::k=35: rdisc=0.951, norm=0.000223
+REGINN:Gradient::k=36: rdisc=0.950, norm=0.000229
+REGINN:Gradient::k=37: rdisc=0.949, norm=0.000234
+REGINN:Gradient::k=38: rdisc=0.948, norm=0.000240
+REGINN:Gradient::k=39: rdisc=0.947, norm=0.000245
+REGINN:Gradient::k=40: rdisc=0.946, norm=0.000251
+REGINN:Gradient::k=41: rdisc=0.944, norm=0.000256
+REGINN:Gradient::k=42: rdisc=0.943, norm=0.000262
+REGINN:Gradient::k=43: rdisc=0.942, norm=0.000267
+REGINN:Gradient::k=44: rdisc=0.941, norm=0.000273
+REGINN:Gradient::k=45: rdisc=0.940, norm=0.000278
+REGINN:Gradient::k=46: rdisc=0.939, norm=0.000284
+REGINN:Gradient::k=47: rdisc=0.938, norm=0.000289
+REGINN:Gradient::k=48: rdisc=0.937, norm=0.000295
+REGINN:Gradient::k=49: rdisc=0.936, norm=0.000300
+REGINN:Gradient::k=50: rdisc=0.935, norm=0.000305
+REGINN:Gradient::k=51: rdisc=0.934, norm=0.000311
+REGINN:Gradient::k=52: rdisc=0.933, norm=0.000316
+REGINN:Gradient::k=53: rdisc=0.931, norm=0.000321
+REGINN:Gradient::k=54: rdisc=0.930, norm=0.000327
+REGINN:Gradient::k=55: rdisc=0.929, norm=0.000332
+REGINN:Gradient::k=56: rdisc=0.928, norm=0.000337
+REGINN:Gradient::k=57: rdisc=0.927, norm=0.000342
+REGINN:Gradient::k=58: rdisc=0.926, norm=0.000348
+REGINN:Gradient::k=59: rdisc=0.925, norm=0.000353
+REGINN:Gradient::k=60: rdisc=0.924, norm=0.000358
+REGINN:Gradient::k=61: rdisc=0.923, norm=0.000363
+REGINN:Gradient::k=62: rdisc=0.922, norm=0.000368
+REGINN:Gradient::k=63: rdisc=0.921, norm=0.000373
+REGINN:Gradient::k=64: rdisc=0.920, norm=0.000378
+REGINN:Gradient::k=65: rdisc=0.919, norm=0.000383
+REGINN:Gradient::k=66: rdisc=0.918, norm=0.000389
+REGINN:Gradient::k=67: rdisc=0.917, norm=0.000394
+REGINN:Gradient::k=68: rdisc=0.916, norm=0.000399
+REGINN:Gradient::Target discrepancy reached after 68 iterations.
+REGINN::i=26: rdisc=0.0182, rnorm=0.913, rerr=1.33 
+REGINN::-30.0 ≤ estimate ≤ 30.7
+REGINN::
+REGINN::Solving linear problem using rtol=0.977 and max_iter=87
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.998, norm=8.27e-06
+REGINN:Gradient::k=2 : rdisc=0.997, norm=1.33e-05
+REGINN:Gradient::k=3 : rdisc=0.995, norm=2.01e-05
+REGINN:Gradient::k=4 : rdisc=0.994, norm=2.55e-05
+REGINN:Gradient::k=5 : rdisc=0.993, norm=3.17e-05
+REGINN:Gradient::k=6 : rdisc=0.992, norm=3.71e-05
+REGINN:Gradient::k=7 : rdisc=0.990, norm=4.28e-05
+REGINN:Gradient::k=8 : rdisc=0.989, norm=4.83e-05
+REGINN:Gradient::k=9 : rdisc=0.988, norm=5.35e-05
+REGINN:Gradient::k=10: rdisc=0.987, norm=5.93e-05
+REGINN:Gradient::k=11: rdisc=0.986, norm=6.41e-05
+REGINN:Gradient::k=12: rdisc=0.984, norm=7.01e-05
+REGINN:Gradient::k=13: rdisc=0.983, norm=7.49e-05
+REGINN:Gradient::k=14: rdisc=0.982, norm=8.10e-05
+REGINN:Gradient::k=15: rdisc=0.981, norm=8.58e-05
+REGINN:Gradient::k=16: rdisc=0.980, norm=9.17e-05
+REGINN:Gradient::k=17: rdisc=0.979, norm=9.65e-05
+REGINN:Gradient::k=18: rdisc=0.978, norm=0.000102
+REGINN:Gradient::k=19: rdisc=0.977, norm=0.000107
+REGINN:Gradient::Target discrepancy reached after 19 iterations.
+REGINN::i=27: rdisc=0.0179, rnorm=0.915, rerr=1.34 
+REGINN::-30.1 ≤ estimate ≤ 30.8
+REGINN::
+REGINN::Solving linear problem using rtol=0.928 and max_iter=87
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.998, norm=9.18e-06
+REGINN:Gradient::k=2 : rdisc=0.997, norm=1.37e-05
+REGINN:Gradient::k=3 : rdisc=0.996, norm=2.06e-05
+REGINN:Gradient::k=4 : rdisc=0.994, norm=2.57e-05
+REGINN:Gradient::k=5 : rdisc=0.993, norm=3.14e-05
+REGINN:Gradient::k=6 : rdisc=0.992, norm=3.64e-05
+REGINN:Gradient::k=7 : rdisc=0.991, norm=4.13e-05
+REGINN:Gradient::k=8 : rdisc=0.990, norm=4.65e-05
+REGINN:Gradient::k=9 : rdisc=0.989, norm=5.10e-05
+REGINN:Gradient::k=10: rdisc=0.988, norm=5.65e-05
+REGINN:Gradient::k=11: rdisc=0.987, norm=6.09e-05
+REGINN:Gradient::k=12: rdisc=0.986, norm=6.64e-05
+REGINN:Gradient::k=13: rdisc=0.985, norm=7.08e-05
+REGINN:Gradient::k=14: rdisc=0.984, norm=7.61e-05
+REGINN:Gradient::k=15: rdisc=0.983, norm=8.06e-05
+REGINN:Gradient::k=16: rdisc=0.982, norm=8.56e-05
+REGINN:Gradient::k=17: rdisc=0.981, norm=9.02e-05
+REGINN:Gradient::k=18: rdisc=0.980, norm=9.50e-05
+REGINN:Gradient::k=19: rdisc=0.979, norm=9.97e-05
+REGINN:Gradient::k=20: rdisc=0.978, norm=0.000104
+REGINN:Gradient::k=21: rdisc=0.977, norm=0.000109
+REGINN:Gradient::k=22: rdisc=0.976, norm=0.000114
+REGINN:Gradient::k=23: rdisc=0.975, norm=0.000118
+REGINN:Gradient::k=24: rdisc=0.974, norm=0.000123
+REGINN:Gradient::k=25: rdisc=0.973, norm=0.000128
+REGINN:Gradient::k=26: rdisc=0.973, norm=0.000132
+REGINN:Gradient::k=27: rdisc=0.972, norm=0.000137
+REGINN:Gradient::k=28: rdisc=0.971, norm=0.000141
+REGINN:Gradient::k=29: rdisc=0.970, norm=0.000146
+REGINN:Gradient::k=30: rdisc=0.969, norm=0.000150
+REGINN:Gradient::k=31: rdisc=0.968, norm=0.000155
+REGINN:Gradient::k=32: rdisc=0.967, norm=0.000159
+REGINN:Gradient::k=33: rdisc=0.966, norm=0.000164
+REGINN:Gradient::k=34: rdisc=0.965, norm=0.000168
+REGINN:Gradient::k=35: rdisc=0.965, norm=0.000173
+REGINN:Gradient::k=36: rdisc=0.964, norm=0.000177
+REGINN:Gradient::k=37: rdisc=0.963, norm=0.000181
+REGINN:Gradient::k=38: rdisc=0.962, norm=0.000186
+REGINN:Gradient::k=39: rdisc=0.961, norm=0.000190
+REGINN:Gradient::k=40: rdisc=0.960, norm=0.000195
+REGINN:Gradient::k=41: rdisc=0.959, norm=0.000199
+REGINN:Gradient::k=42: rdisc=0.959, norm=0.000203
+REGINN:Gradient::k=43: rdisc=0.958, norm=0.000208
+REGINN:Gradient::k=44: rdisc=0.957, norm=0.000212
+REGINN:Gradient::k=45: rdisc=0.956, norm=0.000216
+REGINN:Gradient::k=46: rdisc=0.955, norm=0.000221
+REGINN:Gradient::k=47: rdisc=0.954, norm=0.000225
+REGINN:Gradient::k=48: rdisc=0.954, norm=0.000229
+REGINN:Gradient::k=49: rdisc=0.953, norm=0.000233
+REGINN:Gradient::k=50: rdisc=0.952, norm=0.000238
+REGINN:Gradient::k=51: rdisc=0.951, norm=0.000242
+REGINN:Gradient::k=52: rdisc=0.950, norm=0.000246
+REGINN:Gradient::k=53: rdisc=0.950, norm=0.000250
+REGINN:Gradient::k=54: rdisc=0.949, norm=0.000255
+REGINN:Gradient::k=55: rdisc=0.948, norm=0.000259
+REGINN:Gradient::k=56: rdisc=0.947, norm=0.000263
+REGINN:Gradient::k=57: rdisc=0.946, norm=0.000267
+REGINN:Gradient::k=58: rdisc=0.946, norm=0.000271
+REGINN:Gradient::k=59: rdisc=0.945, norm=0.000276
+REGINN:Gradient::k=60: rdisc=0.944, norm=0.000280
+REGINN:Gradient::k=61: rdisc=0.943, norm=0.000284
+REGINN:Gradient::k=62: rdisc=0.943, norm=0.000288
+REGINN:Gradient::k=63: rdisc=0.942, norm=0.000292
+REGINN:Gradient::k=64: rdisc=0.941, norm=0.000296
+REGINN:Gradient::k=65: rdisc=0.940, norm=0.000300
+REGINN:Gradient::k=66: rdisc=0.939, norm=0.000304
+REGINN:Gradient::k=67: rdisc=0.939, norm=0.000308
+REGINN:Gradient::k=68: rdisc=0.938, norm=0.000312
+REGINN:Gradient::k=69: rdisc=0.937, norm=0.000317
+REGINN:Gradient::k=70: rdisc=0.936, norm=0.000321
+REGINN:Gradient::k=71: rdisc=0.936, norm=0.000325
+REGINN:Gradient::k=72: rdisc=0.935, norm=0.000329
+REGINN:Gradient::k=73: rdisc=0.934, norm=0.000333
+REGINN:Gradient::k=74: rdisc=0.933, norm=0.000337
+REGINN:Gradient::k=75: rdisc=0.933, norm=0.000341
+REGINN:Gradient::k=76: rdisc=0.932, norm=0.000345
+REGINN:Gradient::k=77: rdisc=0.931, norm=0.000349
+REGINN:Gradient::k=78: rdisc=0.931, norm=0.000353
+REGINN:Gradient::k=79: rdisc=0.930, norm=0.000357
+REGINN:Gradient::k=80: rdisc=0.929, norm=0.000360
+REGINN:Gradient::k=81: rdisc=0.928, norm=0.000364
+REGINN:Gradient::k=82: rdisc=0.928, norm=0.000368
+REGINN:Gradient::Target discrepancy reached after 82 iterations.
+REGINN::i=28: rdisc=0.0168, rnorm=0.922, rerr=1.34 
+REGINN::-30.6 ≤ estimate ≤ 31.4
+REGINN::
+REGINN::Solving linear problem using rtol=0.983 and max_iter=101
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.999, norm=5.47e-06
+REGINN:Gradient::k=2 : rdisc=0.998, norm=9.66e-06
+REGINN:Gradient::k=3 : rdisc=0.997, norm=1.42e-05
+REGINN:Gradient::k=4 : rdisc=0.996, norm=1.89e-05
+REGINN:Gradient::k=5 : rdisc=0.995, norm=2.32e-05
+REGINN:Gradient::k=6 : rdisc=0.994, norm=2.78e-05
+REGINN:Gradient::k=7 : rdisc=0.993, norm=3.19e-05
+REGINN:Gradient::k=8 : rdisc=0.992, norm=3.65e-05
+REGINN:Gradient::k=9 : rdisc=0.991, norm=4.05e-05
+REGINN:Gradient::k=10: rdisc=0.991, norm=4.49e-05
+REGINN:Gradient::k=11: rdisc=0.990, norm=4.89e-05
+REGINN:Gradient::k=12: rdisc=0.989, norm=5.31e-05
+REGINN:Gradient::k=13: rdisc=0.988, norm=5.72e-05
+REGINN:Gradient::k=14: rdisc=0.987, norm=6.12e-05
+REGINN:Gradient::k=15: rdisc=0.987, norm=6.54e-05
+REGINN:Gradient::k=16: rdisc=0.986, norm=6.93e-05
+REGINN:Gradient::k=17: rdisc=0.985, norm=7.35e-05
+REGINN:Gradient::k=18: rdisc=0.984, norm=7.74e-05
+REGINN:Gradient::k=19: rdisc=0.983, norm=8.16e-05
+REGINN:Gradient::k=20: rdisc=0.983, norm=8.54e-05
+REGINN:Gradient::Target discrepancy reached after 20 iterations.
+REGINN::i=29: rdisc=0.0166, rnorm=0.924, rerr=1.34 
+REGINN::-30.7 ≤ estimate ≤ 31.5
+REGINN::
+REGINN::Solving linear problem using rtol=0.934 and max_iter=102
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.999, norm=4.63e-06
+REGINN:Gradient::k=2 : rdisc=0.998, norm=8.35e-06
+REGINN:Gradient::k=3 : rdisc=0.997, norm=1.24e-05
+REGINN:Gradient::k=4 : rdisc=0.997, norm=1.65e-05
+REGINN:Gradient::k=5 : rdisc=0.996, norm=2.05e-05
+REGINN:Gradient::k=6 : rdisc=0.995, norm=2.46e-05
+REGINN:Gradient::k=7 : rdisc=0.994, norm=2.86e-05
+REGINN:Gradient::k=8 : rdisc=0.994, norm=3.25e-05
+REGINN:Gradient::k=9 : rdisc=0.993, norm=3.65e-05
+REGINN:Gradient::k=10: rdisc=0.992, norm=4.04e-05
+REGINN:Gradient::k=11: rdisc=0.991, norm=4.44e-05
+REGINN:Gradient::k=12: rdisc=0.990, norm=4.83e-05
+REGINN:Gradient::k=13: rdisc=0.990, norm=5.22e-05
+REGINN:Gradient::k=14: rdisc=0.989, norm=5.61e-05
+REGINN:Gradient::k=15: rdisc=0.988, norm=6.00e-05
+REGINN:Gradient::k=16: rdisc=0.987, norm=6.38e-05
+REGINN:Gradient::k=17: rdisc=0.987, norm=6.77e-05
+REGINN:Gradient::k=18: rdisc=0.986, norm=7.15e-05
+REGINN:Gradient::k=19: rdisc=0.985, norm=7.53e-05
+REGINN:Gradient::k=20: rdisc=0.984, norm=7.91e-05
+REGINN:Gradient::k=21: rdisc=0.984, norm=8.29e-05
+REGINN:Gradient::k=22: rdisc=0.983, norm=8.67e-05
+REGINN:Gradient::k=23: rdisc=0.982, norm=9.05e-05
+REGINN:Gradient::k=24: rdisc=0.982, norm=9.42e-05
+REGINN:Gradient::k=25: rdisc=0.981, norm=9.80e-05
+REGINN:Gradient::k=26: rdisc=0.980, norm=0.000102
+REGINN:Gradient::k=27: rdisc=0.979, norm=0.000105
+REGINN:Gradient::k=28: rdisc=0.979, norm=0.000109
+REGINN:Gradient::k=29: rdisc=0.978, norm=0.000113
+REGINN:Gradient::k=30: rdisc=0.977, norm=0.000117
+REGINN:Gradient::k=31: rdisc=0.977, norm=0.000120
+REGINN:Gradient::k=32: rdisc=0.976, norm=0.000124
+REGINN:Gradient::k=33: rdisc=0.975, norm=0.000128
+REGINN:Gradient::k=34: rdisc=0.975, norm=0.000131
+REGINN:Gradient::k=35: rdisc=0.974, norm=0.000135
+REGINN:Gradient::k=36: rdisc=0.973, norm=0.000138
+REGINN:Gradient::k=37: rdisc=0.973, norm=0.000142
+REGINN:Gradient::k=38: rdisc=0.972, norm=0.000146
+REGINN:Gradient::k=39: rdisc=0.971, norm=0.000149
+REGINN:Gradient::k=40: rdisc=0.971, norm=0.000153
+REGINN:Gradient::k=41: rdisc=0.970, norm=0.000157
+REGINN:Gradient::k=42: rdisc=0.969, norm=0.000160
+REGINN:Gradient::k=43: rdisc=0.969, norm=0.000164
+REGINN:Gradient::k=44: rdisc=0.968, norm=0.000167
+REGINN:Gradient::k=45: rdisc=0.967, norm=0.000171
+REGINN:Gradient::k=46: rdisc=0.967, norm=0.000174
+REGINN:Gradient::k=47: rdisc=0.966, norm=0.000178
+REGINN:Gradient::k=48: rdisc=0.965, norm=0.000181
+REGINN:Gradient::k=49: rdisc=0.965, norm=0.000185
+REGINN:Gradient::k=50: rdisc=0.964, norm=0.000188
+REGINN:Gradient::k=51: rdisc=0.963, norm=0.000192
+REGINN:Gradient::k=52: rdisc=0.963, norm=0.000195
+REGINN:Gradient::k=53: rdisc=0.962, norm=0.000199
+REGINN:Gradient::k=54: rdisc=0.961, norm=0.000202
+REGINN:Gradient::k=55: rdisc=0.961, norm=0.000206
+REGINN:Gradient::k=56: rdisc=0.960, norm=0.000209
+REGINN:Gradient::k=57: rdisc=0.960, norm=0.000213
+REGINN:Gradient::k=58: rdisc=0.959, norm=0.000216
+REGINN:Gradient::k=59: rdisc=0.958, norm=0.000220
+REGINN:Gradient::k=60: rdisc=0.958, norm=0.000223
+REGINN:Gradient::k=61: rdisc=0.957, norm=0.000227
+REGINN:Gradient::k=62: rdisc=0.956, norm=0.000230
+REGINN:Gradient::k=63: rdisc=0.956, norm=0.000234
+REGINN:Gradient::k=64: rdisc=0.955, norm=0.000237
+REGINN:Gradient::k=65: rdisc=0.955, norm=0.000240
+REGINN:Gradient::k=66: rdisc=0.954, norm=0.000244
+REGINN:Gradient::k=67: rdisc=0.953, norm=0.000247
+REGINN:Gradient::k=68: rdisc=0.953, norm=0.000251
+REGINN:Gradient::k=69: rdisc=0.952, norm=0.000254
+REGINN:Gradient::k=70: rdisc=0.952, norm=0.000257
+REGINN:Gradient::k=71: rdisc=0.951, norm=0.000261
+REGINN:Gradient::k=72: rdisc=0.950, norm=0.000264
+REGINN:Gradient::k=73: rdisc=0.950, norm=0.000267
+REGINN:Gradient::k=74: rdisc=0.949, norm=0.000271
+REGINN:Gradient::k=75: rdisc=0.949, norm=0.000274
+REGINN:Gradient::k=76: rdisc=0.948, norm=0.000277
+REGINN:Gradient::k=77: rdisc=0.947, norm=0.000281
+REGINN:Gradient::k=78: rdisc=0.947, norm=0.000284
+REGINN:Gradient::k=79: rdisc=0.946, norm=0.000287
+REGINN:Gradient::k=80: rdisc=0.946, norm=0.000291
+REGINN:Gradient::k=81: rdisc=0.945, norm=0.000294
+REGINN:Gradient::k=82: rdisc=0.944, norm=0.000297
+REGINN:Gradient::k=83: rdisc=0.944, norm=0.000301
+REGINN:Gradient::k=84: rdisc=0.943, norm=0.000304
+REGINN:Gradient::k=85: rdisc=0.943, norm=0.000307
+REGINN:Gradient::k=86: rdisc=0.942, norm=0.000310
+REGINN:Gradient::k=87: rdisc=0.942, norm=0.000314
+REGINN:Gradient::k=88: rdisc=0.941, norm=0.000317
+REGINN:Gradient::k=89: rdisc=0.940, norm=0.000320
+REGINN:Gradient::k=90: rdisc=0.940, norm=0.000324
+REGINN:Gradient::k=91: rdisc=0.939, norm=0.000327
+REGINN:Gradient::k=92: rdisc=0.939, norm=0.000330
+REGINN:Gradient::k=93: rdisc=0.938, norm=0.000333
+REGINN:Gradient::k=94: rdisc=0.938, norm=0.000336
+REGINN:Gradient::k=95: rdisc=0.937, norm=0.000340
+REGINN:Gradient::k=96: rdisc=0.937, norm=0.000343
+REGINN:Gradient::k=97: rdisc=0.936, norm=0.000346
+REGINN:Gradient::k=98: rdisc=0.935, norm=0.000349
+REGINN:Gradient::k=99: rdisc=0.935, norm=0.000353
+REGINN:Gradient::k=100: rdisc=0.934, norm=0.000356
+REGINN:Gradient::k=101: rdisc=0.934, norm=0.000359
+REGINN:Gradient::Target discrepancy reached after 101 iterations.
+REGINN::Saving current residual in ./step-0030/
+REGINN::Saving current estimate in ./step-0030/
+REGINN::i=30: rdisc=0.0156, rnorm=0.930, rerr=1.34 
+REGINN::-31.2 ≤ estimate ≤ 32.0
+REGINN::
+REGINN::Solving linear problem using rtol=0.987 and max_iter=121
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.997, norm=1.80e-05
+REGINN:Gradient::k=2 : rdisc=0.995, norm=2.23e-05
+REGINN:Gradient::k=3 : rdisc=0.994, norm=2.69e-05
+REGINN:Gradient::k=4 : rdisc=0.993, norm=3.04e-05
+REGINN:Gradient::k=5 : rdisc=0.993, norm=3.37e-05
+REGINN:Gradient::k=6 : rdisc=0.992, norm=3.71e-05
+REGINN:Gradient::k=7 : rdisc=0.992, norm=4.01e-05
+REGINN:Gradient::k=8 : rdisc=0.991, norm=4.36e-05
+REGINN:Gradient::k=9 : rdisc=0.990, norm=4.66e-05
+REGINN:Gradient::k=10: rdisc=0.990, norm=5.02e-05
+REGINN:Gradient::k=11: rdisc=0.989, norm=5.32e-05
+REGINN:Gradient::k=12: rdisc=0.989, norm=5.67e-05
+REGINN:Gradient::k=13: rdisc=0.988, norm=5.97e-05
+REGINN:Gradient::k=14: rdisc=0.987, norm=6.32e-05
+REGINN:Gradient::k=15: rdisc=0.987, norm=6.63e-05
+REGINN:Gradient::Target discrepancy reached after 15 iterations.
+REGINN::i=31: rdisc=0.0155, rnorm=0.930, rerr=1.35 
+REGINN::-31.3 ≤ estimate ≤ 32.1
+REGINN::
+REGINN::Solving linear problem using rtol=0.938 and max_iter=116
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.999, norm=4.07e-06
+REGINN:Gradient::k=2 : rdisc=0.999, norm=6.96e-06
+REGINN:Gradient::k=3 : rdisc=0.998, norm=1.04e-05
+REGINN:Gradient::k=4 : rdisc=0.997, norm=1.36e-05
+REGINN:Gradient::k=5 : rdisc=0.997, norm=1.69e-05
+REGINN:Gradient::k=6 : rdisc=0.996, norm=2.02e-05
+REGINN:Gradient::k=7 : rdisc=0.996, norm=2.34e-05
+REGINN:Gradient::k=8 : rdisc=0.995, norm=2.66e-05
+REGINN:Gradient::k=9 : rdisc=0.994, norm=2.98e-05
+REGINN:Gradient::k=10: rdisc=0.994, norm=3.30e-05
+REGINN:Gradient::k=11: rdisc=0.993, norm=3.61e-05
+REGINN:Gradient::k=12: rdisc=0.993, norm=3.93e-05
+REGINN:Gradient::k=13: rdisc=0.992, norm=4.25e-05
+REGINN:Gradient::k=14: rdisc=0.992, norm=4.56e-05
+REGINN:Gradient::k=15: rdisc=0.991, norm=4.88e-05
+REGINN:Gradient::k=16: rdisc=0.990, norm=5.19e-05
+REGINN:Gradient::k=17: rdisc=0.990, norm=5.51e-05
+REGINN:Gradient::k=18: rdisc=0.989, norm=5.82e-05
+REGINN:Gradient::k=19: rdisc=0.989, norm=6.14e-05
+REGINN:Gradient::k=20: rdisc=0.988, norm=6.44e-05
+REGINN:Gradient::k=21: rdisc=0.988, norm=6.76e-05
+REGINN:Gradient::k=22: rdisc=0.987, norm=7.07e-05
+REGINN:Gradient::k=23: rdisc=0.986, norm=7.38e-05
+REGINN:Gradient::k=24: rdisc=0.986, norm=7.69e-05
+REGINN:Gradient::k=25: rdisc=0.985, norm=8.00e-05
+REGINN:Gradient::k=26: rdisc=0.985, norm=8.31e-05
+REGINN:Gradient::k=27: rdisc=0.984, norm=8.62e-05
+REGINN:Gradient::k=28: rdisc=0.984, norm=8.92e-05
+REGINN:Gradient::k=29: rdisc=0.983, norm=9.23e-05
+REGINN:Gradient::k=30: rdisc=0.982, norm=9.53e-05
+REGINN:Gradient::k=31: rdisc=0.982, norm=9.84e-05
+REGINN:Gradient::k=32: rdisc=0.981, norm=0.000101
+REGINN:Gradient::k=33: rdisc=0.981, norm=0.000104
+REGINN:Gradient::k=34: rdisc=0.980, norm=0.000108
+REGINN:Gradient::k=35: rdisc=0.980, norm=0.000111
+REGINN:Gradient::k=36: rdisc=0.979, norm=0.000114
+REGINN:Gradient::k=37: rdisc=0.979, norm=0.000117
+REGINN:Gradient::k=38: rdisc=0.978, norm=0.000120
+REGINN:Gradient::k=39: rdisc=0.978, norm=0.000123
+REGINN:Gradient::k=40: rdisc=0.977, norm=0.000126
+REGINN:Gradient::k=41: rdisc=0.977, norm=0.000129
+REGINN:Gradient::k=42: rdisc=0.976, norm=0.000132
+REGINN:Gradient::k=43: rdisc=0.975, norm=0.000135
+REGINN:Gradient::k=44: rdisc=0.975, norm=0.000138
+REGINN:Gradient::k=45: rdisc=0.974, norm=0.000141
+REGINN:Gradient::k=46: rdisc=0.974, norm=0.000144
+REGINN:Gradient::k=47: rdisc=0.973, norm=0.000147
+REGINN:Gradient::k=48: rdisc=0.973, norm=0.000150
+REGINN:Gradient::k=49: rdisc=0.972, norm=0.000152
+REGINN:Gradient::k=50: rdisc=0.972, norm=0.000155
+REGINN:Gradient::k=51: rdisc=0.971, norm=0.000158
+REGINN:Gradient::k=52: rdisc=0.971, norm=0.000161
+REGINN:Gradient::k=53: rdisc=0.970, norm=0.000164
+REGINN:Gradient::k=54: rdisc=0.970, norm=0.000167
+REGINN:Gradient::k=55: rdisc=0.969, norm=0.000170
+REGINN:Gradient::k=56: rdisc=0.969, norm=0.000173
+REGINN:Gradient::k=57: rdisc=0.968, norm=0.000176
+REGINN:Gradient::k=58: rdisc=0.968, norm=0.000179
+REGINN:Gradient::k=59: rdisc=0.967, norm=0.000182
+REGINN:Gradient::k=60: rdisc=0.967, norm=0.000185
+REGINN:Gradient::k=61: rdisc=0.966, norm=0.000188
+REGINN:Gradient::k=62: rdisc=0.966, norm=0.000191
+REGINN:Gradient::k=63: rdisc=0.965, norm=0.000193
+REGINN:Gradient::k=64: rdisc=0.965, norm=0.000196
+REGINN:Gradient::k=65: rdisc=0.964, norm=0.000199
+REGINN:Gradient::k=66: rdisc=0.964, norm=0.000202
+REGINN:Gradient::k=67: rdisc=0.963, norm=0.000205
+REGINN:Gradient::k=68: rdisc=0.963, norm=0.000208
+REGINN:Gradient::k=69: rdisc=0.962, norm=0.000211
+REGINN:Gradient::k=70: rdisc=0.962, norm=0.000214
+REGINN:Gradient::k=71: rdisc=0.961, norm=0.000217
+REGINN:Gradient::k=72: rdisc=0.961, norm=0.000219
+REGINN:Gradient::k=73: rdisc=0.960, norm=0.000222
+REGINN:Gradient::k=74: rdisc=0.960, norm=0.000225
+REGINN:Gradient::k=75: rdisc=0.959, norm=0.000228
+REGINN:Gradient::k=76: rdisc=0.959, norm=0.000231
+REGINN:Gradient::k=77: rdisc=0.958, norm=0.000234
+REGINN:Gradient::k=78: rdisc=0.958, norm=0.000236
+REGINN:Gradient::k=79: rdisc=0.957, norm=0.000239
+REGINN:Gradient::k=80: rdisc=0.957, norm=0.000242
+REGINN:Gradient::k=81: rdisc=0.956, norm=0.000245
+REGINN:Gradient::k=82: rdisc=0.956, norm=0.000248
+REGINN:Gradient::k=83: rdisc=0.955, norm=0.000251
+REGINN:Gradient::k=84: rdisc=0.955, norm=0.000253
+REGINN:Gradient::k=85: rdisc=0.954, norm=0.000256
+REGINN:Gradient::k=86: rdisc=0.954, norm=0.000259
+REGINN:Gradient::k=87: rdisc=0.953, norm=0.000262
+REGINN:Gradient::k=88: rdisc=0.953, norm=0.000265
+REGINN:Gradient::k=89: rdisc=0.952, norm=0.000267
+REGINN:Gradient::k=90: rdisc=0.952, norm=0.000270
+REGINN:Gradient::k=91: rdisc=0.951, norm=0.000273
+REGINN:Gradient::k=92: rdisc=0.951, norm=0.000276
+REGINN:Gradient::k=93: rdisc=0.950, norm=0.000279
+REGINN:Gradient::k=94: rdisc=0.950, norm=0.000281
+REGINN:Gradient::k=95: rdisc=0.950, norm=0.000284
+REGINN:Gradient::k=96: rdisc=0.949, norm=0.000287
+REGINN:Gradient::k=97: rdisc=0.949, norm=0.000290
+REGINN:Gradient::k=98: rdisc=0.948, norm=0.000292
+REGINN:Gradient::k=99: rdisc=0.948, norm=0.000295
+REGINN:Gradient::k=100: rdisc=0.947, norm=0.000298
+REGINN:Gradient::k=101: rdisc=0.947, norm=0.000301
+REGINN:Gradient::k=102: rdisc=0.946, norm=0.000303
+REGINN:Gradient::k=103: rdisc=0.946, norm=0.000306
+REGINN:Gradient::k=104: rdisc=0.945, norm=0.000309
+REGINN:Gradient::k=105: rdisc=0.945, norm=0.000312
+REGINN:Gradient::k=106: rdisc=0.944, norm=0.000314
+REGINN:Gradient::k=107: rdisc=0.944, norm=0.000317
+REGINN:Gradient::k=108: rdisc=0.944, norm=0.000320
+REGINN:Gradient::k=109: rdisc=0.943, norm=0.000323
+REGINN:Gradient::k=110: rdisc=0.943, norm=0.000325
+REGINN:Gradient::k=111: rdisc=0.942, norm=0.000328
+REGINN:Gradient::k=112: rdisc=0.942, norm=0.000331
+REGINN:Gradient::k=113: rdisc=0.941, norm=0.000333
+REGINN:Gradient::k=114: rdisc=0.941, norm=0.000336
+REGINN:Gradient::k=115: rdisc=0.940, norm=0.000339
+REGINN:Gradient::k=116: rdisc=0.940, norm=0.000341
+REGINN:Gradient::Unsuccessful termination after 116 iterations!
+REGINN::Linear solver did not achieve desired discrepancy due to max_iter.
+REGINN::i=32: rdisc=0.0147, rnorm=0.935, rerr=1.35 
+REGINN::-31.7 ≤ estimate ≤ 32.6
+REGINN::
+REGINN::Solving linear problem using rtol=0.992 and max_iter=131
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.999, norm=3.52e-06
+REGINN:Gradient::k=2 : rdisc=0.999, norm=6.72e-06
+REGINN:Gradient::k=3 : rdisc=0.998, norm=9.69e-06
+REGINN:Gradient::k=4 : rdisc=0.997, norm=1.29e-05
+REGINN:Gradient::k=5 : rdisc=0.997, norm=1.58e-05
+REGINN:Gradient::k=6 : rdisc=0.996, norm=1.89e-05
+REGINN:Gradient::k=7 : rdisc=0.996, norm=2.18e-05
+REGINN:Gradient::k=8 : rdisc=0.995, norm=2.47e-05
+REGINN:Gradient::k=9 : rdisc=0.995, norm=2.76e-05
+REGINN:Gradient::k=10: rdisc=0.994, norm=3.04e-05
+REGINN:Gradient::k=11: rdisc=0.994, norm=3.33e-05
+REGINN:Gradient::k=12: rdisc=0.993, norm=3.60e-05
+REGINN:Gradient::k=13: rdisc=0.993, norm=3.90e-05
+REGINN:Gradient::k=14: rdisc=0.992, norm=4.17e-05
+REGINN:Gradient::k=15: rdisc=0.992, norm=4.46e-05
+REGINN:Gradient::Target discrepancy reached after 15 iterations.
+REGINN::i=33: rdisc=0.0146, rnorm=0.936, rerr=1.35 
+REGINN::-31.7 ≤ estimate ≤ 32.6
+REGINN::
+REGINN::Solving linear problem using rtol=0.942 and max_iter=131
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.999, norm=4.55e-06
+REGINN:Gradient::k=2 : rdisc=0.999, norm=7.14e-06
+REGINN:Gradient::k=3 : rdisc=0.998, norm=1.04e-05
+REGINN:Gradient::k=4 : rdisc=0.998, norm=1.31e-05
+REGINN:Gradient::k=5 : rdisc=0.997, norm=1.60e-05
+REGINN:Gradient::k=6 : rdisc=0.997, norm=1.88e-05
+REGINN:Gradient::k=7 : rdisc=0.996, norm=2.15e-05
+REGINN:Gradient::k=8 : rdisc=0.996, norm=2.43e-05
+REGINN:Gradient::k=9 : rdisc=0.995, norm=2.70e-05
+REGINN:Gradient::k=10: rdisc=0.995, norm=2.99e-05
+REGINN:Gradient::k=11: rdisc=0.994, norm=3.25e-05
+REGINN:Gradient::k=12: rdisc=0.994, norm=3.55e-05
+REGINN:Gradient::k=13: rdisc=0.993, norm=3.81e-05
+REGINN:Gradient::k=14: rdisc=0.993, norm=4.10e-05
+REGINN:Gradient::k=15: rdisc=0.992, norm=4.36e-05
+REGINN:Gradient::k=16: rdisc=0.992, norm=4.64e-05
+REGINN:Gradient::k=17: rdisc=0.991, norm=4.91e-05
+REGINN:Gradient::k=18: rdisc=0.991, norm=5.19e-05
+REGINN:Gradient::k=19: rdisc=0.990, norm=5.45e-05
+REGINN:Gradient::k=20: rdisc=0.990, norm=5.73e-05
+REGINN:Gradient::k=21: rdisc=0.989, norm=5.99e-05
+REGINN:Gradient::k=22: rdisc=0.989, norm=6.26e-05
+REGINN:Gradient::k=23: rdisc=0.988, norm=6.53e-05
+REGINN:Gradient::k=24: rdisc=0.988, norm=6.79e-05
+REGINN:Gradient::k=25: rdisc=0.987, norm=7.06e-05
+REGINN:Gradient::k=26: rdisc=0.987, norm=7.33e-05
+REGINN:Gradient::k=27: rdisc=0.986, norm=7.59e-05
+REGINN:Gradient::k=28: rdisc=0.986, norm=7.86e-05
+REGINN:Gradient::k=29: rdisc=0.985, norm=8.12e-05
+REGINN:Gradient::k=30: rdisc=0.985, norm=8.39e-05
+REGINN:Gradient::k=31: rdisc=0.985, norm=8.65e-05
+REGINN:Gradient::k=32: rdisc=0.984, norm=8.91e-05
+REGINN:Gradient::k=33: rdisc=0.984, norm=9.17e-05
+REGINN:Gradient::k=34: rdisc=0.983, norm=9.44e-05
+REGINN:Gradient::k=35: rdisc=0.983, norm=9.70e-05
+REGINN:Gradient::k=36: rdisc=0.982, norm=9.96e-05
+REGINN:Gradient::k=37: rdisc=0.982, norm=0.000102
+REGINN:Gradient::k=38: rdisc=0.981, norm=0.000105
+REGINN:Gradient::k=39: rdisc=0.981, norm=0.000107
+REGINN:Gradient::k=40: rdisc=0.980, norm=0.000110
+REGINN:Gradient::k=41: rdisc=0.980, norm=0.000113
+REGINN:Gradient::k=42: rdisc=0.980, norm=0.000115
+REGINN:Gradient::k=43: rdisc=0.979, norm=0.000118
+REGINN:Gradient::k=44: rdisc=0.979, norm=0.000120
+REGINN:Gradient::k=45: rdisc=0.978, norm=0.000123
+REGINN:Gradient::k=46: rdisc=0.978, norm=0.000126
+REGINN:Gradient::k=47: rdisc=0.977, norm=0.000128
+REGINN:Gradient::k=48: rdisc=0.977, norm=0.000131
+REGINN:Gradient::k=49: rdisc=0.976, norm=0.000133
+REGINN:Gradient::k=50: rdisc=0.976, norm=0.000136
+REGINN:Gradient::k=51: rdisc=0.976, norm=0.000138
+REGINN:Gradient::k=52: rdisc=0.975, norm=0.000141
+REGINN:Gradient::k=53: rdisc=0.975, norm=0.000144
+REGINN:Gradient::k=54: rdisc=0.974, norm=0.000146
+REGINN:Gradient::k=55: rdisc=0.974, norm=0.000149
+REGINN:Gradient::k=56: rdisc=0.973, norm=0.000151
+REGINN:Gradient::k=57: rdisc=0.973, norm=0.000154
+REGINN:Gradient::k=58: rdisc=0.973, norm=0.000156
+REGINN:Gradient::k=59: rdisc=0.972, norm=0.000159
+REGINN:Gradient::k=60: rdisc=0.972, norm=0.000161
+REGINN:Gradient::k=61: rdisc=0.971, norm=0.000164
+REGINN:Gradient::k=62: rdisc=0.971, norm=0.000166
+REGINN:Gradient::k=63: rdisc=0.970, norm=0.000169
+REGINN:Gradient::k=64: rdisc=0.970, norm=0.000171
+REGINN:Gradient::k=65: rdisc=0.970, norm=0.000174
+REGINN:Gradient::k=66: rdisc=0.969, norm=0.000177
+REGINN:Gradient::k=67: rdisc=0.969, norm=0.000179
+REGINN:Gradient::k=68: rdisc=0.968, norm=0.000182
+REGINN:Gradient::k=69: rdisc=0.968, norm=0.000184
+REGINN:Gradient::k=70: rdisc=0.967, norm=0.000187
+REGINN:Gradient::k=71: rdisc=0.967, norm=0.000189
+REGINN:Gradient::k=72: rdisc=0.967, norm=0.000192
+REGINN:Gradient::k=73: rdisc=0.966, norm=0.000194
+REGINN:Gradient::k=74: rdisc=0.966, norm=0.000197
+REGINN:Gradient::k=75: rdisc=0.965, norm=0.000199
+REGINN:Gradient::k=76: rdisc=0.965, norm=0.000201
+REGINN:Gradient::k=77: rdisc=0.965, norm=0.000204
+REGINN:Gradient::k=78: rdisc=0.964, norm=0.000206
+REGINN:Gradient::k=79: rdisc=0.964, norm=0.000209
+REGINN:Gradient::k=80: rdisc=0.963, norm=0.000211
+REGINN:Gradient::k=81: rdisc=0.963, norm=0.000214
+REGINN:Gradient::k=82: rdisc=0.962, norm=0.000216
+REGINN:Gradient::k=83: rdisc=0.962, norm=0.000219
+REGINN:Gradient::k=84: rdisc=0.962, norm=0.000221
+REGINN:Gradient::k=85: rdisc=0.961, norm=0.000224
+REGINN:Gradient::k=86: rdisc=0.961, norm=0.000226
+REGINN:Gradient::k=87: rdisc=0.960, norm=0.000229
+REGINN:Gradient::k=88: rdisc=0.960, norm=0.000231
+REGINN:Gradient::k=89: rdisc=0.960, norm=0.000234
+REGINN:Gradient::k=90: rdisc=0.959, norm=0.000236
+REGINN:Gradient::k=91: rdisc=0.959, norm=0.000238
+REGINN:Gradient::k=92: rdisc=0.958, norm=0.000241
+REGINN:Gradient::k=93: rdisc=0.958, norm=0.000243
+REGINN:Gradient::k=94: rdisc=0.958, norm=0.000246
+REGINN:Gradient::k=95: rdisc=0.957, norm=0.000248
+REGINN:Gradient::k=96: rdisc=0.957, norm=0.000251
+REGINN:Gradient::k=97: rdisc=0.956, norm=0.000253
+REGINN:Gradient::k=98: rdisc=0.956, norm=0.000255
+REGINN:Gradient::k=99: rdisc=0.956, norm=0.000258
+REGINN:Gradient::k=100: rdisc=0.955, norm=0.000260
+REGINN:Gradient::k=101: rdisc=0.955, norm=0.000263
+REGINN:Gradient::k=102: rdisc=0.954, norm=0.000265
+REGINN:Gradient::k=103: rdisc=0.954, norm=0.000267
+REGINN:Gradient::k=104: rdisc=0.954, norm=0.000270
+REGINN:Gradient::k=105: rdisc=0.953, norm=0.000272
+REGINN:Gradient::k=106: rdisc=0.953, norm=0.000275
+REGINN:Gradient::k=107: rdisc=0.952, norm=0.000277
+REGINN:Gradient::k=108: rdisc=0.952, norm=0.000279
+REGINN:Gradient::k=109: rdisc=0.952, norm=0.000282
+REGINN:Gradient::k=110: rdisc=0.951, norm=0.000284
+REGINN:Gradient::k=111: rdisc=0.951, norm=0.000287
+REGINN:Gradient::k=112: rdisc=0.950, norm=0.000289
+REGINN:Gradient::k=113: rdisc=0.950, norm=0.000291
+REGINN:Gradient::k=114: rdisc=0.950, norm=0.000294
+REGINN:Gradient::k=115: rdisc=0.949, norm=0.000296
+REGINN:Gradient::k=116: rdisc=0.949, norm=0.000298
+REGINN:Gradient::k=117: rdisc=0.948, norm=0.000301
+REGINN:Gradient::k=118: rdisc=0.948, norm=0.000303
+REGINN:Gradient::k=119: rdisc=0.948, norm=0.000306
+REGINN:Gradient::k=120: rdisc=0.947, norm=0.000308
+REGINN:Gradient::k=121: rdisc=0.947, norm=0.000310
+REGINN:Gradient::k=122: rdisc=0.947, norm=0.000313
+REGINN:Gradient::k=123: rdisc=0.946, norm=0.000315
+REGINN:Gradient::k=124: rdisc=0.946, norm=0.000317
+REGINN:Gradient::k=125: rdisc=0.945, norm=0.000320
+REGINN:Gradient::k=126: rdisc=0.945, norm=0.000322
+REGINN:Gradient::k=127: rdisc=0.945, norm=0.000324
+REGINN:Gradient::k=128: rdisc=0.944, norm=0.000327
+REGINN:Gradient::k=129: rdisc=0.944, norm=0.000329
+REGINN:Gradient::k=130: rdisc=0.944, norm=0.000331
+REGINN:Gradient::k=131: rdisc=0.943, norm=0.000334
+REGINN:Gradient::Unsuccessful termination after 131 iterations!
+REGINN::Linear solver did not achieve desired discrepancy due to max_iter.
+REGINN::i=34: rdisc=0.0139, rnorm=0.941, rerr=1.35 
+REGINN::-32.2 ≤ estimate ≤ 33.1
+REGINN::
+REGINN::Solving linear problem using rtol=0.993 and max_iter=146
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.999, norm=3.03e-06
+REGINN:Gradient::k=2 : rdisc=0.999, norm=5.71e-06
+REGINN:Gradient::k=3 : rdisc=0.998, norm=8.31e-06
+REGINN:Gradient::k=4 : rdisc=0.998, norm=1.11e-05
+REGINN:Gradient::k=5 : rdisc=0.997, norm=1.36e-05
+REGINN:Gradient::k=6 : rdisc=0.997, norm=1.63e-05
+REGINN:Gradient::k=7 : rdisc=0.996, norm=1.88e-05
+REGINN:Gradient::k=8 : rdisc=0.996, norm=2.14e-05
+REGINN:Gradient::k=9 : rdisc=0.996, norm=2.38e-05
+REGINN:Gradient::k=10: rdisc=0.995, norm=2.63e-05
+REGINN:Gradient::k=11: rdisc=0.995, norm=2.88e-05
+REGINN:Gradient::k=12: rdisc=0.994, norm=3.13e-05
+REGINN:Gradient::k=13: rdisc=0.994, norm=3.38e-05
+REGINN:Gradient::k=14: rdisc=0.993, norm=3.62e-05
+REGINN:Gradient::k=15: rdisc=0.993, norm=3.87e-05
+REGINN:Gradient::Target discrepancy reached after 15 iterations.
+REGINN::i=35: rdisc=0.0139, rnorm=0.941, rerr=1.35 
+REGINN::-32.2 ≤ estimate ≤ 33.1
+REGINN::
+REGINN::Solving linear problem using rtol=0.944 and max_iter=146
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.999, norm=4.04e-06
+REGINN:Gradient::k=2 : rdisc=0.999, norm=6.31e-06
+REGINN:Gradient::k=3 : rdisc=0.998, norm=9.16e-06
+REGINN:Gradient::k=4 : rdisc=0.998, norm=1.16e-05
+REGINN:Gradient::k=5 : rdisc=0.998, norm=1.41e-05
+REGINN:Gradient::k=6 : rdisc=0.997, norm=1.66e-05
+REGINN:Gradient::k=7 : rdisc=0.997, norm=1.89e-05
+REGINN:Gradient::k=8 : rdisc=0.996, norm=2.14e-05
+REGINN:Gradient::k=9 : rdisc=0.996, norm=2.37e-05
+REGINN:Gradient::k=10: rdisc=0.995, norm=2.63e-05
+REGINN:Gradient::k=11: rdisc=0.995, norm=2.85e-05
+REGINN:Gradient::k=12: rdisc=0.995, norm=3.11e-05
+REGINN:Gradient::k=13: rdisc=0.994, norm=3.34e-05
+REGINN:Gradient::k=14: rdisc=0.994, norm=3.59e-05
+REGINN:Gradient::k=15: rdisc=0.993, norm=3.82e-05
+REGINN:Gradient::k=16: rdisc=0.993, norm=4.07e-05
+REGINN:Gradient::k=17: rdisc=0.992, norm=4.30e-05
+REGINN:Gradient::k=18: rdisc=0.992, norm=4.55e-05
+REGINN:Gradient::k=19: rdisc=0.992, norm=4.78e-05
+REGINN:Gradient::k=20: rdisc=0.991, norm=5.02e-05
+REGINN:Gradient::k=21: rdisc=0.991, norm=5.25e-05
+REGINN:Gradient::k=22: rdisc=0.990, norm=5.49e-05
+REGINN:Gradient::k=23: rdisc=0.990, norm=5.72e-05
+REGINN:Gradient::k=24: rdisc=0.990, norm=5.95e-05
+REGINN:Gradient::k=25: rdisc=0.989, norm=6.19e-05
+REGINN:Gradient::k=26: rdisc=0.989, norm=6.42e-05
+REGINN:Gradient::k=27: rdisc=0.988, norm=6.65e-05
+REGINN:Gradient::k=28: rdisc=0.988, norm=6.88e-05
+REGINN:Gradient::k=29: rdisc=0.988, norm=7.11e-05
+REGINN:Gradient::k=30: rdisc=0.987, norm=7.35e-05
+REGINN:Gradient::k=31: rdisc=0.987, norm=7.58e-05
+REGINN:Gradient::k=32: rdisc=0.986, norm=7.81e-05
+REGINN:Gradient::k=33: rdisc=0.986, norm=8.04e-05
+REGINN:Gradient::k=34: rdisc=0.986, norm=8.27e-05
+REGINN:Gradient::k=35: rdisc=0.985, norm=8.50e-05
+REGINN:Gradient::k=36: rdisc=0.985, norm=8.73e-05
+REGINN:Gradient::k=37: rdisc=0.985, norm=8.96e-05
+REGINN:Gradient::k=38: rdisc=0.984, norm=9.19e-05
+REGINN:Gradient::k=39: rdisc=0.984, norm=9.41e-05
+REGINN:Gradient::k=40: rdisc=0.983, norm=9.64e-05
+REGINN:Gradient::k=41: rdisc=0.983, norm=9.87e-05
+REGINN:Gradient::k=42: rdisc=0.983, norm=0.000101
+REGINN:Gradient::k=43: rdisc=0.982, norm=0.000103
+REGINN:Gradient::k=44: rdisc=0.982, norm=0.000106
+REGINN:Gradient::k=45: rdisc=0.981, norm=0.000108
+REGINN:Gradient::k=46: rdisc=0.981, norm=0.000110
+REGINN:Gradient::k=47: rdisc=0.981, norm=0.000112
+REGINN:Gradient::k=48: rdisc=0.980, norm=0.000115
+REGINN:Gradient::k=49: rdisc=0.980, norm=0.000117
+REGINN:Gradient::k=50: rdisc=0.980, norm=0.000119
+REGINN:Gradient::k=51: rdisc=0.979, norm=0.000121
+REGINN:Gradient::k=52: rdisc=0.979, norm=0.000124
+REGINN:Gradient::k=53: rdisc=0.978, norm=0.000126
+REGINN:Gradient::k=54: rdisc=0.978, norm=0.000128
+REGINN:Gradient::k=55: rdisc=0.978, norm=0.000130
+REGINN:Gradient::k=56: rdisc=0.977, norm=0.000133
+REGINN:Gradient::k=57: rdisc=0.977, norm=0.000135
+REGINN:Gradient::k=58: rdisc=0.977, norm=0.000137
+REGINN:Gradient::k=59: rdisc=0.976, norm=0.000139
+REGINN:Gradient::k=60: rdisc=0.976, norm=0.000142
+REGINN:Gradient::k=61: rdisc=0.975, norm=0.000144
+REGINN:Gradient::k=62: rdisc=0.975, norm=0.000146
+REGINN:Gradient::k=63: rdisc=0.975, norm=0.000148
+REGINN:Gradient::k=64: rdisc=0.974, norm=0.000150
+REGINN:Gradient::k=65: rdisc=0.974, norm=0.000153
+REGINN:Gradient::k=66: rdisc=0.974, norm=0.000155
+REGINN:Gradient::k=67: rdisc=0.973, norm=0.000157
+REGINN:Gradient::k=68: rdisc=0.973, norm=0.000159
+REGINN:Gradient::k=69: rdisc=0.973, norm=0.000161
+REGINN:Gradient::k=70: rdisc=0.972, norm=0.000164
+REGINN:Gradient::k=71: rdisc=0.972, norm=0.000166
+REGINN:Gradient::k=72: rdisc=0.971, norm=0.000168
+REGINN:Gradient::k=73: rdisc=0.971, norm=0.000170
+REGINN:Gradient::k=74: rdisc=0.971, norm=0.000172
+REGINN:Gradient::k=75: rdisc=0.970, norm=0.000175
+REGINN:Gradient::k=76: rdisc=0.970, norm=0.000177
+REGINN:Gradient::k=77: rdisc=0.970, norm=0.000179
+REGINN:Gradient::k=78: rdisc=0.969, norm=0.000181
+REGINN:Gradient::k=79: rdisc=0.969, norm=0.000183
+REGINN:Gradient::k=80: rdisc=0.969, norm=0.000186
+REGINN:Gradient::k=81: rdisc=0.968, norm=0.000188
+REGINN:Gradient::k=82: rdisc=0.968, norm=0.000190
+REGINN:Gradient::k=83: rdisc=0.968, norm=0.000192
+REGINN:Gradient::k=84: rdisc=0.967, norm=0.000194
+REGINN:Gradient::k=85: rdisc=0.967, norm=0.000196
+REGINN:Gradient::k=86: rdisc=0.966, norm=0.000199
+REGINN:Gradient::k=87: rdisc=0.966, norm=0.000201
+REGINN:Gradient::k=88: rdisc=0.966, norm=0.000203
+REGINN:Gradient::k=89: rdisc=0.965, norm=0.000205
+REGINN:Gradient::k=90: rdisc=0.965, norm=0.000207
+REGINN:Gradient::k=91: rdisc=0.965, norm=0.000209
+REGINN:Gradient::k=92: rdisc=0.964, norm=0.000212
+REGINN:Gradient::k=93: rdisc=0.964, norm=0.000214
+REGINN:Gradient::k=94: rdisc=0.964, norm=0.000216
+REGINN:Gradient::k=95: rdisc=0.963, norm=0.000218
+REGINN:Gradient::k=96: rdisc=0.963, norm=0.000220
+REGINN:Gradient::k=97: rdisc=0.963, norm=0.000222
+REGINN:Gradient::k=98: rdisc=0.962, norm=0.000224
+REGINN:Gradient::k=99: rdisc=0.962, norm=0.000227
+REGINN:Gradient::k=100: rdisc=0.962, norm=0.000229
+REGINN:Gradient::k=101: rdisc=0.961, norm=0.000231
+REGINN:Gradient::k=102: rdisc=0.961, norm=0.000233
+REGINN:Gradient::k=103: rdisc=0.961, norm=0.000235
+REGINN:Gradient::k=104: rdisc=0.960, norm=0.000237
+REGINN:Gradient::k=105: rdisc=0.960, norm=0.000239
+REGINN:Gradient::k=106: rdisc=0.960, norm=0.000242
+REGINN:Gradient::k=107: rdisc=0.959, norm=0.000244
+REGINN:Gradient::k=108: rdisc=0.959, norm=0.000246
+REGINN:Gradient::k=109: rdisc=0.959, norm=0.000248
+REGINN:Gradient::k=110: rdisc=0.958, norm=0.000250
+REGINN:Gradient::k=111: rdisc=0.958, norm=0.000252
+REGINN:Gradient::k=112: rdisc=0.957, norm=0.000254
+REGINN:Gradient::k=113: rdisc=0.957, norm=0.000256
+REGINN:Gradient::k=114: rdisc=0.957, norm=0.000258
+REGINN:Gradient::k=115: rdisc=0.956, norm=0.000261
+REGINN:Gradient::k=116: rdisc=0.956, norm=0.000263
+REGINN:Gradient::k=117: rdisc=0.956, norm=0.000265
+REGINN:Gradient::k=118: rdisc=0.955, norm=0.000267
+REGINN:Gradient::k=119: rdisc=0.955, norm=0.000269
+REGINN:Gradient::k=120: rdisc=0.955, norm=0.000271
+REGINN:Gradient::k=121: rdisc=0.954, norm=0.000273
+REGINN:Gradient::k=122: rdisc=0.954, norm=0.000275
+REGINN:Gradient::k=123: rdisc=0.954, norm=0.000277
+REGINN:Gradient::k=124: rdisc=0.953, norm=0.000280
+REGINN:Gradient::k=125: rdisc=0.953, norm=0.000282
+REGINN:Gradient::k=126: rdisc=0.953, norm=0.000284
+REGINN:Gradient::k=127: rdisc=0.952, norm=0.000286
+REGINN:Gradient::k=128: rdisc=0.952, norm=0.000288
+REGINN:Gradient::k=129: rdisc=0.952, norm=0.000290
+REGINN:Gradient::k=130: rdisc=0.951, norm=0.000292
+REGINN:Gradient::k=131: rdisc=0.951, norm=0.000294
+REGINN:Gradient::k=132: rdisc=0.951, norm=0.000296
+REGINN:Gradient::k=133: rdisc=0.950, norm=0.000298
+REGINN:Gradient::k=134: rdisc=0.950, norm=0.000300
+REGINN:Gradient::k=135: rdisc=0.950, norm=0.000302
+REGINN:Gradient::k=136: rdisc=0.949, norm=0.000304
+REGINN:Gradient::k=137: rdisc=0.949, norm=0.000307
+REGINN:Gradient::k=138: rdisc=0.949, norm=0.000309
+REGINN:Gradient::k=139: rdisc=0.949, norm=0.000311
+REGINN:Gradient::k=140: rdisc=0.948, norm=0.000313
+REGINN:Gradient::k=141: rdisc=0.948, norm=0.000315
+REGINN:Gradient::k=142: rdisc=0.948, norm=0.000317
+REGINN:Gradient::k=143: rdisc=0.947, norm=0.000319
+REGINN:Gradient::k=144: rdisc=0.947, norm=0.000321
+REGINN:Gradient::k=145: rdisc=0.947, norm=0.000323
+REGINN:Gradient::k=146: rdisc=0.946, norm=0.000325
+REGINN:Gradient::Unsuccessful termination after 146 iterations!
+REGINN::Linear solver did not achieve desired discrepancy due to max_iter.
+REGINN::i=36: rdisc=0.0133, rnorm=0.945, rerr=1.36 
+REGINN::-32.6 ≤ estimate ≤ 33.3
+REGINN::
+REGINN::Solving linear problem using rtol=0.994 and max_iter=161
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.999, norm=6.81e-06
+REGINN:Gradient::k=2 : rdisc=0.998, norm=9.28e-06
+REGINN:Gradient::k=3 : rdisc=0.998, norm=1.22e-05
+REGINN:Gradient::k=4 : rdisc=0.997, norm=1.44e-05
+REGINN:Gradient::k=5 : rdisc=0.997, norm=1.68e-05
+REGINN:Gradient::k=6 : rdisc=0.996, norm=1.90e-05
+REGINN:Gradient::k=7 : rdisc=0.996, norm=2.11e-05
+REGINN:Gradient::k=8 : rdisc=0.996, norm=2.34e-05
+REGINN:Gradient::k=9 : rdisc=0.995, norm=2.54e-05
+REGINN:Gradient::k=10: rdisc=0.995, norm=2.78e-05
+REGINN:Gradient::k=11: rdisc=0.995, norm=2.98e-05
+REGINN:Gradient::k=12: rdisc=0.994, norm=3.22e-05
+REGINN:Gradient::k=13: rdisc=0.994, norm=3.42e-05
+REGINN:Gradient::Target discrepancy reached after 13 iterations.
+REGINN::i=37: rdisc=0.0132, rnorm=0.945, rerr=1.36 
+REGINN::-32.7 ≤ estimate ≤ 33.3
+REGINN::
+REGINN::Solving linear problem using rtol=0.945 and max_iter=159
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=1.00 , norm=2.89e-06
+REGINN:Gradient::k=2 : rdisc=0.999, norm=4.79e-06
+REGINN:Gradient::k=3 : rdisc=0.999, norm=7.18e-06
+REGINN:Gradient::k=4 : rdisc=0.998, norm=9.30e-06
+REGINN:Gradient::k=5 : rdisc=0.998, norm=1.15e-05
+REGINN:Gradient::k=6 : rdisc=0.998, norm=1.37e-05
+REGINN:Gradient::k=7 : rdisc=0.997, norm=1.58e-05
+REGINN:Gradient::k=8 : rdisc=0.997, norm=1.79e-05
+REGINN:Gradient::k=9 : rdisc=0.997, norm=2.00e-05
+REGINN:Gradient::k=10: rdisc=0.996, norm=2.22e-05
+REGINN:Gradient::k=11: rdisc=0.996, norm=2.42e-05
+REGINN:Gradient::k=12: rdisc=0.996, norm=2.64e-05
+REGINN:Gradient::k=13: rdisc=0.995, norm=2.85e-05
+REGINN:Gradient::k=14: rdisc=0.995, norm=3.06e-05
+REGINN:Gradient::k=15: rdisc=0.994, norm=3.27e-05
+REGINN:Gradient::k=16: rdisc=0.994, norm=3.48e-05
+REGINN:Gradient::k=17: rdisc=0.994, norm=3.69e-05
+REGINN:Gradient::k=18: rdisc=0.993, norm=3.90e-05
+REGINN:Gradient::k=19: rdisc=0.993, norm=4.11e-05
+REGINN:Gradient::k=20: rdisc=0.993, norm=4.31e-05
+REGINN:Gradient::k=21: rdisc=0.992, norm=4.52e-05
+REGINN:Gradient::k=22: rdisc=0.992, norm=4.73e-05
+REGINN:Gradient::k=23: rdisc=0.992, norm=4.94e-05
+REGINN:Gradient::k=24: rdisc=0.991, norm=5.14e-05
+REGINN:Gradient::k=25: rdisc=0.991, norm=5.35e-05
+REGINN:Gradient::k=26: rdisc=0.991, norm=5.55e-05
+REGINN:Gradient::k=27: rdisc=0.990, norm=5.76e-05
+REGINN:Gradient::k=28: rdisc=0.990, norm=5.96e-05
+REGINN:Gradient::k=29: rdisc=0.990, norm=6.17e-05
+REGINN:Gradient::k=30: rdisc=0.989, norm=6.37e-05
+REGINN:Gradient::k=31: rdisc=0.989, norm=6.58e-05
+REGINN:Gradient::k=32: rdisc=0.989, norm=6.78e-05
+REGINN:Gradient::k=33: rdisc=0.988, norm=6.99e-05
+REGINN:Gradient::k=34: rdisc=0.988, norm=7.19e-05
+REGINN:Gradient::k=35: rdisc=0.988, norm=7.39e-05
+REGINN:Gradient::k=36: rdisc=0.987, norm=7.60e-05
+REGINN:Gradient::k=37: rdisc=0.987, norm=7.80e-05
+REGINN:Gradient::k=38: rdisc=0.987, norm=8.00e-05
+REGINN:Gradient::k=39: rdisc=0.986, norm=8.21e-05
+REGINN:Gradient::k=40: rdisc=0.986, norm=8.41e-05
+REGINN:Gradient::k=41: rdisc=0.986, norm=8.61e-05
+REGINN:Gradient::k=42: rdisc=0.985, norm=8.81e-05
+REGINN:Gradient::k=43: rdisc=0.985, norm=9.01e-05
+REGINN:Gradient::k=44: rdisc=0.985, norm=9.21e-05
+REGINN:Gradient::k=45: rdisc=0.984, norm=9.42e-05
+REGINN:Gradient::k=46: rdisc=0.984, norm=9.62e-05
+REGINN:Gradient::k=47: rdisc=0.984, norm=9.82e-05
+REGINN:Gradient::k=48: rdisc=0.983, norm=0.000100
+REGINN:Gradient::k=49: rdisc=0.983, norm=0.000102
+REGINN:Gradient::k=50: rdisc=0.983, norm=0.000104
+REGINN:Gradient::k=51: rdisc=0.982, norm=0.000106
+REGINN:Gradient::k=52: rdisc=0.982, norm=0.000108
+REGINN:Gradient::k=53: rdisc=0.982, norm=0.000110
+REGINN:Gradient::k=54: rdisc=0.981, norm=0.000112
+REGINN:Gradient::k=55: rdisc=0.981, norm=0.000114
+REGINN:Gradient::k=56: rdisc=0.981, norm=0.000116
+REGINN:Gradient::k=57: rdisc=0.980, norm=0.000118
+REGINN:Gradient::k=58: rdisc=0.980, norm=0.000120
+REGINN:Gradient::k=59: rdisc=0.980, norm=0.000122
+REGINN:Gradient::k=60: rdisc=0.979, norm=0.000124
+REGINN:Gradient::k=61: rdisc=0.979, norm=0.000126
+REGINN:Gradient::k=62: rdisc=0.979, norm=0.000128
+REGINN:Gradient::k=63: rdisc=0.978, norm=0.000130
+REGINN:Gradient::k=64: rdisc=0.978, norm=0.000132
+REGINN:Gradient::k=65: rdisc=0.978, norm=0.000134
+REGINN:Gradient::k=66: rdisc=0.978, norm=0.000136
+REGINN:Gradient::k=67: rdisc=0.977, norm=0.000138
+REGINN:Gradient::k=68: rdisc=0.977, norm=0.000140
+REGINN:Gradient::k=69: rdisc=0.977, norm=0.000142
+REGINN:Gradient::k=70: rdisc=0.976, norm=0.000144
+REGINN:Gradient::k=71: rdisc=0.976, norm=0.000146
+REGINN:Gradient::k=72: rdisc=0.976, norm=0.000148
+REGINN:Gradient::k=73: rdisc=0.975, norm=0.000150
+REGINN:Gradient::k=74: rdisc=0.975, norm=0.000152
+REGINN:Gradient::k=75: rdisc=0.975, norm=0.000153
+REGINN:Gradient::k=76: rdisc=0.974, norm=0.000155
+REGINN:Gradient::k=77: rdisc=0.974, norm=0.000157
+REGINN:Gradient::k=78: rdisc=0.974, norm=0.000159
+REGINN:Gradient::k=79: rdisc=0.973, norm=0.000161
+REGINN:Gradient::k=80: rdisc=0.973, norm=0.000163
+REGINN:Gradient::k=81: rdisc=0.973, norm=0.000165
+REGINN:Gradient::k=82: rdisc=0.972, norm=0.000167
+REGINN:Gradient::k=83: rdisc=0.972, norm=0.000169
+REGINN:Gradient::k=84: rdisc=0.972, norm=0.000171
+REGINN:Gradient::k=85: rdisc=0.972, norm=0.000173
+REGINN:Gradient::k=86: rdisc=0.971, norm=0.000175
+REGINN:Gradient::k=87: rdisc=0.971, norm=0.000177
+REGINN:Gradient::k=88: rdisc=0.971, norm=0.000179
+REGINN:Gradient::k=89: rdisc=0.970, norm=0.000181
+REGINN:Gradient::k=90: rdisc=0.970, norm=0.000183
+REGINN:Gradient::k=91: rdisc=0.970, norm=0.000185
+REGINN:Gradient::k=92: rdisc=0.969, norm=0.000187
+REGINN:Gradient::k=93: rdisc=0.969, norm=0.000188
+REGINN:Gradient::k=94: rdisc=0.969, norm=0.000190
+REGINN:Gradient::k=95: rdisc=0.968, norm=0.000192
+REGINN:Gradient::k=96: rdisc=0.968, norm=0.000194
+REGINN:Gradient::k=97: rdisc=0.968, norm=0.000196
+REGINN:Gradient::k=98: rdisc=0.968, norm=0.000198
+REGINN:Gradient::k=99: rdisc=0.967, norm=0.000200
+REGINN:Gradient::k=100: rdisc=0.967, norm=0.000202
+REGINN:Gradient::k=101: rdisc=0.967, norm=0.000204
+REGINN:Gradient::k=102: rdisc=0.966, norm=0.000206
+REGINN:Gradient::k=103: rdisc=0.966, norm=0.000208
+REGINN:Gradient::k=104: rdisc=0.966, norm=0.000209
+REGINN:Gradient::k=105: rdisc=0.965, norm=0.000211
+REGINN:Gradient::k=106: rdisc=0.965, norm=0.000213
+REGINN:Gradient::k=107: rdisc=0.965, norm=0.000215
+REGINN:Gradient::k=108: rdisc=0.965, norm=0.000217
+REGINN:Gradient::k=109: rdisc=0.964, norm=0.000219
+REGINN:Gradient::k=110: rdisc=0.964, norm=0.000221
+REGINN:Gradient::k=111: rdisc=0.964, norm=0.000223
+REGINN:Gradient::k=112: rdisc=0.963, norm=0.000225
+REGINN:Gradient::k=113: rdisc=0.963, norm=0.000227
+REGINN:Gradient::k=114: rdisc=0.963, norm=0.000229
+REGINN:Gradient::k=115: rdisc=0.962, norm=0.000230
+REGINN:Gradient::k=116: rdisc=0.962, norm=0.000232
+REGINN:Gradient::k=117: rdisc=0.962, norm=0.000234
+REGINN:Gradient::k=118: rdisc=0.962, norm=0.000236
+REGINN:Gradient::k=119: rdisc=0.961, norm=0.000238
+REGINN:Gradient::k=120: rdisc=0.961, norm=0.000240
+REGINN:Gradient::k=121: rdisc=0.961, norm=0.000242
+REGINN:Gradient::k=122: rdisc=0.960, norm=0.000244
+REGINN:Gradient::k=123: rdisc=0.960, norm=0.000245
+REGINN:Gradient::k=124: rdisc=0.960, norm=0.000247
+REGINN:Gradient::k=125: rdisc=0.960, norm=0.000249
+REGINN:Gradient::k=126: rdisc=0.959, norm=0.000251
+REGINN:Gradient::k=127: rdisc=0.959, norm=0.000253
+REGINN:Gradient::k=128: rdisc=0.959, norm=0.000255
+REGINN:Gradient::k=129: rdisc=0.958, norm=0.000257
+REGINN:Gradient::k=130: rdisc=0.958, norm=0.000259
+REGINN:Gradient::k=131: rdisc=0.958, norm=0.000260
+REGINN:Gradient::k=132: rdisc=0.957, norm=0.000262
+REGINN:Gradient::k=133: rdisc=0.957, norm=0.000264
+REGINN:Gradient::k=134: rdisc=0.957, norm=0.000266
+REGINN:Gradient::k=135: rdisc=0.957, norm=0.000268
+REGINN:Gradient::k=136: rdisc=0.956, norm=0.000270
+REGINN:Gradient::k=137: rdisc=0.956, norm=0.000272
+REGINN:Gradient::k=138: rdisc=0.956, norm=0.000273
+REGINN:Gradient::k=139: rdisc=0.955, norm=0.000275
+REGINN:Gradient::k=140: rdisc=0.955, norm=0.000277
+REGINN:Gradient::k=141: rdisc=0.955, norm=0.000279
+REGINN:Gradient::k=142: rdisc=0.955, norm=0.000281
+REGINN:Gradient::k=143: rdisc=0.954, norm=0.000283
+REGINN:Gradient::k=144: rdisc=0.954, norm=0.000285
+REGINN:Gradient::k=145: rdisc=0.954, norm=0.000286
+REGINN:Gradient::k=146: rdisc=0.953, norm=0.000288
+REGINN:Gradient::k=147: rdisc=0.953, norm=0.000290
+REGINN:Gradient::k=148: rdisc=0.953, norm=0.000292
+REGINN:Gradient::k=149: rdisc=0.953, norm=0.000294
+REGINN:Gradient::k=150: rdisc=0.952, norm=0.000296
+REGINN:Gradient::k=151: rdisc=0.952, norm=0.000297
+REGINN:Gradient::k=152: rdisc=0.952, norm=0.000299
+REGINN:Gradient::k=153: rdisc=0.951, norm=0.000301
+REGINN:Gradient::k=154: rdisc=0.951, norm=0.000303
+REGINN:Gradient::k=155: rdisc=0.951, norm=0.000305
+REGINN:Gradient::k=156: rdisc=0.951, norm=0.000307
+REGINN:Gradient::k=157: rdisc=0.950, norm=0.000308
+REGINN:Gradient::k=158: rdisc=0.950, norm=0.000310
+REGINN:Gradient::k=159: rdisc=0.950, norm=0.000312
+REGINN:Gradient::Unsuccessful termination after 159 iterations!
+REGINN::Linear solver did not achieve desired discrepancy due to max_iter.
+REGINN::i=38: rdisc=0.0127, rnorm=0.949, rerr=1.36 
+REGINN::-33.0 ≤ estimate ≤ 33.5
+REGINN::
+REGINN::Solving linear problem using rtol=0.995 and max_iter=172
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.998, norm=1.70e-05
+REGINN:Gradient::k=2 : rdisc=0.996, norm=1.97e-05
+REGINN:Gradient::k=3 : rdisc=0.996, norm=2.38e-05
+REGINN:Gradient::k=4 : rdisc=0.995, norm=2.60e-05
+REGINN:Gradient::Target discrepancy reached after 4 iterations.
+REGINN::i=39: rdisc=0.0126, rnorm=0.949, rerr=1.36 
+REGINN::-33.1 ≤ estimate ≤ 33.5
+REGINN::
+REGINN::Solving linear problem using rtol=0.946 and max_iter=163
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=1.00 , norm=3.81e-06
+REGINN:Gradient::k=2 : rdisc=0.999, norm=5.72e-06
+REGINN:Gradient::k=3 : rdisc=0.999, norm=7.89e-06
+REGINN:Gradient::k=4 : rdisc=0.998, norm=9.84e-06
+REGINN:Gradient::k=5 : rdisc=0.998, norm=1.17e-05
+REGINN:Gradient::k=6 : rdisc=0.998, norm=1.37e-05
+REGINN:Gradient::k=7 : rdisc=0.997, norm=1.54e-05
+REGINN:Gradient::k=8 : rdisc=0.997, norm=1.75e-05
+REGINN:Gradient::k=9 : rdisc=0.997, norm=1.92e-05
+REGINN:Gradient::k=10: rdisc=0.996, norm=2.12e-05
+REGINN:Gradient::k=11: rdisc=0.996, norm=2.30e-05
+REGINN:Gradient::k=12: rdisc=0.996, norm=2.50e-05
+REGINN:Gradient::k=13: rdisc=0.996, norm=2.68e-05
+REGINN:Gradient::k=14: rdisc=0.995, norm=2.87e-05
+REGINN:Gradient::k=15: rdisc=0.995, norm=3.05e-05
+REGINN:Gradient::k=16: rdisc=0.995, norm=3.24e-05
+REGINN:Gradient::k=17: rdisc=0.994, norm=3.43e-05
+REGINN:Gradient::k=18: rdisc=0.994, norm=3.61e-05
+REGINN:Gradient::k=19: rdisc=0.994, norm=3.80e-05
+REGINN:Gradient::k=20: rdisc=0.993, norm=3.98e-05
+REGINN:Gradient::k=21: rdisc=0.993, norm=4.16e-05
+REGINN:Gradient::k=22: rdisc=0.993, norm=4.35e-05
+REGINN:Gradient::k=23: rdisc=0.993, norm=4.53e-05
+REGINN:Gradient::k=24: rdisc=0.992, norm=4.71e-05
+REGINN:Gradient::k=25: rdisc=0.992, norm=4.90e-05
+REGINN:Gradient::k=26: rdisc=0.992, norm=5.08e-05
+REGINN:Gradient::k=27: rdisc=0.991, norm=5.26e-05
+REGINN:Gradient::k=28: rdisc=0.991, norm=5.44e-05
+REGINN:Gradient::k=29: rdisc=0.991, norm=5.62e-05
+REGINN:Gradient::k=30: rdisc=0.990, norm=5.81e-05
+REGINN:Gradient::k=31: rdisc=0.990, norm=5.99e-05
+REGINN:Gradient::k=32: rdisc=0.990, norm=6.17e-05
+REGINN:Gradient::k=33: rdisc=0.990, norm=6.35e-05
+REGINN:Gradient::k=34: rdisc=0.989, norm=6.53e-05
+REGINN:Gradient::k=35: rdisc=0.989, norm=6.71e-05
+REGINN:Gradient::k=36: rdisc=0.989, norm=6.89e-05
+REGINN:Gradient::k=37: rdisc=0.988, norm=7.07e-05
+REGINN:Gradient::k=38: rdisc=0.988, norm=7.25e-05
+REGINN:Gradient::k=39: rdisc=0.988, norm=7.43e-05
+REGINN:Gradient::k=40: rdisc=0.988, norm=7.61e-05
+REGINN:Gradient::k=41: rdisc=0.987, norm=7.79e-05
+REGINN:Gradient::k=42: rdisc=0.987, norm=7.97e-05
+REGINN:Gradient::k=43: rdisc=0.987, norm=8.15e-05
+REGINN:Gradient::k=44: rdisc=0.986, norm=8.32e-05
+REGINN:Gradient::k=45: rdisc=0.986, norm=8.50e-05
+REGINN:Gradient::k=46: rdisc=0.986, norm=8.68e-05
+REGINN:Gradient::k=47: rdisc=0.986, norm=8.86e-05
+REGINN:Gradient::k=48: rdisc=0.985, norm=9.04e-05
+REGINN:Gradient::k=49: rdisc=0.985, norm=9.22e-05
+REGINN:Gradient::k=50: rdisc=0.985, norm=9.39e-05
+REGINN:Gradient::k=51: rdisc=0.984, norm=9.57e-05
+REGINN:Gradient::k=52: rdisc=0.984, norm=9.75e-05
+REGINN:Gradient::k=53: rdisc=0.984, norm=9.92e-05
+REGINN:Gradient::k=54: rdisc=0.984, norm=0.000101
+REGINN:Gradient::k=55: rdisc=0.983, norm=0.000103
+REGINN:Gradient::k=56: rdisc=0.983, norm=0.000105
+REGINN:Gradient::k=57: rdisc=0.983, norm=0.000106
+REGINN:Gradient::k=58: rdisc=0.982, norm=0.000108
+REGINN:Gradient::k=59: rdisc=0.982, norm=0.000110
+REGINN:Gradient::k=60: rdisc=0.982, norm=0.000112
+REGINN:Gradient::k=61: rdisc=0.982, norm=0.000113
+REGINN:Gradient::k=62: rdisc=0.981, norm=0.000115
+REGINN:Gradient::k=63: rdisc=0.981, norm=0.000117
+REGINN:Gradient::k=64: rdisc=0.981, norm=0.000119
+REGINN:Gradient::k=65: rdisc=0.981, norm=0.000120
+REGINN:Gradient::k=66: rdisc=0.980, norm=0.000122
+REGINN:Gradient::k=67: rdisc=0.980, norm=0.000124
+REGINN:Gradient::k=68: rdisc=0.980, norm=0.000126
+REGINN:Gradient::k=69: rdisc=0.979, norm=0.000127
+REGINN:Gradient::k=70: rdisc=0.979, norm=0.000129
+REGINN:Gradient::k=71: rdisc=0.979, norm=0.000131
+REGINN:Gradient::k=72: rdisc=0.979, norm=0.000133
+REGINN:Gradient::k=73: rdisc=0.978, norm=0.000134
+REGINN:Gradient::k=74: rdisc=0.978, norm=0.000136
+REGINN:Gradient::k=75: rdisc=0.978, norm=0.000138
+REGINN:Gradient::k=76: rdisc=0.978, norm=0.000140
+REGINN:Gradient::k=77: rdisc=0.977, norm=0.000141
+REGINN:Gradient::k=78: rdisc=0.977, norm=0.000143
+REGINN:Gradient::k=79: rdisc=0.977, norm=0.000145
+REGINN:Gradient::k=80: rdisc=0.976, norm=0.000147
+REGINN:Gradient::k=81: rdisc=0.976, norm=0.000148
+REGINN:Gradient::k=82: rdisc=0.976, norm=0.000150
+REGINN:Gradient::k=83: rdisc=0.976, norm=0.000152
+REGINN:Gradient::k=84: rdisc=0.975, norm=0.000153
+REGINN:Gradient::k=85: rdisc=0.975, norm=0.000155
+REGINN:Gradient::k=86: rdisc=0.975, norm=0.000157
+REGINN:Gradient::k=87: rdisc=0.975, norm=0.000159
+REGINN:Gradient::k=88: rdisc=0.974, norm=0.000160
+REGINN:Gradient::k=89: rdisc=0.974, norm=0.000162
+REGINN:Gradient::k=90: rdisc=0.974, norm=0.000164
+REGINN:Gradient::k=91: rdisc=0.973, norm=0.000166
+REGINN:Gradient::k=92: rdisc=0.973, norm=0.000167
+REGINN:Gradient::k=93: rdisc=0.973, norm=0.000169
+REGINN:Gradient::k=94: rdisc=0.973, norm=0.000171
+REGINN:Gradient::k=95: rdisc=0.972, norm=0.000172
+REGINN:Gradient::k=96: rdisc=0.972, norm=0.000174
+REGINN:Gradient::k=97: rdisc=0.972, norm=0.000176
+REGINN:Gradient::k=98: rdisc=0.972, norm=0.000178
+REGINN:Gradient::k=99: rdisc=0.971, norm=0.000179
+REGINN:Gradient::k=100: rdisc=0.971, norm=0.000181
+REGINN:Gradient::k=101: rdisc=0.971, norm=0.000183
+REGINN:Gradient::k=102: rdisc=0.971, norm=0.000184
+REGINN:Gradient::k=103: rdisc=0.970, norm=0.000186
+REGINN:Gradient::k=104: rdisc=0.970, norm=0.000188
+REGINN:Gradient::k=105: rdisc=0.970, norm=0.000190
+REGINN:Gradient::k=106: rdisc=0.969, norm=0.000191
+REGINN:Gradient::k=107: rdisc=0.969, norm=0.000193
+REGINN:Gradient::k=108: rdisc=0.969, norm=0.000195
+REGINN:Gradient::k=109: rdisc=0.969, norm=0.000196
+REGINN:Gradient::k=110: rdisc=0.968, norm=0.000198
+REGINN:Gradient::k=111: rdisc=0.968, norm=0.000200
+REGINN:Gradient::k=112: rdisc=0.968, norm=0.000201
+REGINN:Gradient::k=113: rdisc=0.968, norm=0.000203
+REGINN:Gradient::k=114: rdisc=0.967, norm=0.000205
+REGINN:Gradient::k=115: rdisc=0.967, norm=0.000207
+REGINN:Gradient::k=116: rdisc=0.967, norm=0.000208
+REGINN:Gradient::k=117: rdisc=0.967, norm=0.000210
+REGINN:Gradient::k=118: rdisc=0.966, norm=0.000212
+REGINN:Gradient::k=119: rdisc=0.966, norm=0.000213
+REGINN:Gradient::k=120: rdisc=0.966, norm=0.000215
+REGINN:Gradient::k=121: rdisc=0.966, norm=0.000217
+REGINN:Gradient::k=122: rdisc=0.965, norm=0.000218
+REGINN:Gradient::k=123: rdisc=0.965, norm=0.000220
+REGINN:Gradient::k=124: rdisc=0.965, norm=0.000222
+REGINN:Gradient::k=125: rdisc=0.965, norm=0.000223
+REGINN:Gradient::k=126: rdisc=0.964, norm=0.000225
+REGINN:Gradient::k=127: rdisc=0.964, norm=0.000227
+REGINN:Gradient::k=128: rdisc=0.964, norm=0.000228
+REGINN:Gradient::k=129: rdisc=0.963, norm=0.000230
+REGINN:Gradient::k=130: rdisc=0.963, norm=0.000232
+REGINN:Gradient::k=131: rdisc=0.963, norm=0.000233
+REGINN:Gradient::k=132: rdisc=0.963, norm=0.000235
+REGINN:Gradient::k=133: rdisc=0.962, norm=0.000237
+REGINN:Gradient::k=134: rdisc=0.962, norm=0.000238
+REGINN:Gradient::k=135: rdisc=0.962, norm=0.000240
+REGINN:Gradient::k=136: rdisc=0.962, norm=0.000242
+REGINN:Gradient::k=137: rdisc=0.961, norm=0.000243
+REGINN:Gradient::k=138: rdisc=0.961, norm=0.000245
+REGINN:Gradient::k=139: rdisc=0.961, norm=0.000247
+REGINN:Gradient::k=140: rdisc=0.961, norm=0.000248
+REGINN:Gradient::k=141: rdisc=0.960, norm=0.000250
+REGINN:Gradient::k=142: rdisc=0.960, norm=0.000252
+REGINN:Gradient::k=143: rdisc=0.960, norm=0.000253
+REGINN:Gradient::k=144: rdisc=0.960, norm=0.000255
+REGINN:Gradient::k=145: rdisc=0.959, norm=0.000257
+REGINN:Gradient::k=146: rdisc=0.959, norm=0.000258
+REGINN:Gradient::k=147: rdisc=0.959, norm=0.000260
+REGINN:Gradient::k=148: rdisc=0.959, norm=0.000262
+REGINN:Gradient::k=149: rdisc=0.958, norm=0.000263
+REGINN:Gradient::k=150: rdisc=0.958, norm=0.000265
+REGINN:Gradient::k=151: rdisc=0.958, norm=0.000267
+REGINN:Gradient::k=152: rdisc=0.958, norm=0.000268
+REGINN:Gradient::k=153: rdisc=0.957, norm=0.000270
+REGINN:Gradient::k=154: rdisc=0.957, norm=0.000272
+REGINN:Gradient::k=155: rdisc=0.957, norm=0.000273
+REGINN:Gradient::k=156: rdisc=0.957, norm=0.000275
+REGINN:Gradient::k=157: rdisc=0.956, norm=0.000277
+REGINN:Gradient::k=158: rdisc=0.956, norm=0.000278
+REGINN:Gradient::k=159: rdisc=0.956, norm=0.000280
+REGINN:Gradient::k=160: rdisc=0.956, norm=0.000282
+REGINN:Gradient::k=161: rdisc=0.955, norm=0.000283
+REGINN:Gradient::k=162: rdisc=0.955, norm=0.000285
+REGINN:Gradient::k=163: rdisc=0.955, norm=0.000286
+REGINN:Gradient::Unsuccessful termination after 163 iterations!
+REGINN::Linear solver did not achieve desired discrepancy due to max_iter.
+REGINN::Saving current residual in ./step-0040/
+REGINN::Saving current estimate in ./step-0040/
+REGINN::i=40: rdisc=0.0121, rnorm=0.952, rerr=1.36 
+REGINN::-33.3 ≤ estimate ≤ 33.6
+REGINN::
+REGINN::Solving linear problem using rtol=0.898 and max_iter=167
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=1.00 , norm=2.04e-06
+REGINN:Gradient::k=2 : rdisc=0.999, norm=3.93e-06
+REGINN:Gradient::k=3 : rdisc=0.999, norm=5.70e-06
+REGINN:Gradient::k=4 : rdisc=0.999, norm=7.65e-06
+REGINN:Gradient::k=5 : rdisc=0.998, norm=9.42e-06
+REGINN:Gradient::k=6 : rdisc=0.998, norm=1.13e-05
+REGINN:Gradient::k=7 : rdisc=0.998, norm=1.30e-05
+REGINN:Gradient::k=8 : rdisc=0.997, norm=1.48e-05
+REGINN:Gradient::k=9 : rdisc=0.997, norm=1.66e-05
+REGINN:Gradient::k=10: rdisc=0.997, norm=1.83e-05
+REGINN:Gradient::k=11: rdisc=0.997, norm=2.01e-05
+REGINN:Gradient::k=12: rdisc=0.996, norm=2.18e-05
+REGINN:Gradient::k=13: rdisc=0.996, norm=2.36e-05
+REGINN:Gradient::k=14: rdisc=0.996, norm=2.53e-05
+REGINN:Gradient::k=15: rdisc=0.995, norm=2.70e-05
+REGINN:Gradient::k=16: rdisc=0.995, norm=2.87e-05
+REGINN:Gradient::k=17: rdisc=0.995, norm=3.05e-05
+REGINN:Gradient::k=18: rdisc=0.995, norm=3.22e-05
+REGINN:Gradient::k=19: rdisc=0.994, norm=3.39e-05
+REGINN:Gradient::k=20: rdisc=0.994, norm=3.56e-05
+REGINN:Gradient::k=21: rdisc=0.994, norm=3.73e-05
+REGINN:Gradient::k=22: rdisc=0.994, norm=3.90e-05
+REGINN:Gradient::k=23: rdisc=0.993, norm=4.07e-05
+REGINN:Gradient::k=24: rdisc=0.993, norm=4.24e-05
+REGINN:Gradient::k=25: rdisc=0.993, norm=4.41e-05
+REGINN:Gradient::k=26: rdisc=0.992, norm=4.58e-05
+REGINN:Gradient::k=27: rdisc=0.992, norm=4.75e-05
+REGINN:Gradient::k=28: rdisc=0.992, norm=4.92e-05
+REGINN:Gradient::k=29: rdisc=0.992, norm=5.08e-05
+REGINN:Gradient::k=30: rdisc=0.991, norm=5.25e-05
+REGINN:Gradient::k=31: rdisc=0.991, norm=5.42e-05
+REGINN:Gradient::k=32: rdisc=0.991, norm=5.59e-05
+REGINN:Gradient::k=33: rdisc=0.991, norm=5.75e-05
+REGINN:Gradient::k=34: rdisc=0.990, norm=5.92e-05
+REGINN:Gradient::k=35: rdisc=0.990, norm=6.09e-05
+REGINN:Gradient::k=36: rdisc=0.990, norm=6.25e-05
+REGINN:Gradient::k=37: rdisc=0.990, norm=6.42e-05
+REGINN:Gradient::k=38: rdisc=0.989, norm=6.59e-05
+REGINN:Gradient::k=39: rdisc=0.989, norm=6.75e-05
+REGINN:Gradient::k=40: rdisc=0.989, norm=6.92e-05
+REGINN:Gradient::k=41: rdisc=0.988, norm=7.08e-05
+REGINN:Gradient::k=42: rdisc=0.988, norm=7.25e-05
+REGINN:Gradient::k=43: rdisc=0.988, norm=7.41e-05
+REGINN:Gradient::k=44: rdisc=0.988, norm=7.58e-05
+REGINN:Gradient::k=45: rdisc=0.987, norm=7.74e-05
+REGINN:Gradient::k=46: rdisc=0.987, norm=7.90e-05
+REGINN:Gradient::k=47: rdisc=0.987, norm=8.07e-05
+REGINN:Gradient::k=48: rdisc=0.987, norm=8.23e-05
+REGINN:Gradient::k=49: rdisc=0.986, norm=8.39e-05
+REGINN:Gradient::k=50: rdisc=0.986, norm=8.56e-05
+REGINN:Gradient::k=51: rdisc=0.986, norm=8.72e-05
+REGINN:Gradient::k=52: rdisc=0.986, norm=8.89e-05
+REGINN:Gradient::k=53: rdisc=0.985, norm=9.05e-05
+REGINN:Gradient::k=54: rdisc=0.985, norm=9.21e-05
+REGINN:Gradient::k=55: rdisc=0.985, norm=9.37e-05
+REGINN:Gradient::k=56: rdisc=0.985, norm=9.54e-05
+REGINN:Gradient::k=57: rdisc=0.984, norm=9.70e-05
+REGINN:Gradient::k=58: rdisc=0.984, norm=9.86e-05
+REGINN:Gradient::k=59: rdisc=0.984, norm=0.000100
+REGINN:Gradient::k=60: rdisc=0.984, norm=0.000102
+REGINN:Gradient::k=61: rdisc=0.983, norm=0.000103
+REGINN:Gradient::k=62: rdisc=0.983, norm=0.000105
+REGINN:Gradient::k=63: rdisc=0.983, norm=0.000107
+REGINN:Gradient::k=64: rdisc=0.983, norm=0.000108
+REGINN:Gradient::k=65: rdisc=0.982, norm=0.000110
+REGINN:Gradient::k=66: rdisc=0.982, norm=0.000111
+REGINN:Gradient::k=67: rdisc=0.982, norm=0.000113
+REGINN:Gradient::k=68: rdisc=0.982, norm=0.000115
+REGINN:Gradient::k=69: rdisc=0.981, norm=0.000116
+REGINN:Gradient::k=70: rdisc=0.981, norm=0.000118
+REGINN:Gradient::k=71: rdisc=0.981, norm=0.000119
+REGINN:Gradient::k=72: rdisc=0.981, norm=0.000121
+REGINN:Gradient::k=73: rdisc=0.980, norm=0.000123
+REGINN:Gradient::k=74: rdisc=0.980, norm=0.000124
+REGINN:Gradient::k=75: rdisc=0.980, norm=0.000126
+REGINN:Gradient::k=76: rdisc=0.980, norm=0.000128
+REGINN:Gradient::k=77: rdisc=0.979, norm=0.000129
+REGINN:Gradient::k=78: rdisc=0.979, norm=0.000131
+REGINN:Gradient::k=79: rdisc=0.979, norm=0.000132
+REGINN:Gradient::k=80: rdisc=0.979, norm=0.000134
+REGINN:Gradient::k=81: rdisc=0.978, norm=0.000135
+REGINN:Gradient::k=82: rdisc=0.978, norm=0.000137
+REGINN:Gradient::k=83: rdisc=0.978, norm=0.000139
+REGINN:Gradient::k=84: rdisc=0.978, norm=0.000140
+REGINN:Gradient::k=85: rdisc=0.977, norm=0.000142
+REGINN:Gradient::k=86: rdisc=0.977, norm=0.000143
+REGINN:Gradient::k=87: rdisc=0.977, norm=0.000145
+REGINN:Gradient::k=88: rdisc=0.977, norm=0.000147
+REGINN:Gradient::k=89: rdisc=0.976, norm=0.000148
+REGINN:Gradient::k=90: rdisc=0.976, norm=0.000150
+REGINN:Gradient::k=91: rdisc=0.976, norm=0.000151
+REGINN:Gradient::k=92: rdisc=0.976, norm=0.000153
+REGINN:Gradient::k=93: rdisc=0.975, norm=0.000154
+REGINN:Gradient::k=94: rdisc=0.975, norm=0.000156
+REGINN:Gradient::k=95: rdisc=0.975, norm=0.000158
+REGINN:Gradient::k=96: rdisc=0.975, norm=0.000159
+REGINN:Gradient::k=97: rdisc=0.975, norm=0.000161
+REGINN:Gradient::k=98: rdisc=0.974, norm=0.000162
+REGINN:Gradient::k=99: rdisc=0.974, norm=0.000164
+REGINN:Gradient::k=100: rdisc=0.974, norm=0.000166
+REGINN:Gradient::k=101: rdisc=0.974, norm=0.000167
+REGINN:Gradient::k=102: rdisc=0.973, norm=0.000169
+REGINN:Gradient::k=103: rdisc=0.973, norm=0.000170
+REGINN:Gradient::k=104: rdisc=0.973, norm=0.000172
+REGINN:Gradient::k=105: rdisc=0.973, norm=0.000173
+REGINN:Gradient::k=106: rdisc=0.972, norm=0.000175
+REGINN:Gradient::k=107: rdisc=0.972, norm=0.000177
+REGINN:Gradient::k=108: rdisc=0.972, norm=0.000178
+REGINN:Gradient::k=109: rdisc=0.972, norm=0.000180
+REGINN:Gradient::k=110: rdisc=0.971, norm=0.000181
+REGINN:Gradient::k=111: rdisc=0.971, norm=0.000183
+REGINN:Gradient::k=112: rdisc=0.971, norm=0.000184
+REGINN:Gradient::k=113: rdisc=0.971, norm=0.000186
+REGINN:Gradient::k=114: rdisc=0.970, norm=0.000187
+REGINN:Gradient::k=115: rdisc=0.970, norm=0.000189
+REGINN:Gradient::k=116: rdisc=0.970, norm=0.000191
+REGINN:Gradient::k=117: rdisc=0.970, norm=0.000192
+REGINN:Gradient::k=118: rdisc=0.970, norm=0.000194
+REGINN:Gradient::k=119: rdisc=0.969, norm=0.000195
+REGINN:Gradient::k=120: rdisc=0.969, norm=0.000197
+REGINN:Gradient::k=121: rdisc=0.969, norm=0.000198
+REGINN:Gradient::k=122: rdisc=0.969, norm=0.000200
+REGINN:Gradient::k=123: rdisc=0.968, norm=0.000201
+REGINN:Gradient::k=124: rdisc=0.968, norm=0.000203
+REGINN:Gradient::k=125: rdisc=0.968, norm=0.000204
+REGINN:Gradient::k=126: rdisc=0.968, norm=0.000206
+REGINN:Gradient::k=127: rdisc=0.967, norm=0.000208
+REGINN:Gradient::k=128: rdisc=0.967, norm=0.000209
+REGINN:Gradient::k=129: rdisc=0.967, norm=0.000211
+REGINN:Gradient::k=130: rdisc=0.967, norm=0.000212
+REGINN:Gradient::k=131: rdisc=0.966, norm=0.000214
+REGINN:Gradient::k=132: rdisc=0.966, norm=0.000215
+REGINN:Gradient::k=133: rdisc=0.966, norm=0.000217
+REGINN:Gradient::k=134: rdisc=0.966, norm=0.000218
+REGINN:Gradient::k=135: rdisc=0.966, norm=0.000220
+REGINN:Gradient::k=136: rdisc=0.965, norm=0.000221
+REGINN:Gradient::k=137: rdisc=0.965, norm=0.000223
+REGINN:Gradient::k=138: rdisc=0.965, norm=0.000224
+REGINN:Gradient::k=139: rdisc=0.965, norm=0.000226
+REGINN:Gradient::k=140: rdisc=0.964, norm=0.000228
+REGINN:Gradient::k=141: rdisc=0.964, norm=0.000229
+REGINN:Gradient::k=142: rdisc=0.964, norm=0.000231
+REGINN:Gradient::k=143: rdisc=0.964, norm=0.000232
+REGINN:Gradient::k=144: rdisc=0.963, norm=0.000234
+REGINN:Gradient::k=145: rdisc=0.963, norm=0.000235
+REGINN:Gradient::k=146: rdisc=0.963, norm=0.000237
+REGINN:Gradient::k=147: rdisc=0.963, norm=0.000238
+REGINN:Gradient::k=148: rdisc=0.963, norm=0.000240
+REGINN:Gradient::k=149: rdisc=0.962, norm=0.000241
+REGINN:Gradient::k=150: rdisc=0.962, norm=0.000243
+REGINN:Gradient::k=151: rdisc=0.962, norm=0.000244
+REGINN:Gradient::k=152: rdisc=0.962, norm=0.000246
+REGINN:Gradient::k=153: rdisc=0.961, norm=0.000247
+REGINN:Gradient::k=154: rdisc=0.961, norm=0.000249
+REGINN:Gradient::k=155: rdisc=0.961, norm=0.000250
+REGINN:Gradient::k=156: rdisc=0.961, norm=0.000252
+REGINN:Gradient::k=157: rdisc=0.961, norm=0.000253
+REGINN:Gradient::k=158: rdisc=0.960, norm=0.000255
+REGINN:Gradient::k=159: rdisc=0.960, norm=0.000256
+REGINN:Gradient::k=160: rdisc=0.960, norm=0.000258
+REGINN:Gradient::k=161: rdisc=0.960, norm=0.000259
+REGINN:Gradient::k=162: rdisc=0.959, norm=0.000261
+REGINN:Gradient::k=163: rdisc=0.959, norm=0.000262
+REGINN:Gradient::k=164: rdisc=0.959, norm=0.000264
+REGINN:Gradient::k=165: rdisc=0.959, norm=0.000266
+REGINN:Gradient::k=166: rdisc=0.959, norm=0.000267
+REGINN:Gradient::k=167: rdisc=0.958, norm=0.000269
+REGINN:Gradient::Unsuccessful termination after 167 iterations!
+REGINN::Linear solver did not achieve desired discrepancy due to max_iter.
+REGINN::i=41: rdisc=0.0117, rnorm=0.955, rerr=1.37 
+REGINN::-33.5 ≤ estimate ≤ 33.8
+REGINN::
+REGINN::Solving linear problem using rtol=0.901 and max_iter=330
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.996, norm=3.53e-05
+REGINN:Gradient::k=2 : rdisc=0.994, norm=3.82e-05
+REGINN:Gradient::k=3 : rdisc=0.993, norm=4.04e-05
+REGINN:Gradient::k=4 : rdisc=0.993, norm=4.30e-05
+REGINN:Gradient::k=5 : rdisc=0.992, norm=4.50e-05
+REGINN:Gradient::k=6 : rdisc=0.992, norm=4.71e-05
+REGINN:Gradient::k=7 : rdisc=0.991, norm=4.88e-05
+REGINN:Gradient::k=8 : rdisc=0.991, norm=5.07e-05
+REGINN:Gradient::k=9 : rdisc=0.991, norm=5.22e-05
+REGINN:Gradient::k=10: rdisc=0.990, norm=5.40e-05
+REGINN:Gradient::k=11: rdisc=0.990, norm=5.55e-05
+REGINN:Gradient::k=12: rdisc=0.990, norm=5.72e-05
+REGINN:Gradient::k=13: rdisc=0.990, norm=5.86e-05
+REGINN:Gradient::k=14: rdisc=0.989, norm=6.03e-05
+REGINN:Gradient::k=15: rdisc=0.989, norm=6.17e-05
+REGINN:Gradient::k=16: rdisc=0.989, norm=6.33e-05
+REGINN:Gradient::k=17: rdisc=0.989, norm=6.48e-05
+REGINN:Gradient::k=18: rdisc=0.988, norm=6.63e-05
+REGINN:Gradient::k=19: rdisc=0.988, norm=6.77e-05
+REGINN:Gradient::k=20: rdisc=0.988, norm=6.92e-05
+REGINN:Gradient::k=21: rdisc=0.988, norm=7.07e-05
+REGINN:Gradient::k=22: rdisc=0.988, norm=7.22e-05
+REGINN:Gradient::k=23: rdisc=0.987, norm=7.36e-05
+REGINN:Gradient::k=24: rdisc=0.987, norm=7.51e-05
+REGINN:Gradient::k=25: rdisc=0.987, norm=7.66e-05
+REGINN:Gradient::k=26: rdisc=0.987, norm=7.80e-05
+REGINN:Gradient::k=27: rdisc=0.986, norm=7.95e-05
+REGINN:Gradient::k=28: rdisc=0.986, norm=8.09e-05
+REGINN:Gradient::k=29: rdisc=0.986, norm=8.24e-05
+REGINN:Gradient::k=30: rdisc=0.986, norm=8.38e-05
+REGINN:Gradient::k=31: rdisc=0.985, norm=8.53e-05
+REGINN:Gradient::k=32: rdisc=0.985, norm=8.68e-05
+REGINN:Gradient::k=33: rdisc=0.985, norm=8.82e-05
+REGINN:Gradient::k=34: rdisc=0.985, norm=8.96e-05
+REGINN:Gradient::k=35: rdisc=0.985, norm=9.11e-05
+REGINN:Gradient::k=36: rdisc=0.984, norm=9.25e-05
+REGINN:Gradient::k=37: rdisc=0.984, norm=9.40e-05
+REGINN:Gradient::k=38: rdisc=0.984, norm=9.54e-05
+REGINN:Gradient::k=39: rdisc=0.984, norm=9.69e-05
+REGINN:Gradient::k=40: rdisc=0.984, norm=9.83e-05
+REGINN:Gradient::k=41: rdisc=0.983, norm=9.97e-05
+REGINN:Gradient::k=42: rdisc=0.983, norm=0.000101
+REGINN:Gradient::k=43: rdisc=0.983, norm=0.000103
+REGINN:Gradient::k=44: rdisc=0.983, norm=0.000104
+REGINN:Gradient::k=45: rdisc=0.982, norm=0.000105
+REGINN:Gradient::k=46: rdisc=0.982, norm=0.000107
+REGINN:Gradient::k=47: rdisc=0.982, norm=0.000108
+REGINN:Gradient::k=48: rdisc=0.982, norm=0.000110
+REGINN:Gradient::k=49: rdisc=0.982, norm=0.000111
+REGINN:Gradient::k=50: rdisc=0.981, norm=0.000113
+REGINN:Gradient::k=51: rdisc=0.981, norm=0.000114
+REGINN:Gradient::k=52: rdisc=0.981, norm=0.000116
+REGINN:Gradient::k=53: rdisc=0.981, norm=0.000117
+REGINN:Gradient::k=54: rdisc=0.980, norm=0.000118
+REGINN:Gradient::k=55: rdisc=0.980, norm=0.000120
+REGINN:Gradient::k=56: rdisc=0.980, norm=0.000121
+REGINN:Gradient::k=57: rdisc=0.980, norm=0.000123
+REGINN:Gradient::k=58: rdisc=0.980, norm=0.000124
+REGINN:Gradient::k=59: rdisc=0.979, norm=0.000125
+REGINN:Gradient::k=60: rdisc=0.979, norm=0.000127
+REGINN:Gradient::k=61: rdisc=0.979, norm=0.000128
+REGINN:Gradient::k=62: rdisc=0.979, norm=0.000130
+REGINN:Gradient::k=63: rdisc=0.979, norm=0.000131
+REGINN:Gradient::k=64: rdisc=0.978, norm=0.000133
+REGINN:Gradient::k=65: rdisc=0.978, norm=0.000134
+REGINN:Gradient::k=66: rdisc=0.978, norm=0.000135
+REGINN:Gradient::k=67: rdisc=0.978, norm=0.000137
+REGINN:Gradient::k=68: rdisc=0.977, norm=0.000138
+REGINN:Gradient::k=69: rdisc=0.977, norm=0.000140
+REGINN:Gradient::k=70: rdisc=0.977, norm=0.000141
+REGINN:Gradient::k=71: rdisc=0.977, norm=0.000143
+REGINN:Gradient::k=72: rdisc=0.977, norm=0.000144
+REGINN:Gradient::k=73: rdisc=0.976, norm=0.000145
+REGINN:Gradient::k=74: rdisc=0.976, norm=0.000147
+REGINN:Gradient::k=75: rdisc=0.976, norm=0.000148
+REGINN:Gradient::k=76: rdisc=0.976, norm=0.000150
+REGINN:Gradient::k=77: rdisc=0.976, norm=0.000151
+REGINN:Gradient::k=78: rdisc=0.975, norm=0.000152
+REGINN:Gradient::k=79: rdisc=0.975, norm=0.000154
+REGINN:Gradient::k=80: rdisc=0.975, norm=0.000155
+REGINN:Gradient::k=81: rdisc=0.975, norm=0.000157
+REGINN:Gradient::k=82: rdisc=0.975, norm=0.000158
+REGINN:Gradient::k=83: rdisc=0.974, norm=0.000159
+REGINN:Gradient::k=84: rdisc=0.974, norm=0.000161
+REGINN:Gradient::k=85: rdisc=0.974, norm=0.000162
+REGINN:Gradient::k=86: rdisc=0.974, norm=0.000164
+REGINN:Gradient::k=87: rdisc=0.974, norm=0.000165
+REGINN:Gradient::k=88: rdisc=0.973, norm=0.000166
+REGINN:Gradient::k=89: rdisc=0.973, norm=0.000168
+REGINN:Gradient::k=90: rdisc=0.973, norm=0.000169
+REGINN:Gradient::k=91: rdisc=0.973, norm=0.000171
+REGINN:Gradient::k=92: rdisc=0.972, norm=0.000172
+REGINN:Gradient::k=93: rdisc=0.972, norm=0.000173
+REGINN:Gradient::k=94: rdisc=0.972, norm=0.000175
+REGINN:Gradient::k=95: rdisc=0.972, norm=0.000176
+REGINN:Gradient::k=96: rdisc=0.972, norm=0.000178
+REGINN:Gradient::k=97: rdisc=0.971, norm=0.000179
+REGINN:Gradient::k=98: rdisc=0.971, norm=0.000180
+REGINN:Gradient::k=99: rdisc=0.971, norm=0.000182
+REGINN:Gradient::k=100: rdisc=0.971, norm=0.000183
+REGINN:Gradient::k=101: rdisc=0.971, norm=0.000185
+REGINN:Gradient::k=102: rdisc=0.970, norm=0.000186
+REGINN:Gradient::k=103: rdisc=0.970, norm=0.000187
+REGINN:Gradient::k=104: rdisc=0.970, norm=0.000189
+REGINN:Gradient::k=105: rdisc=0.970, norm=0.000190
+REGINN:Gradient::k=106: rdisc=0.970, norm=0.000192
+REGINN:Gradient::k=107: rdisc=0.969, norm=0.000193
+REGINN:Gradient::k=108: rdisc=0.969, norm=0.000194
+REGINN:Gradient::k=109: rdisc=0.969, norm=0.000196
+REGINN:Gradient::k=110: rdisc=0.969, norm=0.000197
+REGINN:Gradient::k=111: rdisc=0.969, norm=0.000199
+REGINN:Gradient::k=112: rdisc=0.968, norm=0.000200
+REGINN:Gradient::k=113: rdisc=0.968, norm=0.000201
+REGINN:Gradient::k=114: rdisc=0.968, norm=0.000203
+REGINN:Gradient::k=115: rdisc=0.968, norm=0.000204
+REGINN:Gradient::k=116: rdisc=0.968, norm=0.000206
+REGINN:Gradient::k=117: rdisc=0.967, norm=0.000207
+REGINN:Gradient::k=118: rdisc=0.967, norm=0.000208
+REGINN:Gradient::k=119: rdisc=0.967, norm=0.000210
+REGINN:Gradient::k=120: rdisc=0.967, norm=0.000211
+REGINN:Gradient::k=121: rdisc=0.967, norm=0.000212
+REGINN:Gradient::k=122: rdisc=0.966, norm=0.000214
+REGINN:Gradient::k=123: rdisc=0.966, norm=0.000215
+REGINN:Gradient::k=124: rdisc=0.966, norm=0.000217
+REGINN:Gradient::k=125: rdisc=0.966, norm=0.000218
+REGINN:Gradient::k=126: rdisc=0.966, norm=0.000219
+REGINN:Gradient::k=127: rdisc=0.965, norm=0.000221
+REGINN:Gradient::k=128: rdisc=0.965, norm=0.000222
+REGINN:Gradient::k=129: rdisc=0.965, norm=0.000223
+REGINN:Gradient::k=130: rdisc=0.965, norm=0.000225
+REGINN:Gradient::k=131: rdisc=0.965, norm=0.000226
+REGINN:Gradient::k=132: rdisc=0.964, norm=0.000228
+REGINN:Gradient::k=133: rdisc=0.964, norm=0.000229
+REGINN:Gradient::k=134: rdisc=0.964, norm=0.000230
+REGINN:Gradient::k=135: rdisc=0.964, norm=0.000232
+REGINN:Gradient::k=136: rdisc=0.964, norm=0.000233
+REGINN:Gradient::k=137: rdisc=0.963, norm=0.000234
+REGINN:Gradient::k=138: rdisc=0.963, norm=0.000236
+REGINN:Gradient::k=139: rdisc=0.963, norm=0.000237
+REGINN:Gradient::k=140: rdisc=0.963, norm=0.000239
+REGINN:Gradient::k=141: rdisc=0.963, norm=0.000240
+REGINN:Gradient::k=142: rdisc=0.962, norm=0.000241
+REGINN:Gradient::k=143: rdisc=0.962, norm=0.000243
+REGINN:Gradient::k=144: rdisc=0.962, norm=0.000244
+REGINN:Gradient::k=145: rdisc=0.962, norm=0.000245
+REGINN:Gradient::k=146: rdisc=0.962, norm=0.000247
+REGINN:Gradient::k=147: rdisc=0.961, norm=0.000248
+REGINN:Gradient::k=148: rdisc=0.961, norm=0.000250
+REGINN:Gradient::k=149: rdisc=0.961, norm=0.000251
+REGINN:Gradient::k=150: rdisc=0.961, norm=0.000252
+REGINN:Gradient::k=151: rdisc=0.961, norm=0.000254
+REGINN:Gradient::k=152: rdisc=0.960, norm=0.000255
+REGINN:Gradient::k=153: rdisc=0.960, norm=0.000256
+REGINN:Gradient::k=154: rdisc=0.960, norm=0.000258
+REGINN:Gradient::k=155: rdisc=0.960, norm=0.000259
+REGINN:Gradient::k=156: rdisc=0.960, norm=0.000260
+REGINN:Gradient::k=157: rdisc=0.959, norm=0.000262
+REGINN:Gradient::k=158: rdisc=0.959, norm=0.000263
+REGINN:Gradient::k=159: rdisc=0.959, norm=0.000265
+REGINN:Gradient::k=160: rdisc=0.959, norm=0.000266
+REGINN:Gradient::k=161: rdisc=0.959, norm=0.000267
+REGINN:Gradient::k=162: rdisc=0.958, norm=0.000269
+REGINN:Gradient::k=163: rdisc=0.958, norm=0.000270
+REGINN:Gradient::k=164: rdisc=0.958, norm=0.000271
+REGINN:Gradient::k=165: rdisc=0.958, norm=0.000273
+REGINN:Gradient::k=166: rdisc=0.958, norm=0.000274
+REGINN:Gradient::k=167: rdisc=0.957, norm=0.000275
+REGINN:Gradient::k=168: rdisc=0.957, norm=0.000277
+REGINN:Gradient::k=169: rdisc=0.957, norm=0.000278
+REGINN:Gradient::k=170: rdisc=0.957, norm=0.000279
+REGINN:Gradient::k=171: rdisc=0.957, norm=0.000281
+REGINN:Gradient::k=172: rdisc=0.956, norm=0.000282
+REGINN:Gradient::k=173: rdisc=0.956, norm=0.000283
+REGINN:Gradient::k=174: rdisc=0.956, norm=0.000285
+REGINN:Gradient::k=175: rdisc=0.956, norm=0.000286
+REGINN:Gradient::k=176: rdisc=0.956, norm=0.000287
+REGINN:Gradient::k=177: rdisc=0.955, norm=0.000289
+REGINN:Gradient::k=178: rdisc=0.955, norm=0.000290
+REGINN:Gradient::k=179: rdisc=0.955, norm=0.000292
+REGINN:Gradient::k=180: rdisc=0.955, norm=0.000293
+REGINN:Gradient::k=181: rdisc=0.955, norm=0.000294
+REGINN:Gradient::k=182: rdisc=0.954, norm=0.000296
+REGINN:Gradient::k=183: rdisc=0.954, norm=0.000297
+REGINN:Gradient::k=184: rdisc=0.954, norm=0.000298
+REGINN:Gradient::k=185: rdisc=0.954, norm=0.000300
+REGINN:Gradient::k=186: rdisc=0.954, norm=0.000301
+REGINN:Gradient::k=187: rdisc=0.954, norm=0.000302
+REGINN:Gradient::k=188: rdisc=0.953, norm=0.000304
+REGINN:Gradient::k=189: rdisc=0.953, norm=0.000305
+REGINN:Gradient::k=190: rdisc=0.953, norm=0.000306
+REGINN:Gradient::k=191: rdisc=0.953, norm=0.000308
+REGINN:Gradient::k=192: rdisc=0.953, norm=0.000309
+REGINN:Gradient::k=193: rdisc=0.952, norm=0.000310
+REGINN:Gradient::k=194: rdisc=0.952, norm=0.000312
+REGINN:Gradient::k=195: rdisc=0.952, norm=0.000313
+REGINN:Gradient::k=196: rdisc=0.952, norm=0.000314
+REGINN:Gradient::k=197: rdisc=0.952, norm=0.000316
+REGINN:Gradient::k=198: rdisc=0.951, norm=0.000317
+REGINN:Gradient::k=199: rdisc=0.951, norm=0.000318
+REGINN:Gradient::k=200: rdisc=0.951, norm=0.000320
+REGINN:Gradient::k=201: rdisc=0.951, norm=0.000321
+REGINN:Gradient::k=202: rdisc=0.951, norm=0.000322
+REGINN:Gradient::k=203: rdisc=0.950, norm=0.000324
+REGINN:Gradient::k=204: rdisc=0.950, norm=0.000325
+REGINN:Gradient::k=205: rdisc=0.950, norm=0.000326
+REGINN:Gradient::k=206: rdisc=0.950, norm=0.000328
+REGINN:Gradient::k=207: rdisc=0.950, norm=0.000329
+REGINN:Gradient::k=208: rdisc=0.950, norm=0.000330
+REGINN:Gradient::k=209: rdisc=0.949, norm=0.000332
+REGINN:Gradient::k=210: rdisc=0.949, norm=0.000333
+REGINN:Gradient::k=211: rdisc=0.949, norm=0.000334
+REGINN:Gradient::k=212: rdisc=0.949, norm=0.000335
+REGINN:Gradient::k=213: rdisc=0.949, norm=0.000337
+REGINN:Gradient::k=214: rdisc=0.948, norm=0.000338
+REGINN:Gradient::k=215: rdisc=0.948, norm=0.000339
+REGINN:Gradient::k=216: rdisc=0.948, norm=0.000341
+REGINN:Gradient::k=217: rdisc=0.948, norm=0.000342
+REGINN:Gradient::k=218: rdisc=0.948, norm=0.000343
+REGINN:Gradient::k=219: rdisc=0.948, norm=0.000345
+REGINN:Gradient::k=220: rdisc=0.947, norm=0.000346
+REGINN:Gradient::k=221: rdisc=0.947, norm=0.000347
+REGINN:Gradient::k=222: rdisc=0.947, norm=0.000349
+REGINN:Gradient::k=223: rdisc=0.947, norm=0.000350
+REGINN:Gradient::k=224: rdisc=0.947, norm=0.000351
+REGINN:Gradient::k=225: rdisc=0.946, norm=0.000353
+REGINN:Gradient::k=226: rdisc=0.946, norm=0.000354
+REGINN:Gradient::k=227: rdisc=0.946, norm=0.000355
+REGINN:Gradient::k=228: rdisc=0.946, norm=0.000357
+REGINN:Gradient::k=229: rdisc=0.946, norm=0.000358
+REGINN:Gradient::k=230: rdisc=0.945, norm=0.000359
+REGINN:Gradient::k=231: rdisc=0.945, norm=0.000360
+REGINN:Gradient::k=232: rdisc=0.945, norm=0.000362
+REGINN:Gradient::k=233: rdisc=0.945, norm=0.000363
+REGINN:Gradient::k=234: rdisc=0.945, norm=0.000364
+REGINN:Gradient::k=235: rdisc=0.945, norm=0.000366
+REGINN:Gradient::k=236: rdisc=0.944, norm=0.000367
+REGINN:Gradient::k=237: rdisc=0.944, norm=0.000368
+REGINN:Gradient::k=238: rdisc=0.944, norm=0.000370
+REGINN:Gradient::k=239: rdisc=0.944, norm=0.000371
+REGINN:Gradient::k=240: rdisc=0.944, norm=0.000372
+REGINN:Gradient::k=241: rdisc=0.943, norm=0.000373
+REGINN:Gradient::k=242: rdisc=0.943, norm=0.000375
+REGINN:Gradient::k=243: rdisc=0.943, norm=0.000376
+REGINN:Gradient::k=244: rdisc=0.943, norm=0.000377
+REGINN:Gradient::k=245: rdisc=0.943, norm=0.000379
+REGINN:Gradient::k=246: rdisc=0.943, norm=0.000380
+REGINN:Gradient::k=247: rdisc=0.942, norm=0.000381
+REGINN:Gradient::k=248: rdisc=0.942, norm=0.000383
+REGINN:Gradient::k=249: rdisc=0.942, norm=0.000384
+REGINN:Gradient::k=250: rdisc=0.942, norm=0.000385
+REGINN:Gradient::k=251: rdisc=0.942, norm=0.000386
+REGINN:Gradient::k=252: rdisc=0.941, norm=0.000388
+REGINN:Gradient::k=253: rdisc=0.941, norm=0.000389
+REGINN:Gradient::k=254: rdisc=0.941, norm=0.000390
+REGINN:Gradient::k=255: rdisc=0.941, norm=0.000392
+REGINN:Gradient::k=256: rdisc=0.941, norm=0.000393
+REGINN:Gradient::k=257: rdisc=0.941, norm=0.000394
+REGINN:Gradient::k=258: rdisc=0.940, norm=0.000395
+REGINN:Gradient::k=259: rdisc=0.940, norm=0.000397
+REGINN:Gradient::k=260: rdisc=0.940, norm=0.000398
+REGINN:Gradient::k=261: rdisc=0.940, norm=0.000399
+REGINN:Gradient::k=262: rdisc=0.940, norm=0.000401
+REGINN:Gradient::k=263: rdisc=0.939, norm=0.000402
+REGINN:Gradient::k=264: rdisc=0.939, norm=0.000403
+REGINN:Gradient::k=265: rdisc=0.939, norm=0.000404
+REGINN:Gradient::k=266: rdisc=0.939, norm=0.000406
+REGINN:Gradient::k=267: rdisc=0.939, norm=0.000407
+REGINN:Gradient::k=268: rdisc=0.939, norm=0.000408
+REGINN:Gradient::k=269: rdisc=0.938, norm=0.000410
+REGINN:Gradient::k=270: rdisc=0.938, norm=0.000411
+REGINN:Gradient::k=271: rdisc=0.938, norm=0.000412
+REGINN:Gradient::k=272: rdisc=0.938, norm=0.000413
+REGINN:Gradient::k=273: rdisc=0.938, norm=0.000415
+REGINN:Gradient::k=274: rdisc=0.938, norm=0.000416
+REGINN:Gradient::k=275: rdisc=0.937, norm=0.000417
+REGINN:Gradient::k=276: rdisc=0.937, norm=0.000419
+REGINN:Gradient::k=277: rdisc=0.937, norm=0.000420
+REGINN:Gradient::k=278: rdisc=0.937, norm=0.000421
+REGINN:Gradient::k=279: rdisc=0.937, norm=0.000422
+REGINN:Gradient::k=280: rdisc=0.936, norm=0.000424
+REGINN:Gradient::k=281: rdisc=0.936, norm=0.000425
+REGINN:Gradient::k=282: rdisc=0.936, norm=0.000426
+REGINN:Gradient::k=283: rdisc=0.936, norm=0.000427
+REGINN:Gradient::k=284: rdisc=0.936, norm=0.000429
+REGINN:Gradient::k=285: rdisc=0.936, norm=0.000430
+REGINN:Gradient::k=286: rdisc=0.935, norm=0.000431
+REGINN:Gradient::k=287: rdisc=0.935, norm=0.000433
+REGINN:Gradient::k=288: rdisc=0.935, norm=0.000434
+REGINN:Gradient::k=289: rdisc=0.935, norm=0.000435
+REGINN:Gradient::k=290: rdisc=0.935, norm=0.000436
+REGINN:Gradient::k=291: rdisc=0.935, norm=0.000438
+REGINN:Gradient::k=292: rdisc=0.934, norm=0.000439
+REGINN:Gradient::k=293: rdisc=0.934, norm=0.000440
+REGINN:Gradient::k=294: rdisc=0.934, norm=0.000441
+REGINN:Gradient::k=295: rdisc=0.934, norm=0.000443
+REGINN:Gradient::k=296: rdisc=0.934, norm=0.000444
+REGINN:Gradient::k=297: rdisc=0.933, norm=0.000445
+REGINN:Gradient::k=298: rdisc=0.933, norm=0.000446
+REGINN:Gradient::k=299: rdisc=0.933, norm=0.000448
+REGINN:Gradient::k=300: rdisc=0.933, norm=0.000449
+REGINN:Gradient::k=301: rdisc=0.933, norm=0.000450
+REGINN:Gradient::k=302: rdisc=0.933, norm=0.000451
+REGINN:Gradient::k=303: rdisc=0.932, norm=0.000453
+REGINN:Gradient::k=304: rdisc=0.932, norm=0.000454
+REGINN:Gradient::k=305: rdisc=0.932, norm=0.000455
+REGINN:Gradient::k=306: rdisc=0.932, norm=0.000457
+REGINN:Gradient::k=307: rdisc=0.932, norm=0.000458
+REGINN:Gradient::k=308: rdisc=0.932, norm=0.000459
+REGINN:Gradient::k=309: rdisc=0.931, norm=0.000460
+REGINN:Gradient::k=310: rdisc=0.931, norm=0.000462
+REGINN:Gradient::k=311: rdisc=0.931, norm=0.000463
+REGINN:Gradient::k=312: rdisc=0.931, norm=0.000464
+REGINN:Gradient::k=313: rdisc=0.931, norm=0.000465
+REGINN:Gradient::k=314: rdisc=0.931, norm=0.000467
+REGINN:Gradient::k=315: rdisc=0.930, norm=0.000468
+REGINN:Gradient::k=316: rdisc=0.930, norm=0.000469
+REGINN:Gradient::k=317: rdisc=0.930, norm=0.000470
+REGINN:Gradient::k=318: rdisc=0.930, norm=0.000472
+REGINN:Gradient::k=319: rdisc=0.930, norm=0.000473
+REGINN:Gradient::k=320: rdisc=0.930, norm=0.000474
+REGINN:Gradient::k=321: rdisc=0.929, norm=0.000475
+REGINN:Gradient::k=322: rdisc=0.929, norm=0.000476
+REGINN:Gradient::k=323: rdisc=0.929, norm=0.000478
+REGINN:Gradient::k=324: rdisc=0.929, norm=0.000479
+REGINN:Gradient::k=325: rdisc=0.929, norm=0.000480
+REGINN:Gradient::k=326: rdisc=0.929, norm=0.000481
+REGINN:Gradient::k=327: rdisc=0.928, norm=0.000483
+REGINN:Gradient::k=328: rdisc=0.928, norm=0.000484
+REGINN:Gradient::k=329: rdisc=0.928, norm=0.000485
+REGINN:Gradient::k=330: rdisc=0.928, norm=0.000486
+REGINN:Gradient::Unsuccessful termination after 330 iterations!
+REGINN::Linear solver did not achieve desired discrepancy due to max_iter.
+REGINN::i=42: rdisc=0.0111, rnorm=0.961, rerr=1.37 
+REGINN::-33.8 ≤ estimate ≤ 34.4
+REGINN::
+REGINN::Solving linear problem using rtol=0.950 and max_iter=497
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.999, norm=9.93e-06
+REGINN:Gradient::k=2 : rdisc=0.998, norm=1.16e-05
+REGINN:Gradient::k=3 : rdisc=0.997, norm=1.46e-05
+REGINN:Gradient::k=4 : rdisc=0.997, norm=1.62e-05
+REGINN:Gradient::k=5 : rdisc=0.997, norm=1.80e-05
+REGINN:Gradient::k=6 : rdisc=0.996, norm=1.94e-05
+REGINN:Gradient::k=7 : rdisc=0.996, norm=2.09e-05
+REGINN:Gradient::k=8 : rdisc=0.996, norm=2.23e-05
+REGINN:Gradient::k=9 : rdisc=0.996, norm=2.36e-05
+REGINN:Gradient::k=10: rdisc=0.996, norm=2.51e-05
+REGINN:Gradient::k=11: rdisc=0.995, norm=2.64e-05
+REGINN:Gradient::k=12: rdisc=0.995, norm=2.78e-05
+REGINN:Gradient::k=13: rdisc=0.995, norm=2.91e-05
+REGINN:Gradient::k=14: rdisc=0.995, norm=3.05e-05
+REGINN:Gradient::k=15: rdisc=0.994, norm=3.19e-05
+REGINN:Gradient::k=16: rdisc=0.994, norm=3.33e-05
+REGINN:Gradient::k=17: rdisc=0.994, norm=3.46e-05
+REGINN:Gradient::k=18: rdisc=0.994, norm=3.60e-05
+REGINN:Gradient::k=19: rdisc=0.994, norm=3.73e-05
+REGINN:Gradient::k=20: rdisc=0.993, norm=3.87e-05
+REGINN:Gradient::k=21: rdisc=0.993, norm=4.00e-05
+REGINN:Gradient::k=22: rdisc=0.993, norm=4.13e-05
+REGINN:Gradient::k=23: rdisc=0.993, norm=4.27e-05
+REGINN:Gradient::k=24: rdisc=0.993, norm=4.40e-05
+REGINN:Gradient::k=25: rdisc=0.992, norm=4.53e-05
+REGINN:Gradient::k=26: rdisc=0.992, norm=4.67e-05
+REGINN:Gradient::k=27: rdisc=0.992, norm=4.80e-05
+REGINN:Gradient::k=28: rdisc=0.992, norm=4.93e-05
+REGINN:Gradient::k=29: rdisc=0.992, norm=5.06e-05
+REGINN:Gradient::k=30: rdisc=0.991, norm=5.19e-05
+REGINN:Gradient::k=31: rdisc=0.991, norm=5.33e-05
+REGINN:Gradient::k=32: rdisc=0.991, norm=5.46e-05
+REGINN:Gradient::k=33: rdisc=0.991, norm=5.59e-05
+REGINN:Gradient::k=34: rdisc=0.991, norm=5.72e-05
+REGINN:Gradient::k=35: rdisc=0.990, norm=5.85e-05
+REGINN:Gradient::k=36: rdisc=0.990, norm=5.98e-05
+REGINN:Gradient::k=37: rdisc=0.990, norm=6.11e-05
+REGINN:Gradient::k=38: rdisc=0.990, norm=6.24e-05
+REGINN:Gradient::k=39: rdisc=0.990, norm=6.37e-05
+REGINN:Gradient::k=40: rdisc=0.989, norm=6.50e-05
+REGINN:Gradient::k=41: rdisc=0.989, norm=6.63e-05
+REGINN:Gradient::k=42: rdisc=0.989, norm=6.76e-05
+REGINN:Gradient::k=43: rdisc=0.989, norm=6.88e-05
+REGINN:Gradient::k=44: rdisc=0.989, norm=7.01e-05
+REGINN:Gradient::k=45: rdisc=0.988, norm=7.14e-05
+REGINN:Gradient::k=46: rdisc=0.988, norm=7.27e-05
+REGINN:Gradient::k=47: rdisc=0.988, norm=7.40e-05
+REGINN:Gradient::k=48: rdisc=0.988, norm=7.53e-05
+REGINN:Gradient::k=49: rdisc=0.988, norm=7.65e-05
+REGINN:Gradient::k=50: rdisc=0.988, norm=7.78e-05
+REGINN:Gradient::k=51: rdisc=0.987, norm=7.91e-05
+REGINN:Gradient::k=52: rdisc=0.987, norm=8.04e-05
+REGINN:Gradient::k=53: rdisc=0.987, norm=8.16e-05
+REGINN:Gradient::k=54: rdisc=0.987, norm=8.29e-05
+REGINN:Gradient::k=55: rdisc=0.987, norm=8.42e-05
+REGINN:Gradient::k=56: rdisc=0.986, norm=8.54e-05
+REGINN:Gradient::k=57: rdisc=0.986, norm=8.67e-05
+REGINN:Gradient::k=58: rdisc=0.986, norm=8.80e-05
+REGINN:Gradient::k=59: rdisc=0.986, norm=8.92e-05
+REGINN:Gradient::k=60: rdisc=0.986, norm=9.05e-05
+REGINN:Gradient::k=61: rdisc=0.985, norm=9.17e-05
+REGINN:Gradient::k=62: rdisc=0.985, norm=9.30e-05
+REGINN:Gradient::k=63: rdisc=0.985, norm=9.43e-05
+REGINN:Gradient::k=64: rdisc=0.985, norm=9.55e-05
+REGINN:Gradient::k=65: rdisc=0.985, norm=9.68e-05
+REGINN:Gradient::k=66: rdisc=0.985, norm=9.80e-05
+REGINN:Gradient::k=67: rdisc=0.984, norm=9.93e-05
+REGINN:Gradient::k=68: rdisc=0.984, norm=0.000101
+REGINN:Gradient::k=69: rdisc=0.984, norm=0.000102
+REGINN:Gradient::k=70: rdisc=0.984, norm=0.000103
+REGINN:Gradient::k=71: rdisc=0.984, norm=0.000104
+REGINN:Gradient::k=72: rdisc=0.983, norm=0.000106
+REGINN:Gradient::k=73: rdisc=0.983, norm=0.000107
+REGINN:Gradient::k=74: rdisc=0.983, norm=0.000108
+REGINN:Gradient::k=75: rdisc=0.983, norm=0.000109
+REGINN:Gradient::k=76: rdisc=0.983, norm=0.000111
+REGINN:Gradient::k=77: rdisc=0.983, norm=0.000112
+REGINN:Gradient::k=78: rdisc=0.982, norm=0.000113
+REGINN:Gradient::k=79: rdisc=0.982, norm=0.000114
+REGINN:Gradient::k=80: rdisc=0.982, norm=0.000115
+REGINN:Gradient::k=81: rdisc=0.982, norm=0.000117
+REGINN:Gradient::k=82: rdisc=0.982, norm=0.000118
+REGINN:Gradient::k=83: rdisc=0.981, norm=0.000119
+REGINN:Gradient::k=84: rdisc=0.981, norm=0.000120
+REGINN:Gradient::k=85: rdisc=0.981, norm=0.000122
+REGINN:Gradient::k=86: rdisc=0.981, norm=0.000123
+REGINN:Gradient::k=87: rdisc=0.981, norm=0.000124
+REGINN:Gradient::k=88: rdisc=0.981, norm=0.000125
+REGINN:Gradient::k=89: rdisc=0.980, norm=0.000127
+REGINN:Gradient::k=90: rdisc=0.980, norm=0.000128
+REGINN:Gradient::k=91: rdisc=0.980, norm=0.000129
+REGINN:Gradient::k=92: rdisc=0.980, norm=0.000130
+REGINN:Gradient::k=93: rdisc=0.980, norm=0.000131
+REGINN:Gradient::k=94: rdisc=0.979, norm=0.000133
+REGINN:Gradient::k=95: rdisc=0.979, norm=0.000134
+REGINN:Gradient::k=96: rdisc=0.979, norm=0.000135
+REGINN:Gradient::k=97: rdisc=0.979, norm=0.000136
+REGINN:Gradient::k=98: rdisc=0.979, norm=0.000138
+REGINN:Gradient::k=99: rdisc=0.979, norm=0.000139
+REGINN:Gradient::k=100: rdisc=0.978, norm=0.000140
+REGINN:Gradient::k=101: rdisc=0.978, norm=0.000141
+REGINN:Gradient::k=102: rdisc=0.978, norm=0.000142
+REGINN:Gradient::k=103: rdisc=0.978, norm=0.000144
+REGINN:Gradient::k=104: rdisc=0.978, norm=0.000145
+REGINN:Gradient::k=105: rdisc=0.978, norm=0.000146
+REGINN:Gradient::k=106: rdisc=0.977, norm=0.000147
+REGINN:Gradient::k=107: rdisc=0.977, norm=0.000149
+REGINN:Gradient::k=108: rdisc=0.977, norm=0.000150
+REGINN:Gradient::k=109: rdisc=0.977, norm=0.000151
+REGINN:Gradient::k=110: rdisc=0.977, norm=0.000152
+REGINN:Gradient::k=111: rdisc=0.977, norm=0.000153
+REGINN:Gradient::k=112: rdisc=0.976, norm=0.000155
+REGINN:Gradient::k=113: rdisc=0.976, norm=0.000156
+REGINN:Gradient::k=114: rdisc=0.976, norm=0.000157
+REGINN:Gradient::k=115: rdisc=0.976, norm=0.000158
+REGINN:Gradient::k=116: rdisc=0.976, norm=0.000159
+REGINN:Gradient::k=117: rdisc=0.975, norm=0.000161
+REGINN:Gradient::k=118: rdisc=0.975, norm=0.000162
+REGINN:Gradient::k=119: rdisc=0.975, norm=0.000163
+REGINN:Gradient::k=120: rdisc=0.975, norm=0.000164
+REGINN:Gradient::k=121: rdisc=0.975, norm=0.000165
+REGINN:Gradient::k=122: rdisc=0.975, norm=0.000167
+REGINN:Gradient::k=123: rdisc=0.974, norm=0.000168
+REGINN:Gradient::k=124: rdisc=0.974, norm=0.000169
+REGINN:Gradient::k=125: rdisc=0.974, norm=0.000170
+REGINN:Gradient::k=126: rdisc=0.974, norm=0.000172
+REGINN:Gradient::k=127: rdisc=0.974, norm=0.000173
+REGINN:Gradient::k=128: rdisc=0.974, norm=0.000174
+REGINN:Gradient::k=129: rdisc=0.973, norm=0.000175
+REGINN:Gradient::k=130: rdisc=0.973, norm=0.000176
+REGINN:Gradient::k=131: rdisc=0.973, norm=0.000178
+REGINN:Gradient::k=132: rdisc=0.973, norm=0.000179
+REGINN:Gradient::k=133: rdisc=0.973, norm=0.000180
+REGINN:Gradient::k=134: rdisc=0.973, norm=0.000181
+REGINN:Gradient::k=135: rdisc=0.972, norm=0.000182
+REGINN:Gradient::k=136: rdisc=0.972, norm=0.000184
+REGINN:Gradient::k=137: rdisc=0.972, norm=0.000185
+REGINN:Gradient::k=138: rdisc=0.972, norm=0.000186
+REGINN:Gradient::k=139: rdisc=0.972, norm=0.000187
+REGINN:Gradient::k=140: rdisc=0.972, norm=0.000188
+REGINN:Gradient::k=141: rdisc=0.971, norm=0.000189
+REGINN:Gradient::k=142: rdisc=0.971, norm=0.000191
+REGINN:Gradient::k=143: rdisc=0.971, norm=0.000192
+REGINN:Gradient::k=144: rdisc=0.971, norm=0.000193
+REGINN:Gradient::k=145: rdisc=0.971, norm=0.000194
+REGINN:Gradient::k=146: rdisc=0.971, norm=0.000195
+REGINN:Gradient::k=147: rdisc=0.970, norm=0.000197
+REGINN:Gradient::k=148: rdisc=0.970, norm=0.000198
+REGINN:Gradient::k=149: rdisc=0.970, norm=0.000199
+REGINN:Gradient::k=150: rdisc=0.970, norm=0.000200
+REGINN:Gradient::k=151: rdisc=0.970, norm=0.000201
+REGINN:Gradient::k=152: rdisc=0.970, norm=0.000203
+REGINN:Gradient::k=153: rdisc=0.969, norm=0.000204
+REGINN:Gradient::k=154: rdisc=0.969, norm=0.000205
+REGINN:Gradient::k=155: rdisc=0.969, norm=0.000206
+REGINN:Gradient::k=156: rdisc=0.969, norm=0.000207
+REGINN:Gradient::k=157: rdisc=0.969, norm=0.000209
+REGINN:Gradient::k=158: rdisc=0.969, norm=0.000210
+REGINN:Gradient::k=159: rdisc=0.968, norm=0.000211
+REGINN:Gradient::k=160: rdisc=0.968, norm=0.000212
+REGINN:Gradient::k=161: rdisc=0.968, norm=0.000213
+REGINN:Gradient::k=162: rdisc=0.968, norm=0.000214
+REGINN:Gradient::k=163: rdisc=0.968, norm=0.000216
+REGINN:Gradient::k=164: rdisc=0.968, norm=0.000217
+REGINN:Gradient::k=165: rdisc=0.967, norm=0.000218
+REGINN:Gradient::k=166: rdisc=0.967, norm=0.000219
+REGINN:Gradient::k=167: rdisc=0.967, norm=0.000220
+REGINN:Gradient::k=168: rdisc=0.967, norm=0.000221
+REGINN:Gradient::k=169: rdisc=0.967, norm=0.000223
+REGINN:Gradient::k=170: rdisc=0.967, norm=0.000224
+REGINN:Gradient::k=171: rdisc=0.966, norm=0.000225
+REGINN:Gradient::k=172: rdisc=0.966, norm=0.000226
+REGINN:Gradient::k=173: rdisc=0.966, norm=0.000227
+REGINN:Gradient::k=174: rdisc=0.966, norm=0.000229
+REGINN:Gradient::k=175: rdisc=0.966, norm=0.000230
+REGINN:Gradient::k=176: rdisc=0.966, norm=0.000231
+REGINN:Gradient::k=177: rdisc=0.965, norm=0.000232
+REGINN:Gradient::k=178: rdisc=0.965, norm=0.000233
+REGINN:Gradient::k=179: rdisc=0.965, norm=0.000234
+REGINN:Gradient::k=180: rdisc=0.965, norm=0.000236
+REGINN:Gradient::k=181: rdisc=0.965, norm=0.000237
+REGINN:Gradient::k=182: rdisc=0.965, norm=0.000238
+REGINN:Gradient::k=183: rdisc=0.964, norm=0.000239
+REGINN:Gradient::k=184: rdisc=0.964, norm=0.000240
+REGINN:Gradient::k=185: rdisc=0.964, norm=0.000241
+REGINN:Gradient::k=186: rdisc=0.964, norm=0.000243
+REGINN:Gradient::k=187: rdisc=0.964, norm=0.000244
+REGINN:Gradient::k=188: rdisc=0.964, norm=0.000245
+REGINN:Gradient::k=189: rdisc=0.963, norm=0.000246
+REGINN:Gradient::k=190: rdisc=0.963, norm=0.000247
+REGINN:Gradient::k=191: rdisc=0.963, norm=0.000248
+REGINN:Gradient::k=192: rdisc=0.963, norm=0.000250
+REGINN:Gradient::k=193: rdisc=0.963, norm=0.000251
+REGINN:Gradient::k=194: rdisc=0.963, norm=0.000252
+REGINN:Gradient::k=195: rdisc=0.962, norm=0.000253
+REGINN:Gradient::k=196: rdisc=0.962, norm=0.000254
+REGINN:Gradient::k=197: rdisc=0.962, norm=0.000255
+REGINN:Gradient::k=198: rdisc=0.962, norm=0.000257
+REGINN:Gradient::k=199: rdisc=0.962, norm=0.000258
+REGINN:Gradient::k=200: rdisc=0.962, norm=0.000259
+REGINN:Gradient::k=201: rdisc=0.962, norm=0.000260
+REGINN:Gradient::k=202: rdisc=0.961, norm=0.000261
+REGINN:Gradient::k=203: rdisc=0.961, norm=0.000262
+REGINN:Gradient::k=204: rdisc=0.961, norm=0.000264
+REGINN:Gradient::k=205: rdisc=0.961, norm=0.000265
+REGINN:Gradient::k=206: rdisc=0.961, norm=0.000266
+REGINN:Gradient::k=207: rdisc=0.961, norm=0.000267
+REGINN:Gradient::k=208: rdisc=0.960, norm=0.000268
+REGINN:Gradient::k=209: rdisc=0.960, norm=0.000269
+REGINN:Gradient::k=210: rdisc=0.960, norm=0.000270
+REGINN:Gradient::k=211: rdisc=0.960, norm=0.000272
+REGINN:Gradient::k=212: rdisc=0.960, norm=0.000273
+REGINN:Gradient::k=213: rdisc=0.960, norm=0.000274
+REGINN:Gradient::k=214: rdisc=0.959, norm=0.000275
+REGINN:Gradient::k=215: rdisc=0.959, norm=0.000276
+REGINN:Gradient::k=216: rdisc=0.959, norm=0.000277
+REGINN:Gradient::k=217: rdisc=0.959, norm=0.000279
+REGINN:Gradient::k=218: rdisc=0.959, norm=0.000280
+REGINN:Gradient::k=219: rdisc=0.959, norm=0.000281
+REGINN:Gradient::k=220: rdisc=0.959, norm=0.000282
+REGINN:Gradient::k=221: rdisc=0.958, norm=0.000283
+REGINN:Gradient::k=222: rdisc=0.958, norm=0.000284
+REGINN:Gradient::k=223: rdisc=0.958, norm=0.000285
+REGINN:Gradient::k=224: rdisc=0.958, norm=0.000287
+REGINN:Gradient::k=225: rdisc=0.958, norm=0.000288
+REGINN:Gradient::k=226: rdisc=0.958, norm=0.000289
+REGINN:Gradient::k=227: rdisc=0.957, norm=0.000290
+REGINN:Gradient::k=228: rdisc=0.957, norm=0.000291
+REGINN:Gradient::k=229: rdisc=0.957, norm=0.000292
+REGINN:Gradient::k=230: rdisc=0.957, norm=0.000293
+REGINN:Gradient::k=231: rdisc=0.957, norm=0.000295
+REGINN:Gradient::k=232: rdisc=0.957, norm=0.000296
+REGINN:Gradient::k=233: rdisc=0.956, norm=0.000297
+REGINN:Gradient::k=234: rdisc=0.956, norm=0.000298
+REGINN:Gradient::k=235: rdisc=0.956, norm=0.000299
+REGINN:Gradient::k=236: rdisc=0.956, norm=0.000300
+REGINN:Gradient::k=237: rdisc=0.956, norm=0.000301
+REGINN:Gradient::k=238: rdisc=0.956, norm=0.000303
+REGINN:Gradient::k=239: rdisc=0.956, norm=0.000304
+REGINN:Gradient::k=240: rdisc=0.955, norm=0.000305
+REGINN:Gradient::k=241: rdisc=0.955, norm=0.000306
+REGINN:Gradient::k=242: rdisc=0.955, norm=0.000307
+REGINN:Gradient::k=243: rdisc=0.955, norm=0.000308
+REGINN:Gradient::k=244: rdisc=0.955, norm=0.000309
+REGINN:Gradient::k=245: rdisc=0.955, norm=0.000310
+REGINN:Gradient::k=246: rdisc=0.954, norm=0.000312
+REGINN:Gradient::k=247: rdisc=0.954, norm=0.000313
+REGINN:Gradient::k=248: rdisc=0.954, norm=0.000314
+REGINN:Gradient::k=249: rdisc=0.954, norm=0.000315
+REGINN:Gradient::k=250: rdisc=0.954, norm=0.000316
+REGINN:Gradient::k=251: rdisc=0.954, norm=0.000317
+REGINN:Gradient::k=252: rdisc=0.954, norm=0.000318
+REGINN:Gradient::k=253: rdisc=0.953, norm=0.000320
+REGINN:Gradient::k=254: rdisc=0.953, norm=0.000321
+REGINN:Gradient::k=255: rdisc=0.953, norm=0.000322
+REGINN:Gradient::k=256: rdisc=0.953, norm=0.000323
+REGINN:Gradient::k=257: rdisc=0.953, norm=0.000324
+REGINN:Gradient::k=258: rdisc=0.953, norm=0.000325
+REGINN:Gradient::k=259: rdisc=0.952, norm=0.000326
+REGINN:Gradient::k=260: rdisc=0.952, norm=0.000327
+REGINN:Gradient::k=261: rdisc=0.952, norm=0.000329
+REGINN:Gradient::k=262: rdisc=0.952, norm=0.000330
+REGINN:Gradient::k=263: rdisc=0.952, norm=0.000331
+REGINN:Gradient::k=264: rdisc=0.952, norm=0.000332
+REGINN:Gradient::k=265: rdisc=0.952, norm=0.000333
+REGINN:Gradient::k=266: rdisc=0.951, norm=0.000334
+REGINN:Gradient::k=267: rdisc=0.951, norm=0.000335
+REGINN:Gradient::k=268: rdisc=0.951, norm=0.000336
+REGINN:Gradient::k=269: rdisc=0.951, norm=0.000338
+REGINN:Gradient::k=270: rdisc=0.951, norm=0.000339
+REGINN:Gradient::k=271: rdisc=0.951, norm=0.000340
+REGINN:Gradient::k=272: rdisc=0.950, norm=0.000341
+REGINN:Gradient::k=273: rdisc=0.950, norm=0.000342
+REGINN:Gradient::k=274: rdisc=0.950, norm=0.000343
+REGINN:Gradient::k=275: rdisc=0.950, norm=0.000344
+REGINN:Gradient::k=276: rdisc=0.950, norm=0.000345
+REGINN:Gradient::k=277: rdisc=0.950, norm=0.000346
+REGINN:Gradient::Target discrepancy reached after 277 iterations.
+REGINN::i=43: rdisc=0.0106, rnorm=0.965, rerr=1.37 
+REGINN::-34.0 ≤ estimate ≤ 34.9
+REGINN::
+REGINN::Solving linear problem using rtol=0.942 and max_iter=607
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.999, norm=1.10e-05
+REGINN:Gradient::k=2 : rdisc=0.998, norm=1.24e-05
+REGINN:Gradient::k=3 : rdisc=0.997, norm=1.52e-05
+REGINN:Gradient::k=4 : rdisc=0.997, norm=1.66e-05
+REGINN:Gradient::k=5 : rdisc=0.997, norm=1.84e-05
+REGINN:Gradient::k=6 : rdisc=0.997, norm=1.97e-05
+REGINN:Gradient::k=7 : rdisc=0.996, norm=2.11e-05
+REGINN:Gradient::k=8 : rdisc=0.996, norm=2.24e-05
+REGINN:Gradient::k=9 : rdisc=0.996, norm=2.36e-05
+REGINN:Gradient::k=10: rdisc=0.996, norm=2.48e-05
+REGINN:Gradient::k=11: rdisc=0.996, norm=2.60e-05
+REGINN:Gradient::k=12: rdisc=0.995, norm=2.73e-05
+REGINN:Gradient::k=13: rdisc=0.995, norm=2.84e-05
+REGINN:Gradient::k=14: rdisc=0.995, norm=2.96e-05
+REGINN:Gradient::k=15: rdisc=0.995, norm=3.08e-05
+REGINN:Gradient::k=16: rdisc=0.995, norm=3.20e-05
+REGINN:Gradient::k=17: rdisc=0.995, norm=3.31e-05
+REGINN:Gradient::k=18: rdisc=0.994, norm=3.44e-05
+REGINN:Gradient::k=19: rdisc=0.994, norm=3.55e-05
+REGINN:Gradient::k=20: rdisc=0.994, norm=3.67e-05
+REGINN:Gradient::k=21: rdisc=0.994, norm=3.79e-05
+REGINN:Gradient::k=22: rdisc=0.994, norm=3.91e-05
+REGINN:Gradient::k=23: rdisc=0.994, norm=4.02e-05
+REGINN:Gradient::k=24: rdisc=0.993, norm=4.14e-05
+REGINN:Gradient::k=25: rdisc=0.993, norm=4.25e-05
+REGINN:Gradient::k=26: rdisc=0.993, norm=4.37e-05
+REGINN:Gradient::k=27: rdisc=0.993, norm=4.49e-05
+REGINN:Gradient::k=28: rdisc=0.993, norm=4.60e-05
+REGINN:Gradient::k=29: rdisc=0.993, norm=4.72e-05
+REGINN:Gradient::k=30: rdisc=0.992, norm=4.84e-05
+REGINN:Gradient::k=31: rdisc=0.992, norm=4.95e-05
+REGINN:Gradient::k=32: rdisc=0.992, norm=5.07e-05
+REGINN:Gradient::k=33: rdisc=0.992, norm=5.18e-05
+REGINN:Gradient::k=34: rdisc=0.992, norm=5.30e-05
+REGINN:Gradient::k=35: rdisc=0.992, norm=5.41e-05
+REGINN:Gradient::k=36: rdisc=0.991, norm=5.53e-05
+REGINN:Gradient::k=37: rdisc=0.991, norm=5.64e-05
+REGINN:Gradient::k=38: rdisc=0.991, norm=5.76e-05
+REGINN:Gradient::k=39: rdisc=0.991, norm=5.87e-05
+REGINN:Gradient::k=40: rdisc=0.991, norm=5.98e-05
+REGINN:Gradient::k=41: rdisc=0.991, norm=6.10e-05
+REGINN:Gradient::k=42: rdisc=0.990, norm=6.21e-05
+REGINN:Gradient::k=43: rdisc=0.990, norm=6.33e-05
+REGINN:Gradient::k=44: rdisc=0.990, norm=6.44e-05
+REGINN:Gradient::k=45: rdisc=0.990, norm=6.55e-05
+REGINN:Gradient::k=46: rdisc=0.990, norm=6.67e-05
+REGINN:Gradient::k=47: rdisc=0.990, norm=6.78e-05
+REGINN:Gradient::k=48: rdisc=0.989, norm=6.89e-05
+REGINN:Gradient::k=49: rdisc=0.989, norm=7.01e-05
+REGINN:Gradient::k=50: rdisc=0.989, norm=7.12e-05
+REGINN:Gradient::k=51: rdisc=0.989, norm=7.23e-05
+REGINN:Gradient::k=52: rdisc=0.989, norm=7.35e-05
+REGINN:Gradient::k=53: rdisc=0.989, norm=7.46e-05
+REGINN:Gradient::k=54: rdisc=0.988, norm=7.57e-05
+REGINN:Gradient::k=55: rdisc=0.988, norm=7.68e-05
+REGINN:Gradient::k=56: rdisc=0.988, norm=7.80e-05
+REGINN:Gradient::k=57: rdisc=0.988, norm=7.91e-05
+REGINN:Gradient::k=58: rdisc=0.988, norm=8.02e-05
+REGINN:Gradient::k=59: rdisc=0.988, norm=8.13e-05
+REGINN:Gradient::k=60: rdisc=0.987, norm=8.24e-05
+REGINN:Gradient::k=61: rdisc=0.987, norm=8.35e-05
+REGINN:Gradient::k=62: rdisc=0.987, norm=8.47e-05
+REGINN:Gradient::k=63: rdisc=0.987, norm=8.58e-05
+REGINN:Gradient::k=64: rdisc=0.987, norm=8.69e-05
+REGINN:Gradient::k=65: rdisc=0.987, norm=8.80e-05
+REGINN:Gradient::k=66: rdisc=0.987, norm=8.91e-05
+REGINN:Gradient::k=67: rdisc=0.986, norm=9.02e-05
+REGINN:Gradient::k=68: rdisc=0.986, norm=9.13e-05
+REGINN:Gradient::k=69: rdisc=0.986, norm=9.24e-05
+REGINN:Gradient::k=70: rdisc=0.986, norm=9.36e-05
+REGINN:Gradient::k=71: rdisc=0.986, norm=9.47e-05
+REGINN:Gradient::k=72: rdisc=0.986, norm=9.58e-05
+REGINN:Gradient::k=73: rdisc=0.985, norm=9.69e-05
+REGINN:Gradient::k=74: rdisc=0.985, norm=9.80e-05
+REGINN:Gradient::k=75: rdisc=0.985, norm=9.91e-05
+REGINN:Gradient::k=76: rdisc=0.985, norm=0.000100
+REGINN:Gradient::k=77: rdisc=0.985, norm=0.000101
+REGINN:Gradient::k=78: rdisc=0.985, norm=0.000102
+REGINN:Gradient::k=79: rdisc=0.985, norm=0.000103
+REGINN:Gradient::k=80: rdisc=0.984, norm=0.000105
+REGINN:Gradient::k=81: rdisc=0.984, norm=0.000106
+REGINN:Gradient::k=82: rdisc=0.984, norm=0.000107
+REGINN:Gradient::k=83: rdisc=0.984, norm=0.000108
+REGINN:Gradient::k=84: rdisc=0.984, norm=0.000109
+REGINN:Gradient::k=85: rdisc=0.984, norm=0.000110
+REGINN:Gradient::k=86: rdisc=0.983, norm=0.000111
+REGINN:Gradient::k=87: rdisc=0.983, norm=0.000112
+REGINN:Gradient::k=88: rdisc=0.983, norm=0.000113
+REGINN:Gradient::k=89: rdisc=0.983, norm=0.000114
+REGINN:Gradient::k=90: rdisc=0.983, norm=0.000116
+REGINN:Gradient::k=91: rdisc=0.983, norm=0.000117
+REGINN:Gradient::k=92: rdisc=0.983, norm=0.000118
+REGINN:Gradient::k=93: rdisc=0.982, norm=0.000119
+REGINN:Gradient::k=94: rdisc=0.982, norm=0.000120
+REGINN:Gradient::k=95: rdisc=0.982, norm=0.000121
+REGINN:Gradient::k=96: rdisc=0.982, norm=0.000122
+REGINN:Gradient::k=97: rdisc=0.982, norm=0.000123
+REGINN:Gradient::k=98: rdisc=0.982, norm=0.000124
+REGINN:Gradient::k=99: rdisc=0.981, norm=0.000125
+REGINN:Gradient::k=100: rdisc=0.981, norm=0.000126
+REGINN:Gradient::k=101: rdisc=0.981, norm=0.000128
+REGINN:Gradient::k=102: rdisc=0.981, norm=0.000129
+REGINN:Gradient::k=103: rdisc=0.981, norm=0.000130
+REGINN:Gradient::k=104: rdisc=0.981, norm=0.000131
+REGINN:Gradient::k=105: rdisc=0.981, norm=0.000132
+REGINN:Gradient::k=106: rdisc=0.980, norm=0.000133
+REGINN:Gradient::k=107: rdisc=0.980, norm=0.000134
+REGINN:Gradient::k=108: rdisc=0.980, norm=0.000135
+REGINN:Gradient::k=109: rdisc=0.980, norm=0.000136
+REGINN:Gradient::k=110: rdisc=0.980, norm=0.000137
+REGINN:Gradient::k=111: rdisc=0.980, norm=0.000138
+REGINN:Gradient::k=112: rdisc=0.980, norm=0.000139
+REGINN:Gradient::k=113: rdisc=0.979, norm=0.000141
+REGINN:Gradient::k=114: rdisc=0.979, norm=0.000142
+REGINN:Gradient::k=115: rdisc=0.979, norm=0.000143
+REGINN:Gradient::k=116: rdisc=0.979, norm=0.000144
+REGINN:Gradient::k=117: rdisc=0.979, norm=0.000145
+REGINN:Gradient::k=118: rdisc=0.979, norm=0.000146
+REGINN:Gradient::k=119: rdisc=0.978, norm=0.000147
+REGINN:Gradient::k=120: rdisc=0.978, norm=0.000148
+REGINN:Gradient::k=121: rdisc=0.978, norm=0.000149
+REGINN:Gradient::k=122: rdisc=0.978, norm=0.000150
+REGINN:Gradient::k=123: rdisc=0.978, norm=0.000151
+REGINN:Gradient::k=124: rdisc=0.978, norm=0.000152
+REGINN:Gradient::k=125: rdisc=0.978, norm=0.000153
+REGINN:Gradient::k=126: rdisc=0.977, norm=0.000155
+REGINN:Gradient::k=127: rdisc=0.977, norm=0.000156
+REGINN:Gradient::k=128: rdisc=0.977, norm=0.000157
+REGINN:Gradient::k=129: rdisc=0.977, norm=0.000158
+REGINN:Gradient::k=130: rdisc=0.977, norm=0.000159
+REGINN:Gradient::k=131: rdisc=0.977, norm=0.000160
+REGINN:Gradient::k=132: rdisc=0.977, norm=0.000161
+REGINN:Gradient::k=133: rdisc=0.976, norm=0.000162
+REGINN:Gradient::k=134: rdisc=0.976, norm=0.000163
+REGINN:Gradient::k=135: rdisc=0.976, norm=0.000164
+REGINN:Gradient::k=136: rdisc=0.976, norm=0.000165
+REGINN:Gradient::k=137: rdisc=0.976, norm=0.000166
+REGINN:Gradient::k=138: rdisc=0.976, norm=0.000167
+REGINN:Gradient::k=139: rdisc=0.976, norm=0.000168
+REGINN:Gradient::k=140: rdisc=0.975, norm=0.000170
+REGINN:Gradient::k=141: rdisc=0.975, norm=0.000171
+REGINN:Gradient::k=142: rdisc=0.975, norm=0.000172
+REGINN:Gradient::k=143: rdisc=0.975, norm=0.000173
+REGINN:Gradient::k=144: rdisc=0.975, norm=0.000174
+REGINN:Gradient::k=145: rdisc=0.975, norm=0.000175
+REGINN:Gradient::k=146: rdisc=0.975, norm=0.000176
+REGINN:Gradient::k=147: rdisc=0.974, norm=0.000177
+REGINN:Gradient::k=148: rdisc=0.974, norm=0.000178
+REGINN:Gradient::k=149: rdisc=0.974, norm=0.000179
+REGINN:Gradient::k=150: rdisc=0.974, norm=0.000180
+REGINN:Gradient::k=151: rdisc=0.974, norm=0.000181
+REGINN:Gradient::k=152: rdisc=0.974, norm=0.000182
+REGINN:Gradient::k=153: rdisc=0.974, norm=0.000183
+REGINN:Gradient::k=154: rdisc=0.973, norm=0.000184
+REGINN:Gradient::k=155: rdisc=0.973, norm=0.000185
+REGINN:Gradient::k=156: rdisc=0.973, norm=0.000187
+REGINN:Gradient::k=157: rdisc=0.973, norm=0.000188
+REGINN:Gradient::k=158: rdisc=0.973, norm=0.000189
+REGINN:Gradient::k=159: rdisc=0.973, norm=0.000190
+REGINN:Gradient::k=160: rdisc=0.973, norm=0.000191
+REGINN:Gradient::k=161: rdisc=0.972, norm=0.000192
+REGINN:Gradient::k=162: rdisc=0.972, norm=0.000193
+REGINN:Gradient::k=163: rdisc=0.972, norm=0.000194
+REGINN:Gradient::k=164: rdisc=0.972, norm=0.000195
+REGINN:Gradient::k=165: rdisc=0.972, norm=0.000196
+REGINN:Gradient::k=166: rdisc=0.972, norm=0.000197
+REGINN:Gradient::k=167: rdisc=0.972, norm=0.000198
+REGINN:Gradient::k=168: rdisc=0.971, norm=0.000199
+REGINN:Gradient::k=169: rdisc=0.971, norm=0.000200
+REGINN:Gradient::k=170: rdisc=0.971, norm=0.000201
+REGINN:Gradient::k=171: rdisc=0.971, norm=0.000202
+REGINN:Gradient::k=172: rdisc=0.971, norm=0.000203
+REGINN:Gradient::k=173: rdisc=0.971, norm=0.000204
+REGINN:Gradient::k=174: rdisc=0.971, norm=0.000205
+REGINN:Gradient::k=175: rdisc=0.970, norm=0.000207
+REGINN:Gradient::k=176: rdisc=0.970, norm=0.000208
+REGINN:Gradient::k=177: rdisc=0.970, norm=0.000209
+REGINN:Gradient::k=178: rdisc=0.970, norm=0.000210
+REGINN:Gradient::k=179: rdisc=0.970, norm=0.000211
+REGINN:Gradient::k=180: rdisc=0.970, norm=0.000212
+REGINN:Gradient::k=181: rdisc=0.970, norm=0.000213
+REGINN:Gradient::k=182: rdisc=0.969, norm=0.000214
+REGINN:Gradient::k=183: rdisc=0.969, norm=0.000215
+REGINN:Gradient::k=184: rdisc=0.969, norm=0.000216
+REGINN:Gradient::k=185: rdisc=0.969, norm=0.000217
+REGINN:Gradient::k=186: rdisc=0.969, norm=0.000218
+REGINN:Gradient::k=187: rdisc=0.969, norm=0.000219
+REGINN:Gradient::k=188: rdisc=0.969, norm=0.000220
+REGINN:Gradient::k=189: rdisc=0.968, norm=0.000221
+REGINN:Gradient::k=190: rdisc=0.968, norm=0.000222
+REGINN:Gradient::k=191: rdisc=0.968, norm=0.000223
+REGINN:Gradient::k=192: rdisc=0.968, norm=0.000224
+REGINN:Gradient::k=193: rdisc=0.968, norm=0.000225
+REGINN:Gradient::k=194: rdisc=0.968, norm=0.000226
+REGINN:Gradient::k=195: rdisc=0.968, norm=0.000227
+REGINN:Gradient::k=196: rdisc=0.967, norm=0.000228
+REGINN:Gradient::k=197: rdisc=0.967, norm=0.000229
+REGINN:Gradient::k=198: rdisc=0.967, norm=0.000231
+REGINN:Gradient::k=199: rdisc=0.967, norm=0.000232
+REGINN:Gradient::k=200: rdisc=0.967, norm=0.000233
+REGINN:Gradient::k=201: rdisc=0.967, norm=0.000234
+REGINN:Gradient::k=202: rdisc=0.967, norm=0.000235
+REGINN:Gradient::k=203: rdisc=0.966, norm=0.000236
+REGINN:Gradient::k=204: rdisc=0.966, norm=0.000237
+REGINN:Gradient::k=205: rdisc=0.966, norm=0.000238
+REGINN:Gradient::k=206: rdisc=0.966, norm=0.000239
+REGINN:Gradient::k=207: rdisc=0.966, norm=0.000240
+REGINN:Gradient::k=208: rdisc=0.966, norm=0.000241
+REGINN:Gradient::k=209: rdisc=0.966, norm=0.000242
+REGINN:Gradient::k=210: rdisc=0.966, norm=0.000243
+REGINN:Gradient::k=211: rdisc=0.965, norm=0.000244
+REGINN:Gradient::k=212: rdisc=0.965, norm=0.000245
+REGINN:Gradient::k=213: rdisc=0.965, norm=0.000246
+REGINN:Gradient::k=214: rdisc=0.965, norm=0.000247
+REGINN:Gradient::k=215: rdisc=0.965, norm=0.000248
+REGINN:Gradient::k=216: rdisc=0.965, norm=0.000249
+REGINN:Gradient::k=217: rdisc=0.965, norm=0.000250
+REGINN:Gradient::k=218: rdisc=0.964, norm=0.000251
+REGINN:Gradient::k=219: rdisc=0.964, norm=0.000252
+REGINN:Gradient::k=220: rdisc=0.964, norm=0.000253
+REGINN:Gradient::k=221: rdisc=0.964, norm=0.000254
+REGINN:Gradient::k=222: rdisc=0.964, norm=0.000255
+REGINN:Gradient::k=223: rdisc=0.964, norm=0.000256
+REGINN:Gradient::k=224: rdisc=0.964, norm=0.000257
+REGINN:Gradient::k=225: rdisc=0.963, norm=0.000258
+REGINN:Gradient::k=226: rdisc=0.963, norm=0.000259
+REGINN:Gradient::k=227: rdisc=0.963, norm=0.000260
+REGINN:Gradient::k=228: rdisc=0.963, norm=0.000261
+REGINN:Gradient::k=229: rdisc=0.963, norm=0.000262
+REGINN:Gradient::k=230: rdisc=0.963, norm=0.000263
+REGINN:Gradient::k=231: rdisc=0.963, norm=0.000265
+REGINN:Gradient::k=232: rdisc=0.963, norm=0.000266
+REGINN:Gradient::k=233: rdisc=0.962, norm=0.000267
+REGINN:Gradient::k=234: rdisc=0.962, norm=0.000268
+REGINN:Gradient::k=235: rdisc=0.962, norm=0.000269
+REGINN:Gradient::k=236: rdisc=0.962, norm=0.000270
+REGINN:Gradient::k=237: rdisc=0.962, norm=0.000271
+REGINN:Gradient::k=238: rdisc=0.962, norm=0.000272
+REGINN:Gradient::k=239: rdisc=0.962, norm=0.000273
+REGINN:Gradient::k=240: rdisc=0.961, norm=0.000274
+REGINN:Gradient::k=241: rdisc=0.961, norm=0.000275
+REGINN:Gradient::k=242: rdisc=0.961, norm=0.000276
+REGINN:Gradient::k=243: rdisc=0.961, norm=0.000277
+REGINN:Gradient::k=244: rdisc=0.961, norm=0.000278
+REGINN:Gradient::k=245: rdisc=0.961, norm=0.000279
+REGINN:Gradient::k=246: rdisc=0.961, norm=0.000280
+REGINN:Gradient::k=247: rdisc=0.960, norm=0.000281
+REGINN:Gradient::k=248: rdisc=0.960, norm=0.000282
+REGINN:Gradient::k=249: rdisc=0.960, norm=0.000283
+REGINN:Gradient::k=250: rdisc=0.960, norm=0.000284
+REGINN:Gradient::k=251: rdisc=0.960, norm=0.000285
+REGINN:Gradient::k=252: rdisc=0.960, norm=0.000286
+REGINN:Gradient::k=253: rdisc=0.960, norm=0.000287
+REGINN:Gradient::k=254: rdisc=0.960, norm=0.000288
+REGINN:Gradient::k=255: rdisc=0.959, norm=0.000289
+REGINN:Gradient::k=256: rdisc=0.959, norm=0.000290
+REGINN:Gradient::k=257: rdisc=0.959, norm=0.000291
+REGINN:Gradient::k=258: rdisc=0.959, norm=0.000292
+REGINN:Gradient::k=259: rdisc=0.959, norm=0.000293
+REGINN:Gradient::k=260: rdisc=0.959, norm=0.000294
+REGINN:Gradient::k=261: rdisc=0.959, norm=0.000295
+REGINN:Gradient::k=262: rdisc=0.959, norm=0.000296
+REGINN:Gradient::k=263: rdisc=0.958, norm=0.000297
+REGINN:Gradient::k=264: rdisc=0.958, norm=0.000298
+REGINN:Gradient::k=265: rdisc=0.958, norm=0.000299
+REGINN:Gradient::k=266: rdisc=0.958, norm=0.000300
+REGINN:Gradient::k=267: rdisc=0.958, norm=0.000301
+REGINN:Gradient::k=268: rdisc=0.958, norm=0.000302
+REGINN:Gradient::k=269: rdisc=0.958, norm=0.000303
+REGINN:Gradient::k=270: rdisc=0.957, norm=0.000304
+REGINN:Gradient::k=271: rdisc=0.957, norm=0.000305
+REGINN:Gradient::k=272: rdisc=0.957, norm=0.000306
+REGINN:Gradient::k=273: rdisc=0.957, norm=0.000307
+REGINN:Gradient::k=274: rdisc=0.957, norm=0.000308
+REGINN:Gradient::k=275: rdisc=0.957, norm=0.000309
+REGINN:Gradient::k=276: rdisc=0.957, norm=0.000310
+REGINN:Gradient::k=277: rdisc=0.957, norm=0.000311
+REGINN:Gradient::k=278: rdisc=0.956, norm=0.000312
+REGINN:Gradient::k=279: rdisc=0.956, norm=0.000313
+REGINN:Gradient::k=280: rdisc=0.956, norm=0.000314
+REGINN:Gradient::k=281: rdisc=0.956, norm=0.000315
+REGINN:Gradient::k=282: rdisc=0.956, norm=0.000316
+REGINN:Gradient::k=283: rdisc=0.956, norm=0.000317
+REGINN:Gradient::k=284: rdisc=0.956, norm=0.000318
+REGINN:Gradient::k=285: rdisc=0.956, norm=0.000319
+REGINN:Gradient::k=286: rdisc=0.955, norm=0.000320
+REGINN:Gradient::k=287: rdisc=0.955, norm=0.000321
+REGINN:Gradient::k=288: rdisc=0.955, norm=0.000322
+REGINN:Gradient::k=289: rdisc=0.955, norm=0.000323
+REGINN:Gradient::k=290: rdisc=0.955, norm=0.000324
+REGINN:Gradient::k=291: rdisc=0.955, norm=0.000325
+REGINN:Gradient::k=292: rdisc=0.955, norm=0.000326
+REGINN:Gradient::k=293: rdisc=0.954, norm=0.000327
+REGINN:Gradient::k=294: rdisc=0.954, norm=0.000328
+REGINN:Gradient::k=295: rdisc=0.954, norm=0.000329
+REGINN:Gradient::k=296: rdisc=0.954, norm=0.000330
+REGINN:Gradient::k=297: rdisc=0.954, norm=0.000331
+REGINN:Gradient::k=298: rdisc=0.954, norm=0.000332
+REGINN:Gradient::k=299: rdisc=0.954, norm=0.000333
+REGINN:Gradient::k=300: rdisc=0.954, norm=0.000334
+REGINN:Gradient::k=301: rdisc=0.953, norm=0.000335
+REGINN:Gradient::k=302: rdisc=0.953, norm=0.000336
+REGINN:Gradient::k=303: rdisc=0.953, norm=0.000337
+REGINN:Gradient::k=304: rdisc=0.953, norm=0.000338
+REGINN:Gradient::k=305: rdisc=0.953, norm=0.000339
+REGINN:Gradient::k=306: rdisc=0.953, norm=0.000340
+REGINN:Gradient::k=307: rdisc=0.953, norm=0.000341
+REGINN:Gradient::k=308: rdisc=0.953, norm=0.000342
+REGINN:Gradient::k=309: rdisc=0.952, norm=0.000343
+REGINN:Gradient::k=310: rdisc=0.952, norm=0.000344
+REGINN:Gradient::k=311: rdisc=0.952, norm=0.000345
+REGINN:Gradient::k=312: rdisc=0.952, norm=0.000346
+REGINN:Gradient::k=313: rdisc=0.952, norm=0.000347
+REGINN:Gradient::k=314: rdisc=0.952, norm=0.000348
+REGINN:Gradient::k=315: rdisc=0.952, norm=0.000349
+REGINN:Gradient::k=316: rdisc=0.952, norm=0.000350
+REGINN:Gradient::k=317: rdisc=0.951, norm=0.000351
+REGINN:Gradient::k=318: rdisc=0.951, norm=0.000352
+REGINN:Gradient::k=319: rdisc=0.951, norm=0.000353
+REGINN:Gradient::k=320: rdisc=0.951, norm=0.000354
+REGINN:Gradient::k=321: rdisc=0.951, norm=0.000355
+REGINN:Gradient::k=322: rdisc=0.951, norm=0.000356
+REGINN:Gradient::k=323: rdisc=0.951, norm=0.000357
+REGINN:Gradient::k=324: rdisc=0.951, norm=0.000358
+REGINN:Gradient::k=325: rdisc=0.950, norm=0.000358
+REGINN:Gradient::k=326: rdisc=0.950, norm=0.000359
+REGINN:Gradient::k=327: rdisc=0.950, norm=0.000360
+REGINN:Gradient::k=328: rdisc=0.950, norm=0.000361
+REGINN:Gradient::k=329: rdisc=0.950, norm=0.000362
+REGINN:Gradient::k=330: rdisc=0.950, norm=0.000363
+REGINN:Gradient::k=331: rdisc=0.950, norm=0.000364
+REGINN:Gradient::k=332: rdisc=0.950, norm=0.000365
+REGINN:Gradient::k=333: rdisc=0.949, norm=0.000366
+REGINN:Gradient::k=334: rdisc=0.949, norm=0.000367
+REGINN:Gradient::k=335: rdisc=0.949, norm=0.000368
+REGINN:Gradient::k=336: rdisc=0.949, norm=0.000369
+REGINN:Gradient::k=337: rdisc=0.949, norm=0.000370
+REGINN:Gradient::k=338: rdisc=0.949, norm=0.000371
+REGINN:Gradient::k=339: rdisc=0.949, norm=0.000372
+REGINN:Gradient::k=340: rdisc=0.949, norm=0.000373
+REGINN:Gradient::k=341: rdisc=0.948, norm=0.000374
+REGINN:Gradient::k=342: rdisc=0.948, norm=0.000375
+REGINN:Gradient::k=343: rdisc=0.948, norm=0.000376
+REGINN:Gradient::k=344: rdisc=0.948, norm=0.000377
+REGINN:Gradient::k=345: rdisc=0.948, norm=0.000378
+REGINN:Gradient::k=346: rdisc=0.948, norm=0.000379
+REGINN:Gradient::k=347: rdisc=0.948, norm=0.000380
+REGINN:Gradient::k=348: rdisc=0.948, norm=0.000381
+REGINN:Gradient::k=349: rdisc=0.947, norm=0.000382
+REGINN:Gradient::k=350: rdisc=0.947, norm=0.000383
+REGINN:Gradient::k=351: rdisc=0.947, norm=0.000384
+REGINN:Gradient::k=352: rdisc=0.947, norm=0.000385
+REGINN:Gradient::k=353: rdisc=0.947, norm=0.000386
+REGINN:Gradient::k=354: rdisc=0.947, norm=0.000387
+REGINN:Gradient::k=355: rdisc=0.947, norm=0.000388
+REGINN:Gradient::k=356: rdisc=0.947, norm=0.000389
+REGINN:Gradient::k=357: rdisc=0.946, norm=0.000390
+REGINN:Gradient::k=358: rdisc=0.946, norm=0.000391
+REGINN:Gradient::k=359: rdisc=0.946, norm=0.000391
+REGINN:Gradient::k=360: rdisc=0.946, norm=0.000392
+REGINN:Gradient::k=361: rdisc=0.946, norm=0.000393
+REGINN:Gradient::k=362: rdisc=0.946, norm=0.000394
+REGINN:Gradient::k=363: rdisc=0.946, norm=0.000395
+REGINN:Gradient::k=364: rdisc=0.946, norm=0.000396
+REGINN:Gradient::k=365: rdisc=0.945, norm=0.000397
+REGINN:Gradient::k=366: rdisc=0.945, norm=0.000398
+REGINN:Gradient::k=367: rdisc=0.945, norm=0.000399
+REGINN:Gradient::k=368: rdisc=0.945, norm=0.000400
+REGINN:Gradient::k=369: rdisc=0.945, norm=0.000401
+REGINN:Gradient::k=370: rdisc=0.945, norm=0.000402
+REGINN:Gradient::k=371: rdisc=0.945, norm=0.000403
+REGINN:Gradient::k=372: rdisc=0.945, norm=0.000404
+REGINN:Gradient::k=373: rdisc=0.944, norm=0.000405
+REGINN:Gradient::k=374: rdisc=0.944, norm=0.000406
+REGINN:Gradient::k=375: rdisc=0.944, norm=0.000407
+REGINN:Gradient::k=376: rdisc=0.944, norm=0.000408
+REGINN:Gradient::k=377: rdisc=0.944, norm=0.000409
+REGINN:Gradient::k=378: rdisc=0.944, norm=0.000410
+REGINN:Gradient::k=379: rdisc=0.944, norm=0.000411
+REGINN:Gradient::k=380: rdisc=0.944, norm=0.000412
+REGINN:Gradient::k=381: rdisc=0.944, norm=0.000413
+REGINN:Gradient::k=382: rdisc=0.943, norm=0.000414
+REGINN:Gradient::k=383: rdisc=0.943, norm=0.000414
+REGINN:Gradient::k=384: rdisc=0.943, norm=0.000415
+REGINN:Gradient::k=385: rdisc=0.943, norm=0.000416
+REGINN:Gradient::k=386: rdisc=0.943, norm=0.000417
+REGINN:Gradient::k=387: rdisc=0.943, norm=0.000418
+REGINN:Gradient::k=388: rdisc=0.943, norm=0.000419
+REGINN:Gradient::k=389: rdisc=0.943, norm=0.000420
+REGINN:Gradient::k=390: rdisc=0.942, norm=0.000421
+REGINN:Gradient::Target discrepancy reached after 390 iterations.
+REGINN::i=44: rdisc=0.0101, rnorm=0.969, rerr=1.38 
+REGINN::-34.3 ≤ estimate ≤ 35.4
+REGINN::
+REGINN::Solving linear problem using rtol=0.988 and max_iter=667
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=1.00 , norm=1.52e-06
+REGINN:Gradient::k=2 : rdisc=0.999, norm=3.23e-06
+REGINN:Gradient::k=3 : rdisc=0.999, norm=4.51e-06
+REGINN:Gradient::k=4 : rdisc=0.999, norm=5.98e-06
+REGINN:Gradient::k=5 : rdisc=0.999, norm=7.19e-06
+REGINN:Gradient::k=6 : rdisc=0.999, norm=8.48e-06
+REGINN:Gradient::k=7 : rdisc=0.998, norm=9.69e-06
+REGINN:Gradient::k=8 : rdisc=0.998, norm=1.09e-05
+REGINN:Gradient::k=9 : rdisc=0.998, norm=1.21e-05
+REGINN:Gradient::k=10: rdisc=0.998, norm=1.32e-05
+REGINN:Gradient::k=11: rdisc=0.998, norm=1.44e-05
+REGINN:Gradient::k=12: rdisc=0.997, norm=1.54e-05
+REGINN:Gradient::k=13: rdisc=0.997, norm=1.66e-05
+REGINN:Gradient::k=14: rdisc=0.997, norm=1.77e-05
+REGINN:Gradient::k=15: rdisc=0.997, norm=1.89e-05
+REGINN:Gradient::k=16: rdisc=0.997, norm=1.99e-05
+REGINN:Gradient::k=17: rdisc=0.997, norm=2.11e-05
+REGINN:Gradient::k=18: rdisc=0.996, norm=2.21e-05
+REGINN:Gradient::k=19: rdisc=0.996, norm=2.33e-05
+REGINN:Gradient::k=20: rdisc=0.996, norm=2.43e-05
+REGINN:Gradient::k=21: rdisc=0.996, norm=2.54e-05
+REGINN:Gradient::k=22: rdisc=0.996, norm=2.65e-05
+REGINN:Gradient::k=23: rdisc=0.996, norm=2.76e-05
+REGINN:Gradient::k=24: rdisc=0.995, norm=2.86e-05
+REGINN:Gradient::k=25: rdisc=0.995, norm=2.97e-05
+REGINN:Gradient::k=26: rdisc=0.995, norm=3.08e-05
+REGINN:Gradient::k=27: rdisc=0.995, norm=3.18e-05
+REGINN:Gradient::k=28: rdisc=0.995, norm=3.29e-05
+REGINN:Gradient::k=29: rdisc=0.995, norm=3.39e-05
+REGINN:Gradient::k=30: rdisc=0.995, norm=3.50e-05
+REGINN:Gradient::k=31: rdisc=0.994, norm=3.60e-05
+REGINN:Gradient::k=32: rdisc=0.994, norm=3.71e-05
+REGINN:Gradient::k=33: rdisc=0.994, norm=3.81e-05
+REGINN:Gradient::k=34: rdisc=0.994, norm=3.91e-05
+REGINN:Gradient::k=35: rdisc=0.994, norm=4.02e-05
+REGINN:Gradient::k=36: rdisc=0.994, norm=4.12e-05
+REGINN:Gradient::k=37: rdisc=0.994, norm=4.22e-05
+REGINN:Gradient::k=38: rdisc=0.993, norm=4.33e-05
+REGINN:Gradient::k=39: rdisc=0.993, norm=4.43e-05
+REGINN:Gradient::k=40: rdisc=0.993, norm=4.53e-05
+REGINN:Gradient::k=41: rdisc=0.993, norm=4.63e-05
+REGINN:Gradient::k=42: rdisc=0.993, norm=4.73e-05
+REGINN:Gradient::k=43: rdisc=0.993, norm=4.84e-05
+REGINN:Gradient::k=44: rdisc=0.993, norm=4.93e-05
+REGINN:Gradient::k=45: rdisc=0.992, norm=5.04e-05
+REGINN:Gradient::k=46: rdisc=0.992, norm=5.14e-05
+REGINN:Gradient::k=47: rdisc=0.992, norm=5.24e-05
+REGINN:Gradient::k=48: rdisc=0.992, norm=5.34e-05
+REGINN:Gradient::k=49: rdisc=0.992, norm=5.44e-05
+REGINN:Gradient::k=50: rdisc=0.992, norm=5.54e-05
+REGINN:Gradient::k=51: rdisc=0.992, norm=5.64e-05
+REGINN:Gradient::k=52: rdisc=0.991, norm=5.74e-05
+REGINN:Gradient::k=53: rdisc=0.991, norm=5.84e-05
+REGINN:Gradient::k=54: rdisc=0.991, norm=5.94e-05
+REGINN:Gradient::k=55: rdisc=0.991, norm=6.04e-05
+REGINN:Gradient::k=56: rdisc=0.991, norm=6.14e-05
+REGINN:Gradient::k=57: rdisc=0.991, norm=6.24e-05
+REGINN:Gradient::k=58: rdisc=0.991, norm=6.33e-05
+REGINN:Gradient::k=59: rdisc=0.990, norm=6.43e-05
+REGINN:Gradient::k=60: rdisc=0.990, norm=6.53e-05
+REGINN:Gradient::k=61: rdisc=0.990, norm=6.63e-05
+REGINN:Gradient::k=62: rdisc=0.990, norm=6.73e-05
+REGINN:Gradient::k=63: rdisc=0.990, norm=6.83e-05
+REGINN:Gradient::k=64: rdisc=0.990, norm=6.92e-05
+REGINN:Gradient::k=65: rdisc=0.990, norm=7.02e-05
+REGINN:Gradient::k=66: rdisc=0.990, norm=7.12e-05
+REGINN:Gradient::k=67: rdisc=0.989, norm=7.22e-05
+REGINN:Gradient::k=68: rdisc=0.989, norm=7.32e-05
+REGINN:Gradient::k=69: rdisc=0.989, norm=7.41e-05
+REGINN:Gradient::k=70: rdisc=0.989, norm=7.51e-05
+REGINN:Gradient::k=71: rdisc=0.989, norm=7.61e-05
+REGINN:Gradient::k=72: rdisc=0.989, norm=7.71e-05
+REGINN:Gradient::k=73: rdisc=0.989, norm=7.80e-05
+REGINN:Gradient::k=74: rdisc=0.988, norm=7.90e-05
+REGINN:Gradient::k=75: rdisc=0.988, norm=8.00e-05
+REGINN:Gradient::k=76: rdisc=0.988, norm=8.09e-05
+REGINN:Gradient::k=77: rdisc=0.988, norm=8.19e-05
+REGINN:Gradient::Target discrepancy reached after 77 iterations.
+REGINN::i=45: rdisc=0.0100, rnorm=0.970, rerr=1.38 
+REGINN::-34.3 ≤ estimate ≤ 35.5
+REGINN::
+REGINN::Solving linear problem using rtol=0.998 and max_iter=467
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.998, norm=1.66e-05
+REGINN:Gradient::k=2 : rdisc=0.998, norm=1.83e-05
+REGINN:Gradient::Target discrepancy reached after 2 iterations.
+REGINN::i=46: rdisc=0.0100, rnorm=0.970, rerr=1.38 
+REGINN::-34.3 ≤ estimate ≤ 35.5
+REGINN::
+REGINN::Solving linear problem using rtol=0.999 and max_iter=79
+REGINN:Gradient::k=0 : rdisc=1.00 , norm=0.00 
+REGINN:Gradient::k=1 : rdisc=0.999, norm=3.99e-06
+REGINN:Gradient::k=2 : rdisc=0.999, norm=4.88e-06
+REGINN:Gradient::k=3 : rdisc=0.999, norm=5.85e-06
+REGINN:Gradient::Target discrepancy reached after 3 iterations.
+REGINN::i=47: rdisc=0.00999, rnorm=0.970, rerr=1.38 
+REGINN::-34.3 ≤ estimate ≤ 35.5
+REGINN::
+REGINN::Saving current residual in ./step-0047/
+REGINN::Saving current estimate in ./step-0047/
+REGINN::Target discrepancy reached after 47 iterations.
+REGINN::-34.3 ≤ estimate ≤ 35.5
+Relative p-norm on top of L²([0,T], L²(Ω)) with p=8.000000 error of the reconstruction: 1.38
+reconstruction error in other norms: 
+Relative (ℝⁿ, ‖·‖₂) error of the reconstruction: 1.86
+Relative L²([0,T], L²(Ω)) error of the reconstruction: 1.05
+Relative H¹([0,T], L²(Ω)) error of the reconstruction: 6.91
+Relative H¹([0, T], H¹(Ω)) error of the reconstruction: 30.4
+Relative H²([0,T], L²(Ω)) error of the reconstruction: 193.
+Relative p-norm on top of L²([0,T], L²(Ω)) with p=8.000000 error of (reconstruction - initial guess): 1.38
+reconstruction error in other norms: 
+Relative (ℝⁿ, ‖·‖₂) error of (reconstruction - initial guess): 1.86
+Relative L²([0,T], L²(Ω)) error of (reconstruction - initial guess): 1.05
+Relative H¹([0,T], L²(Ω)) error of (reconstruction - initial guess): 6.91
+Relative H¹([0, T], H¹(Ω)) error of (reconstruction - initial guess): 30.4
+Relative H²([0,T], L²(Ω)) error of (reconstruction - initial guess): 193.
+stats::forward              : 49 calls, average 2.0s per call
+stats::linearization forward: 2767 calls, average 1.7s per call
+stats::linearization adjoint: 2767 calls, average 1.7s per call
+stats::measure forward      : 2816 calls, average 1.6ms per call
+stats::measure adjoint      : 2767 calls, average 815.5µs per call
+stats::Additional time needed for MPI communication:
+stats::forward              : average 36.3ms per call
+stats::linearization forward: average 55.8ms per call
+stats::linearization adjoint: average 49.4ms per call
+stats::total wall time      : 3h 1min 23s
