@@ -77,10 +77,10 @@ def makeVideo(pvdPath, statePath, videoPath, dataMin, dataMax):
     renderView1.CameraParallelScale = 0.747010253122867
 
     # Rescale transfer function
-    uhLUT.RescaleTransferFunction(0, 1)
+    uhLUT.RescaleTransferFunction(0, 10)
 
     # Rescale transfer function
-    uhPWF.RescaleTransferFunction(0, 1)
+    uhPWF.RescaleTransferFunction(0, 10)
 
     if math.isnan(dataMin) or math.isnan(dataMax):
         print("Finding out min and max values")
