@@ -116,8 +116,8 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
   prm->enter_subsection(KEY_LOG);
   {
     prm->declare_entry(KEY_LOG_FILE, "wavepi.log", Patterns::FileName(Patterns::FileName::output), "external log file");
-    prm->declare_entry(KEY_LOG_FILE_DEPTH, "6", Patterns::Integer(0), "depth for the log file (root process)");
-    prm->declare_entry(KEY_LOG_FILE_DEPTH_MPI, "4", Patterns::Integer(0), "depth for the log file (other processes)");
+    prm->declare_entry(KEY_LOG_FILE_DEPTH, "3", Patterns::Integer(0), "depth for the log file (root process)");
+    prm->declare_entry(KEY_LOG_FILE_DEPTH_MPI, "3", Patterns::Integer(0), "depth for the log file (other processes)");
     prm->declare_entry(KEY_LOG_CONSOLE_DEPTH, "2", Patterns::Integer(0), "depth for stdout (root process)");
   }
   prm->leave_subsection();
