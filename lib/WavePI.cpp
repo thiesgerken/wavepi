@@ -665,7 +665,7 @@ void WavePI<dim, Meas>::run() {
     unaccounted_time -= stats->time_linearization_forward_communication;
     unaccounted_time -= stats->time_linearization_adjoint_communication;
 
-    // (most likely spent doing vector operations for the inversion methods)
+    // (most likely spent doing vector operations, norm evalutations, etc. for the inversion methods)
     deallog << "time not accounted for: " << Util::format_duration(unaccounted_time) << " ≈ " << std::fixed
             << std::setprecision(2) << (unaccounted_time / timer_inversion.wall_time() * 100) << "% of total time"
             << std::endl;
