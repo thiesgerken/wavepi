@@ -10,6 +10,7 @@
 
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/logstream.h>
+#include <deal.II/base/timer.h>
 
 #include <inversion/LinearProblem.h>
 #include <inversion/LinearRegularization.h>
@@ -58,16 +59,20 @@ class GradientDescent : public LinearRegularization<Param, Sol, Exact> {
 
     InversionProgress<Param, Sol, Exact> status(0, &estimate, estimate.norm(), &residual, discrepancy,
                                                 target_discrepancy, &data, norm_data, exact_param, false);
-    this->progress(status);
+    this->progress(status, this->problem->get_statistics());
 
     // dual index to p to use in X
     double q = p / (p - 1);
 
     for (int k = 1; discrepancy > target_discrepancy; k++) {
-      Param step(this->problem->adjoint(residual));
+      Timer duality_timer;
 
+      Param step(this->problem->adjoint(residual));
       double norm_step = step.norm_dual();
+
+      duality_timer.start();
       step.duality_mapping_dual(q);
+      duality_timer.stop();
 
       Sol Astep(this->problem->forward(step));
 
@@ -83,11 +88,17 @@ class GradientDescent : public LinearRegularization<Param, Sol, Exact> {
       status = InversionProgress<Param, Sol, Exact>(k, &estimate, estimate.norm(), &residual, discrepancy,
                                                     target_discrepancy, &data, norm_data, exact_param, false);
 
-      if (!this->progress(status)) break;
+      if (!this->progress(status, this->problem->get_statistics())) break;
+
+      // duality mapping stats (do not count them in case of hilbert spaces)
+      if (this->problem->get_statistics() && !estimate.hilbert()) {
+        this->problem->get_statistics()->time_duality += duality_timer.wall_time();
+        this->problem->get_statistics()->calls_duality += 1;
+      }
     }
 
     status.finished = true;
-    this->progress(status);
+    this->progress(status, this->problem->get_statistics());
 
     if (status_out) *status_out = status;
 

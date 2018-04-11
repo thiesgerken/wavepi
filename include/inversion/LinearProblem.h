@@ -13,7 +13,7 @@
 namespace wavepi {
 namespace inversion {
 
-struct LinearProblemStats {
+struct LinearProblemStats : public ProblemStats {
  public:
   int calls_forward;
   int calls_adjoint;

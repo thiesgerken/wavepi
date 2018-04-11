@@ -458,8 +458,7 @@ void WavePI<dim, Meas>::log_error_initial(DiscretizedFunction<dim>& reconstructi
 
 template <int dim, typename Meas>
 void WavePI<dim, Meas>::run() {
-  Timer timer_total, timer_data, timer_mesh_problem;
-  timer_total.start();
+  Timer timer_data, timer_mesh_problem;
 
   if (cfg->synthesis_additional_refines > 0 || cfg->synthesis_additional_fe_degrees > 0) {
     timer_data.start();
@@ -500,6 +499,9 @@ void WavePI<dim, Meas>::run() {
     timer_data.start();
     synthesize_data();
     timer_data.stop();
+
+    // we do not want the data synthesis to be a part of the stats (in the other case it also isn't)
+    problem->reset_statistics();
   }
 
   deallog << "wall time for data synthesis        : " << Util::format_duration(timer_data.wall_time()) << std::endl;
@@ -547,7 +549,11 @@ void WavePI<dim, Meas>::run() {
 
   cfg->log_parameters();
 
+  // do the inversion
+  Timer timer_inversion;
+  timer_inversion.start();
   auto reconstruction = regularization->invert(*data, cfg->tau * cfg->epsilon * data->norm(), param_exact);
+  timer_inversion.stop();
 
   // transform back and output errors in the untransformed setting
   reconstruction = transform->transform_inverse(reconstruction);
@@ -584,37 +590,87 @@ void WavePI<dim, Meas>::run() {
     auto stats = problem->get_statistics();
     LogStream::Prefix p("stats");
 
-    deallog << "forward              : " << stats->calls_forward << " calls, average "
-            << Util::format_duration(stats->time_forward / stats->calls_forward) << " per call" << std::endl;
-    deallog << "linearization forward: " << stats->calls_linearization_forward << " calls, average "
+    deallog << "forward         : " << stats->calls_forward << " calls, avg "
+            << Util::format_duration(stats->time_forward / stats->calls_forward) << " per call, " << std::fixed
+            << std::setprecision(2) << (stats->time_forward / timer_inversion.wall_time() * 100) << "% of total time"
+            << std::endl;
+
+    deallog << "lin forward     : " << stats->calls_linearization_forward << " calls, avg "
             << Util::format_duration(stats->time_linearization_forward / stats->calls_linearization_forward)
-            << " per call" << std::endl;
-    deallog << "linearization adjoint: " << stats->calls_linearization_adjoint << " calls, average "
+            << " per call, " << std::fixed << std::setprecision(2)
+            << (stats->time_linearization_forward / timer_inversion.wall_time() * 100) << "% of total time"
+            << std::endl;
+
+    deallog << "lin adjoint     : " << stats->calls_linearization_adjoint << " calls, avg "
             << Util::format_duration(stats->time_linearization_adjoint / stats->calls_linearization_adjoint)
-            << " per call" << std::endl;
-    deallog << "measure forward      : " << stats->calls_measure_forward << " calls, average "
-            << Util::format_duration(stats->time_measure_forward / stats->calls_measure_forward) << " per call"
+            << " per call, " << std::fixed << std::setprecision(2)
+            << (stats->time_linearization_adjoint / timer_inversion.wall_time() * 100) << "% of total time"
             << std::endl;
-    deallog << "measure adjoint      : " << stats->calls_measure_adjoint << " calls, average "
-            << Util::format_duration(stats->time_measure_adjoint / stats->calls_measure_adjoint) << " per call"
+
+    deallog << "measure forward : " << stats->calls_measure_forward << " calls, avg "
+            << Util::format_duration(stats->time_measure_forward / stats->calls_measure_forward) << " per call, "
+            << std::fixed << std::setprecision(2) << (stats->time_measure_forward / timer_inversion.wall_time() * 100)
+            << "% of total time" << std::endl;
+
+    deallog << "measure adjoint : " << stats->calls_measure_adjoint << " calls, avg "
+            << Util::format_duration(stats->time_measure_adjoint / stats->calls_measure_adjoint) << " per call, "
+            << std::fixed << std::setprecision(2) << (stats->time_measure_adjoint / timer_inversion.wall_time() * 100)
+            << "% of total time" << std::endl;
+
+    deallog << "duality         : " << stats->calls_duality << " calls, avg "
+            << Util::format_duration(stats->time_duality / stats->calls_duality) << " per call, " << std::fixed
+            << std::setprecision(2) << (stats->time_duality / timer_inversion.wall_time() * 100) << "% of total time"
             << std::endl;
+
+    deallog << "IO              : " << Util::format_duration(stats->time_io) << " ≈ " << std::fixed
+            << std::setprecision(2) << (stats->time_io / timer_inversion.wall_time() * 100) << "% of total time"
+            << std::endl;
+
+    deallog << "post-processing : " << Util::format_duration(stats->time_postprocessing) << " ≈ " << std::fixed
+            << std::setprecision(2) << (stats->time_postprocessing / timer_inversion.wall_time() * 100)
+            << "% of total time" << std::endl;
 
     if (Utilities::MPI::n_mpi_processes(MPI_COMM_WORLD) > 1) {
       deallog << "Additional time needed for MPI communication:" << std::endl;
-      deallog << "forward              : average "
-              << Util::format_duration(stats->time_forward_communication / stats->calls_forward) << " per call"
+      deallog << "forward         : average "
+              << Util::format_duration(stats->time_forward_communication / stats->calls_forward) << " per call, "
+              << std::fixed << std::setprecision(2)
+              << (stats->time_forward_communication / timer_inversion.wall_time() * 100) << "% of total time"
               << std::endl;
-      deallog << "linearization forward: average "
+      deallog << "lin forward     : avg "
               << Util::format_duration(stats->time_linearization_forward_communication /
                                        stats->calls_linearization_forward)
-              << " per call" << std::endl;
-      deallog << "linearization adjoint: average "
+              << " per call, " << std::fixed << std::setprecision(2)
+              << (stats->time_linearization_forward_communication / timer_inversion.wall_time() * 100)
+              << "% of total time" << std::endl;
+      deallog << "lin adjoint     : avg "
               << Util::format_duration(stats->time_linearization_adjoint_communication /
                                        stats->calls_linearization_adjoint)
-              << " per call" << std::endl;
+              << " per call, " << std::fixed << std::setprecision(2)
+              << (stats->time_linearization_adjoint_communication / timer_inversion.wall_time() * 100)
+              << "% of total time" << std::endl;
     }
 
-    deallog << "total wall time      : " << Util::format_duration(timer_total.wall_time()) << std::endl;
+    double unaccounted_time = timer_inversion.wall_time();
+    unaccounted_time -= stats->time_duality;
+    unaccounted_time -= stats->time_forward;
+    unaccounted_time -= stats->time_linearization_forward;
+    unaccounted_time -= stats->time_linearization_adjoint;
+    unaccounted_time -= stats->time_measure_forward;
+    unaccounted_time -= stats->time_measure_adjoint;
+    unaccounted_time -= stats->time_duality;
+    unaccounted_time -= stats->time_io;
+    unaccounted_time -= stats->time_postprocessing;
+    unaccounted_time -= stats->time_forward_communication;
+    unaccounted_time -= stats->time_linearization_forward_communication;
+    unaccounted_time -= stats->time_linearization_adjoint_communication;
+
+    // (most likely spent doing vector operations for the inversion methods)
+    deallog << "time not accounted for: " << Util::format_duration(unaccounted_time) << " ≈ " << std::fixed
+            << std::setprecision(2) << (unaccounted_time / timer_inversion.wall_time() * 100) << "% of total time"
+            << std::endl;
+    deallog << "total wall time for the inversion : " << Util::format_duration(timer_inversion.wall_time())
+            << std::endl;
   }
 }
 

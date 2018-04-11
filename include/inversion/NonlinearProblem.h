@@ -16,7 +16,7 @@
 namespace wavepi {
 namespace inversion {
 
-struct NonlinearProblemStats {
+struct NonlinearProblemStats : public ProblemStats {
  public:
   int calls_forward;
   int calls_linearization_forward;
@@ -52,6 +52,11 @@ class NonlinearProblem : public InverseProblem<Param, Sol> {
    * Otherwise, return `nullptr`, like the default implementation does.
    */
   virtual std::shared_ptr<NonlinearProblemStats> get_statistics() { return nullptr; }
+
+  /**
+   * If supported, reset statistics for the calls made to this class.
+   */
+  virtual void reset_statistics() {}
 };
 
 } /* namespace inversion */

@@ -17,6 +17,14 @@ namespace wavepi {
  */
 namespace inversion {
 
+struct ProblemStats {
+  int calls_duality;
+  double time_duality;
+
+  double time_io;
+  double time_postprocessing;
+};
+
 template <typename Param, typename Sol>
 class InverseProblem {
  public:

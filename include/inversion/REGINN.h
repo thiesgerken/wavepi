@@ -147,7 +147,7 @@ class REGINN : public NewtonRegularization<Param, Sol, Exact> {
     deallog.pop();
     InversionProgress<Param, Sol, Exact> status(0, &estimate, estimate.norm(), &residual, discrepancy,
                                                 target_discrepancy, &data, norm_data, exact_param, false);
-    this->progress(status);
+    this->progress(status, problem->get_statistics());
 
     for (int i = 1; discrepancy > target_discrepancy; i++) {
       double theta        = tol_choice->get_tolerance();
@@ -179,7 +179,7 @@ class REGINN : public NewtonRegularization<Param, Sol, Exact> {
 
       // post-processing
       deallog.push("post_processing");
-      this->post_process(i, &estimate, norm_estimate);
+      this->post_process(i, &estimate, norm_estimate, problem->get_statistics());
       deallog.pop();
 
       // calculate new residual and discrepancy
@@ -193,7 +193,7 @@ class REGINN : public NewtonRegularization<Param, Sol, Exact> {
       status = InversionProgress<Param, Sol, Exact>(i, &estimate, norm_estimate, &residual, discrepancy,
                                                     target_discrepancy, &data, norm_data, exact_param, false);
 
-      if (!this->progress(status)) break;
+      if (!this->progress(status, problem->get_statistics())) break;
 
       tol_choice->add_iteration(discrepancy, linear_status->iteration_number);
       max_iter_choice->add_iteration(discrepancy, linear_status->iteration_number);
@@ -202,7 +202,7 @@ class REGINN : public NewtonRegularization<Param, Sol, Exact> {
     }
 
     status.finished = true;
-    this->progress(status);
+    this->progress(status, problem->get_statistics());
 
     if (status_out) *status_out = status;
 

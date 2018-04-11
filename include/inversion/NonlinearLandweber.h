@@ -11,6 +11,7 @@
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/logstream.h>
 #include <deal.II/base/parameter_handler.h>
+#include <deal.II/base/timer.h>
 
 #include <inversion/NewtonRegularization.h>
 #include <inversion/NonlinearProblem.h>
@@ -78,31 +79,42 @@ class NonlinearLandweber : public NewtonRegularization<Param, Sol, Exact> {
     deallog.pop();
     InversionProgress<Param, Sol, Exact> status(0, &estimate, estimate.norm(), &residual, discrepancy,
                                                 target_discrepancy, &data, norm_data, exact_param, false);
-    this->progress(status);
+    this->progress(status, this->problem->get_statistics());
 
     // dual index to p to use in X
     double q = p / (p - 1);
 
     for (int i = 1; discrepancy > target_discrepancy; i++) {
       deallog.push("step");  // same log levels as for REGINN for forward/adjoint ops
+      Timer duality_timer;
 
       std::unique_ptr<LinearProblem<Param, Sol>> lp = this->problem->derivative(estimate);
 
       Param adj = lp->adjoint(residual);
 
+      duality_timer.start();
       estimate.duality_mapping(p);
+      duality_timer.stop();
 
       // $`c_{k+1} = c_k + \omega (S' c_k)^* (g - S c_k)`$
       estimate.add(omega, adj);
 
+      duality_timer.start();
       estimate.duality_mapping_dual(q);
+      duality_timer.stop();
 
       double norm_estimate = estimate.norm();
       deallog.pop();
 
+      // duality mapping stats (do not count them in case of hilbert spaces)
+      if (this->problem->get_statistics() && !estimate.hilbert()) {
+        this->problem->get_statistics()->time_duality += duality_timer.wall_time();
+        this->problem->get_statistics()->calls_duality += 2;
+      }
+
       // post-processing
       deallog.push("post_processing");
-      this->post_process(i, &estimate, norm_estimate);
+      this->post_process(i, &estimate, norm_estimate, this->problem->get_statistics());
       deallog.pop();
 
       // calculate new residual and discrepancy
@@ -116,11 +128,11 @@ class NonlinearLandweber : public NewtonRegularization<Param, Sol, Exact> {
       status = InversionProgress<Param, Sol, Exact>(i, &estimate, norm_estimate, &residual, discrepancy,
                                                     target_discrepancy, &data, norm_data, exact_param, false);
 
-      if (!this->progress(status)) break;
+      if (!this->progress(status, this->problem->get_statistics())) break;
     }
 
     status.finished = true;
-    this->progress(status);
+    this->progress(status, this->problem->get_statistics());
 
     if (status_out) *status_out = status;
 

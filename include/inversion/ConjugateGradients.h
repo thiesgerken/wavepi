@@ -74,7 +74,7 @@ class ConjugateGradients : public LinearRegularization<Param, Sol, Exact> {
 
     InversionProgress<Param, Sol, Exact> status(0, &estimate, estimate.norm(), &residual, discrepancy,
                                                 target_discrepancy, &data, norm_data, exact_param, false);
-    this->progress(status);
+    this->progress(status, this->problem->get_statistics());
 
     for (int k = 1; discrepancy > target_discrepancy; k++) {
       alpha = square(norm_d / q.norm());  // α_k
@@ -95,7 +95,7 @@ class ConjugateGradients : public LinearRegularization<Param, Sol, Exact> {
       status = InversionProgress<Param, Sol, Exact>(k, &estimate, estimate.norm(), &residual, discrepancy,
                                                     target_discrepancy, &data, norm_data, exact_param, false);
 
-      if (!this->progress(status)) break;
+      if (!this->progress(status, this->problem->get_statistics())) break;
 
       // abort now to save one evaluation of the adjoint and forward operator if we are finished
       if (discrepancy <= target_discrepancy) break;
@@ -129,7 +129,7 @@ class ConjugateGradients : public LinearRegularization<Param, Sol, Exact> {
     }
 
     status.finished = true;
-    this->progress(status);
+    this->progress(status, this->problem->get_statistics());
 
     if (status_out) *status_out = status;
 

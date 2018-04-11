@@ -202,6 +202,7 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
   }
 
   virtual std::shared_ptr<NonlinearProblemStats> get_statistics() { return stats; }
+  virtual void reset_statistics() { stats = std::make_shared<NonlinearProblemStats>(); }
 
   std::shared_ptr<Norm<DiscretizedFunction<dim>>> get_norm_domain() const { return norm_domain; }
 
@@ -257,7 +258,31 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
 
   class Linearization : public LinearProblem<DiscretizedFunction<dim>, Tuple<Measurement>> {
    public:
-    virtual ~Linearization() = default;
+    virtual ~Linearization() {
+      if (parent_stats) {
+        // copy our stats to parent
+        parent_stats->calls_linearization_forward += stats->calls_forward;
+        parent_stats->time_linearization_forward += stats->time_forward;
+
+        parent_stats->calls_measure_forward += stats->calls_measure_forward;
+        parent_stats->time_measure_forward += stats->time_measure_forward;
+
+        parent_stats->calls_measure_adjoint += stats->calls_measure_adjoint;
+        parent_stats->time_measure_adjoint += stats->time_measure_adjoint;
+
+        parent_stats->time_linearization_forward_communication += stats->time_forward_communication;
+        parent_stats->time_linearization_adjoint_communication += stats->time_adjoint_communication;
+
+        parent_stats->calls_linearization_adjoint += stats->calls_adjoint;
+        parent_stats->time_linearization_adjoint += stats->time_adjoint;
+
+        parent_stats->calls_duality += stats->calls_duality;
+        parent_stats->time_duality += stats->time_duality;
+
+        parent_stats->time_io += stats->time_io;
+        parent_stats->time_postprocessing += stats->time_postprocessing;
+      }
+    }
 
     Linearization(std::vector<std::shared_ptr<LinearizedSubProblem<dim>>> sub_problems,
                   std::vector<std::shared_ptr<Measure<DiscretizedFunction<dim>, Measurement>>> measures,
@@ -370,16 +395,6 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
 
       stats->time_forward_communication += comm_timer.wall_time();
 
-      if (parent_stats) {
-        parent_stats->calls_linearization_forward++;
-        parent_stats->time_linearization_forward += fw_timer.wall_time();
-
-        parent_stats->calls_measure_forward++;
-        parent_stats->time_measure_forward += meas_timer.wall_time();
-
-        parent_stats->time_linearization_forward_communication += comm_timer.wall_time();
-      }
-
       return result;
     }
 
@@ -446,7 +461,7 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
 
       deallog << "rank " << rank << " summing all results" << std::endl;
 
-      // faster & more clean & more memory efficient:
+      // faster, cleaner & more memory efficient:
       // result.mpi_all_reduce(private_result, MPI_SUM);
       // but performs the summing in arbitrary order (and different order for every node!), so the result may lead to
       // different execution paths in each process ...
@@ -482,12 +497,16 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
         result = transform->inverse_derivative_transpose(*current_param_transformed, result);
       }
 
+      // hilbert spaces: Riesz
       // dot_transform_inverse is linear, and the same operator for all adjoints
-
       if (result.get_norm()->hilbert()) {
-        adj_timer.start();
+        Timer duality_timer;
+        duality_timer.start();
         result.dot_transform_inverse();
-        adj_timer.stop();
+        duality_timer.stop();
+
+        stats->calls_duality++;
+        stats->time_duality += duality_timer.wall_time();
       }
 
       stats->calls_adjoint++;
@@ -498,16 +517,6 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
 
       stats->time_adjoint_communication += comm_timer.wall_time();
 
-      if (parent_stats) {
-        parent_stats->calls_linearization_adjoint++;
-        parent_stats->time_linearization_adjoint += adj_timer.wall_time();
-
-        parent_stats->calls_measure_adjoint++;
-        parent_stats->time_measure_adjoint += adj_meas_timer.wall_time();
-
-        parent_stats->time_linearization_adjoint_communication += comm_timer.wall_time();
-      }
-
       return result;
     }
 
@@ -516,6 +525,7 @@ class WaveProblem : public NonlinearProblem<DiscretizedFunction<dim>, Tuple<Meas
     }
 
     virtual std::shared_ptr<LinearProblemStats> get_statistics() { return stats; }
+    virtual void reset_statistics() { stats = std::make_shared<LinearProblemStats>(); }
 
    private:
     std::shared_ptr<LinearProblemStats> stats;

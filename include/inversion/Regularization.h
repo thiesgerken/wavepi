@@ -8,6 +8,7 @@
 #ifndef INVERSION_REGULARIZATION_H_
 #define INVERSION_REGULARIZATION_H_
 
+#include <inversion/InverseProblem.h>
 #include <inversion/InversionProgress.h>
 #include <inversion/PostProcessor.h>
 
@@ -64,18 +65,29 @@ class Regularization {
   void add_post_processor(std::shared_ptr<PostProcessor<Param>> processor) { post_processors.push_back(processor); }
 
  protected:
-  bool progress(InversionProgress<Param, Sol, Exact> state) {
+  virtual bool progress(InversionProgress<Param, Sol, Exact> state, std::shared_ptr<ProblemStats> stats) {
+    Timer timer;
+    timer.start();
     bool continue_iteration = true;
 
     for (auto listener : progress_listeners)
       continue_iteration &= listener->progress(state);
 
+    timer.stop();
+    if (stats) stats->time_io += timer.wall_time();
+
     return continue_iteration;
   }
 
-  void post_process(int iteration_number, Param* current_estimate, double norm_current_estimate) {
+  virtual void post_process(int iteration_number, Param* current_estimate, double norm_current_estimate,
+                            std::shared_ptr<ProblemStats> stats) {
+    Timer timer;
+    timer.start();
     for (auto processor : post_processors)
       processor->post_process(iteration_number, current_estimate, norm_current_estimate);
+
+    timer.stop();
+    if (stats) stats->time_postprocessing += timer.wall_time();
   }
 
  private:

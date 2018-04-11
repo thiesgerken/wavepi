@@ -60,7 +60,7 @@ class Landweber : public LinearRegularization<Param, Sol, Exact> {
 
     InversionProgress<Param, Sol, Exact> status(0, &estimate, estimate.norm(), &residual, discrepancy,
                                                 target_discrepancy, &data, norm_data, exact_param, false);
-    this->progress(status);
+    this->progress(status, this->problem->get_statistics());
 
     for (int k = 1; discrepancy > target_discrepancy; k++) {
       Param adj = this->problem->adjoint(residual);
@@ -72,7 +72,7 @@ class Landweber : public LinearRegularization<Param, Sol, Exact> {
 
       // post-processing
       deallog.push("post_processing");
-      this->post_process(k, &estimate, norm_estimate);
+      this->post_process(k, &estimate, norm_estimate, this->problem->get_statistics());
       deallog.pop();
 
       // calculate new residual and discrepancy
@@ -86,11 +86,11 @@ class Landweber : public LinearRegularization<Param, Sol, Exact> {
       status = InversionProgress<Param, Sol, Exact>(k, &estimate, norm_estimate, &residual, discrepancy,
                                                     target_discrepancy, &data, norm_data, exact_param, false);
 
-      if (!this->progress(status)) break;
+      if (!this->progress(status, this->problem->get_statistics())) break;
     }
 
     status.finished = true;
-    this->progress(status);
+    this->progress(status, this->problem->get_statistics());
 
     if (status_out) *status_out = status;
 
