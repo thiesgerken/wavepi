@@ -46,7 +46,7 @@ void Util::set_all_boundary_ids(Triangulation<dim> &tria, int id) {
   }
 }
 
-std::string Util::format_duration(const double seconds) {
+std::string Util::format_duration(double seconds) {
   if (std::isnan(seconds) || std::isinf(seconds)) return "0s";
 
   std::stringstream ss;
