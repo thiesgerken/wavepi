@@ -52,6 +52,11 @@ std::string Util::format_duration(const double seconds) {
   std::stringstream ss;
   ss << std::fixed << std::setprecision(1);
 
+  if (seconds < 0) {
+    seconds *= -1;
+    ss << "-";
+  }
+
   if (seconds < 1e-6)
     ss << seconds * 1e9 << "ns";
   else if (seconds < 1e-3)
