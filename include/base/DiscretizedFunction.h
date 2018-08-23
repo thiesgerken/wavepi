@@ -46,12 +46,12 @@ class DiscretizedFunction : public Function<dim> {
   /**
    * copy constructor
    */
-  DiscretizedFunction(const DiscretizedFunction& that);
+  DiscretizedFunction(const DiscretizedFunction<dim>& that);
 
   /**
    * move constructor
    */
-  DiscretizedFunction(DiscretizedFunction&& that);
+  DiscretizedFunction(DiscretizedFunction<dim>&& that);
 
   /**
    * Creates a new discretized function and initializes it with zeroes.

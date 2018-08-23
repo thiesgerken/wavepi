@@ -88,7 +88,7 @@ DiscretizedFunction<dim>::DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>
     : DiscretizedFunction(mesh, function, std::make_shared<InvalidNorm<DiscretizedFunction<dim>>>()) {}
 
 template <int dim>
-DiscretizedFunction<dim>::DiscretizedFunction(DiscretizedFunction&& o)
+DiscretizedFunction<dim>::DiscretizedFunction(DiscretizedFunction<dim>&& o)
     : Function<dim>(),
       mesh(std::move(o.mesh)),
       norm_(o.norm_),
@@ -102,7 +102,7 @@ DiscretizedFunction<dim>::DiscretizedFunction(DiscretizedFunction&& o)
 }
 
 template <int dim>
-DiscretizedFunction<dim>::DiscretizedFunction(const DiscretizedFunction& o)
+DiscretizedFunction<dim>::DiscretizedFunction(const DiscretizedFunction<dim>& o)
     : Function<dim>(),
       mesh(o.mesh),
       norm_(o.norm_),
