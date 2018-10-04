@@ -35,7 +35,7 @@ AdaptiveMesh<dim>::AdaptiveMesh(std::vector<double> times, FE_Q<dim> fe, Quadrat
   sparsity_patterns = std::vector<std::shared_ptr<SparsityPattern>>(this->length());
   mass_matrices     = std::vector<std::shared_ptr<SparseMatrix<double>>>(this->length());
   laplace_matrices  = std::vector<std::shared_ptr<SparseMatrix<double>>>(this->length());
-  constraints       = std::vector<std::shared_ptr<ConstraintMatrix>>(this->length());
+  constraints       = std::vector<std::shared_ptr<AffineConstraints<double>>>(this->length());
 
   working_time_idx = 0;
 
@@ -52,7 +52,7 @@ void AdaptiveMesh<dim>::reset() {
   mass_matrices     = std::vector<std::shared_ptr<SparseMatrix<double>>>(this->length());
   laplace_matrices  = std::vector<std::shared_ptr<SparseMatrix<double>>>(this->length());
   sparsity_patterns = std::vector<std::shared_ptr<SparsityPattern>>(this->length());
-  constraints       = std::vector<std::shared_ptr<ConstraintMatrix>>(this->length());
+  constraints       = std::vector<std::shared_ptr<AffineConstraints<double>>>(this->length());
 
   working_time_idx = 0;
 
@@ -77,7 +77,7 @@ size_t AdaptiveMesh<dim>::n_dofs(size_t idx) {
 }
 
 template <int dim>
-std::shared_ptr<ConstraintMatrix> AdaptiveMesh<dim>::get_constraint_matrix(size_t idx) {
+std::shared_ptr<AffineConstraints<double>> AdaptiveMesh<dim>::get_constraint_matrix(size_t idx) {
   if (!constraints[idx]) {
     {
       LogStream::Prefix p("AdaptiveMesh");
@@ -85,7 +85,7 @@ std::shared_ptr<ConstraintMatrix> AdaptiveMesh<dim>::get_constraint_matrix(size_
     }
 
     get_dof_handler(idx);
-    constraints[idx] = std::make_shared<ConstraintMatrix>();
+    constraints[idx] = std::make_shared<AffineConstraints<double>>();
     DoFTools::make_hanging_node_constraints(*working_dof_handler, *constraints[idx]);
     constraints[idx]->close();
   }

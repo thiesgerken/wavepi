@@ -41,7 +41,7 @@ class ConstantMesh : public SpaceTimeMesh<dim> {
 
   virtual std::shared_ptr<DoFHandler<dim>> get_dof_handler(size_t idx) override;
 
-  virtual std::shared_ptr<ConstraintMatrix> get_constraint_matrix(size_t idx) override;
+  virtual std::shared_ptr<AffineConstraints<double>> get_constraint_matrix(size_t idx) override;
 
   virtual std::shared_ptr<Triangulation<dim>> get_triangulation(size_t idx) override;
 
@@ -65,7 +65,7 @@ class ConstantMesh : public SpaceTimeMesh<dim> {
   std::shared_ptr<SparseMatrix<double>> mass_matrix;
   std::shared_ptr<SparseMatrix<double>> laplace_matrix;
 
-  std::shared_ptr<ConstraintMatrix> constraints;
+  std::shared_ptr<AffineConstraints<double>> constraints;
 };
 
 }  // namespace base

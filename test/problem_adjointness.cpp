@@ -145,7 +145,7 @@ class TestA : public Function<dim> {
 template <int dim>
 class TestNu : public Function<dim> {
  public:
-  double value(const Point<dim> &p, const unsigned int component = 0) const {
+  double value(const Point<dim> &p __attribute__((unused)), const unsigned int component = 0) const {
     Assert(component == 0, ExcIndexRange(component, 0, 1));
 
     if (this->get_time() > 1.0) return 0.0;
@@ -171,7 +171,7 @@ template <int dim>
 class TestEstimate : public Function<dim> {
  public:
   TestEstimate() : Function<dim>() {}
-  double value(const Point<dim> &p, const unsigned int component = 0) const {
+  double value(const Point<dim> &p __attribute__((unused)), const unsigned int component = 0) const {
     Assert(component == 0, ExcIndexRange(component, 0, 1));
 
     return 2;

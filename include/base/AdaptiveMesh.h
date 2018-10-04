@@ -51,7 +51,7 @@ class AdaptiveMesh : public SpaceTimeMesh<dim> {
 
   virtual std::shared_ptr<SparsityPattern> get_sparsity_pattern(size_t idx) override;
 
-  virtual std::shared_ptr<ConstraintMatrix> get_constraint_matrix(size_t idx) override;
+  virtual std::shared_ptr<AffineConstraints<double>> get_constraint_matrix(size_t idx) override;
 
   virtual std::shared_ptr<DoFHandler<dim>> get_dof_handler(size_t idx) override;
 
@@ -136,7 +136,7 @@ class AdaptiveMesh : public SpaceTimeMesh<dim> {
   /**
    * all the constraint matrices (or empty `std::shared_ptr` if they have not been constructed yet)
    */
-  std::vector<std::shared_ptr<ConstraintMatrix>> constraints;
+  std::vector<std::shared_ptr<AffineConstraints<double>>> constraints;
 
   // the Triangulation and DoFHandler for the last requested mass matrix or DoFHandler.
   size_t working_time_idx;

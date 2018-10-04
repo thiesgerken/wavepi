@@ -128,7 +128,7 @@ class QProblem : public WaveProblem<dim, Measurement> {
       DiscretizedFunction<dim> res(weq.get_mesh());
 
       if (adjoint_solver == WaveEquationBase<dim>::WaveEquationBackwards) {
-        AssertThrow((std::dynamic_pointer_cast<ZeroFunction<dim>, Function<dim>>(weq.get_param_nu()) != nullptr),
+        AssertThrow((std::dynamic_pointer_cast<Functions::ZeroFunction<dim>, Function<dim>>(weq.get_param_nu()) != nullptr),
                     ExcMessage("Wrong adjoint because ν≠0!"));
 
         weq.set_right_hand_side(rhs_adj);

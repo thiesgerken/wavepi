@@ -11,7 +11,7 @@
 #include <deal.II/base/function.h>
 #include <deal.II/base/quadrature.h>
 #include <deal.II/dofs/dof_handler.h>
-#include <deal.II/lac/constraint_matrix.h>
+#include <deal.II/lac/affine_constraints.h>
 #include <deal.II/lac/sparse_matrix.h>
 #include <deal.II/lac/sparsity_pattern.h>
 #include <deal.II/lac/vector.h>
@@ -109,7 +109,7 @@ class WaveEquation : public WaveEquationBase<dim> {
   std::shared_ptr<Function<dim>> initial_values_u, initial_values_v;
   std::shared_ptr<Function<dim>> boundary_values_u, boundary_values_v;
 
-  std::shared_ptr<ConstraintMatrix> constraints;
+  std::shared_ptr<AffineConstraints<double>> constraints;
   std::shared_ptr<SparsityPattern> sparsity_pattern;
 
   // matrices corresponding to the operators A, B, C at the current and the last time step

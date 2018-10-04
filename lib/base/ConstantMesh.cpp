@@ -50,9 +50,9 @@ std::shared_ptr<SparseMatrix<double>> ConstantMesh<dim>::get_laplace_matrix(size
 }
 
 template <int dim>
-std::shared_ptr<ConstraintMatrix> ConstantMesh<dim>::get_constraint_matrix(size_t idx __attribute((unused))) {
+std::shared_ptr<AffineConstraints<double>> ConstantMesh<dim>::get_constraint_matrix(size_t idx __attribute((unused))) {
   if (!constraints) {
-    constraints = std::make_shared<ConstraintMatrix>();
+    constraints = std::make_shared<AffineConstraints<double>>();
     DoFTools::make_hanging_node_constraints(*dof_handler, *constraints);
     constraints->close();
   }

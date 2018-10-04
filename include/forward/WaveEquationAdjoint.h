@@ -10,7 +10,7 @@
 
 #include <deal.II/base/quadrature.h>
 #include <deal.II/dofs/dof_handler.h>
-#include <deal.II/lac/constraint_matrix.h>
+#include <deal.II/lac/affine_constraints.h>
 #include <deal.II/lac/sparse_matrix.h>
 #include <deal.II/lac/sparsity_pattern.h>
 #include <deal.II/lac/vector.h>
@@ -82,7 +82,7 @@ class WaveEquationAdjoint : public WaveEquationBase<dim> {
   DiscretizedFunction<dim> apply_R_transpose(const DiscretizedFunction<dim>& u);
 
   std::shared_ptr<SparsityPattern> sparsity_pattern;
-  std::shared_ptr<ConstraintMatrix> constraints;
+  std::shared_ptr<AffineConstraints<double>> constraints;
 
   // matrices corresponding to the operators A, B, C at the current and the last time step
   SparseMatrix<double> matrix_A;

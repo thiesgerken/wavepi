@@ -34,8 +34,8 @@ class WaveEquationBase {
   // solvers for adjoint of L : L^2 -> L^2
   enum L2AdjointSolver { WaveEquationAdjoint, WaveEquationBackwards };
 
-  std::shared_ptr<Function<dim>> zero          = std::make_shared<ZeroFunction<dim>>(1);
-  std::shared_ptr<Function<dim>> one           = std::make_shared<ConstantFunction<dim>>(1.0, 1);
+  std::shared_ptr<Function<dim>> zero          = std::make_shared<Functions::ZeroFunction<dim>>(1);
+  std::shared_ptr<Function<dim>> one           = std::make_shared<Functions::ConstantFunction<dim>>(1.0, 1);
   std::shared_ptr<RightHandSide<dim>> zero_rhs = std::make_shared<L2RightHandSide<dim>>(zero);
 
   virtual ~WaveEquationBase() = default;
