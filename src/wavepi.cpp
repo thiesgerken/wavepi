@@ -152,13 +152,13 @@ int main(int argc, char *argv[]) {
     }
 
     // has to be kept in scope
-    std::ofstream logout;
+    std::shared_ptr<std::ofstream> logout;
 
     if (cfg->log_file.size()) {
       if (mpi_size > 1) cfg->log_file = cfg->log_file + std::to_string(mpi_rank);
 
-      logout = std::ofstream(cfg->log_file);
-      deallog.attach(logout);
+      logout = std::make_shared<std::ofstream>(cfg->log_file);
+      deallog.attach(*logout);
       deallog.depth_file(mpi_rank == 0 ? cfg->log_file_depth : cfg->log_file_depth_mpi);
     }
 
