@@ -1,27 +1,39 @@
+cache:
+  key: ${CI_JOB_NAME}
+  paths:
+    - build
+
 stages:
   - build
   - test
 
 build:
-  tags:
-    - dealii
   stage: build
   script:
     - mkdir -p build
     - cd build
-    - cmake .. -G Ninja
-    - ninja debug
-    - ninja -j1
+    - cmake .. -DCMAKE_BUILD_TYPE=Release
+    - make -j2
+    - for f in $(find .  -name "libwavepi*.so"); do cp $f .; done
+    - tar cfz ../wavepi.tar.gz *.so wavepi*
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - wavepi.tar.gz
+  tags:
+    - docker
+  image: dealii:d68d619
 
 test:
-  tags:
-    - dealii
   stage: test
+  dependencies:
+    - build
   script:
     - mkdir -p build
     - cd build
-    - cmake .. -G Ninja
-    - ninja debug
-    - ninja -j1
+    - tar xfz ../wavepi.tar.gz
     - ./wavepi_test
   when: manual
+  tags:
+    - docker
+  image: dealii:d68d619
