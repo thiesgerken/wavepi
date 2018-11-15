@@ -14,12 +14,13 @@ build:
     - cd build
     - cmake .. -DCMAKE_BUILD_TYPE=Release
     - make -j2
-    - for f in $(find .  -name "libwavepi*.so"); do cp $f .; done
-    - tar cfz ../wavepi.tar.gz *.so wavepi*
+    - mkdir -p ../dist
+    - for f in $(find . -name "libwavepi*.so"); do cp $f ../dist; done
+    - for f in wavepi*; do cp $f ../dist; done
   artifacts:
     expire_in: 1 week
     paths:
-      - wavepi.tar.gz
+      - dist
   tags:
     - docker
   image: dealii:d68d619
@@ -29,9 +30,7 @@ test:
   dependencies:
     - build
   script:
-    - mkdir -p build
-    - cd build
-    - tar xfz ../wavepi.tar.gz
+    - cd dist
     - ./wavepi_test
   when: manual
   tags:
