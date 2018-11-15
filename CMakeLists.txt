@@ -15,9 +15,6 @@ add_custom_target(release
   COMMENT "Switch CMAKE_BUILD_TYPE to Release"
   )
 
-find_package(deal.II 8.5.0 REQUIRED QUIET
-  HINTS ${deal.II_DIR} ${DEAL_II_DIR} ../ ../../ $ENV{DEAL_II_DIR}
-  )
 set(Boost_USE_STATIC_LIBS   ON)
 set (BOOST_ROOT /usr/local)
 find_package(Boost 1.62 REQUIRED QUIET COMPONENTS filesystem program_options regex)
@@ -25,10 +22,13 @@ find_package(Boost 1.62 REQUIRED QUIET COMPONENTS filesystem program_options reg
 find_package (MPI REQUIRED)
 include_directories(${MPI_CXX_INCLUDE_PATH})
 
-include_directories(/usr/local/include/deal.II/bundled)
-
+find_package(deal.II 9.1.0 REQUIRED QUIET
+  HINTS ${deal.II_DIR} ${DEAL_II_DIR} ../ ../../ $ENV{DEAL_II_DIR}
+)
 
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
+include_directories(/usr/local/include/deal.II/bundled)
+
 
 string (REPLACE "-O3" "" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
 
@@ -44,11 +44,11 @@ set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} -fuse-ld=gold")
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fuse-ld=gold")
 
 IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    message(STATUS "Compiling in debug mode")   
+    message(STATUS "Compiling in debug mode")
 ELSEIF(CMAKE_BUILD_TYPE STREQUAL "Release")
-    message(STATUS "Compiling in release mode")   
+    message(STATUS "Compiling in release mode")
 ELSE()
-    message(STATUS "Compiling in unknown mode!")   
+    message(STATUS "Compiling in unknown mode!")
 ENDIF()
 
 if(WAVEPI_WITH_MPI)
