@@ -18,20 +18,26 @@ add_custom_target(release
 find_package(deal.II 8.5.0 REQUIRED QUIET
   HINTS ${deal.II_DIR} ${DEAL_II_DIR} ../ ../../ $ENV{DEAL_II_DIR}
   )
+set(Boost_USE_STATIC_LIBS   ON)
+set (BOOST_ROOT /usr/local)
+find_package(Boost 1.62 REQUIRED QUIET COMPONENTS filesystem program_options regex)
 
-find_package(Boost 1.56 REQUIRED QUIET COMPONENTS
-             filesystem program_options regex)
+find_package (MPI REQUIRED)
+include_directories(${MPI_CXX_INCLUDE_PATH})
+
+include_directories(/usr/local/include/deal.II/bundled)
+
 
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
 
-string (REPLACE "-O3" "" CMAKE_CXX_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELEASE})
+string (REPLACE "-O3" "" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -Wall")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -s -Wall -Wno-unused-parameter")
 set(CMAKE_CXX_STANDARD 14)
 
-string (REPLACE "-O2" "" CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
-string (REPLACE "-O3" "" CMAKE_CXX_FLAGS_DEBUG ${CMAKE_CXX_FLAGS_DEBUG})
+string (REPLACE "-O2" "" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
+string (REPLACE "-O3" "" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
 
 set(CMAKE_EXE_LINKER_FLAGS    "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=gold")
 set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} -fuse-ld=gold")
