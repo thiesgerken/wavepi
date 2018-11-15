@@ -1,5 +1,3 @@
-MESSAGE(${Boost_LIBRARIES})
-
 ADD_EXECUTABLE(wavepi_exe wavepi.cpp)
 # target_link_libraries(wavepi_exe wavepi wavepi_base wavepi_forward wavepi_inversion Boost::filesystem Boost::program_options)
 target_link_libraries(wavepi_exe wavepi wavepi_base wavepi_forward wavepi_inversion ${Boost_LIBRARIES})

@@ -15,8 +15,8 @@ add_custom_target(release
   COMMENT "Switch CMAKE_BUILD_TYPE to Release"
   )
 
-set(Boost_USE_STATIC_LIBS   ON)
-set (BOOST_ROOT /usr/local)
+set(Boost_USE_STATIC_LIBS ON)
+set(BOOST_ROOT /usr/local)
 find_package(Boost 1.62 REQUIRED QUIET COMPONENTS filesystem program_options regex)
 
 find_package (MPI REQUIRED)
@@ -28,7 +28,6 @@ find_package(deal.II 9.1.0 REQUIRED QUIET
 
 DEAL_II_INITIALIZE_CACHED_VARIABLES()
 include_directories(/usr/local/include/deal.II/bundled)
-
 
 string (REPLACE "-O3" "" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
 

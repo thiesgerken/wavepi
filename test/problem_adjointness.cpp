@@ -13,7 +13,6 @@
 #include <base/Transformation.h>
 #include <base/Tuple.h>
 #include <base/Util.h>
-#include <bits/std_abs.h>
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/function.h>
 #include <deal.II/base/logstream.h>
