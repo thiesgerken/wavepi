@@ -12,7 +12,7 @@ build:
   script:
     - mkdir -p build
     - cd build
-    - cmake .. -DCMAKE_BUILD_TYPE=Release
+    - cmake .. -DCMAKE_BUILD_TYPE=Release -DWAVEPI_WITH_MPI=ON
     - make -j2
     - mkdir -p ../dist
     - for f in $(find . -name "libwavepi*.so"); do cp $f ../dist; done
@@ -23,7 +23,7 @@ build:
       - dist
   tags:
     - docker
-  image: dealii:d68d619
+  image: git.thiesgerken.de:5005/thies/wavepi/dealii:d68d619
 
 test:
   stage: test
@@ -35,4 +35,4 @@ test:
   when: manual
   tags:
     - docker
-  image: dealii:d68d619
+  image: git.thiesgerken.de:5005/thies/wavepi/dealii:d68d619
