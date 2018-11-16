@@ -32,7 +32,7 @@ using namespace wavepi::base;
 template<int dim>
 class WaveEquationBase {
 public:
-   // solvers for adjoint of L : L^2 -> L^2
+   // solvers for adjoint of L ∊ 𝓛(L²([0,T], L²(Ω)), L²([0,T], L²(Ω)))
    enum L2AdjointSolver {
       WaveEquationAdjoint, WaveEquationBackwards
    };
@@ -106,14 +106,13 @@ public:
          this->special_assembly_tactic = 0;
    }
 
-protected:
    void fill_A(std::shared_ptr<SpaceTimeMesh<dim>> mesh, DoFHandler<dim> &dof_handler,
          SparseMatrix<double> &destination);
    void fill_B(std::shared_ptr<SpaceTimeMesh<dim>> mesh, DoFHandler<dim> &dof_handler,
          SparseMatrix<double> &destination);
    void fill_C(std::shared_ptr<SpaceTimeMesh<dim>> mesh, DoFHandler<dim> &dof_handler,
          SparseMatrix<double> &destination);
-
+protected:
    // treat DiscretizedFunctions as parameters and right hand side differently
    // < 0 -> no (better if much coupling present), > 0 -> yes, = 0 automatically (default)
    int special_assembly_tactic = 0;

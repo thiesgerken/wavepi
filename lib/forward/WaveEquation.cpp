@@ -56,7 +56,6 @@ void WaveEquation<dim>::apply_boundary_conditions_u(double time) {
    std::map<types::global_dof_index, double> boundary_values;
    VectorTools::interpolate_boundary_values(*dof_handler, 0, *boundary_values_u, boundary_values);
    MatrixTools::apply_boundary_values(boundary_values, system_matrix, solution_u, system_rhs);
-
 }
 
 template<int dim>
@@ -66,7 +65,6 @@ void WaveEquation<dim>::apply_boundary_conditions_v(double time) {
    std::map<types::global_dof_index, double> boundary_values;
    VectorTools::interpolate_boundary_values(*dof_handler, 0, *boundary_values_v, boundary_values);
    MatrixTools::apply_boundary_values(boundary_values, system_matrix, solution_v, system_rhs);
-
 }
 
 template<int dim>
@@ -79,28 +77,33 @@ void WaveEquation<dim>::initial_values(double time) {
    //   VectorTools::project(*dof_handler, constraints, QGauss<dim>(3), *initial_values_u, old_solution_u);
    //   VectorTools::project(*dof_handler, constraints, QGauss<dim>(3), *initial_values_v, old_solution_v);
    VectorTools::interpolate(*dof_handler, *initial_values_u, solution_u);
-   mesh->get_constraint_matrix(first_idx)->distribute(solution_u);
+   constraints->distribute(solution_u);
 
    VectorTools::interpolate(*dof_handler, *initial_values_v, solution_v);
-   mesh->get_constraint_matrix(first_idx)->distribute(solution_v);
+   constraints->distribute(solution_v);
 }
 
 template<int dim>
 void WaveEquation<dim>::assemble_matrices(double time) {
    LogStream::Prefix p("assemble_matrices");
 
+   param_a->set_time(time);
+   param_nu->set_time(time);
+   param_q->set_time(time);
+   param_c->set_time(time);
+
    // this helps only a bit because each of the operations is already parallelized
    // tests show about 20%-30% (depending on dim) speedup on my Intel i5 4690
    Threads::TaskGroup<void> task_group;
-   task_group += Threads::new_task(&WaveEquationBase<dim>::fill_A, *this, *dof_handler, matrix_A);
-   task_group += Threads::new_task(&WaveEquationBase<dim>::fill_B, *this, *dof_handler, matrix_B);
-   task_group += Threads::new_task(&WaveEquationBase<dim>::fill_C, *this, *dof_handler, matrix_C);
+   task_group += Threads::new_task(&WaveEquationBase<dim>::fill_A, *this, mesh, *dof_handler, matrix_A);
+   task_group += Threads::new_task(&WaveEquationBase<dim>::fill_B, *this, mesh, *dof_handler, matrix_B);
+   task_group += Threads::new_task(&WaveEquationBase<dim>::fill_C, *this, mesh, *dof_handler, matrix_C);
    task_group.join_all();
 }
 
 template<int dim>
 DiscretizedFunction<dim> WaveEquation<dim>::run(std::shared_ptr<RightHandSide<dim>> right_hand_side,
-      Direction direction) {
+      typename AbstractEquation<dim>::Direction direction) {
    // bound checking for a and c (if possible)
    // (should not take long compared to the rest and can be very tricky to find out otherwise
    //    -> do it even in release mode)

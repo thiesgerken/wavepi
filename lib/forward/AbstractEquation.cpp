@@ -17,6 +17,7 @@
 #include <deal.II/lac/solver_control.h>
 #include <deal.II/numerics/matrix_tools.h>
 #include <deal.II/numerics/vector_tools.h>
+
 #include <iostream>
 #include <map>
 #include <string>
@@ -55,6 +56,7 @@ template<int dim>
 void AbstractEquation<dim>::init_system(size_t first_idx) {
    dof_handler = mesh->get_dof_handler(first_idx);
    sparsity_pattern = mesh->get_sparsity_pattern(first_idx);
+   constraints = mesh->get_constraint_matrix(first_idx);
 
    matrix_A.reinit(*sparsity_pattern);
    matrix_B.reinit(*sparsity_pattern);

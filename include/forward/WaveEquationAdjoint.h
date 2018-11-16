@@ -18,6 +18,7 @@
 #include <base/DiscretizedFunction.h>
 #include <base/SpaceTimeMesh.h>
 #include <forward/WaveEquationBase.h>
+#include <forward/AbstractEquationAdjoint.h>
 
 #include <stddef.h>
 #include <memory>
@@ -28,87 +29,35 @@ using namespace dealii;
 
 // parameters and rhs must currently be discretized on the same space-time grid!
 // this is the adjoint equation when using vector norm in time and space
-template <int dim>
-class WaveEquationAdjoint : public WaveEquationBase<dim> {
- public:
-  WaveEquationAdjoint(std::shared_ptr<SpaceTimeMesh<dim>> mesh);
-  WaveEquationAdjoint(const WaveEquationAdjoint<dim>& weq);
-  WaveEquationAdjoint(const WaveEquationBase<dim>& weq);
+template<int dim>
+class WaveEquationAdjoint: public AbstractEquationAdjoint<dim>, public WaveEquationBase<dim> {
+public:
+   WaveEquationAdjoint(std::shared_ptr<SpaceTimeMesh<dim>> mesh);
+   virtual ~WaveEquationAdjoint() = default;
 
-  ~WaveEquationAdjoint() = default;
+private:
+   virtual void apply_boundary_conditions_u(double time);
+   virtual void apply_boundary_conditions_v(double time);
+   virtual void assemble_matrices(double time);
 
-  WaveEquationAdjoint<dim>& operator=(const WaveEquationAdjoint<dim>& weq);
+   using AbstractEquationAdjoint<dim>::mesh;
+   using AbstractEquationAdjoint<dim>::dof_handler;
+   using AbstractEquationAdjoint<dim>::constraints;
+   using AbstractEquationAdjoint<dim>::system_matrix;
+   using AbstractEquationAdjoint<dim>::system_rhs_u;
+   using AbstractEquationAdjoint<dim>::system_rhs_v;
+   using AbstractEquationAdjoint<dim>::solution_u;
+   using AbstractEquationAdjoint<dim>::solution_v;
+   using AbstractEquationAdjoint<dim>::matrix_A;
+   using AbstractEquationAdjoint<dim>::matrix_B;
+   using AbstractEquationAdjoint<dim>::matrix_C;
 
-  DiscretizedFunction<dim> run();
+   using WaveEquationBase<dim>::param_c;
+   using WaveEquationBase<dim>::param_nu;
+   using WaveEquationBase<dim>::param_a;
+   using WaveEquationBase<dim>::param_q;
 
- private:
-  using WaveEquationBase<dim>::mesh;
-  using WaveEquationBase<dim>::theta;
-  using WaveEquationBase<dim>::right_hand_side;
-  using WaveEquationBase<dim>::param_c;
-  using WaveEquationBase<dim>::param_nu;
-  using WaveEquationBase<dim>::param_a;
-  using WaveEquationBase<dim>::param_q;
-
-  // move on one step (overwrite X_old with X)
-  void next_step(size_t time_idx);
-
-  // assembling steps of u and v that need to happen on the old mesh
-  void assemble_u_pre(size_t time_idx);
-  void assemble_v_pre(size_t time_idx);
-
-  // move on to the mesh of the current time step,
-  // interpolating system_rhs_[u,v] and tmp_u on the next mesh
-  void next_mesh(size_t source_idx, size_t target_idx);
-
-  // assemble matices of the current time step
-  void assemble_matrices();
-
-  // final assembly of rhs for u and solving for u
-  void assemble_u(size_t time_idx);
-  void solve_u();
-
-  // final assembly of rhs for v and solving for v
-  void assemble_v(size_t time_idx);
-  void solve_v();
-
-  /**
-   * Deinitialize matrices and vectors.
-   * This function should be called after computations to have minimal memory requirements when this object is not
-   * currently in use.
-   */
-  void cleanup();
-
-  DiscretizedFunction<dim> apply_R_transpose(const DiscretizedFunction<dim>& u);
-
-  std::shared_ptr<SparsityPattern> sparsity_pattern;
-  std::shared_ptr<AffineConstraints<double>> constraints;
-
-  // matrices corresponding to the operators A, B, C at the current and the last time step
-  SparseMatrix<double> matrix_A;
-  SparseMatrix<double> matrix_B;
-  SparseMatrix<double> matrix_C;
-
-  SparseMatrix<double> matrix_A_old;
-  SparseMatrix<double> matrix_B_old;
-  SparseMatrix<double> matrix_C_old;
-
-  // solution and its derivative at the current and the last time step
-  Vector<double> solution_u, solution_v;
-  Vector<double> solution_u_old, solution_v_old;
-  Vector<double> rhs;
-
-  // space for linear systems, their right hand sides
-  // and some temporary storage between assemble and pre_assemble.
-  SparseMatrix<double> system_matrix;
-
-  Vector<double> system_rhs_u;
-  Vector<double> system_rhs_v;
-
-  Vector<double> tmp_u;
-  Vector<double> tmp_v;
-
-  std::shared_ptr<DoFHandler<dim>> dof_handler;
+   std::shared_ptr<Function<dim>> zero;
 };
 
 } /* namespace forward */

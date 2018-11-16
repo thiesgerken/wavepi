@@ -44,7 +44,7 @@ public:
    virtual ~WaveEquation() = default;
 
    virtual DiscretizedFunction<dim> run(std::shared_ptr<RightHandSide<dim>> right_hand_side, typename AbstractEquation<dim>::Direction direction =
-         Forward);
+         AbstractEquation<dim>::Forward);
 
    std::shared_ptr<Function<dim>> get_boundary_values_u() const {
       return boundary_values_u;
@@ -85,11 +85,20 @@ protected:
    virtual void initial_values(double time);
 
    using AbstractEquation<dim>::mesh;
+   using AbstractEquation<dim>::dof_handler;
+   using AbstractEquation<dim>::constraints;
+   using AbstractEquation<dim>::system_matrix;
+   using AbstractEquation<dim>::system_rhs;
    using AbstractEquation<dim>::solution_u;
    using AbstractEquation<dim>::solution_v;
    using AbstractEquation<dim>::matrix_A;
    using AbstractEquation<dim>::matrix_B;
    using AbstractEquation<dim>::matrix_C;
+
+   using WaveEquationBase<dim>::param_c;
+   using WaveEquationBase<dim>::param_nu;
+   using WaveEquationBase<dim>::param_a;
+   using WaveEquationBase<dim>::param_q;
 
 private:
    std::shared_ptr<Function<dim>> initial_values_u, initial_values_v;
