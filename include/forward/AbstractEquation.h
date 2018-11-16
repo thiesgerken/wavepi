@@ -110,8 +110,12 @@ protected:
 
    // DoFHandler for the current time step
    std::shared_ptr<DoFHandler<dim>> dof_handler;
+
    // initialize vectors and matrices
    void init_system(size_t first_idx);
+
+   // fill solution_u and solution_v with initial values
+   virtual void initial_values(double time) = 0;
 
    // move on one step (overwrite X_old with X)
    void next_step();
@@ -130,20 +134,30 @@ protected:
    // assemble matrices and rhs for current mesh (calls assemble_matrices)
    void assemble(double time);
 
-   // final assembly of rhs for u and solving for u
-   void assemble_u(double time_step);
+   // final assembly of rhs for u
+   void assemble_u(double time, double time_step);
+
+   // modify system_matrix, rhs and solution_u for Dirichlet boundary values
+   virtual void apply_boundary_conditions_u(double time) = 0;
+
+   // solve for u
    void solve_u();
 
-   // final assembly of rhs for v and solving for v
-   void assemble_v(double time_step);
+   // final assembly of rhs for v
+   void assemble_v(double time, double time_step);
+
+   // modify system_matrix, rhs and solution_v for Dirichlet boundary values
+   virtual void apply_boundary_conditions_v(double time) = 0;
+
+   // solve for v
    void solve_v();
 
    /**
-    * Deinitialize matrices and vectors.
+    * Destroy matrices and vectors.
     * This function should be called after computations to have minimal memory requirements when this object is not
     * currently in use.
     */
-   void cleanup();
+   virtual void cleanup();
 
 };
 

@@ -70,19 +70,9 @@ void AbstractEquation<dim>::init_system(size_t first_idx) {
    system_tmp2.reinit(dof_handler->n_dofs());
 
    double time = mesh->get_time(first_idx);
+
    right_hand_side->set_time(time);
-
-   /* projecting might make more sense, but VectorTools::project
-    leads to a mutex error (deadlock) on my laptop (Core i5 6267U) */
-   //   VectorTools::project(*dof_handler, constraints, QGauss<dim>(3), *initial_values_u, old_solution_u);
-   //   VectorTools::project(*dof_handler, constraints, QGauss<dim>(3), *initial_values_v, old_solution_v);
-   initial_values_u->set_time(time);
-   VectorTools::interpolate(*dof_handler, *initial_values_u, solution_u);
-   mesh->get_constraint_matrix(first_idx)->distribute(solution_u);
-
-   initial_values_v->set_time(time);
-   VectorTools::interpolate(*dof_handler, *initial_values_v, solution_v);
-   mesh->get_constraint_matrix(first_idx)->distribute(solution_v);
+   initial_values(time);
 }
 
 template<int dim>
@@ -190,7 +180,7 @@ void AbstractEquation<dim>::assemble_pre(double time_step) {
 // -> interpolate system_rhs and tmp_u to the new grid and calculate new matrices on new grid
 
 template<int dim>
-void AbstractEquation<dim>::assemble_u(double time_step) {
+void AbstractEquation<dim>::assemble_u(double time, double time_step) {
    Vector<double> tmp(solution_u.size());
 
    system_rhs.equ(theta, system_tmp2);
@@ -216,13 +206,11 @@ void AbstractEquation<dim>::assemble_u(double time_step) {
    // needed, because hanging node constraints are not already built into the sparsity pattern
    constraints->condense(system_matrix, system_rhs);
 
-   std::map<types::global_dof_index, double> boundary_values;
-   VectorTools::interpolate_boundary_values(*dof_handler, 0, *boundary_values_u, boundary_values);
-   MatrixTools::apply_boundary_values(boundary_values, system_matrix, solution_u, system_rhs);
+   apply_boundary_conditions_v(time);
 }
 
 template<int dim>
-void AbstractEquation<dim>::assemble_v(double time_step) {
+void AbstractEquation<dim>::assemble_v(double time, double time_step) {
    Vector<double> tmp(solution_u.size());
 
    system_rhs.equ(1.0, system_tmp2);
@@ -245,9 +233,7 @@ void AbstractEquation<dim>::assemble_v(double time_step) {
    // needed, because hanging node constraints are not already built into the sparsity pattern
    constraints->condense(system_matrix, system_rhs);
 
-   std::map<types::global_dof_index, double> boundary_values;
-   VectorTools::interpolate_boundary_values(*dof_handler, 0, *boundary_values_v, boundary_values);
-   MatrixTools::apply_boundary_values(boundary_values, system_matrix, solution_v, system_rhs);
+   apply_boundary_conditions_v(time);
 }
 
 template<int dim>
@@ -301,7 +287,7 @@ void AbstractEquation<dim>::solve_v() {
 
 template<int dim>
 DiscretizedFunction<dim> AbstractEquation<dim>::run(std::shared_ptr<RightHandSide<dim>> right_hand_side,
-      Direction direction = Forward) {
+      Direction direction) {
    LogStream::Prefix p("AbstractEq");
    Assert(mesh->length() >= 2, ExcInternalError());
    Assert(mesh->length() < 10000, ExcNotImplemented());
@@ -323,8 +309,6 @@ DiscretizedFunction<dim> AbstractEquation<dim>::run(std::shared_ptr<RightHandSid
 
    // create matrices and rhs for first time step
    assemble(mesh->get_time(first_idx));
-
-   // TODO: solution_{u,v} <- initial values
 
    // add initial values to output data
    u.set(first_idx, solution_u, solution_v);
@@ -356,12 +340,12 @@ DiscretizedFunction<dim> AbstractEquation<dim>::run(std::shared_ptr<RightHandSid
 
       // finish assembling of rhs_u
       // and solve for $u^i$
-      assemble_u(dt);
+      assemble_u(time, dt);
       solve_u();
 
       // finish assembling of rhs_u
       // and solve for $v^i$
-      assemble_v(dt);
+      assemble_v(time, dt);
       solve_v();
 
       u.set(time_idx, solution_u, solution_v);
