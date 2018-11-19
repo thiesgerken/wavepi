@@ -5,6 +5,7 @@ cache:
 
 stages:
   - build
+  - deploy
   - test
 
 build:
@@ -15,8 +16,10 @@ build:
     - cmake .. -DCMAKE_BUILD_TYPE=Release -DWAVEPI_WITH_MPI=ON
     - make -j2
     - mkdir -p ../dist
-    - for f in $(find . -name "libwavepi*.so"); do cp $f ../dist; done
-    - for f in wavepi*; do cp $f ../dist; done
+    - mkdir -p ../dist/bin
+    - mkdir -p ../dist/lib
+    - for f in $(find . -name "libwavepi*.so"); do cp $f ../dist/lib; done
+    - for f in wavepi*; do cp $f ../dist/bin; done
   artifacts:
     expire_in: 1 week
     paths:
@@ -31,8 +34,47 @@ test:
     - build
   script:
     - cd dist
-    - ./wavepi_test
+    - ./wavepi-test
   when: manual
   tags:
     - docker
   image: git.thiesgerken.de:5005/thies/wavepi/dealii:d68d619
+
+deploy-rtg05:
+  stage: deploy
+  dependencies:
+    - build
+  script:
+    - echo "$RTG_ID_RSA" > id_rsa
+    - chmod 500 id_rsa
+    - cd dist && tar cfz ../wavepi.tar.gz . && cd ..
+    - scp -i id_rsa -oStrictHostKeyChecking=no wavepi.tar.gz tgerken@rtg05.math.uni-bremen.de:~/local
+    - ssh -i id_rsa -oStrictHostKeyChecking=no tgerken@rtg05.math.uni-bremen.de "cd ~/local && tar xfz wavepi.tar.gz && rm wavepi.tar.gz"
+    - rm id_rsa
+  environment:
+    name: rtg05
+    url: rtg05.math.uni-bremen.de
+  tags:
+    - build-tools
+  only:
+    - master
+
+deploy-rtg05-manual:
+  stage: deploy
+  dependencies:
+    - build
+  script:
+    - echo "$RTG_ID_RSA" > id_rsa
+    - chmod 500 id_rsa
+    - cd dist && tar cfz ../wavepi.tar.gz . && cd ..
+    - scp -i id_rsa -oStrictHostKeyChecking=no wavepi.tar.gz tgerken@rtg05.math.uni-bremen.de:~/local
+    - ssh -i id_rsa -oStrictHostKeyChecking=no tgerken@rtg05.math.uni-bremen.de "cd ~/local && tar xfz wavepi.tar.gz && rm wavepi.tar.gz"
+    - rm id_rsa
+  environment:
+    name: rtg05
+    url: rtg05.math.uni-bremen.de
+  tags:
+    - build-tools
+  when: manual
+  except:
+    - master

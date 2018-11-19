@@ -12,7 +12,7 @@ if (GTEST_FOUND)
         )
 
     ADD_EXECUTABLE(wavepi_test ${LIBSOURCES})
-    TARGET_LINK_LIBRARIES(wavepi_test ${GTEST_BOTH_LIBRARIES} wavepi_forward wavepi_inversion wavepi_base wavepi_norms wavepi_measurements) 
+    TARGET_LINK_LIBRARIES(wavepi_test ${GTEST_BOTH_LIBRARIES} pthread wavepi_forward wavepi_inversion wavepi_base wavepi_norms wavepi_measurements) 
     set_target_properties(wavepi_test PROPERTIES OUTPUT_NAME "wavepi-test")
  
     #include(GoogleTest)
