@@ -11,11 +11,16 @@ This is a work in progress, cf. [issue tracker](https://git.thiesgerken.de/thies
 ## Dependencies
 
  * `cmake   >= 2.8.8`
- * `deal.II >= 8.5.0`
- * `boost   >= 1.56 `
+ * `deal.II >= 9.1.0-pre`
+ * `boost   >= 1.62`
  * `gtest   >= 1.8.0` (optional)
 
-Note that `deal.II` has to be configured with [TBB](https://www.threadingbuildingblocks.org/), MPI and UMFPACK support (either bundled or external)
+Note that `deal.II` has to be configured with [TBB](https://www.threadingbuildingblocks.org/), MPI and UMFPACK support (either bundled or external). I use
+
+```shell
+cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DDEAL_II_WITH_MPI=ON
+```
+for configuring `deal.II`.
 
 ## How to Build
 
