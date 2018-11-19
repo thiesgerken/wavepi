@@ -5,8 +5,8 @@
  *      Author: thies
  */
 
-#ifndef LIB_FORWARD_WAVEEQUATIONBASE_H_
-#define LIB_FORWARD_WAVEEQUATIONBASE_H_
+#ifndef FORWARD_WAVEEQUATIONBASE_H_
+#define FORWARD_WAVEEQUATIONBASE_H_
 
 #include <deal.II/base/function.h>
 #include <deal.II/base/parameter_handler.h>

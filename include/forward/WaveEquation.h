@@ -41,10 +41,11 @@ template<int dim>
 class WaveEquation: public AbstractEquation<dim>, public WaveEquationBase<dim> {
 public:
    WaveEquation(std::shared_ptr<SpaceTimeMesh<dim>> mesh);
+   WaveEquation(const WaveEquation<dim> &wave);
    virtual ~WaveEquation() = default;
 
-   virtual DiscretizedFunction<dim> run(std::shared_ptr<RightHandSide<dim>> right_hand_side, typename AbstractEquation<dim>::Direction direction =
-         AbstractEquation<dim>::Forward);
+   virtual DiscretizedFunction<dim> run(std::shared_ptr<RightHandSide<dim>> right_hand_side,
+         typename AbstractEquation<dim>::Direction direction = AbstractEquation<dim>::Forward);
 
    std::shared_ptr<Function<dim>> get_boundary_values_u() const {
       return boundary_values_u;

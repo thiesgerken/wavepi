@@ -18,6 +18,7 @@
 #include <base/DiscretizedFunction.h>
 #include <base/SpaceTimeMesh.h>
 #include <forward/WaveEquationBase.h>
+#include <forward/WaveEquation.h>
 #include <forward/AbstractEquationAdjoint.h>
 
 #include <stddef.h>
@@ -33,6 +34,9 @@ template<int dim>
 class WaveEquationAdjoint: public AbstractEquationAdjoint<dim>, public WaveEquationBase<dim> {
 public:
    WaveEquationAdjoint(std::shared_ptr<SpaceTimeMesh<dim>> mesh);
+
+   WaveEquationAdjoint(const WaveEquation<dim> &wave);
+
    virtual ~WaveEquationAdjoint() = default;
 
 private:

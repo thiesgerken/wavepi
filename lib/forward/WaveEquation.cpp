@@ -49,6 +49,20 @@ WaveEquation<dim>::WaveEquation(std::shared_ptr<SpaceTimeMesh<dim>> mesh)
 }
 
 template<int dim>
+WaveEquation<dim>::WaveEquation(const WaveEquation<dim> &wave)
+   : AbstractEquation<dim>(wave.get_mesh()), initial_values_u(wave.get_initial_values_u()), initial_values_v(wave.get_initial_values_v()), boundary_values_u(wave.get_boundary_values_u()), boundary_values_v(wave.get_boundary_values_v()) {
+
+   this->set_param_c(wave.get_param_c());
+   this->set_param_nu(wave.get_param_nu());
+   this->set_param_a(wave.get_param_a());
+   this->set_param_q(wave.get_param_q());
+
+   this->set_theta(wave.get_theta());
+   this->set_solver_tolerance(wave.get_solver_tolerance());
+   this->set_solver_max_iter(wave.get_solver_max_iter());
+}
+
+template<int dim>
 void WaveEquation<dim>::apply_boundary_conditions_u(double time) {
    boundary_values_u->set_time(time);
    boundary_values_u->set_time(time);

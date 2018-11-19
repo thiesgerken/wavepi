@@ -115,15 +115,13 @@ void demo() {
   Quadrature<dim> quad = QGauss<dim>(3);
 
   auto mesh = std::make_shared<ConstantMesh<dim>>(times, fe, quad, triangulation);
-
   WaveEquation<dim> wave_eq(mesh);
-  wave_eq.set_right_hand_side(std::make_shared<L2RightHandSide<dim>>(std::make_shared<DemoF<dim>>()));
 
   DemoC<dim> demo_c_cont;
   auto demo_c = std::make_shared<DiscretizedFunction<dim>>(mesh, demo_c_cont);
   wave_eq.set_param_c(demo_c);
 
-  auto sol = wave_eq.run();
+  auto sol = wave_eq.run(std::make_shared<L2RightHandSide<dim>>(std::make_shared<DemoF<dim>>()));
   sol.write_pvd("./", "demo_u", "u");
   demo_c->write_pvd("./", "demo_c", "c");
 

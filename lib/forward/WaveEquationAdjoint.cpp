@@ -25,6 +25,7 @@
 #include <deal.II/numerics/vector_tools.h>
 
 #include <forward/WaveEquationAdjoint.h>
+#include <forward/WaveEquation.h>
 
 #include <stddef.h>
 #include <iostream>
@@ -39,6 +40,20 @@ using namespace wavepi::base;
 template<int dim>
 WaveEquationAdjoint<dim>::WaveEquationAdjoint(std::shared_ptr<SpaceTimeMesh<dim>> mesh)
       : AbstractEquationAdjoint<dim>(mesh), zero(std::make_shared<Functions::ZeroFunction<dim>>(1)){
+}
+
+template<int dim>
+WaveEquationAdjoint<dim>::WaveEquationAdjoint(const WaveEquation<dim> &wave)
+   : AbstractEquationAdjoint<dim>(wave.get_mesh()), zero(std::make_shared<Functions::ZeroFunction<dim>>(1)) {
+
+   this->set_param_c(wave.get_param_c());
+   this->set_param_nu(wave.get_param_nu());
+   this->set_param_a(wave.get_param_a());
+   this->set_param_q(wave.get_param_q());
+
+   this->set_theta(wave.get_theta());
+   this->set_solver_tolerance(wave.get_solver_tolerance());
+   this->set_solver_max_iter(wave.get_solver_max_iter());
 }
 
 template<int dim>
