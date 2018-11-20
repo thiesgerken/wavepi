@@ -5,8 +5,8 @@
  *      Author: thies
  */
 
-#ifndef INCLUDE_FORWARD_ABSTRACTEQUATIONADJOINT_H_
-#define INCLUDE_FORWARD_ABSTRACTEQUATIONADJOINT_H_
+#ifndef FORWARD_ABSTRACTEQUATIONADJOINT_H_
+#define FORWARD_ABSTRACTEQUATIONADJOINT_H_
 
 #include <base/DiscretizedFunction.h>
 #include <base/SpaceTimeMesh.h>
@@ -79,11 +79,12 @@ protected:
    std::shared_ptr<AffineConstraints<double>> constraints;
    std::shared_ptr<SparsityPattern> sparsity_pattern;
 
-   // matrices corresponding to the operators A, B, C at the current and the last time step
+   // matrices corresponding to the operators A, B, D^-1 C at the current time step
    SparseMatrix<double> matrix_A;
    SparseMatrix<double> matrix_B;
    SparseMatrix<double> matrix_C;
 
+   // TODO: do these actually have to be saved at all?
    SparseMatrix<double> matrix_A_old;
    SparseMatrix<double> matrix_B_old;
    SparseMatrix<double> matrix_C_old;

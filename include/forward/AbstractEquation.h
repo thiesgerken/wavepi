@@ -5,8 +5,8 @@
  *      Author: thies
  */
 
-#ifndef INCLUDE_FORWARD_ABSTRACTEQUATION_H_
-#define INCLUDE_FORWARD_ABSTRACTEQUATION_H_
+#ifndef FORWARD_ABSTRACTEQUATION_H_
+#define FORWARD_ABSTRACTEQUATION_H_
 
 #include <base/DiscretizedFunction.h>
 #include <base/SpaceTimeMesh.h>
@@ -88,10 +88,6 @@ protected:
    SparseMatrix<double> matrix_B;
    SparseMatrix<double> matrix_C;
 
-   SparseMatrix<double> matrix_A_old;
-   SparseMatrix<double> matrix_B_old;
-   SparseMatrix<double> matrix_C_old;
-
    // solution and its derivative at the current and the last time step
    Vector<double> solution_u, solution_v;
    Vector<double> solution_u_old, solution_v_old;
@@ -116,9 +112,6 @@ protected:
 
    // fill solution_u and solution_v with initial values
    virtual void initial_values(double time) = 0;
-
-   // move on one step (overwrite X_old with X)
-   void next_step();
 
    // assembling steps of u and v that need to happen on the old mesh
    void assemble_pre(double time_step);

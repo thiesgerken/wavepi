@@ -33,8 +33,8 @@ void AbstractEquation<dim>::declare_parameters(ParameterHandler &prm) {
    prm.enter_subsection("WaveEquation");
    {
       prm.declare_entry("theta", "0.5", Patterns::Double(0, 1),
-            "parameter θ in the time discretization (θ=1 -> backward euler, θ=0 -> forward euler, θ=0.5 -> Crank-Nicolson");
-      prm.declare_entry("tol", "1e-8", Patterns::Double(0, 1), "rel. tolerance for the solution of linear systems");
+            "parameter θ in the time discretization (θ=1 → backward Euler, θ=0 → forward Euler, θ=0.5 → Crank-Nicolson");
+      prm.declare_entry("tol", "1e-8", Patterns::Double(0, 1), "relative tolerance for the solution of linear systems");
       prm.declare_entry("max iter", "10000", Patterns::Integer(0),
             "maximum iteration threshold for the solution of linear systems");
    }
@@ -83,10 +83,6 @@ void AbstractEquation<dim>::cleanup() {
    matrix_B.clear();
    matrix_C.clear();
 
-   matrix_A_old.clear();
-   matrix_B_old.clear();
-   matrix_C_old.clear();
-
    solution_u.reinit(0);
    solution_v.reinit(0);
 
@@ -105,6 +101,7 @@ void AbstractEquation<dim>::cleanup() {
 
 template<int dim>
 void AbstractEquation<dim>::next_mesh(size_t source_idx, size_t target_idx) {
+   // TODO: system_tmp2 is a right hand side vector, maybe have to multiply with M^-1 first (and with M after?)
    dof_handler = mesh->transfer(source_idx, target_idx, { &system_tmp1, &system_tmp2 });
    sparsity_pattern = mesh->get_sparsity_pattern(target_idx);
    constraints = mesh->get_constraint_matrix(target_idx);
@@ -123,24 +120,6 @@ void AbstractEquation<dim>::next_mesh(size_t source_idx, size_t target_idx) {
 }
 
 template<int dim>
-void AbstractEquation<dim>::next_step() {
-   LogStream::Prefix p("next_step");
-
-   matrix_A_old.reinit(*sparsity_pattern);
-   matrix_B_old.reinit(*sparsity_pattern);
-   matrix_C_old.reinit(*sparsity_pattern);
-
-   // matrices, solution and right hand side of current time step -> matrices, solution and rhs of last time step
-   matrix_A_old.copy_from(matrix_A);
-   matrix_B_old.copy_from(matrix_B);
-   matrix_C_old.copy_from(matrix_C);
-   rhs_old = rhs;
-
-   solution_u_old = solution_u;
-   solution_v_old = solution_v;
-}
-
-template<int dim>
 void AbstractEquation<dim>::assemble(double time) {
    right_hand_side->set_time(time);
 
@@ -156,26 +135,33 @@ template<int dim>
 void AbstractEquation<dim>::assemble_pre(double time_step) {
    Vector<double> tmp(solution_u_old.size());
 
-   matrix_C_old.vmult(tmp, solution_v_old);
+   // grid has not been changed yet,
+   // matrix_* contain the matrices of the *last* time step.
+
+   matrix_C.vmult(tmp, solution_v_old);
    system_tmp2.equ(1.0 / time_step, tmp);
 
-   matrix_B_old.vmult(tmp, solution_v_old);
+   matrix_B.vmult(tmp, solution_v_old);
    system_tmp2.add(-1.0 * (1.0 - theta), tmp);
 
-   matrix_A_old.vmult(tmp, solution_u_old);
+   matrix_A.vmult(tmp, solution_u_old);
    system_tmp2.add(-1.0 * (1.0 - theta), tmp);
 
    system_tmp2.add((1.0 - theta), rhs_old);
 
    // system_tmp2 contains
-   // X^n_2 = (1-theta) * (F^n - B^n V^n - A^n U^n) + 1.0 / dt * C^n V^n
+   // Y^n = (1-theta) * (F^n - B^n V^n - A^n U^n) + 1.0 / dt * C^n V^n
+   // TODO: C^n V^n -> C^{n,n-1}, first summand: multiply with (D^n)^-1 D^{n-1} M^{-1} if necessary
+   // -> TODO: introduce abstract functions for this?
+   // -> TODO: assemble in waveEquation should do these as well, even though they are only needed in the next step
+   // -> TODO: waveeq: D^n-1 missing in C^n, add another param. (the real ones!)
 
    system_tmp1 = solution_u_old;
    system_tmp1 *= 1.0 / time_step;
    system_tmp1.add((1.0 - theta), solution_v_old);
 
    // system_tmp1 contains
-   // X^n_1 = 1/dt U^n + (1-theta) V^n
+   // X^n = 1/dt U^n + (1-theta) V^n
 }
 
 // everything until this point of assembling for u depends on the old mesh and the old matrices
@@ -195,7 +181,7 @@ void AbstractEquation<dim>::assemble_u(double time, double time_step) {
    system_rhs.add(theta, tmp);
 
    // system_rhs contains
-   // theta * \bar X^n_2 + theta^2 F^{n+1} + (1/dt C^{n+1} + theta * B^{n+1}) \bar X^n_1
+   // theta * \bar Y^n + theta^2 F^{n+1} + (1/dt C^{n+1} + theta * B^{n+1}) \bar X^n
 
    system_matrix.copy_from(matrix_C);
    system_matrix *= 1.0 / (time_step * time_step);
@@ -222,7 +208,7 @@ void AbstractEquation<dim>::assemble_v(double time, double time_step) {
    system_rhs.add(-1.0 * theta, tmp);
 
    // system_rhs contains
-   // \bar X^n_2 + theta * F^{n+1} - theta * A^{n+1} U^{n+1}
+   // \bar Y^n + theta * F^{n+1} - theta * A^{n+1} U^{n+1}
 
    system_matrix.copy_from(matrix_C);
    system_matrix *= 1.0 / time_step;
@@ -300,7 +286,7 @@ DiscretizedFunction<dim> AbstractEquation<dim>::run(std::shared_ptr<RightHandSid
    // this is going to be the result
    DiscretizedFunction<dim> u(mesh, std::make_shared<InvalidNorm<DiscretizedFunction<dim>>>(), true);
 
-   // save handle to rhs function so that `assemble` and `next_step` can use it
+   // save handle to rhs function so that `assemble` can use it
    this->right_hand_side = right_hand_side;
 
    int first_idx = direction == Backward ? mesh->length() - 1 : 0;
@@ -325,8 +311,10 @@ DiscretizedFunction<dim> AbstractEquation<dim>::run(std::shared_ptr<RightHandSid
       double last_time = mesh->get_time(last_time_idx);
       double dt = time - last_time;
 
-      // u -> u_old, same for v and matrices
-      next_step();
+      // u -> u_old, same for v and rhs
+      rhs_old = rhs;
+      solution_u_old = solution_u;
+      solution_v_old = solution_v;
 
       // vector assembling that needs to take place on the old grid
       assemble_pre(dt);

@@ -109,8 +109,8 @@ void AbstractEquationAdjoint<dim>::assemble(double time) {
 
    // this helps only a bit because each of the operations is already parallelized
    Threads::TaskGroup<void> task_group;
-   task_group += Threads::new_task(&AbstractEquationAdjoint < dim > ::assemble_matrices, *this, time);
-   task_group += Threads::new_task(&RightHandSide < dim > ::create_right_hand_side, *right_hand_side, *dof_handler,
+   task_group += Threads::new_task(&AbstractEquationAdjoint<dim>::assemble_matrices, *this, time);
+   task_group += Threads::new_task(&RightHandSide<dim>::create_right_hand_side, *right_hand_side, *dof_handler,
          mesh->get_quadrature(), rhs);
    task_group.join_all();
 }
@@ -413,7 +413,7 @@ DiscretizedFunction<dim> AbstractEquationAdjoint<dim>::run(std::shared_ptr<Right
    timer.start();
 
    // this is going to be the result
-   DiscretizedFunction < dim > u(mesh, std::make_shared<InvalidNorm<DiscretizedFunction<dim>>>(), true);
+   DiscretizedFunction<dim> u(mesh, std::make_shared<InvalidNorm<DiscretizedFunction<dim>>>(), true);
 
    // save handle to rhs function so that `assemble` and `next_step` can use it
    this->right_hand_side = right_hand_side;
@@ -471,7 +471,7 @@ DiscretizedFunction<dim> AbstractEquationAdjoint<dim>::run(std::shared_ptr<Right
 // also applies Mass matrix afterwards
 template<int dim>
 DiscretizedFunction<dim> AbstractEquationAdjoint<dim>::apply_R_transpose(const DiscretizedFunction<dim>& u) {
-   DiscretizedFunction < dim > res(mesh);
+   DiscretizedFunction<dim> res(mesh);
    Vector<double> tmp;
 
    for (size_t j = 0; j < mesh->length(); j++) {
