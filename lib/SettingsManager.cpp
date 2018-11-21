@@ -71,7 +71,7 @@ const std::string SettingsManager::KEY_PROBLEM_NORM_H2L2PLUSL2H1GAMMA = "H2L2+L2
 const std::string SettingsManager::KEY_PROBLEM_EPSILON          = "epsilon";
 const std::string SettingsManager::KEY_PROBLEM_CONSTANTS        = "constants";
 const std::string SettingsManager::KEY_PROBLEM_GUESS            = "initial guess";
-const std::string SettingsManager::KEY_PROBLEM_PARAM_A          = "parameter a";
+const std::string SettingsManager::KEY_PROBLEM_PARAM_RHO        = "parameter rho";
 const std::string SettingsManager::KEY_PROBLEM_PARAM_Q          = "parameter q";
 const std::string SettingsManager::KEY_PROBLEM_PARAM_C          = "parameter c";
 const std::string SettingsManager::KEY_PROBLEM_PARAM_NU         = "parameter nu";
@@ -195,7 +195,7 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
 
     prm->declare_entry(KEY_PROBLEM_GUESS, "0.5", Patterns::Anything(), "initial guess");
 
-    prm->declare_entry(KEY_PROBLEM_PARAM_A, "1.0", Patterns::Anything(), "parameter a");
+    prm->declare_entry(KEY_PROBLEM_PARAM_RHO, "1.0", Patterns::Anything(), "parameter ρ");
     prm->declare_entry(KEY_PROBLEM_PARAM_Q, "0.0", Patterns::Anything(), "parameter q");
     prm->declare_entry(KEY_PROBLEM_PARAM_C, "2.0", Patterns::Anything(), "parameter c");
     prm->declare_entry(KEY_PROBLEM_PARAM_NU, "0.0", Patterns::Anything(), "parameter ν");
@@ -395,8 +395,8 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
 
     std::string problem = prm->get(KEY_PROBLEM_TYPE);
 
-    if (problem == "L2A" || problem == "a")
-      problem_type = ProblemType::a;
+    if (problem == "L2Rho" || problem == "rho")
+      problem_type = ProblemType::rho;
     else if (problem == "L2Q" || problem == "q")
       problem_type = ProblemType::q;
     else if (problem == "L2Nu" || problem == "nu")
@@ -413,8 +413,8 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
                 << std::endl;
 
       // change setting so that rewrite of configs yields new format
-      if (problem == "L2A")
-        prm->set(KEY_PROBLEM_TYPE, "a");
+      if (problem == "L2Rho")
+        prm->set(KEY_PROBLEM_TYPE, "rho");
       else if (problem == "L2Q")
         prm->set(KEY_PROBLEM_TYPE, "q");
       else if (problem == "L2Nu")
@@ -437,7 +437,7 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
     }
 
     expr_initial_guess    = prm->get(KEY_PROBLEM_GUESS);
-    expr_param_a          = prm->get(KEY_PROBLEM_PARAM_A);
+    expr_param_rho          = prm->get(KEY_PROBLEM_PARAM_RHO);
     expr_param_nu         = prm->get(KEY_PROBLEM_PARAM_NU);
     expr_param_c          = prm->get(KEY_PROBLEM_PARAM_C);
     expr_param_q          = prm->get(KEY_PROBLEM_PARAM_Q);

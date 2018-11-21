@@ -62,10 +62,6 @@ void AbstractEquationAdjoint<dim>::cleanup() {
    matrix_B.clear();
    matrix_C.clear();
 
-   matrix_A_old.clear();
-   matrix_B_old.clear();
-   matrix_C_old.clear();
-
    solution_u.reinit(0);
    solution_v.reinit(0);
 
@@ -89,15 +85,6 @@ void AbstractEquationAdjoint<dim>::next_step(size_t time_idx) {
    right_hand_side->set_time(time);
 
    if (time_idx != mesh->length() - 1) {
-      matrix_A_old.reinit(*sparsity_pattern);
-      matrix_B_old.reinit(*sparsity_pattern);
-      matrix_C_old.reinit(*sparsity_pattern);
-
-      // matrices, solution and right hand side of current time step -> matrices, solution and rhs of last time step
-      matrix_A_old.copy_from(matrix_A);
-      matrix_B_old.copy_from(matrix_B);
-      matrix_C_old.copy_from(matrix_C);
-
       solution_u_old = solution_u;
       solution_v_old = solution_v;
    }
@@ -117,6 +104,9 @@ void AbstractEquationAdjoint<dim>::assemble(double time) {
 
 template<int dim>
 void AbstractEquationAdjoint<dim>::assemble_u_pre(size_t i) {
+   // grid has not been changed yet,
+   // matrix_* contain the matrices of the *last* time step.
+
    if (i == mesh->length() - 1) {
       /* i == N
        *
@@ -138,10 +128,10 @@ void AbstractEquationAdjoint<dim>::assemble_u_pre(size_t i) {
 
       Vector<double> tmp = solution_u_old;
       tmp *= 1 / (time_step_last * time_step_last);
-      matrix_C_old.vmult(system_rhs_u, tmp);
+      matrix_C.vmult(system_rhs_u, tmp);
 
       tmp *= time_step_last * theta;
-      matrix_B_old.vmult_add(system_rhs_u, tmp);
+      matrix_B.vmult_add(system_rhs_u, tmp);
 
       tmp_u.equ(-1.0 * theta * (1 - theta), solution_u_old);
       tmp_u.add(-1.0 * (1 - theta), solution_v_old);
@@ -160,10 +150,10 @@ void AbstractEquationAdjoint<dim>::assemble_u_pre(size_t i) {
 
       Vector<double> tmp = solution_u_old;
       tmp *= 1 / (time_step_last * time_step_last);
-      matrix_C_old.vmult(system_rhs_u, tmp);
+      matrix_C.vmult(system_rhs_u, tmp);
 
       tmp *= time_step_last * theta;
-      matrix_B_old.vmult_add(system_rhs_u, tmp);
+      matrix_B.vmult_add(system_rhs_u, tmp);
 
       tmp_u.equ(-1.0 * theta * (1 - theta), solution_u_old);
       tmp_u.add(-1.0 * (1 - theta), solution_v_old);
@@ -235,6 +225,9 @@ void AbstractEquationAdjoint<dim>::assemble_u(size_t i) {
 
 template<int dim>
 void AbstractEquationAdjoint<dim>::assemble_v_pre(size_t i) {
+   // grid has not been changed yet,
+   // matrix_* contain the matrices of the *last* time step.
+
    if (i == mesh->length() - 1) {
       /*
        * (M_N^2)^t (u_N, v_N)^t = (g_N, 0)^t
@@ -258,10 +251,10 @@ void AbstractEquationAdjoint<dim>::assemble_v_pre(size_t i) {
 
       Vector<double> tmp = solution_u_old;
       tmp *= (1 - theta) / time_step_last;
-      matrix_C_old.vmult(system_rhs_v, tmp);
+      matrix_C.vmult(system_rhs_v, tmp);
 
       tmp *= time_step_last * theta;
-      matrix_B_old.vmult_add(system_rhs_v, tmp);
+      matrix_B.vmult_add(system_rhs_v, tmp);
 
       tmp_v.equ(theta, solution_u_old);
       tmp_v += solution_v_old;
@@ -280,10 +273,10 @@ void AbstractEquationAdjoint<dim>::assemble_v_pre(size_t i) {
 
       Vector<double> tmp = solution_u_old;
       tmp *= (1 - theta) / time_step_last;
-      matrix_C_old.vmult(system_rhs_v, tmp);
+      matrix_C.vmult(system_rhs_v, tmp);
 
       tmp *= time_step_last * theta;
-      matrix_B_old.vmult_add(system_rhs_v, tmp);
+      matrix_B.vmult_add(system_rhs_v, tmp);
 
       tmp_v.equ(theta, solution_u_old);
       tmp_v += solution_v_old;
@@ -407,7 +400,10 @@ template<int dim>
 DiscretizedFunction<dim> AbstractEquationAdjoint<dim>::run(std::shared_ptr<RightHandSide<dim>> right_hand_side) {
    LogStream::Prefix p("AbstractEqAdj");
    Assert(mesh->length() >= 2, ExcInternalError());
-   Assert(mesh->length() < 10000, ExcNotImplemented());
+
+   // TODO: adapt to D!
+   AssertThrow(false, ExcNotImplemented());
+
 
    Timer timer, assembly_timer;
    timer.start();

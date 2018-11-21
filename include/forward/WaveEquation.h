@@ -98,9 +98,19 @@ protected:
 
    using WaveEquationBase<dim>::param_c;
    using WaveEquationBase<dim>::param_nu;
-   using WaveEquationBase<dim>::param_a;
+   using WaveEquationBase<dim>::param_rho;
    using WaveEquationBase<dim>::param_q;
 
+   using WaveEquationBase<dim>::vmult_D_intermediate;
+   using WaveEquationBase<dim>::vmult_C_intermediate;
+
+   virtual void vmult_D_intermediate(Vector<double>& dst, const Vector<double>& src) const {
+      WaveEquationBase<dim>::vmult_D_intermediate(dst, src);
+   }
+
+   virtual void vmult_C_intermediate(Vector<double>& dst, const Vector<double>& src) const {
+      WaveEquationBase<dim>::vmult_C_intermediate(matrix_C, dst, src);
+   }
 private:
    std::shared_ptr<Function<dim>> initial_values_u, initial_values_v;
    std::shared_ptr<Function<dim>> boundary_values_u, boundary_values_v;

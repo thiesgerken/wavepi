@@ -124,6 +124,14 @@ protected:
    // if needed, this function can also do stuff so that the functions concerning D can run faster.
    virtual void assemble_matrices(double time) = 0;
 
+   // before mesh change, let dst <- (D^n)^{-1} D^{n-1} M^{-1} src
+   // ( i.e. dst <- src for time-independent D)
+   virtual void vmult_D_intermediate(Vector<double>& dst, const Vector<double>& src) const = 0;
+
+   // before mesh change, let dst <- (D^n)^{-1} C^{n-1} src
+   // ( i.e. dst <- matrix_C * src for time-independent D)
+   virtual void vmult_C_intermediate(Vector<double>& dst, const Vector<double>& src) const = 0;
+
    // assemble matrices and rhs for current mesh (calls assemble_matrices)
    void assemble(double time);
 

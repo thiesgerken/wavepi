@@ -106,14 +106,14 @@ public:
 };
 
 template<int dim>
-class TestA: public Function<dim> {
+class TestRho: public Function<dim> {
 public:
-   virtual ~TestA() = default;
+   virtual ~TestRho() = default;
 
    virtual double value(const Point<dim> &p, const unsigned int component = 0) const override {
       Assert(component == 0, ExcIndexRange(component, 0, 1));
 
-      return 1.0 / rho(p, this->get_time());
+      return rho(p, this->get_time());
    }
 };
 
@@ -230,7 +230,7 @@ void run_discretized_test(int fe_order, int quad_order, int refines) {
 
    /* continuous */
 
-   wave_eq.set_param_a(std::make_shared<TestA<dim>>());
+   wave_eq.set_param_rho(std::make_shared<TestRho<dim>>());
    wave_eq.set_param_c(std::make_shared<TestC<dim>>());
    wave_eq.set_param_q(std::make_shared<TestQ<dim>>());
    wave_eq.set_param_nu(std::make_shared<TestNu<dim>>());
@@ -250,9 +250,9 @@ void run_discretized_test(int fe_order, int quad_order, int refines) {
    auto c_disc = std::make_shared<DiscretizedFunction<dim>>(mesh, c);
    wave_eq.set_param_c(c_disc);
 
-   TestA<dim> a;
-   auto a_disc = std::make_shared<DiscretizedFunction<dim>>(mesh, a);
-   wave_eq.set_param_a(a_disc);
+   TestRho<dim> rho;
+   auto rho_disc = std::make_shared<DiscretizedFunction<dim>>(mesh, rho);
+   wave_eq.set_param_rho(rho_disc);
 
    TestQ<dim> q;
    auto q_disc = std::make_shared<DiscretizedFunction<dim>>(mesh, q);
@@ -276,7 +276,7 @@ void run_discretized_test(int fe_order, int quad_order, int refines) {
    /* discretized, q disguised */
 
    auto c_disguised = std::make_shared<DiscretizedFunctionDisguise<dim>>(c_disc);
-   auto a_disguised = std::make_shared<DiscretizedFunctionDisguise<dim>>(a_disc);
+   auto rho_disguised = std::make_shared<DiscretizedFunctionDisguise<dim>>(rho_disc);
    auto q_disguised = std::make_shared<DiscretizedFunctionDisguise<dim>>(q_disc);
    auto nu_disguised = std::make_shared<DiscretizedFunctionDisguise<dim>>(nu_disc);
    auto f_disguised = std::make_shared<DiscretizedFunctionDisguise<dim>>(f_disc);
@@ -293,7 +293,7 @@ void run_discretized_test(int fe_order, int quad_order, int refines) {
 
    /* discretized, a disguised */
 
-   wave_eq.set_param_a(a_disguised);
+   wave_eq.set_param_rho(rho_disguised);
    wave_eq.set_param_q(q_disc);
 
    timer.restart();
@@ -308,7 +308,7 @@ void run_discretized_test(int fe_order, int quad_order, int refines) {
 
    wave_eq.set_param_nu(nu_disguised);
    wave_eq.set_param_q(q_disguised);
-   wave_eq.set_param_a(a_disguised);
+   wave_eq.set_param_rho(rho_disguised);
    wave_eq.set_param_c(c_disguised);
 
    timer.restart();

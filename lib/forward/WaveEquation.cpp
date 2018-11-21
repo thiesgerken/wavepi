@@ -50,12 +50,15 @@ WaveEquation<dim>::WaveEquation(std::shared_ptr<SpaceTimeMesh<dim>> mesh)
 
 template<int dim>
 WaveEquation<dim>::WaveEquation(const WaveEquation<dim> &wave)
-   : AbstractEquation<dim>(wave.get_mesh()), initial_values_u(wave.get_initial_values_u()), initial_values_v(wave.get_initial_values_v()), boundary_values_u(wave.get_boundary_values_u()), boundary_values_v(wave.get_boundary_values_v()) {
+      : AbstractEquation<dim>(wave.get_mesh()), initial_values_u(wave.get_initial_values_u()),
+            initial_values_v(wave.get_initial_values_v()), boundary_values_u(wave.get_boundary_values_u()),
+            boundary_values_v(wave.get_boundary_values_v()) {
 
    this->set_param_c(wave.get_param_c());
    this->set_param_nu(wave.get_param_nu());
-   this->set_param_a(wave.get_param_a());
+   this->set_param_rho(wave.get_param_rho());
    this->set_param_q(wave.get_param_q());
+   this->set_rho_time_dependent(wave.is_rho_time_dependent());
 
    this->set_theta(wave.get_theta());
    this->set_solver_tolerance(wave.get_solver_tolerance());
@@ -101,51 +104,44 @@ template<int dim>
 void WaveEquation<dim>::assemble_matrices(double time) {
    LogStream::Prefix p("assemble_matrices");
 
-   param_a->set_time(time);
+   param_rho->set_time(time);
    param_nu->set_time(time);
    param_q->set_time(time);
    param_c->set_time(time);
 
-   // this helps only a bit because each of the operations is already parallelized
-   // tests show about 20%-30% (depending on dim) speedup on my Intel i5 4690
-   Threads::TaskGroup<void> task_group;
-   task_group += Threads::new_task(&WaveEquationBase<dim>::fill_A, *this, mesh, *dof_handler, matrix_A);
-   task_group += Threads::new_task(&WaveEquationBase<dim>::fill_B, *this, mesh, *dof_handler, matrix_B);
-   task_group += Threads::new_task(&WaveEquationBase<dim>::fill_C, *this, mesh, *dof_handler, matrix_C);
-   task_group.join_all();
+   this->fill_matrices(mesh, *dof_handler, matrix_A, matrix_B, matrix_C);
 }
 
 template<int dim>
 DiscretizedFunction<dim> WaveEquation<dim>::run(std::shared_ptr<RightHandSide<dim>> right_hand_side,
       typename AbstractEquation<dim>::Direction direction) {
-   // bound checking for a and c (if possible)
+   // bound checking for ρ and c (if possible)
    // (should not take long compared to the rest and can be very tricky to find out otherwise
    //    -> do it even in release mode)
    if (this->param_c_disc) {
-      double cmin, cmax;
-      this->param_c_disc->min_max_value(&cmin, &cmax);
+      double c_min, c_max;
+      this->param_c_disc->min_max_value(&c_min, &c_max);
 
       std::stringstream bound_str;
-      bound_str << cmin << " <= c <= " << cmax;
+      bound_str << c_min << " ≤ c ≤ " << c_max;
 
-      AssertThrow(cmax * cmin >= 0, ExcMessage("C is not coercive, " + bound_str.str()));
+      AssertThrow(c_min > 0, ExcMessage("C is not positive, " + bound_str.str()));
+      AssertThrow(1.0 / (c_max * c_max) >= 1e-4, ExcMessage("C is not coercive, " + bound_str.str()));
 
-      if ((cmax > 0 && cmin < 1e-4) || (cmax > -1e-4 && cmin < 0))
-         deallog << "Warning: coercivity of C is low, " << bound_str.str() << std::endl;
-
-      if (cmax < 0 && cmin < 0) deallog << "Warning: C is negative definite, " << bound_str.str() << std::endl;
+      deallog << bound_str.str() << std::endl;
    }
 
-   if (this->param_a_disc) {
-      double amin, amax;
-      this->param_a_disc->min_max_value(&amin, &amax);
+   if (this->param_rho_disc) {
+      double rho_min, rho_max;
+      this->param_rho_disc->min_max_value(&rho_min, &rho_max);
 
       std::stringstream bound_str;
-      bound_str << amin << " <= a <= " << amax;
+      bound_str << rho_min << " ≤ ρ ≤ " << rho_max;
 
-      AssertThrow(amin >= 1e-4, ExcMessage("A is not coercive, a_min = " + bound_str.str()));
+      AssertThrow(rho_min > 0, ExcMessage("A and D are not positive, " + bound_str.str()));
+      AssertThrow(1.0 / rho_max >= 1e-4, ExcMessage("A and D are not coercive, " + bound_str.str()));
 
-      if (amin < 1e-4) deallog << "Warning: coercivity of A is low, " << bound_str.str() << std::endl;
+      deallog << bound_str.str() << std::endl;
    }
 
    return AbstractEquation<dim>::run(right_hand_side, direction);

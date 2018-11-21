@@ -39,17 +39,18 @@ using namespace wavepi::base;
 
 template<int dim>
 WaveEquationAdjoint<dim>::WaveEquationAdjoint(std::shared_ptr<SpaceTimeMesh<dim>> mesh)
-      : AbstractEquationAdjoint<dim>(mesh), zero(std::make_shared<Functions::ZeroFunction<dim>>(1)){
+      : AbstractEquationAdjoint<dim>(mesh), zero(std::make_shared<Functions::ZeroFunction<dim>>(1)) {
 }
 
 template<int dim>
 WaveEquationAdjoint<dim>::WaveEquationAdjoint(const WaveEquation<dim> &wave)
-   : AbstractEquationAdjoint<dim>(wave.get_mesh()), zero(std::make_shared<Functions::ZeroFunction<dim>>(1)) {
+      : AbstractEquationAdjoint<dim>(wave.get_mesh()), zero(std::make_shared<Functions::ZeroFunction<dim>>(1)) {
 
    this->set_param_c(wave.get_param_c());
    this->set_param_nu(wave.get_param_nu());
-   this->set_param_a(wave.get_param_a());
+   this->set_param_rho(wave.get_param_rho());
    this->set_param_q(wave.get_param_q());
+   this->set_rho_time_dependent(wave.is_rho_time_dependent());
 
    this->set_theta(wave.get_theta());
    this->set_solver_tolerance(wave.get_solver_tolerance());
@@ -60,18 +61,12 @@ template<int dim>
 void WaveEquationAdjoint<dim>::assemble_matrices(double time) {
    LogStream::Prefix p("assemble_matrices");
 
-   param_a->set_time(time);
+   param_rho->set_time(time);
    param_nu->set_time(time);
    param_q->set_time(time);
    param_c->set_time(time);
 
-   // this helps only a bit because each of the operations is already parallelized
-   // tests show about 20%-30% (depending on dim) speedup on my Intel i5 4690
-   Threads::TaskGroup<void> task_group;
-   task_group += Threads::new_task(&WaveEquationBase<dim>::fill_A, *this, mesh, *dof_handler, matrix_A);
-   task_group += Threads::new_task(&WaveEquationBase<dim>::fill_B, *this, mesh, *dof_handler, matrix_B);
-   task_group += Threads::new_task(&WaveEquationBase<dim>::fill_C, *this, mesh, *dof_handler, matrix_C);
-   task_group.join_all();
+   this->fill_matrices(mesh, *dof_handler, matrix_A, matrix_B, matrix_C);
 }
 
 template<int dim>

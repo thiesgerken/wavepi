@@ -1,12 +1,12 @@
 /*
- * AProblem.h
+ * RhoProblem.h
  *
  *  Created on: 27.07.2017
  *      Author: thies
  */
 
-#ifndef INCLUDE_PROBLEMS_APROBLEM_H_
-#define INCLUDE_PROBLEMS_APROBLEM_H_
+#ifndef PROBLEMS_L2RHOPROBLEM_H_
+#define PROBLEMS_L2RHOPROBLEM_H_
 
 #include <base/DiscretizedFunction.h>
 #include <forward/DivRightHandSide.h>
@@ -31,14 +31,14 @@ using namespace wavepi::forward;
 using namespace wavepi::inversion;
 
 template<int dim, typename Measurement>
-class AProblem: public WaveProblem<dim, Measurement> {
+class RhoProblem: public WaveProblem<dim, Measurement> {
 public:
    using WaveProblem<dim, Measurement>::derivative;
    using WaveProblem<dim, Measurement>::forward;
 
-   virtual ~AProblem() = default;
+   virtual ~RhoProblem() = default;
 
-   AProblem(WaveEquation<dim>& weq, std::vector<std::shared_ptr<Function<dim>>> right_hand_sides,
+   RhoProblem(WaveEquation<dim>& weq, std::vector<std::shared_ptr<Function<dim>>> right_hand_sides,
          std::vector<std::shared_ptr<Measure<DiscretizedFunction<dim>, Measurement>>> measures,
          std::shared_ptr<Transformation<dim>> transform, std::shared_ptr<DiscretizedFunction<dim>> background_param)
          : WaveProblem<dim, Measurement>(weq, right_hand_sides, measures, transform, background_param),
@@ -47,12 +47,12 @@ public:
 
 protected:
    virtual std::unique_ptr<LinearizedSubProblem<dim>> derivative(size_t i) {
-      return std::make_unique<AProblem<dim, Measurement>::Linearization>(this->wave_equation, this->adjoint_solver,
+      return std::make_unique<RhoProblem<dim, Measurement>::Linearization>(this->wave_equation, this->adjoint_solver,
             this->current_param, this->fields[i], this->norm_domain, this->norm_codomain);
    }
 
    virtual DiscretizedFunction<dim> forward(size_t i) {
-      this->wave_equation.set_param_a(this->current_param);
+      this->wave_equation.set_param_rho(this->current_param);
       DiscretizedFunction<dim> res = this->wave_equation.run(
             std::make_shared<L2RightHandSide<dim>>(this->right_hand_sides[i]), WaveEquation<dim>::Forward);
       res.set_norm(this->norm_codomain);
@@ -73,25 +73,28 @@ private:
       virtual ~Linearization() = default;
 
       Linearization(const WaveEquation<dim>& weq, typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver,
-            const std::shared_ptr<DiscretizedFunction<dim>> a, std::shared_ptr<DiscretizedFunction<dim>> u,
+            const std::shared_ptr<DiscretizedFunction<dim>> rho, std::shared_ptr<DiscretizedFunction<dim>> u,
             std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm_domain,
             std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm_codomain)
             : weq(weq), weq_adj(weq), norm_domain(norm_domain), norm_codomain(norm_codomain),
                   adjoint_solver(adjoint_solver) {
-         this->a = a;
+         this->rho = rho;
          this->u = u;
 
-         this->rhs = std::make_shared<DivRightHandSide<dim>>(this->a, this->u);
+         AssertThrow(false, ExcNotImplemented("Adapt RhoProblem (lin and adjoint) to 1/ρ!"));
+         // TODO: adapt this to 1/ρ instead of a (linearization and adjoint)
+
+         this->rhs = std::make_shared<DivRightHandSide<dim>>(this->rho, this->u);
          this->rhs_adj = std::make_shared<L2RightHandSide<dim>>(this->u);
-         this->m_adj = std::make_shared<DivRightHandSideAdjoint<dim>>(this->a, this->u);
+         this->m_adj = std::make_shared<DivRightHandSideAdjoint<dim>>(this->rho, this->u);
 
          this->weq.set_initial_values_u(std::make_shared<Functions::ZeroFunction<dim>>(1));
          this->weq.set_initial_values_v(std::make_shared<Functions::ZeroFunction<dim>>(1));
          this->weq.set_boundary_values_u(std::make_shared<Functions::ZeroFunction<dim>>(1));
          this->weq.set_boundary_values_v(std::make_shared<Functions::ZeroFunction<dim>>(1));
 
-         this->weq.set_param_a(this->a);
-         this->weq_adj.set_param_a(this->a);
+         this->weq.set_param_rho(this->rho);
+         this->weq_adj.set_param_rho(this->rho);
       }
 
       virtual DiscretizedFunction<dim> forward(const DiscretizedFunction<dim>& h) {
@@ -142,7 +145,7 @@ private:
       }
 
       virtual DiscretizedFunction<dim> zero() {
-         DiscretizedFunction<dim> res(a->get_mesh());
+         DiscretizedFunction<dim> res(rho->get_mesh());
          res.set_norm(this->norm_domain);
 
          return res;
@@ -157,7 +160,7 @@ private:
 
       typename WaveEquationBase<dim>::L2AdjointSolver adjoint_solver;
 
-      std::shared_ptr<DiscretizedFunction<dim>> a;
+      std::shared_ptr<DiscretizedFunction<dim>> rho;
       std::shared_ptr<DiscretizedFunction<dim>> u;
 
       std::shared_ptr<DivRightHandSide<dim>> rhs;
@@ -169,4 +172,4 @@ private:
 } /* namespace problems */
 } /* namespace wavepi */
 
-#endif /* INCLUDE_PROBLEMS_L2APROBLEM_H_ */
+#endif /* INCLUDE_PROBLEMS_L2RHOPROBLEM_H_ */

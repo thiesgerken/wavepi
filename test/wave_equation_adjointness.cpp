@@ -122,12 +122,12 @@ public:
 };
 
 template<int dim>
-class TestA: public Function<dim> {
+class TestRho: public Function<dim> {
 public:
    double value(const Point<dim> &p, const unsigned int component = 0) const {
       Assert(component == 0, ExcIndexRange(component, 0, 1));
 
-      return 1.0 / rho(p, this->get_time());
+      return rho(p, this->get_time());
    }
 };
 
@@ -190,13 +190,13 @@ void run_wave_adjoint_test(int fe_order, int quad_order, int refines, int n_step
    deallog << ", n_steps: " << times.size() << "  ----------" << std::endl;
 
    WaveEquation<dim> wave_eq(mesh);
-   wave_eq.set_param_a(std::make_shared<TestA<dim>>());
+   wave_eq.set_param_rho(std::make_shared<TestRho<dim>>());
    wave_eq.set_param_c(std::make_shared<TestC<dim>>());
    wave_eq.set_param_q(std::make_shared<TestQ<dim>>());
    if (set_nu) wave_eq.set_param_nu(std::make_shared<TestNu<dim>>());
 
    WaveEquationAdjoint<dim> wave_eq_adj(mesh);
-   wave_eq_adj.set_param_a(std::make_shared<TestA<dim>>());
+   wave_eq_adj.set_param_rho(std::make_shared<TestRho<dim>>());
    wave_eq_adj.set_param_c(std::make_shared<TestC<dim>>());
    wave_eq_adj.set_param_q(std::make_shared<TestQ<dim>>());
    if (set_nu) wave_eq_adj.set_param_nu(std::make_shared<TestNu<dim>>());

@@ -138,30 +138,32 @@ void AbstractEquation<dim>::assemble_pre(double time_step) {
    // grid has not been changed yet,
    // matrix_* contain the matrices of the *last* time step.
 
-   matrix_C.vmult(tmp, solution_v_old);
-   system_tmp2.equ(1.0 / time_step, tmp);
+   system_tmp2 = rhs_old;
 
    matrix_B.vmult(tmp, solution_v_old);
-   system_tmp2.add(-1.0 * (1.0 - theta), tmp);
+   system_tmp2.add(-1.0, tmp);
 
    matrix_A.vmult(tmp, solution_u_old);
-   system_tmp2.add(-1.0 * (1.0 - theta), tmp);
+   system_tmp2.add(-1.0, tmp);
 
-   system_tmp2.add((1.0 - theta), rhs_old);
+   tmp.equ(1.0 - theta, system_tmp2);
+
+   // tmp contains
+   // (1-θ) (F^n - B^n V^n - A^n U^n)
+   vmult_D_intermediate(system_tmp2, tmp);
+
+   vmult_C_intermediate(tmp, solution_v_old);
+   system_tmp2.add(1.0 / time_step, tmp);
 
    // system_tmp2 contains
-   // Y^n = (1-theta) * (F^n - B^n V^n - A^n U^n) + 1.0 / dt * C^n V^n
-   // TODO: C^n V^n -> C^{n,n-1}, first summand: multiply with (D^n)^-1 D^{n-1} M^{-1} if necessary
-   // -> TODO: introduce abstract functions for this?
-   // -> TODO: assemble in waveEquation should do these as well, even though they are only needed in the next step
-   // -> TODO: waveeq: D^n-1 missing in C^n, add another param. (the real ones!)
+   // Y^n = (1-θ) (D^n)^-1 D^{n-1} M^{-1} (F^n - B^n V^n - A^n U^n) + 1/dt * C^{n,n-1} V^n
 
    system_tmp1 = solution_u_old;
    system_tmp1 *= 1.0 / time_step;
    system_tmp1.add((1.0 - theta), solution_v_old);
 
    // system_tmp1 contains
-   // X^n = 1/dt U^n + (1-theta) V^n
+   // X^n = 1/dt U^n + (1-θ) V^n
 }
 
 // everything until this point of assembling for u depends on the old mesh and the old matrices
@@ -181,7 +183,7 @@ void AbstractEquation<dim>::assemble_u(double time, double time_step) {
    system_rhs.add(theta, tmp);
 
    // system_rhs contains
-   // theta * \bar Y^n + theta^2 F^{n+1} + (1/dt C^{n+1} + theta * B^{n+1}) \bar X^n
+   // θ \bar Y^n + θ² F^{n+1} + (1/dt C^{n+1} + θB^{n+1}) \bar X^n
 
    system_matrix.copy_from(matrix_C);
    system_matrix *= 1.0 / (time_step * time_step);
@@ -189,7 +191,7 @@ void AbstractEquation<dim>::assemble_u(double time, double time_step) {
    system_matrix.add(theta * theta, matrix_A);
 
    // system_matrix contains
-   // theta^2 * A^{n+1} + theta/dt * B^{n+1} + 1/dt^2 C^{n+1}
+   // θ² A^{n+1} + θ/dt * B^{n+1} + 1/dt² C^{n+1}
 
    // needed, because hanging node constraints are not already built into the sparsity pattern
    constraints->condense(system_matrix, system_rhs);
@@ -208,7 +210,7 @@ void AbstractEquation<dim>::assemble_v(double time, double time_step) {
    system_rhs.add(-1.0 * theta, tmp);
 
    // system_rhs contains
-   // \bar Y^n + theta * F^{n+1} - theta * A^{n+1} U^{n+1}
+   // \bar Y^n + θF^{n+1} - θA^{n+1} U^{n+1}
 
    system_matrix.copy_from(matrix_C);
    system_matrix *= 1.0 / time_step;
@@ -216,7 +218,7 @@ void AbstractEquation<dim>::assemble_v(double time, double time_step) {
    system_matrix.add(theta, matrix_B);
 
    // system_matrix contains
-   // theta * B^{n+1} + 1/dt C^{n+1}
+   // θB^{n+1} + 1/dt C^{n+1}
 
    // needed, because hanging node constraints are not already built into the sparsity pattern
    constraints->condense(system_matrix, system_rhs);
@@ -329,12 +331,12 @@ DiscretizedFunction<dim> AbstractEquation<dim>::run(std::shared_ptr<RightHandSid
       assembly_timer.stop();
 
       // finish assembling of rhs_u
-      // and solve for $u^i$
+      // and solve for u^i
       assemble_u(time, dt);
       solve_u();
 
       // finish assembling of rhs_u
-      // and solve for $v^i$
+      // and solve for v^i
       assemble_v(time, dt);
       solve_v();
 

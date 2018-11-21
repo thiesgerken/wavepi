@@ -42,8 +42,8 @@ public:
    WaveEquationBase()
          : param_c(std::make_shared<Functions::ConstantFunction<dim>>(1.0, 1)),
                param_nu(std::make_shared<Functions::ZeroFunction<dim>>(1)),
-               param_a(std::make_shared<Functions::ConstantFunction<dim>>(1.0, 1)),
-               param_q(std::make_shared<Functions::ZeroFunction<dim>>(1)) {
+               param_rho(std::make_shared<Functions::ConstantFunction<dim>>(1.0, 1)),
+               param_q(std::make_shared<Functions::ZeroFunction<dim>>(1)), rho_time_dependent(false) {
    }
 
    // uses special functions for matrix assembly when discretized parameters are passed, which is a lot better for P1
@@ -57,13 +57,15 @@ public:
       return special_assembly_tactic == 0 ? is_special_assembly_recommended(mesh) : (special_assembly_tactic > 0);
    }
 
-   inline std::shared_ptr<Function<dim>> get_param_a() const {
-      return param_a;
+   inline std::shared_ptr<Function<dim>> get_param_rho() const {
+      return param_rho;
    }
 
-   inline void set_param_a(std::shared_ptr<Function<dim>> param_a) {
-      this->param_a = param_a;
-      this->param_a_disc = std::dynamic_pointer_cast<DiscretizedFunction<dim>, Function<dim>>(param_a);
+   inline void set_param_rho(std::shared_ptr<Function<dim>> param_rho, bool is_time_dependent = true) {
+      this->param_rho = param_rho;
+      this->param_rho_disc = std::dynamic_pointer_cast<DiscretizedFunction<dim>, Function<dim>>(param_rho);
+
+      this->rho_time_dependent = is_time_dependent;
    }
 
    inline std::shared_ptr<Function<dim>> get_param_c() const {
@@ -106,22 +108,46 @@ public:
          this->special_assembly_tactic = 0;
    }
 
+   void fill_matrices(std::shared_ptr<SpaceTimeMesh<dim>> mesh, DoFHandler<dim> &dof_handler,
+         SparseMatrix<double> &dst_A, SparseMatrix<double> &dst_B,SparseMatrix<double> &dst_C);
+
    void fill_A(std::shared_ptr<SpaceTimeMesh<dim>> mesh, DoFHandler<dim> &dof_handler,
          SparseMatrix<double> &destination);
    void fill_B(std::shared_ptr<SpaceTimeMesh<dim>> mesh, DoFHandler<dim> &dof_handler,
          SparseMatrix<double> &destination);
    void fill_C(std::shared_ptr<SpaceTimeMesh<dim>> mesh, DoFHandler<dim> &dof_handler,
          SparseMatrix<double> &destination);
+
+   bool is_rho_time_dependent() const {
+      return rho_time_dependent;
+   }
+
+   void set_rho_time_dependent(bool rho_time_dependent) {
+      this->rho_time_dependent = rho_time_dependent;
+   }
+
+   // before mesh change, let dst <- (D^n)^{-1} D^{n-1} M^{-1} src
+   // ( i.e. dst <- src for time-independent D)
+   virtual void vmult_D_intermediate(Vector<double>& dst, const Vector<double>& src) const;
+
+   // before mesh change, let dst <- (D^n)^{-1} C^{n-1} src
+   // ( i.e. dst <- matrix_C * src for time-independent D)
+   virtual void vmult_C_intermediate(const SparseMatrix<double>& matrix_C, Vector<double>& dst, const Vector<double>& src) const;
+
+
 protected:
    // treat DiscretizedFunctions as parameters and right hand side differently
    // < 0 -> no (better if much coupling present), > 0 -> yes, = 0 automatically (default)
    int special_assembly_tactic = 0;
 
-   std::shared_ptr<Function<dim>> param_c, param_nu, param_a, param_q;
+   std::shared_ptr<Function<dim>> param_c, param_nu, param_rho, param_q;
 
    // filled, if the function handles above can be typecast into DiscretizedFunction<dim>
    std::shared_ptr<DiscretizedFunction<dim>> param_c_disc = nullptr, param_nu_disc = nullptr;
-   std::shared_ptr<DiscretizedFunction<dim>> param_a_disc = nullptr, param_q_disc = nullptr;
+   std::shared_ptr<DiscretizedFunction<dim>> param_rho_disc = nullptr, param_q_disc = nullptr;
+
+   // allows faster assembly if it is constant
+   bool rho_time_dependent;
 };
 
 } /* namespace forward */

@@ -66,7 +66,7 @@ class SettingsManager {
   static const std::string KEY_PROBLEM_EPSILON;
   static const std::string KEY_PROBLEM_CONSTANTS;
   static const std::string KEY_PROBLEM_GUESS;
-  static const std::string KEY_PROBLEM_PARAM_A;
+  static const std::string KEY_PROBLEM_PARAM_RHO;
   static const std::string KEY_PROBLEM_PARAM_Q;
   static const std::string KEY_PROBLEM_PARAM_C;
   static const std::string KEY_PROBLEM_PARAM_NU;
@@ -89,7 +89,7 @@ class SettingsManager {
   /**
    * possible problems
    */
-  enum class ProblemType { q, a, c, nu };
+  enum class ProblemType { q, rho, c, nu };
 
   /**
    * possible nonlinear methods
@@ -171,7 +171,7 @@ class SettingsManager {
   std::string expr_initial_guess;
   std::string expr_param_q;
   std::string expr_param_nu;
-  std::string expr_param_a;
+  std::string expr_param_rho;
   std::string expr_param_c;
   std::string expr_param_background;
 

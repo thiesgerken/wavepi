@@ -58,7 +58,7 @@ private:
 
    using WaveEquationBase<dim>::param_c;
    using WaveEquationBase<dim>::param_nu;
-   using WaveEquationBase<dim>::param_a;
+   using WaveEquationBase<dim>::param_rho;
    using WaveEquationBase<dim>::param_q;
 
    std::shared_ptr<Function<dim>> zero;

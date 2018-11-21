@@ -30,7 +30,7 @@
 #include <norms/H1H1.h>
 #include <norms/H1L2.h>
 #include <norms/L2L2.h>
-#include <problems/AProblem.h>
+#include <problems/RhoProblem.h>
 #include <problems/CProblem.h>
 #include <problems/NuProblem.h>
 #include <problems/QProblem.h>
@@ -134,12 +134,12 @@ public:
 };
 
 template<int dim>
-class TestA: public Function<dim> {
+class TestRho: public Function<dim> {
 public:
    double value(const Point<dim> &p, const unsigned int component = 0) const {
       Assert(component == 0, ExcIndexRange(component, 0, 1));
 
-      return 1.0 / rho(p, this->get_time());
+      return rho(p, this->get_time());
    }
 };
 
@@ -212,7 +212,7 @@ void run_adjoint_test(int fe_order, int quad_order, int refines, int n_steps,
    deallog << ", n_steps: " << times.size() << "  ----------" << std::endl;
 
    WaveEquation<dim> wave_eq(mesh);
-   wave_eq.set_param_a(std::make_shared<TestA<dim>>());
+   wave_eq.set_param_rho(std::make_shared<TestRho<dim>>());
    wave_eq.set_param_c(std::make_shared<TestC<dim>>());
    wave_eq.set_param_q(std::make_shared<TestQ<dim>>());
    wave_eq.set_param_nu(std::make_shared<TestNu<dim>>());
@@ -353,47 +353,47 @@ TEST(ProblemAdjointness, AdjointQ3DFE1) {
 
 TEST(ProblemAdjointness, AdjointA1DFE1) {
    for (int i = 3; i < 10; i++)
-      run_adjoint_test<1, AProblem<1, DiscretizedFunction<1>>>(1, 3, 6, 1 << i, std::make_shared<norms::L2L2<1>>(),
+      run_adjoint_test<1, RhoProblem<1, DiscretizedFunction<1>>>(1, 3, 6, 1 << i, std::make_shared<norms::L2L2<1>>(),
             std::make_shared<norms::L2L2<1>>(), 1e-1);
 
    for (int refine = 6; refine >= 1; refine--)
-      run_adjoint_test<1, AProblem<1, DiscretizedFunction<1>>>(1, 3, refine, 1 << 9, std::make_shared<norms::L2L2<1>>(),
+      run_adjoint_test<1, RhoProblem<1, DiscretizedFunction<1>>>(1, 3, refine, 1 << 9, std::make_shared<norms::L2L2<1>>(),
             std::make_shared<norms::L2L2<1>>(), 1e-1);
 }
 
 TEST(ProblemAdjointness, AdjointA1DFE2) {
    for (int i = 3; i < 10; i++)
-      run_adjoint_test<1, AProblem<1, DiscretizedFunction<1>>>(2, 6, 4, 1 << i, std::make_shared<norms::L2L2<1>>(),
+      run_adjoint_test<1, RhoProblem<1, DiscretizedFunction<1>>>(2, 6, 4, 1 << i, std::make_shared<norms::L2L2<1>>(),
             std::make_shared<norms::L2L2<1>>(), 1e-1);
 
    for (int refine = 4; refine >= 1; refine--)
-      run_adjoint_test<1, AProblem<1, DiscretizedFunction<1>>>(1, 3, refine, 1 << 9, std::make_shared<norms::L2L2<1>>(),
+      run_adjoint_test<1, RhoProblem<1, DiscretizedFunction<1>>>(1, 3, refine, 1 << 9, std::make_shared<norms::L2L2<1>>(),
             std::make_shared<norms::L2L2<1>>(), 1e-1);
 }
 
 TEST(ProblemAdjointness, AdjointA2DFE1) {
    for (int i = 3; i < 9; i++)
-      run_adjoint_test<2, AProblem<2, DiscretizedFunction<2>>>(1, 3, 5, 1 << i, std::make_shared<norms::L2L2<2>>(),
+      run_adjoint_test<2, RhoProblem<2, DiscretizedFunction<2>>>(1, 3, 5, 1 << i, std::make_shared<norms::L2L2<2>>(),
             std::make_shared<norms::L2L2<2>>(), 1e-1);
 
    for (int refine = 4; refine >= 1; refine--)
-      run_adjoint_test<2, AProblem<2, DiscretizedFunction<2>>>(1, 3, refine, 1 << 8, std::make_shared<norms::L2L2<2>>(),
+      run_adjoint_test<2, RhoProblem<2, DiscretizedFunction<2>>>(1, 3, refine, 1 << 8, std::make_shared<norms::L2L2<2>>(),
             std::make_shared<norms::L2L2<2>>(), 1e-1);
 }
 
 TEST(ProblemAdjointness, AdjointA2DFE1H1H1) {
    for (int i = 3; i < 9; i++)
-      run_adjoint_test<2, AProblem<2, DiscretizedFunction<2>>>(1, 3, 5, 1 << i,
+      run_adjoint_test<2, RhoProblem<2, DiscretizedFunction<2>>>(1, 3, 5, 1 << i,
             std::make_shared<norms::H1H1<2>>(0.5, 0.5), std::make_shared<norms::L2L2<2>>(), 1e-1);
 
    for (int refine = 4; refine >= 1; refine--)
-      run_adjoint_test<2, AProblem<2, DiscretizedFunction<2>>>(1, 3, refine, 1 << 8,
+      run_adjoint_test<2, RhoProblem<2, DiscretizedFunction<2>>>(1, 3, refine, 1 << 8,
             std::make_shared<norms::H1H1<2>>(0.5, 0.5), std::make_shared<norms::L2L2<2>>(), 1e-1);
 }
 
 TEST(ProblemAdjointness, AdjointA3DFE1) {
    for (int i = 3; i < 5; i++)
-      run_adjoint_test<3, AProblem<3, DiscretizedFunction<3>>>(1, 3, 2, 1 << i, std::make_shared<norms::L2L2<3>>(),
+      run_adjoint_test<3, RhoProblem<3, DiscretizedFunction<3>>>(1, 3, 2, 1 << i, std::make_shared<norms::L2L2<3>>(),
             std::make_shared<norms::L2L2<3>>(), 1e-1);
 }
 

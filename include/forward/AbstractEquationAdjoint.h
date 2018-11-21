@@ -84,11 +84,6 @@ protected:
    SparseMatrix<double> matrix_B;
    SparseMatrix<double> matrix_C;
 
-   // TODO: do these actually have to be saved at all?
-   SparseMatrix<double> matrix_A_old;
-   SparseMatrix<double> matrix_B_old;
-   SparseMatrix<double> matrix_C_old;
-
    // solution and its derivative at the current and the last time step
    Vector<double> solution_u, solution_v;
    Vector<double> solution_u_old, solution_v_old;
