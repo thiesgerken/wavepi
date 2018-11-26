@@ -152,26 +152,30 @@ void WaveEquationBase<dim>::fill_C(std::shared_ptr<SpaceTimeMesh<dim>> mesh, DoF
 template<int dim>
 void WaveEquationBase<dim>::fill_C_intermediate(size_t time_idx, std::shared_ptr<SpaceTimeMesh<dim>> mesh,
       DoFHandler<dim> &dof_handler) {
-// TODO
-// fill with (D^{n+1})^{-1} C^n, n = time_idx on the mesh of time_idx
-// -> needs to be able to change the time in rho to the next time
-   AssertThrow(false, ExcNotImplemented("implement fill_C_intermediate"));
+   // fill with (D^{n+1})^{-1} C^n, n = time_idx on the mesh of time_idx
+   // -> needs to be able to change the time in ρ to the next time if continuous ρ is used
 
    matrix_C_intermediate = std::make_shared<SparseMatrix<double>>(*mesh->get_sparsity_pattern(time_idx));
+   double current_time = mesh->get_time(time_idx);
+   double next_time = mesh->get_time(time_idx + 1); // does range checking in debug mode
 
-   if ((!param_rho_disc && !param_c_disc) || !using_special_assembly(mesh))
+   if ((!param_rho_disc && !param_c_disc) || !using_special_assembly(mesh)) {
+      param_rho->set_time(next_time);
       MatrixCreator<dim>::create_C_matrix(dof_handler, mesh->get_quadrature(), *matrix_C_intermediate, param_rho,
             param_c);
-   else if (param_rho_disc && !param_c_disc)
+      param_rho->set_time(current_time);
+   } else if (param_rho_disc && !param_c_disc)
       MatrixCreator<dim>::create_C_matrix(dof_handler, mesh->get_quadrature(), *matrix_C_intermediate,
-            param_rho_disc->get_function_coefficients(param_rho_disc->get_time_index()), param_c);
-   else if (!param_rho_disc && param_c_disc)
+            param_rho_disc->get_function_coefficients(param_rho_disc->get_time_index() + 1), param_c);
+
+   else if (!param_rho_disc && param_c_disc) {
+      param_rho->set_time(next_time);
       MatrixCreator<dim>::create_C_matrix(dof_handler, mesh->get_quadrature(), *matrix_C_intermediate, param_rho,
             param_c_disc->get_function_coefficients(param_c_disc->get_time_index()));
-   else
-      // (param_rho_disc && param_c_disc)
+      param_rho->set_time(current_time);
+   } else
       MatrixCreator<dim>::create_C_matrix(dof_handler, mesh->get_quadrature(), *matrix_C_intermediate,
-            param_rho_disc->get_function_coefficients(param_rho_disc->get_time_index()),
+            param_rho_disc->get_function_coefficients(param_rho_disc->get_time_index() + 1),
             param_c_disc->get_function_coefficients(param_c_disc->get_time_index()));
 
 }
@@ -179,11 +183,20 @@ void WaveEquationBase<dim>::fill_C_intermediate(size_t time_idx, std::shared_ptr
 template<int dim>
 void WaveEquationBase<dim>::fill_D_intermediate(size_t time_idx, std::shared_ptr<SpaceTimeMesh<dim>> mesh,
       DoFHandler<dim> &dof_handler) {
-// TODO
-// fill with (D^{n+1})^{-1} D^n, n = time_idx
-// -> needs to be able to change the time in D
-   AssertThrow(false, ExcNotImplemented("implement fill_D_intermediate"));
+   // fill with (D^{n+1})^{-1} D^n, n = time_idx on the mesh of time_idx
+   // -> needs to be able to change the time in ρ to the next time if continuous ρ is used
 
+   matrix_D_intermediate = std::make_shared<SparseMatrix<double>>(*mesh->get_sparsity_pattern(time_idx));
+   double current_time = mesh->get_time(time_idx);
+   double next_time = mesh->get_time(time_idx + 1); // does range checking in debug mode
+
+   if (!param_rho_disc || !using_special_assembly(mesh))
+      MatrixCreator<dim>::create_D_intermediate_matrix(dof_handler, mesh->get_quadrature(), *matrix_D_intermediate, param_rho,
+            current_time, next_time);
+      else
+      MatrixCreator<dim>::create_D_intermediate_matrix(dof_handler, mesh->get_quadrature(), *matrix_D_intermediate,
+            param_rho_disc->get_function_coefficients(param_rho_disc->get_time_index()) ,
+            param_rho_disc->get_function_coefficients(param_rho_disc->get_time_index() + 1));
 }
 
 template class WaveEquationBase<1> ;

@@ -98,6 +98,24 @@ public:
    static void create_C_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
          const Vector<double> &rho, const Vector<double> &c);
 
+   /**
+    * discretizes the bilinear form (u,v) ↦ uv ρ^n/ρ^{n+1}.
+    * ρ is supplied as a discretized FE function.
+    *
+    * TODO: implement (easy)
+    */
+   static void create_D_intermediate_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
+         const Vector<double> &rho_current, const Vector<double> &rho_next);
+
+   /**
+    * discretizes the bilinear form (u,v) ↦ uv ρ^n/ρ^{n+1}.
+    * ρ must be a valid function handle, which will be modified (need to change its time)
+    *
+    * TODO: implement; how to do parallel assembly in this case ??
+    */
+   static void create_D_intermediate_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
+         std::shared_ptr<Function<dim>> rho, double current_time, double next_time);
+
 private:
    // scratch data for assembly that needs function values and gradients
    struct LaplaceAssemblyScratchData {
