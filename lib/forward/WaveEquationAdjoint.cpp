@@ -58,15 +58,10 @@ WaveEquationAdjoint<dim>::WaveEquationAdjoint(const WaveEquation<dim> &wave)
 }
 
 template<int dim>
-void WaveEquationAdjoint<dim>::assemble_matrices(double time) {
+void WaveEquationAdjoint<dim>::assemble_matrices(size_t time_idx) {
    LogStream::Prefix p("assemble_matrices");
 
-   param_rho->set_time(time);
-   param_nu->set_time(time);
-   param_q->set_time(time);
-   param_c->set_time(time);
-
-   this->fill_matrices(mesh, *dof_handler, matrix_A, matrix_B, matrix_C);
+   this->fill_matrices(mesh, time_idx,  *dof_handler, matrix_A, matrix_B, matrix_C);
 }
 
 template<int dim>

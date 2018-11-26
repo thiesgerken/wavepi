@@ -108,15 +108,8 @@ public:
          this->special_assembly_tactic = 0;
    }
 
-   void fill_matrices(std::shared_ptr<SpaceTimeMesh<dim>> mesh, DoFHandler<dim> &dof_handler,
+   void fill_matrices(std::shared_ptr<SpaceTimeMesh<dim>> mesh, size_t time_idx, DoFHandler<dim> &dof_handler,
          SparseMatrix<double> &dst_A, SparseMatrix<double> &dst_B,SparseMatrix<double> &dst_C);
-
-   void fill_A(std::shared_ptr<SpaceTimeMesh<dim>> mesh, DoFHandler<dim> &dof_handler,
-         SparseMatrix<double> &destination);
-   void fill_B(std::shared_ptr<SpaceTimeMesh<dim>> mesh, DoFHandler<dim> &dof_handler,
-         SparseMatrix<double> &destination);
-   void fill_C(std::shared_ptr<SpaceTimeMesh<dim>> mesh, DoFHandler<dim> &dof_handler,
-         SparseMatrix<double> &destination);
 
    bool is_rho_time_dependent() const {
       return rho_time_dependent;
@@ -128,7 +121,7 @@ public:
 
    // before mesh change, let dst <- (D^n)^{-1} D^{n-1} M^{-1} src
    // ( i.e. dst <- src for time-independent D)
-   virtual void vmult_D_intermediate(Vector<double>& dst, const Vector<double>& src) const;
+   virtual void vmult_D_intermediate(std::shared_ptr<SparseMatrix<double>> mass_matrix, Vector<double>& dst, const Vector<double>& src) const;
 
    // before mesh change, let dst <- (D^n)^{-1} C^{n-1} src
    // ( i.e. dst <- matrix_C * src for time-independent D)
@@ -136,6 +129,16 @@ public:
 
 
 protected:
+   void fill_A(std::shared_ptr<SpaceTimeMesh<dim>> mesh, DoFHandler<dim> &dof_handler,
+         SparseMatrix<double> &destination);
+   void fill_B(std::shared_ptr<SpaceTimeMesh<dim>> mesh, DoFHandler<dim> &dof_handler,
+         SparseMatrix<double> &destination);
+   void fill_C(std::shared_ptr<SpaceTimeMesh<dim>> mesh, DoFHandler<dim> &dof_handler,
+         SparseMatrix<double> &destination);
+
+   void fill_C_intermediate(size_t time_idx, std::shared_ptr<SpaceTimeMesh<dim>> mesh, DoFHandler<dim> &dof_handler);
+   void fill_D_intermediate(size_t time_idx, std::shared_ptr<SpaceTimeMesh<dim>> mesh, DoFHandler<dim> &dof_handler);
+
    // treat DiscretizedFunctions as parameters and right hand side differently
    // < 0 -> no (better if much coupling present), > 0 -> yes, = 0 automatically (default)
    int special_assembly_tactic = 0;
@@ -148,6 +151,12 @@ protected:
 
    // allows faster assembly if it is constant
    bool rho_time_dependent;
+
+   // if needed: storage for (D^n)^{-1} D^{n-1}
+   std::shared_ptr<SparseMatrix<double>> matrix_D_intermediate;
+
+   // if needed: storage for (D^n)^{-1} C^{n-1}
+   std::shared_ptr<SparseMatrix<double>> matrix_C_intermediate;
 };
 
 } /* namespace forward */

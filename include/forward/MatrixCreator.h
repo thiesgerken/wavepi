@@ -26,87 +26,134 @@ namespace forward {
 
 using namespace dealii;
 
-template <int dim>
+template<int dim>
 class MatrixCreator {
- public:
-  /**
-   * like dealii::MatrixCreator::create_laplace_matrix, but with a zero order coefficient q as well.
-   * a and q must be valid function handles.
-   */
-  static void create_laplace_mass_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad,
-                                         SparseMatrix<double> &matrix, std::shared_ptr<Function<dim>> a,
-                                         std::shared_ptr<Function<dim>> q);
+public:
 
-  /**
-   * like dealii::MatrixCreator::create_laplace_matrix, but with a zero order coefficient q as well.
-   * a must be a valid function handle and q a discretized function on the same mesh.
-   */
-  static void create_laplace_mass_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad,
-                                         SparseMatrix<double> &matrix, std::shared_ptr<Function<dim>> a,
-                                         const Vector<double> &q);
+   /**
+    * like dealii::MatrixCreator::create_laplace_matrix, but with a zero order coefficient q as well and 1/ρ instead of ρ,
+    * i.e. the bilinear form (u,v) ↦ ∇u·∇v/ρ + quv.
+    * ρ and q must be valid function handles.
+    */
+   static void create_A_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
+         std::shared_ptr<Function<dim>> rho, std::shared_ptr<Function<dim>> q);
 
-  /**
-   * like dealii::MatrixCreator::create_laplace_matrix, but with a zero order coefficient q as well.
-   * q must be a valid function handle and a a discretized function on the same mesh.
-   */
-  static void create_laplace_mass_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad,
-                                         SparseMatrix<double> &matrix, const Vector<double> &a,
-                                         std::shared_ptr<Function<dim>> q);
+   /**
+    * like `dealii::MatrixCreator::create_laplace_matrix`, but with a zero order coefficient q as well and 1/ρ instead of ρ,
+    * i.e. the bilinear form (u,v) ↦ ∇u·∇v/ρ + quv.
+    * ρ must be a valid function handle and q a discretized function on the same mesh.
+    */
+   static void create_A_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
+         std::shared_ptr<Function<dim>> rho, const Vector<double> &q);
 
-  /**
-   * like dealii::MatrixCreator::create_laplace_matrix, but with a zero order coefficient q as well.
-   * a and q are supplied as discretized FE functions  (living on the same mesh).
-   */
-  static void create_laplace_mass_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad,
-                                         SparseMatrix<double> &matrix, const Vector<double> &a,
-                                         const Vector<double> &q);
+   /**
+    * like `dealii::MatrixCreator::create_laplace_matrix`, but with a zero order coefficient q as well and 1/ρ instead of ρ,
+    * i.e. the bilinear form (u,v) ↦ ∇u·∇v/ρ + quv.
+    * q must be a valid function handle and ρ a discretized function on the same mesh.
+    */
+   static void create_A_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
+         const Vector<double> &rho, std::shared_ptr<Function<dim>> q);
 
-  /**
-   * like dealii::MatrixCreator::create_mass_matrix, but with a discretized coefficient c (living on the same mesh)
-   * you could just pass this coefficient to dealii::MatrixCreator::create_mass_matrix, but in tests this took 20x
-   * longer than when using the continuous version. This implementation did it in 2x the time.
-   */
-  static void create_mass_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
-                                 const Vector<double> &c);
+   /**
+    * like `dealii::MatrixCreator::create_laplace_matrix`, but with a zero order coefficient q as well and 1/ρ instead of ρ,
+    * i.e. the bilinear form (u,v) ↦ ∇u·∇v/ρ + quv.
+    * ρ and q are supplied as discretized FE functions  (living on the same mesh).
+    */
+   static void create_A_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
+         const Vector<double> &rho, const Vector<double> &q);
 
- private:
-  struct LaplaceAssemblyScratchData {
-    LaplaceAssemblyScratchData(const FiniteElement<dim> &fe, const Quadrature<dim> &quad);
-    LaplaceAssemblyScratchData(const LaplaceAssemblyScratchData &scratch_data);
-    FEValues<dim> fe_values;
-  };
+   /**
+    * like `dealii::MatrixCreator::create_mass_matrix`, but with a discretized coefficient c (living on the same mesh)
+    * you could just pass this coefficient to `dealii::MatrixCreator::create_mass_matrix`, but in tests this took 20x
+    * longer than when using the continuous version. This implementation did it in 2x the time.
+    */
+   static void create_mass_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
+         const Vector<double> &c);
 
-  struct MassAssemblyScratchData {
-    MassAssemblyScratchData(const FiniteElement<dim> &fe, const Quadrature<dim> &quad);
-    MassAssemblyScratchData(const MassAssemblyScratchData &scratch_data);
-    FEValues<dim> fe_values;
-  };
+   /**
+    * discretizes the bilinear form (u,v) ↦ uv/(ρ c²).
+    * ρ and c must be valid function handles.
+    */
+   static void create_C_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
+         std::shared_ptr<Function<dim>> rho, std::shared_ptr<Function<dim>> c);
 
-  struct AssemblyCopyData {
-    FullMatrix<double> cell_matrix;
-    std::vector<types::global_dof_index> local_dof_indices;
-  };
+   /**
+    * discretizes the bilinear form (u,v) ↦ uv/(ρ c²).
+    *  ρ must be a valid function handle and c a discretized function on the same mesh.
+    */
+   static void create_C_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
+         std::shared_ptr<Function<dim>> rho, const Vector<double> &c);
 
-  static void copy_local_to_global(SparseMatrix<double> &matrix, const AssemblyCopyData &copy_data);
+   /**
+    * discretizes the bilinear form (u,v) ↦ uv/(ρ c²).
+    * c must be a valid function handle and ρ a discretized function on the same mesh.
+    */
+   static void create_C_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
+         const Vector<double> &rho, std::shared_ptr<Function<dim>> c);
 
-  static void local_assemble_mass(const Vector<double> &c, const typename DoFHandler<dim>::active_cell_iterator &cell,
-                                  MassAssemblyScratchData &scratch_data, AssemblyCopyData &copy_data);
+   /**
+    * discretizes the bilinear form (u,v) ↦ uv/(ρ c²).
+    * ρ and c are supplied as discretized FE functions  (living on the same mesh).
+    */
+   static void create_C_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
+         const Vector<double> &rho, const Vector<double> &c);
 
-  static void local_assemble_laplace_mass_dc(const Vector<double> &a, const Function<dim> *const q,
-                                             const typename DoFHandler<dim>::active_cell_iterator &cell,
-                                             LaplaceAssemblyScratchData &scratch_data, AssemblyCopyData &copy_data);
+private:
+   // scratch data for assembly that needs function values and gradients
+   struct LaplaceAssemblyScratchData {
+      LaplaceAssemblyScratchData(const FiniteElement<dim> &fe, const Quadrature<dim> &quad);
+      LaplaceAssemblyScratchData(const LaplaceAssemblyScratchData &scratch_data);
+      FEValues<dim> fe_values;
+   };
 
-  static void local_assemble_laplace_mass_cd(const Function<dim> *const a, const Vector<double> &q,
-                                             const typename DoFHandler<dim>::active_cell_iterator &cell,
-                                             LaplaceAssemblyScratchData &scratch_data, AssemblyCopyData &copy_data);
+   // scratch data for assembly that only needs function values
+   struct MassAssemblyScratchData {
+      MassAssemblyScratchData(const FiniteElement<dim> &fe, const Quadrature<dim> &quad);
+      MassAssemblyScratchData(const MassAssemblyScratchData &scratch_data);
+      FEValues<dim> fe_values;
+   };
 
-  static void local_assemble_laplace_mass_dd(const Vector<double> &a, const Vector<double> &q,
-                                             const typename DoFHandler<dim>::active_cell_iterator &cell,
-                                             LaplaceAssemblyScratchData &scratch_data, AssemblyCopyData &copy_data);
+   struct AssemblyCopyData {
+      FullMatrix<double> cell_matrix;
+      std::vector<types::global_dof_index> local_dof_indices;
+   };
 
-  static void local_assemble_laplace_mass_cc(const Function<dim> *const a, const Function<dim> *const q,
-                                             const typename DoFHandler<dim>::active_cell_iterator &cell,
-                                             LaplaceAssemblyScratchData &scratch_data, AssemblyCopyData &copy_data);
+   static void copy_local_to_global(SparseMatrix<double> &matrix, const AssemblyCopyData &copy_data);
+
+   static void local_assemble_mass(const Vector<double> &c, const typename DoFHandler<dim>::active_cell_iterator &cell,
+         MassAssemblyScratchData &scratch_data, AssemblyCopyData &copy_data);
+
+   static void local_assemble_A_dc(const Vector<double> &a, const Function<dim> * const q,
+         const typename DoFHandler<dim>::active_cell_iterator &cell, LaplaceAssemblyScratchData &scratch_data,
+         AssemblyCopyData &copy_data);
+
+   static void local_assemble_A_cd(const Function<dim> * const a, const Vector<double> &q,
+         const typename DoFHandler<dim>::active_cell_iterator &cell, LaplaceAssemblyScratchData &scratch_data,
+         AssemblyCopyData &copy_data);
+
+   static void local_assemble_A_dd(const Vector<double> &a, const Vector<double> &q,
+         const typename DoFHandler<dim>::active_cell_iterator &cell, LaplaceAssemblyScratchData &scratch_data,
+         AssemblyCopyData &copy_data);
+
+   static void local_assemble_A_cc(const Function<dim> * const a, const Function<dim> * const q,
+         const typename DoFHandler<dim>::active_cell_iterator &cell, LaplaceAssemblyScratchData &scratch_data,
+         AssemblyCopyData &copy_data);
+
+   static void local_assemble_C_dc(const Vector<double> &a, const Function<dim> * const c,
+         const typename DoFHandler<dim>::active_cell_iterator &cell, MassAssemblyScratchData &scratch_data,
+         AssemblyCopyData &copy_data);
+
+   static void local_assemble_C_cd(const Function<dim> * const a, const Vector<double> &c,
+         const typename DoFHandler<dim>::active_cell_iterator &cell, MassAssemblyScratchData &scratch_data,
+         AssemblyCopyData &copy_data);
+
+   static void local_assemble_C_dd(const Vector<double> &a, const Vector<double> &c,
+         const typename DoFHandler<dim>::active_cell_iterator &cell, MassAssemblyScratchData &scratch_data,
+         AssemblyCopyData &copy_data);
+
+   static void local_assemble_C_cc(const Function<dim> * const a, const Function<dim> * const c,
+         const typename DoFHandler<dim>::active_cell_iterator &cell, MassAssemblyScratchData &scratch_data,
+         AssemblyCopyData &copy_data);
 };
 }  // namespace forward
 } /* namespace wavepi */

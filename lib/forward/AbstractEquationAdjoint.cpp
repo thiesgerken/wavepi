@@ -91,12 +91,13 @@ void AbstractEquationAdjoint<dim>::next_step(size_t time_idx) {
 }
 
 template<int dim>
-void AbstractEquationAdjoint<dim>::assemble(double time) {
-   right_hand_side->set_time(time);
+void AbstractEquationAdjoint<dim>::assemble(size_t i) {
+   double time = mesh->get_time(i);
+          right_hand_side->set_time(time);
 
    // this helps only a bit because each of the operations is already parallelized
    Threads::TaskGroup<void> task_group;
-   task_group += Threads::new_task(&AbstractEquationAdjoint<dim>::assemble_matrices, *this, time);
+   task_group += Threads::new_task(&AbstractEquationAdjoint<dim>::assemble_matrices, *this, i);
    task_group += Threads::new_task(&RightHandSide<dim>::create_right_hand_side, *right_hand_side, *dof_handler,
          mesh->get_quadrature(), rhs);
    task_group.join_all();
@@ -404,7 +405,6 @@ DiscretizedFunction<dim> AbstractEquationAdjoint<dim>::run(std::shared_ptr<Right
    // TODO: adapt to D!
    AssertThrow(false, ExcNotImplemented());
 
-
    Timer timer, assembly_timer;
    timer.start();
 
@@ -433,7 +433,7 @@ DiscretizedFunction<dim> AbstractEquationAdjoint<dim>::run(std::shared_ptr<Right
 
       // assemble new matrices
       assembly_timer.start();
-      assemble(time);
+      assemble(i);
       assembly_timer.stop();
 
       // finish assembling of rhs_v
@@ -456,7 +456,7 @@ DiscretizedFunction<dim> AbstractEquationAdjoint<dim>::run(std::shared_ptr<Right
 
    timer.stop();
    std::ios::fmtflags f(deallog.flags(std::ios_base::fixed));
-   deallog << "solved adjoint pde in " << timer.wall_time() << "s (setup " << assembly_timer.wall_time() << "s)"
+   deallog << "solved adjoint PDE in " << timer.wall_time() << "s (setup " << assembly_timer.wall_time() << "s)"
          << std::endl;
    deallog.flags(f);
 

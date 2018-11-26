@@ -42,7 +42,7 @@ public:
 private:
    virtual void apply_boundary_conditions_u(double time);
    virtual void apply_boundary_conditions_v(double time);
-   virtual void assemble_matrices(double time);
+   virtual void assemble_matrices(size_t time_idx);
 
    using AbstractEquationAdjoint<dim>::mesh;
    using AbstractEquationAdjoint<dim>::dof_handler;

@@ -114,7 +114,7 @@ protected:
    virtual void initial_values(double time) = 0;
 
    // assembling steps of u and v that need to happen on the old mesh
-   void assemble_pre(double time_step);
+   void assemble_pre(std::shared_ptr<SparseMatrix<double>> mass_matrix, double time_step);
 
    // move on to the mesh of the current time step,
    // interpolating system_rhs_[u,v] and tmp_u on the next mesh
@@ -122,18 +122,18 @@ protected:
 
    // assemble matrices of the current time step into matrix_A, matrix_B and matrix_C.
    // if needed, this function can also do stuff so that the functions concerning D can run faster.
-   virtual void assemble_matrices(double time) = 0;
+   virtual void assemble_matrices(size_t time_idx) = 0;
 
    // before mesh change, let dst <- (D^n)^{-1} D^{n-1} M^{-1} src
    // ( i.e. dst <- src for time-independent D)
-   virtual void vmult_D_intermediate(Vector<double>& dst, const Vector<double>& src) const = 0;
+   virtual void vmult_D_intermediate(std::shared_ptr<SparseMatrix<double>> mass_matrix, Vector<double>& dst, const Vector<double>& src) const = 0;
 
    // before mesh change, let dst <- (D^n)^{-1} C^{n-1} src
    // ( i.e. dst <- matrix_C * src for time-independent D)
    virtual void vmult_C_intermediate(Vector<double>& dst, const Vector<double>& src) const = 0;
 
    // assemble matrices and rhs for current mesh (calls assemble_matrices)
-   void assemble(double time);
+   void assemble(size_t time_idx);
 
    // final assembly of rhs for u
    void assemble_u(double time, double time_step);

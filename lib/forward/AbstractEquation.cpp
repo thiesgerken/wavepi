@@ -120,19 +120,20 @@ void AbstractEquation<dim>::next_mesh(size_t source_idx, size_t target_idx) {
 }
 
 template<int dim>
-void AbstractEquation<dim>::assemble(double time) {
+void AbstractEquation<dim>::assemble(size_t i) {
+   double time = mesh->get_time(i);
    right_hand_side->set_time(time);
 
    // this helps only a bit because each of the operations is already parallelized
    Threads::TaskGroup<void> task_group;
-   task_group += Threads::new_task(&AbstractEquation<dim>::assemble_matrices, *this, time);
+   task_group += Threads::new_task(&AbstractEquation<dim>::assemble_matrices, *this, i);
    task_group += Threads::new_task(&RightHandSide<dim>::create_right_hand_side, *right_hand_side, *dof_handler,
          mesh->get_quadrature(), rhs);
    task_group.join_all();
 }
 
 template<int dim>
-void AbstractEquation<dim>::assemble_pre(double time_step) {
+void AbstractEquation<dim>::assemble_pre(std::shared_ptr<SparseMatrix<double>> mass_matrix, double time_step) {
    Vector<double> tmp(solution_u_old.size());
 
    // grid has not been changed yet,
@@ -150,7 +151,7 @@ void AbstractEquation<dim>::assemble_pre(double time_step) {
 
    // tmp contains
    // (1-θ) (F^n - B^n V^n - A^n U^n)
-   vmult_D_intermediate(system_tmp2, tmp);
+   vmult_D_intermediate(mass_matrix, system_tmp2, tmp);
 
    vmult_C_intermediate(tmp, solution_v_old);
    system_tmp2.add(1.0 / time_step, tmp);
@@ -319,7 +320,7 @@ DiscretizedFunction<dim> AbstractEquation<dim>::run(std::shared_ptr<RightHandSid
       solution_v_old = solution_v;
 
       // vector assembling that needs to take place on the old grid
-      assemble_pre(dt);
+      assemble_pre(mesh->get_mass_matrix(last_time_idx), dt);
 
       // set dof_handler to mesh for this time step,
       // interpolate to new mesh
@@ -327,7 +328,7 @@ DiscretizedFunction<dim> AbstractEquation<dim>::run(std::shared_ptr<RightHandSid
 
       // assemble new matrices and rhs
       assembly_timer.start();
-      assemble(time);
+      assemble(time_idx);
       assembly_timer.stop();
 
       // finish assembling of rhs_u

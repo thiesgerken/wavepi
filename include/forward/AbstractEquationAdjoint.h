@@ -118,10 +118,10 @@ protected:
 
    // assemble matrices of the current time step into matrix_A, matrix_B and matrix_C.
    // if needed, this function can also do stuff so that the functions concerning D can run faster.
-   virtual void assemble_matrices(double time) = 0;
+   virtual void assemble_matrices(size_t time_idx) = 0;
 
    // assemble matrices and system_rhs_u for current mesh (calls assemble_matrices)
-   void assemble(double time);
+   void assemble(size_t time_idx);
 
    // final assembly of rhs for u
    void assemble_u(size_t time_idx);

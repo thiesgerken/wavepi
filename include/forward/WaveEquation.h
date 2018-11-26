@@ -82,7 +82,7 @@ public:
 protected:
    virtual void apply_boundary_conditions_u(double time);
    virtual void apply_boundary_conditions_v(double time);
-   virtual void assemble_matrices(double time);
+   virtual void assemble_matrices(size_t time_idx);
    virtual void initial_values(double time);
 
    using AbstractEquation<dim>::mesh;
@@ -104,8 +104,8 @@ protected:
    using WaveEquationBase<dim>::vmult_D_intermediate;
    using WaveEquationBase<dim>::vmult_C_intermediate;
 
-   virtual void vmult_D_intermediate(Vector<double>& dst, const Vector<double>& src) const {
-      WaveEquationBase<dim>::vmult_D_intermediate(dst, src);
+   virtual void vmult_D_intermediate(std::shared_ptr<SparseMatrix<double>> mass_matrix, Vector<double>& dst, const Vector<double>& src) const {
+      WaveEquationBase<dim>::vmult_D_intermediate(mass_matrix, dst, src);
    }
 
    virtual void vmult_C_intermediate(Vector<double>& dst, const Vector<double>& src) const {
