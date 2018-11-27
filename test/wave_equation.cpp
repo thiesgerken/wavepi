@@ -38,27 +38,24 @@ using namespace wavepi::base;
 using namespace wavepi;
 
 template<int dim>
-class TestF: public Function<dim> {
+class TestF: public LightFunction<dim> {
 public:
    virtual ~TestF() = default;
 
-   double value(const Point<dim> &p, const unsigned int component = 0) const override {
-      Assert(component == 0, ExcIndexRange(component, 0, 1));
-      if ((this->get_time() <= 1) && (p.norm() < 0.5))
-         return std::sin(this->get_time() * 2 * numbers::PI);
+   virtual double evaluate(const Point<dim> &p, const double t) const {
+      if ((t <= 1) && (p.norm() < 0.5))
+         return std::sin(t * 2 * numbers::PI);
       else
          return 0.0;
    }
 };
 
 template<int dim>
-class TestG: public Function<dim> {
+class TestG: public LightFunction<dim> {
 public:
    virtual ~TestG() = default;
 
-   double value(const Point<dim> &p, const unsigned int component = 0) const override {
-      Assert(component == 0, ExcIndexRange(component, 0, 1));
-
+   virtual double evaluate(const Point<dim> &p, const double t) const {
       Point<dim> pc = Point<dim>::unit_vector(0);
       pc *= 0.5;
 
@@ -70,13 +67,11 @@ public:
 };
 
 template<int dim>
-class TestH: public Function<dim> {
+class TestH: public LightFunction<dim> {
 public:
    virtual ~TestH() = default;
 
-   virtual double value(const Point<dim> &p, const unsigned int component = 0) const override {
-      Assert(component == 0, ExcIndexRange(component, 0, 1));
-
+   virtual double evaluate(const Point<dim> &p, const double t) const {
       return p.norm() * this->get_time();
    }
 };
@@ -94,80 +89,63 @@ double c_squared(const Point<dim> &p, double t) {
 }
 
 template<int dim>
-class TestC: public Function<dim> {
+class TestC: public LightFunction<dim> {
 public:
    virtual ~TestC() = default;
 
-   virtual double value(const Point<dim> &p, const unsigned int component = 0) const override {
-      Assert(component == 0, ExcIndexRange(component, 0, 1));
-
-      return 1.0 / (rho(p, this->get_time()) * c_squared(p, this->get_time()));
+   virtual double evaluate(const Point<dim> &p, const double t) const {
+      return 1.0 / (rho(p, t) * c_squared(p, t));
    }
 };
 
 template<int dim>
-class TestRho: public Function<dim> {
+class TestRho: public LightFunction<dim> {
 public:
    virtual ~TestRho() = default;
 
-   virtual double value(const Point<dim> &p, const unsigned int component = 0) const override {
-      Assert(component == 0, ExcIndexRange(component, 0, 1));
-
-      return rho(p, this->get_time());
+   virtual double evaluate(const Point<dim> &p, const double t) const {
+      return rho(p, t);
    }
 };
 
 template<int dim>
-class TestNu: public Function<dim> {
+class TestNu: public LightFunction<dim> {
 public:
    virtual ~TestNu() = default;
 
-   virtual double value(const Point<dim> &p, const unsigned int component = 0) const override {
-      Assert(component == 0, ExcIndexRange(component, 0, 1));
-
+   virtual double evaluate(const Point<dim> &p, const double t) const {
       // do not just change this, reference_test_nu needs this
-      return p.norm() * this->get_time();
+      return p.norm() * t;
    }
 };
 
 template<int dim>
-class RhsTestNu: public Function<dim> {
+class RhsTestNu: public LightFunction<dim> {
 public:
    virtual ~RhsTestNu() = default;
 
-   virtual double value(const Point<dim> &p, const unsigned int component = 0) const override {
-      Assert(component == 0, ExcIndexRange(component, 0, 1));
-
+   virtual double evaluate(const Point<dim> &p, const double t) const {
       // do not just change this, reference_test_nu needs this
-      return nu.value(p, 0) * v->value(p, 0);
+      return nu.value(p, t) * v->value(p, t);
    }
 
-   virtual void set_time(double time) override {
-      Function<dim>::set_time(time);
-      nu.set_time(time);
-      v->set_time(time);
-   }
-
-public:
-   RhsTestNu(std::shared_ptr<Function<dim>> v)
+   RhsTestNu(const std::shared_ptr<LightFunction<dim>> &v)
          : v(v) {
       AssertThrow(v, ExcNotInitialized());
    }
 
 private:
-   std::shared_ptr<Function<dim>> v;  // pointer to u'
+   std::shared_ptr<LightFunction<dim>> v;  // pointer to u'
    TestNu<dim> nu;
 };
 
 template<int dim>
-class TestQ: public Function<dim> {
+class TestQ: public LightFunction<dim> {
 public:
    virtual ~TestQ() = default;
 
-   virtual double value(const Point<dim> &p, const unsigned int component = 0) const override {
-      Assert(component == 0, ExcIndexRange(component, 0, 1));
-
-      return p.norm() < 0.5 ? std::sin(this->get_time() / 2 * 2 * numbers::PI) : 0.0;
+   virtual double evaluate(const Point<dim> &p, const double t) const override {
+      return p.norm() < 0.5 ? std::sin(t / 2 * 2 * numbers::PI) : 0.0;
    }
 
    static const Point<dim> q_position;
@@ -181,22 +159,16 @@ template<>
 const Point<3> TestQ<3>::q_position = Point<3>(-1.0, 0.5, 0.0);
 
 template<int dim>
-class DiscretizedFunctionDisguise: public Function<dim> {
+class DiscretizedFunctionDisguise: public LightFunction<dim> {
 public:
    DiscretizedFunctionDisguise(std::shared_ptr<DiscretizedFunction<dim>> base)
          : base(base) {
    }
    virtual ~DiscretizedFunctionDisguise() = default;
 
-   virtual double value(const Point<dim> &p, const unsigned int component = 0) const override {
-      return base->value(p, component);
+   virtual double evaluate(const Point<dim> &p, const double t) const {
+      return base->value(p, t);
    }
-
-   virtual void set_time(const double new_time) override {
-      Function<dim>::set_time(new_time);
-      base->set_time(new_time);
-   }
-
 private:
    std::shared_ptr<DiscretizedFunction<dim>> base;
 };
@@ -349,20 +321,17 @@ void run_discretized_test(int fe_order, int quad_order, int refines) {
 // product of sines in space to have dirichlet b.c. in [0,pi], times a sum of sine and cosine in time.
 // its time derivative is the same function with C[1] = C[0]*norm(k), C[0] = -C[1]*norm(k)
 template<int dim>
-class SeparationAnsatz: public Function<dim> {
+class SeparationAnsatz: public LightFunction<dim> {
 public:
    virtual ~SeparationAnsatz() = default;
 
-   virtual double value(const Point<dim> &p, const unsigned int component = 0) const override {
-      Assert(component == 0, ExcIndexRange(component, 0, 1));
-
+   virtual double evaluate(const Point<dim> &p, const double t) const {
       double res = 1;
 
       for (size_t i = 0; i < dim; i++)
          res *= std::sin(k[i] * p[i]);
 
-      res *= constants[0] * std::sin(std::sqrt(k.square()) * this->get_time())
-            + constants[1] * std::cos(std::sqrt(k.square()) * this->get_time());
+      res *= constants[0] * std::sin(std::sqrt(k.square()) * t) + constants[1] * std::cos(std::sqrt(k.square()) * t);
       return res;
    }
 
@@ -513,8 +482,9 @@ void run_reference_test_nu(int fe_order, int quad_order, int refines, Point<dim,
    wave_eq.set_initial_values_u(u);
    wave_eq.set_initial_values_v(v);
 
-   DiscretizedFunction<dim> solu = wave_eq.run(
-         std::make_shared<L2RightHandSide<dim>>(std::make_shared<RhsTestNu<dim>>(v)), WaveEquation<dim>::Forward);
+   auto x = std::make_shared<RhsTestNu<dim>>(v);
+
+   DiscretizedFunction<dim> solu = wave_eq.run(std::make_shared<L2RightHandSide<dim>>(x), WaveEquation<dim>::Forward);
    DiscretizedFunction<dim> solv = solu.derivative();
    solu.throw_away_derivative();
 

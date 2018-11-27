@@ -46,6 +46,7 @@ cmake -DCMAKE_BUILD_TYPE=Release ..
 ```
 
 Use the same command with `Debug` to go back. There are also `make` targets that switch the build type.
+To only build the documentation (Doxygen), run `make doc` inside the build directory. The command `make run-doc` will also open the result in a Browser
 
 ## MPI
 

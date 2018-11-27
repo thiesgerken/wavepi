@@ -41,110 +41,106 @@ using namespace wavepi::base;
 /**
  * Point measurements, implemented as scalar product between the given field and a delta-approximating function.
  */
-template <int dim>
-class ConvolutionMeasure : public Measure<DiscretizedFunction<dim>, SensorValues<dim>> {
- public:
-  virtual ~ConvolutionMeasure() = default;
+template<int dim>
+class ConvolutionMeasure: public Measure<DiscretizedFunction<dim>, SensorValues<dim>> {
+public:
+   virtual ~ConvolutionMeasure() = default;
 
-  /**
-   * @param points Points in space and time (last dimension is time) where you want those point measurements.
-   * @param delta_shape Shape of the delta-approximating function. Should be supported in [-1,1]^{dim+1}.
-   * @param delta_scale_space Desired support radius in space
-   * @param delta_scale_time Desired support radius in time
-   */
-  ConvolutionMeasure(std::shared_ptr<SpaceTimeMesh<dim>> mesh, std::shared_ptr<SensorDistribution<dim>> points,
-                     std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm,
-                     std::shared_ptr<LightFunction<dim>> delta_shape, double delta_scale_space,
-                     double delta_scale_time);
+   /**
+    * @param points Points in space and time (last dimension is time) where you want those point measurements.
+    * @param delta_shape Shape of the delta-approximating function. Should be supported in [-1,1]^{dim+1}.
+    * @param delta_scale_space Desired support radius in space
+    * @param delta_scale_time Desired support radius in time
+    */
+   ConvolutionMeasure(std::shared_ptr<SpaceTimeMesh<dim>> mesh, std::shared_ptr<SensorDistribution<dim>> points,
+         std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm, std::shared_ptr<LightFunction<dim>> delta_shape,
+         double delta_scale_space, double delta_scale_time);
 
-  /**
-   * Does not initialize most of the values, you have to use get_parameters afterwards.
-   */
-  ConvolutionMeasure(std::shared_ptr<SpaceTimeMesh<dim>> mesh, std::shared_ptr<SensorDistribution<dim>> points,
-                     std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm);
+   /**
+    * Does not initialize most of the values, you have to use get_parameters afterwards.
+    */
+   ConvolutionMeasure(std::shared_ptr<SpaceTimeMesh<dim>> mesh, std::shared_ptr<SensorDistribution<dim>> points,
+         std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm);
 
-  virtual SensorValues<dim> zero() override;
+   virtual SensorValues<dim> zero() override;
 
-  static void declare_parameters(ParameterHandler& prm);
-  void get_parameters(ParameterHandler& prm);
+   static void declare_parameters(ParameterHandler& prm);
+   void get_parameters(ParameterHandler& prm);
 
-  virtual SensorValues<dim> evaluate(const DiscretizedFunction<dim>& field) override;
+   virtual SensorValues<dim> evaluate(const DiscretizedFunction<dim>& field) override;
 
-  /**
-   * Adjoint, discretized on the mesh last used for evaluate
-   */
-  virtual DiscretizedFunction<dim> adjoint(const SensorValues<dim>& measurements) override;
+   /**
+    * Adjoint, discretized on the mesh last used for evaluate
+    */
+   virtual DiscretizedFunction<dim> adjoint(const SensorValues<dim>& measurements) override;
 
-  class HatShape : public LightFunction<dim> {
+   class HatShape: public LightFunction<dim> {
    public:
-    virtual ~HatShape() = default;
+      virtual ~HatShape() = default;
 
-    virtual double evaluate(const Point<dim + 1>& p) const {
-      double nrm = 0.0;
-      for (size_t i = 0; i < dim; i++)
-        nrm += p[i] * p[i];
+      virtual double evaluate(const Point<dim>& p, const double time) const {
+         const double nrm = p.norm();
 
-      return std::max(1 - sqrt(nrm), 0.0) * std::max(1 - p[dim], 0.0);
-    }
-  };
+         return std::max(1 - nrm, 0.0) * std::max(1 - time, 0.0);
+      }
+   };
 
-  class ConstShape : public LightFunction<dim> {
+   class ConstShape: public LightFunction<dim> {
    public:
-    virtual ~ConstShape() = default;
+      virtual ~ConstShape() = default;
 
-    virtual double evaluate(const Point<dim + 1>& p) const {
-      double nrm = 0.0;
-      for (size_t i = 0; i < dim; i++)
-        nrm += p[i] * p[i];
+      virtual double evaluate(const Point<dim>& p, const double time) const {
+         const double nrm2 = p.square();
 
-      return nrm <= 1.0 && p[dim] <= 1.0 && p[dim] >= -1.0 ? 1.0 : 0.0;
-    }
-  };
+         return nrm2 <= 1.0 && time <= 1.0 && time >= -1.0 ? 1.0 : 0.0;
+      }
+   };
 
-  class LightFunctionWrapper : public Function<dim> {
+   class LightFunctionWrapper: public Function<dim> {
    public:
-    virtual ~LightFunctionWrapper() = default;
-    LightFunctionWrapper(std::shared_ptr<LightFunction<dim>> base, double delta_scale_space, double delta_scale_time)
-        : base(base), delta_scale_space(delta_scale_space), delta_scale_time(delta_scale_time) {}
+      virtual ~LightFunctionWrapper() = default;
+      LightFunctionWrapper(std::shared_ptr<LightFunction<dim>> base, double delta_scale_space, double delta_scale_time)
+            : base(base), delta_scale_space(delta_scale_space), delta_scale_time(delta_scale_time) {
+      }
 
-    virtual double value(const Point<dim>& p, const unsigned int component = 0) const {
-      Assert(component == 0, ExcInternalError());
-      Assert(base, ExcInternalError());
+      virtual double value(const Point<dim>& p, const unsigned int component = 0) const {
+         Assert(component == 0, ExcInternalError());
+         Assert(base, ExcInternalError());
 
-      Point<dim + 1> p1;
+         Point<dim> p1;
 
-      p1(dim) = (this->get_time() - offset(dim)) / delta_scale_time;
+         for (size_t d = 0; d < dim; d++)
+            p1(d) = (p(d) - offset(d)) / delta_scale_space;
 
-      for (size_t d = 0; d < dim; d++)
-        p1(d) = (p(d) - offset(d)) / delta_scale_space;
+         return base->evaluate(p1, (this->get_time() - offset(dim)) / delta_scale_time);
+      }
 
-      return base->evaluate(p1);
-    }
-
-    void set_offset(const Point<dim + 1>& offset) { this->offset = offset; }
+      void set_offset(const Point<dim + 1>& offset) {
+         this->offset = offset;
+      }
 
    private:
-    std::shared_ptr<LightFunction<dim>> base;
-    double delta_scale_space;
-    double delta_scale_time;
+      std::shared_ptr<LightFunction<dim>> base;
+      double delta_scale_space;
+      double delta_scale_time;
 
-    Point<dim + 1> offset;
-  };
+      Point<dim + 1> offset;
+   };
 
- protected:
-  std::shared_ptr<SpaceTimeMesh<dim>> mesh;
-  std::shared_ptr<SensorDistribution<dim>> sensor_distribution;
-  std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm;
+protected:
+   std::shared_ptr<SpaceTimeMesh<dim>> mesh;
+   std::shared_ptr<SensorDistribution<dim>> sensor_distribution;
+   std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm;
 
-  std::shared_ptr<LightFunction<dim>> delta_shape;
-  double delta_scale_space;
-  double delta_scale_time;
+   std::shared_ptr<LightFunction<dim>> delta_shape;
+   double delta_scale_space;
+   double delta_scale_time;
 
-  /**
-   * collect jobs so that we have to go through the mesh only once
-   * for each time a list of sensor numbers and factors
-   */
-  std::vector<std::vector<std::pair<size_t, double>>> compute_jobs() const;
+   /**
+    * collect jobs so that we have to go through the mesh only once
+    * for each time a list of sensor numbers and factors
+    */
+   std::vector<std::vector<std::pair<size_t, double>>> compute_jobs() const;
 };
 
 }  // namespace measurements

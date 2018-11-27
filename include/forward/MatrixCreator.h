@@ -17,13 +17,15 @@
 #include <deal.II/lac/full_matrix.h>
 #include <deal.II/lac/sparse_matrix.h>
 #include <deal.II/lac/vector.h>
-
 #include <memory>
 #include <vector>
+
+#include <base/LightFunction.h>
 
 namespace wavepi {
 namespace forward {
 
+using namespace wavepi::base;
 using namespace dealii;
 
 template<int dim>
@@ -36,7 +38,7 @@ public:
     * ρ and q must be valid function handles.
     */
    static void create_A_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
-         std::shared_ptr<Function<dim>> rho, std::shared_ptr<Function<dim>> q);
+         std::shared_ptr<LightFunction<dim>> rho, std::shared_ptr<LightFunction<dim>> q, const double time);
 
    /**
     * like `dealii::MatrixCreator::create_laplace_matrix`, but with a zero order coefficient q as well and 1/ρ instead of ρ,
@@ -44,7 +46,7 @@ public:
     * ρ must be a valid function handle and q a discretized function on the same mesh.
     */
    static void create_A_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
-         std::shared_ptr<Function<dim>> rho, const Vector<double> &q);
+         std::shared_ptr<LightFunction<dim>> rho, const Vector<double> &q, const double time);
 
    /**
     * like `dealii::MatrixCreator::create_laplace_matrix`, but with a zero order coefficient q as well and 1/ρ instead of ρ,
@@ -52,7 +54,7 @@ public:
     * q must be a valid function handle and ρ a discretized function on the same mesh.
     */
    static void create_A_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
-         const Vector<double> &rho, std::shared_ptr<Function<dim>> q);
+         const Vector<double> &rho, std::shared_ptr<LightFunction<dim>> q, const double time);
 
    /**
     * like `dealii::MatrixCreator::create_laplace_matrix`, but with a zero order coefficient q as well and 1/ρ instead of ρ,
@@ -71,25 +73,31 @@ public:
          const Vector<double> &c);
 
    /**
+    * like `dealii::MatrixCreator::create_mass_matrix`, but with a LightFunction<dim>
+     */
+   static void create_mass_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
+         std::shared_ptr<LightFunction<dim>> c, const double time);
+
+   /**
     * discretizes the bilinear form (u,v) ↦ uv/(ρ c²).
     * ρ and c must be valid function handles.
     */
    static void create_C_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
-         std::shared_ptr<Function<dim>> rho, std::shared_ptr<Function<dim>> c);
+         std::shared_ptr<LightFunction<dim>> rho, std::shared_ptr<LightFunction<dim>> c, const double time_rho, const double time_c);
 
    /**
     * discretizes the bilinear form (u,v) ↦ uv/(ρ c²).
     *  ρ must be a valid function handle and c a discretized function on the same mesh.
     */
    static void create_C_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
-         std::shared_ptr<Function<dim>> rho, const Vector<double> &c);
+         std::shared_ptr<LightFunction<dim>> rho, const Vector<double> &c, const double time_rho);
 
    /**
     * discretizes the bilinear form (u,v) ↦ uv/(ρ c²).
     * c must be a valid function handle and ρ a discretized function on the same mesh.
     */
    static void create_C_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
-         const Vector<double> &rho, std::shared_ptr<Function<dim>> c);
+         const Vector<double> &rho, std::shared_ptr<LightFunction<dim>> c, const double time_c);
 
    /**
     * discretizes the bilinear form (u,v) ↦ uv/(ρ c²).
@@ -101,8 +109,6 @@ public:
    /**
     * discretizes the bilinear form (u,v) ↦ uv ρ^n/ρ^{n+1}.
     * ρ is supplied as a discretized FE function.
-    *
-    * TODO: implement (easy)
     */
    static void create_D_intermediate_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
          const Vector<double> &rho_current, const Vector<double> &rho_next);
@@ -110,11 +116,9 @@ public:
    /**
     * discretizes the bilinear form (u,v) ↦ uv ρ^n/ρ^{n+1}.
     * ρ must be a valid function handle, which will be modified (need to change its time)
-    *
-    * TODO: implement; how to do parallel assembly in this case ??
     */
    static void create_D_intermediate_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
-         std::shared_ptr<Function<dim>> rho, double current_time, double next_time);
+         std::shared_ptr<LightFunction<dim>> rho, double current_time, double next_time);
 
 private:
    // scratch data for assembly that needs function values and gradients
@@ -138,14 +142,14 @@ private:
 
    static void copy_local_to_global(SparseMatrix<double> &matrix, const AssemblyCopyData &copy_data);
 
-   static void local_assemble_mass(const Vector<double> &c, const typename DoFHandler<dim>::active_cell_iterator &cell,
+   static void local_assemble_mass_d(const Vector<double> &c, const typename DoFHandler<dim>::active_cell_iterator &cell,
          MassAssemblyScratchData &scratch_data, AssemblyCopyData &copy_data);
 
-   static void local_assemble_A_dc(const Vector<double> &a, const Function<dim> * const q,
+   static void local_assemble_A_dc(const Vector<double> &a, const LightFunction<dim> * const q, const double time,
          const typename DoFHandler<dim>::active_cell_iterator &cell, LaplaceAssemblyScratchData &scratch_data,
          AssemblyCopyData &copy_data);
 
-   static void local_assemble_A_cd(const Function<dim> * const a, const Vector<double> &q,
+   static void local_assemble_A_cd(const LightFunction<dim> * const a, const Vector<double> &q,const double time,
          const typename DoFHandler<dim>::active_cell_iterator &cell, LaplaceAssemblyScratchData &scratch_data,
          AssemblyCopyData &copy_data);
 
@@ -153,15 +157,15 @@ private:
          const typename DoFHandler<dim>::active_cell_iterator &cell, LaplaceAssemblyScratchData &scratch_data,
          AssemblyCopyData &copy_data);
 
-   static void local_assemble_A_cc(const Function<dim> * const a, const Function<dim> * const q,
+   static void local_assemble_A_cc(const LightFunction<dim> * const a, const LightFunction<dim> * const q,const double time,
          const typename DoFHandler<dim>::active_cell_iterator &cell, LaplaceAssemblyScratchData &scratch_data,
          AssemblyCopyData &copy_data);
 
-   static void local_assemble_C_dc(const Vector<double> &a, const Function<dim> * const c,
+   static void local_assemble_C_dc(const Vector<double> &a, const LightFunction<dim> * const c,const double c_time,
          const typename DoFHandler<dim>::active_cell_iterator &cell, MassAssemblyScratchData &scratch_data,
          AssemblyCopyData &copy_data);
 
-   static void local_assemble_C_cd(const Function<dim> * const a, const Vector<double> &c,
+   static void local_assemble_C_cd(const LightFunction<dim> * const a, const Vector<double> &c, const double a_time,
          const typename DoFHandler<dim>::active_cell_iterator &cell, MassAssemblyScratchData &scratch_data,
          AssemblyCopyData &copy_data);
 
@@ -169,9 +173,22 @@ private:
          const typename DoFHandler<dim>::active_cell_iterator &cell, MassAssemblyScratchData &scratch_data,
          AssemblyCopyData &copy_data);
 
-   static void local_assemble_C_cc(const Function<dim> * const a, const Function<dim> * const c,
+   static void local_assemble_C_cc(const LightFunction<dim> * const a, const LightFunction<dim> * const c, const double a_time, const double c_time,
          const typename DoFHandler<dim>::active_cell_iterator &cell, MassAssemblyScratchData &scratch_data,
          AssemblyCopyData &copy_data);
+
+   static void local_assemble_D_intermediate_d(const Vector<double> &rho_current, const Vector<double> &rho_next,
+         const typename DoFHandler<dim>::active_cell_iterator &cell, MassAssemblyScratchData &scratch_data,
+         AssemblyCopyData &copy_data);
+
+   static void local_assemble_D_intermediate_c(const LightFunction<dim> * const rho, const double time_current, const double time_next,
+         const typename DoFHandler<dim>::active_cell_iterator &cell, MassAssemblyScratchData &scratch_data,
+         AssemblyCopyData &copy_data);
+
+   static void local_assemble_mass_c(const LightFunction<dim> * const c, const double time,
+         const typename DoFHandler<dim>::active_cell_iterator &cell, MassAssemblyScratchData &scratch_data,
+         AssemblyCopyData &copy_data);
+
 };
 }  // namespace forward
 } /* namespace wavepi */

@@ -51,28 +51,22 @@ using namespace wavepi::measurements;
 using namespace wavepi;
 
 template<int dim>
-class TestF: public Function<dim> {
+class TestF: public LightFunction<dim> {
 public:
-   double value(const Point<dim> &p, const unsigned int component = 0) const {
-      Assert(component == 0, ExcIndexRange(component, 0, 1));
-
-      if (p.norm() < 0.5)
-         return std::sin(this->get_time() * 2 * numbers::PI);
+   double evaluate(const Point<dim> &p, const double t) const {
+       if (p.norm() < 0.5)
+         return std::sin(t * 2 * numbers::PI);
       else
          return 0.0;
    }
 };
 
 template<int dim>
-class TestF2: public Function<dim> {
+class TestF2: public LightFunction<dim> {
 public:
-   TestF2()
-         : Function<dim>() {
-   }
-   double value(const Point<dim> &p, const unsigned int component = 0) const {
-      Assert(component == 0, ExcIndexRange(component, 0, 1));
-      if ((this->get_time() <= 0.5) && (p.distance(actor_position) < 0.4))
-         return std::sin(this->get_time() * 2 * numbers::PI);
+   double evaluate(const Point<dim> &p, const double t) const {
+       if ((t <= 0.5) && (p.distance(actor_position) < 0.4))
+         return std::sin(t * 2 * numbers::PI);
       else
          return 0.0;
    }
@@ -89,25 +83,21 @@ template<>
 const Point<3> TestF2<3>::actor_position = Point<3>(1.0, 0.5, 0.0);
 
 template<int dim>
-class TestG: public Function<dim> {
+class TestG: public LightFunction<dim> {
 public:
-   double value(const Point<dim> &p, const unsigned int component = 0) const {
-      Assert(component == 0, ExcIndexRange(component, 0, 1));
-
+   double evaluate(const Point<dim> &p, const double t) const {
       Point<dim> pc = Point<dim>::unit_vector(0);
       pc *= 0.5;
 
-      return this->get_time() * std::sin(p.distance(pc) * 2 * numbers::PI);
+      return t * std::sin(p.distance(pc) * 2 * numbers::PI);
    }
 };
 
 template<int dim>
-class TestH: public Function<dim> {
+class TestH: public LightFunction<dim> {
 public:
-   double value(const Point<dim> &p, const unsigned int component = 0) const {
-      Assert(component == 0, ExcIndexRange(component, 0, 1));
-
-      return p.norm() * this->get_time();
+   double evaluate(const Point<dim> &p, const double t) const {
+        return p.norm() * t;
    }
 };
 
@@ -124,62 +114,46 @@ double c_squared(const Point<dim> &p, double t) {
 }
 
 template<int dim>
-class TestC: public Function<dim> {
+class TestC: public LightFunction<dim> {
 public:
-   double value(const Point<dim> &p, const unsigned int component = 0) const {
-      Assert(component == 0, ExcIndexRange(component, 0, 1));
-
-      return 1.0 / (rho(p, this->get_time()) * c_squared(p, this->get_time()));
+   double evaluate(const Point<dim> &p, const double t) const {
+     return 1.0 / (rho(p, t) * c_squared(p, t));
    }
 };
 
 template<int dim>
-class TestRho: public Function<dim> {
+class TestRho: public LightFunction<dim> {
 public:
-   double value(const Point<dim> &p, const unsigned int component = 0) const {
-      Assert(component == 0, ExcIndexRange(component, 0, 1));
-
-      return rho(p, this->get_time());
+   double evaluate(const Point<dim> &p, const double t) const {
+     return rho(p, t);
    }
 };
 
 template<int dim>
-class TestNu: public Function<dim> {
+class TestNu: public LightFunction<dim> {
 public:
-   double value(const Point<dim> &p __attribute__((unused)), const unsigned int component = 0) const {
-      Assert(component == 0, ExcIndexRange(component, 0, 1));
+   double evaluate(const Point<dim> &p, const double t) const {
+    if (t > 1.0) return 0.0;
 
-      if (this->get_time() > 1.0) return 0.0;
-
-      return std::abs(p[0]) * this->get_time();
+      return std::abs(p[0]) * t;
    }
 };
 
 template<int dim>
-class TestQ: public Function<dim> {
+class TestQ: public LightFunction<dim> {
 public:
-   TestQ()
-         : Function<dim>() {
-   }
-   double value(const Point<dim> &p, const unsigned int component = 0) const {
-      Assert(component == 0, ExcIndexRange(component, 0, 1));
-
-      return p.norm() < 0.5 ? std::sin(this->get_time() / 2 * 2 * numbers::PI) : 0.0;
+   double evaluate(const Point<dim> &p, const double t) const {
+    return p.norm() < 0.5 ? std::sin(t / 2 * 2 * numbers::PI) : 0.0;
    }
 
    static const Point<dim> q_position;
 };
 
 template<int dim>
-class TestEstimate: public Function<dim> {
+class TestEstimate: public LightFunction<dim> {
 public:
-   TestEstimate()
-         : Function<dim>() {
-   }
-   double value(const Point<dim> &p __attribute__((unused)), const unsigned int component = 0) const {
-      Assert(component == 0, ExcIndexRange(component, 0, 1));
-
-      return 2;
+   double evaluate(const Point<dim> &p __attribute__((unused)), const double t __attribute__((unused))) const {
+           return 2;
    }
 };
 

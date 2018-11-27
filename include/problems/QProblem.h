@@ -117,7 +117,7 @@ private:
          DiscretizedFunction<dim> res(weq.get_mesh());
 
          if (adjoint_solver == WaveEquationBase<dim>::WaveEquationBackwards) {
-            AssertThrow((std::dynamic_pointer_cast<Functions::ZeroFunction<dim>, Function<dim>>(weq.get_param_nu()) != nullptr),
+            AssertThrow((std::dynamic_pointer_cast<ConstantFunction<dim>, LightFunction<dim>>(weq.get_param_nu()) != nullptr),
             ExcMessage("Wrong adjoint because ν≠0!"));
 
             res = weq.run(rhs_adj, WaveEquation<dim>::Backward);

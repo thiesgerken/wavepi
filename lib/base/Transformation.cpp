@@ -18,7 +18,7 @@ DiscretizedFunction<dim> IdentityTransform<dim>::transform(const DiscretizedFunc
 }
 
 template <int dim>
-std::shared_ptr<Function<dim>> IdentityTransform<dim>::transform(const std::shared_ptr<Function<dim>> param) {
+std::shared_ptr<LightFunction<dim>> IdentityTransform<dim>::transform(const std::shared_ptr<LightFunction<dim>> param) {
   return param;
 }
 
@@ -74,7 +74,7 @@ DiscretizedFunction<dim> LogTransform<dim>::transform(const DiscretizedFunction<
 }
 
 template <int dim>
-std::shared_ptr<Function<dim>> LogTransform<dim>::transform(const std::shared_ptr<Function<dim>> param) {
+std::shared_ptr<LightFunction<dim>> LogTransform<dim>::transform(const std::shared_ptr<LightFunction<dim>> param) {
   return std::make_shared<ComposedFunction<dim>>(param,
                                                  std::make_shared<LogTransform<dim>::TransformFunction>(lower_bound));
 }

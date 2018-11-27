@@ -9,6 +9,7 @@
 #define FORWARD_DISCRETIZEDFUNCTION_H_
 
 #include <base/Norm.h>
+#include <base/LightFunction.h>
 #include <base/SpaceTimeMesh.h>
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/function.h>
@@ -33,14 +34,13 @@ using namespace dealii;
  * It can be equipped with different norms and scalar products.
  */
 template <int dim>
-class DiscretizedFunction : public Function<dim> {
+class DiscretizedFunction : public LightFunction<dim> {
  public:
   virtual ~DiscretizedFunction() = default;
 
   /**
    * @name Constructors and Assignment operators
    * @{
-   *
    */
 
   /**
@@ -465,13 +465,15 @@ class DiscretizedFunction : public Function<dim> {
    */
 
   /** @copydoc dealii::Function<double>::value*/
-  virtual double value(const Point<dim>& p, const unsigned int component = 0) const;
+  virtual double value(const Point<dim>& p, const unsigned int component = 0) const override;
+
+  virtual double evaluate(const Point<dim>& p, const double time) const;
 
   /** @copydoc dealii::Function<double>::gradient(const double new_time) */
   virtual Tensor<1, dim, double> gradient(const Point<dim>& p, const unsigned int component) const;
 
   /** @copydoc dealii::FunctionTime<double>::set_time(const double new_time) */
-  virtual void set_time(const double new_time);
+  virtual void set_time(const double new_time) override;
 
   /**
    * returns the time index for the current return value of `get_time`.
@@ -613,6 +615,8 @@ class DiscretizedFunction : public Function<dim> {
   std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm_;
 
   bool store_derivative = false;
+
+  // for Function<dim> interface we have to keep track of a time variable
   size_t cur_time_idx   = 0;
 
   std::vector<Vector<double>> function_coefficients;
