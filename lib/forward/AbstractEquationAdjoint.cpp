@@ -93,7 +93,7 @@ void AbstractEquationAdjoint<dim>::next_step(size_t time_idx) {
 template<int dim>
 void AbstractEquationAdjoint<dim>::assemble(size_t i) {
    double time = mesh->get_time(i);
-          right_hand_side->set_time(time);
+   right_hand_side->set_time(time);
 
    // this helps only a bit because each of the operations is already parallelized
    Threads::TaskGroup<void> task_group;
@@ -183,13 +183,21 @@ void AbstractEquationAdjoint<dim>::assemble_u(size_t i) {
       system_matrix.add(theta * theta, matrix_A);
    } else if (i == 0) {
       /*
-       * (u_0, v_0)^t = (g_0, 0)^t - (M_{i+1}^1)^t (u_1, v_1)^t
+       * (u₀, v₀)^t = (g₀, 0)^t - (M_{i+1}¹)^t (u₁, v₁)^t
        *
-       * u_0 = g_0 + [-θ(1-θ) A^i + k_{i+1}(k_{i+1} C^{i+1} + θ B^{i+1})] u_1
-       *              - (1-θ) A^i v_1
+       * u₀ = g₀ + [-θ(1-θ) D^{0,1}M⁻¹A⁰ + k₁(k₁ C¹ + θ B¹)] u₁
+       *              - (1-θ) D^{0,1}M⁻¹A⁰ v₁
+       * tmp_u = -θ(1-θ) u₁ - (1-θ) v₁
        */
 
-      matrix_A.vmult_add(system_rhs_u, tmp_u);
+      Vector<double> tmp1(tmp_v.size());
+      Vector<double> tmp2(tmp_v.size());
+
+      tmp_u.add(-theta, solution_v);
+      matrix_A.vmult(tmp1, tmp_u);
+      // D^{i,i+1}M⁻¹ after multiplying with B^i, then add to system_rhs_u
+      vmult_D_intermediate(mesh->get_mass_matrix(i), tmp2, tmp1);
+      system_rhs_u.add(1.0, tmp2);
 
       system_rhs_u += rhs;
 
@@ -207,8 +215,14 @@ void AbstractEquationAdjoint<dim>::assemble_u(size_t i) {
 
       double time_step = mesh->get_time(i) - mesh->get_time(i - 1);
 
+      Vector<double> tmp1(tmp_v.size());
+      Vector<double> tmp2(tmp_v.size());
+
       tmp_u.add(-theta, solution_v);
-      matrix_A.vmult_add(system_rhs_u, tmp_u);
+      matrix_A.vmult(tmp1, tmp_u);
+      // D^{i,i+1}M⁻¹ after multiplying with B^i, then add to system_rhs_u
+      vmult_D_intermediate(mesh->get_mass_matrix(i), tmp2, tmp1);
+      system_rhs_u.add(1.0, tmp2);
 
       system_rhs_u += rhs;
 
@@ -310,11 +324,17 @@ void AbstractEquationAdjoint<dim>::assemble_v(size_t i) {
 
       double time_step_last = mesh->get_time(1) - mesh->get_time(0);
 
-      tmp_v *= 1 / time_step_last;
-      matrix_C.vmult_add(system_rhs_v, tmp_v);
+      Vector<double> tmp1(tmp_v.size());
+      Vector<double> tmp2(tmp_v.size());
 
-      tmp_v *= -time_step_last * (1 - theta);
-      matrix_B.vmult_add(system_rhs_v, tmp_v);
+      // C^{0,1} instead of C^0
+      vmult_C_intermediate(tmp1, tmp_v);
+      system_rhs_v.add(1.0 / time_step_last, tmp1);
+
+      matrix_B.vmult(tmp1, tmp_v);
+      // D^{0,1}M⁻¹ after multiplying with B^0, then add to system_rhs_v
+      vmult_D_intermediate(mesh->get_mass_matrix(i), tmp2, tmp1);
+      system_rhs_v.add(-1 * (1 - theta), tmp2);
 
       system_matrix = IdentityMatrix(solution_u.size());
    } else {
@@ -331,11 +351,17 @@ void AbstractEquationAdjoint<dim>::assemble_v(size_t i) {
       double time_step = mesh->get_time(i) - mesh->get_time(i - 1);
       double time_step_last = mesh->get_time(i + 1) - mesh->get_time(i);
 
-      tmp_v *= 1 / time_step_last;
-      matrix_C.vmult_add(system_rhs_v, tmp_v);
+      Vector<double> tmp1(tmp_v.size());
+      Vector<double> tmp2(tmp_v.size());
 
-      tmp_v *= -time_step_last * (1 - theta);
-      matrix_B.vmult_add(system_rhs_v, tmp_v);
+      // C^{i,i+1} instead of C^i
+      vmult_C_intermediate(tmp1, tmp_v);
+      system_rhs_v.add(1.0 / time_step_last, tmp1);
+
+      matrix_B.vmult(tmp1, tmp_v);
+      // D^{i,i+1}M⁻¹ after multiplying with B^i, then add to system_rhs_v
+      vmult_D_intermediate(mesh->get_mass_matrix(i), tmp2, tmp1);
+      system_rhs_v.add(-1 * (1 - theta), tmp2);
 
       // system_matrix = 0.0; // not needed because matrix was reinited due to possible mesh change
       system_matrix.add(1.0 / time_step, matrix_C);
@@ -402,14 +428,11 @@ DiscretizedFunction<dim> AbstractEquationAdjoint<dim>::run(std::shared_ptr<Right
    LogStream::Prefix p("AbstractEqAdj");
    Assert(mesh->length() >= 2, ExcInternalError());
 
-   // TODO: adapt to D!
-   AssertThrow(false, ExcNotImplemented());
-
    Timer timer, assembly_timer;
    timer.start();
 
    // this is going to be the result
-   DiscretizedFunction<dim> u(mesh, std::make_shared<InvalidNorm<DiscretizedFunction<dim>>>(), true);
+   DiscretizedFunction<dim> res(mesh);
 
    // save handle to rhs function so that `assemble` and `next_step` can use it
    this->right_hand_side = right_hand_side;
@@ -446,7 +469,21 @@ DiscretizedFunction<dim> AbstractEquationAdjoint<dim>::run(std::shared_ptr<Right
       assemble_u(i);
       solve_u();
 
-      u.set(i, solution_u, solution_v);
+      // apply R^t
+      if (i > 0) {
+         Vector<double> tmp1(solution_u.size());
+         Vector<double> tmp2(solution_u.size());
+
+         tmp1.equ(theta * (1 - theta), solution_u);
+         tmp1.add(1 - theta, solution_v);
+         vmult_D_intermediate(mesh->get_mass_matrix(i), tmp2, tmp1);
+
+         // TODO: this has to be transfered to the old grid! -> save first in different vector and then do one pass more?
+         res[i - 1] += tmp2;
+      }
+
+      res[i].add(theta * theta, solution_u);
+      res[i].add(theta, solution_v);
 
       std::ios::fmtflags f(deallog.flags(std::ios_base::fixed));
       deallog << "t=" << time << std::scientific << ", ";
@@ -461,37 +498,6 @@ DiscretizedFunction<dim> AbstractEquationAdjoint<dim>::run(std::shared_ptr<Right
    deallog.flags(f);
 
    cleanup();
-   return apply_R_transpose(u);
-}
-
-// also applies Mass matrix afterwards
-template<int dim>
-DiscretizedFunction<dim> AbstractEquationAdjoint<dim>::apply_R_transpose(const DiscretizedFunction<dim>& u) {
-   DiscretizedFunction<dim> res(mesh);
-   Vector<double> tmp;
-
-   for (size_t j = 0; j < mesh->length(); j++) {
-      size_t i = mesh->length() - 1 - j;
-
-      if (i != mesh->length() - 1) {
-         tmp.reinit(u[i + 1].size());
-
-         tmp.equ(theta * (1 - theta), u[i + 1]);
-         tmp.add(1 - theta, u.get_derivative_coefficients(i + 1));
-
-         mesh->transfer(i + 1, i, { &tmp });
-      } else
-         tmp.reinit(u[i].size());
-
-      if (i != 0) {
-         tmp.add(theta * theta, u[i]);
-         tmp.add(theta, u.get_derivative_coefficients(i));
-      }
-
-      res[i] = tmp;
-   }
-
-   return res;
 }
 
 template class AbstractEquationAdjoint<1> ;

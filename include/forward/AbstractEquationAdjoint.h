@@ -120,6 +120,14 @@ protected:
    // if needed, this function can also do stuff so that the functions concerning D can run faster.
    virtual void assemble_matrices(size_t time_idx) = 0;
 
+   // after mesh change, let dst <- (D^{i+1})^{-1} D^i M^{-1} src
+   // ( i.e. dst <- src for time-independent D)
+   virtual void vmult_D_intermediate(std::shared_ptr<SparseMatrix<double>> mass_matrix, Vector<double>& dst, const Vector<double>& src) const = 0;
+
+   // after mesh change, let dst <- (D^{i+1})^{-1} C^i src
+   // ( i.e. dst <- matrix_C * src for time-independent D)
+   virtual void vmult_C_intermediate(Vector<double>& dst, const Vector<double>& src) const = 0;
+
    // assemble matrices and system_rhs_u for current mesh (calls assemble_matrices)
    void assemble(size_t time_idx);
 
@@ -147,8 +155,6 @@ protected:
     * currently in use.
     */
    virtual void cleanup();
-
-   DiscretizedFunction<dim> apply_R_transpose(const DiscretizedFunction<dim>& u);
 };
 
 } /* namespace forward */
