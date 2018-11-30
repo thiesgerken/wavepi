@@ -101,7 +101,12 @@ private:
          auto Mh = std::make_shared<DiscretizedFunction<dim>>(h);
          *Mh *= -1.0;
          Mh->pointwise_multiplication(u->derivative());
+
+         // TODO: multiply with -2 / c^3
+
          *Mh = Mh->calculate_derivative();
+
+         // TODO: multiply with 1 / rho (discretized or use "QuotientRightHandSide" for this?)
 
          rhs->set_base_rhs(Mh);
 
@@ -137,12 +142,39 @@ private:
          // res.dot_mult_mass_and_transform_inverse();
          res.mult_mass();  // instead of dot_mult_mass_and_transform_inverse+dot_transform
 
+         // calc 2*u'/c^3 * (res/rho)' (last ' as calc_deriv_transpose)
+
          /* M*  */
          // res.dot_transform();
          res.throw_away_derivative();
+
+         // TODO: doing this once might be enough, cache the result in WaveEquation ?!
+         auto rho_cont = weq.get_param_rho();
+         auto rho = std::dynamic_pointer_cast<DiscretizedFunction<dim>, LightFunction<dim>>(rho_cont);
+         if (!rho) rho = std::make_shared<DiscretizedFunction<dim>>(res.get_mesh(), rho_cont);
+
+         for (size_t i = 0; i < res.length(); i++) {
+            Vector<double> &coeff_res = res.get_function_coefficients(i);
+            const Vector<double> &coeff_rho = rho.get_function_coefficients(i);
+
+            for (size_t j = 0; j < coeff.size(); j++)
+               coeff_res[j] /= coeff_rho[j];
+         }
+
          res = res.calculate_derivative_transpose();
-         res *= -1;
-         res.pointwise_multiplication(u->derivative());
+
+         // TODO: doing this once might be enough, cache the result in WaveEquation ?!
+         auto c_disc = std::dynamic_pointer_cast<DiscretizedFunction<dim>, LightFunction<dim>>(c);
+         if (!c_disc) c_disc = std::make_shared<DiscretizedFunction<dim>>(res.get_mesh(), c);
+
+         for (size_t i = 0; i < res.length(); i++) {
+            Vector<double> &coeff_res = res.get_function_coefficients(i);
+            const Vector<double> &coeff_c = c_disc.get_function_coefficients(i);
+            const Vector<double> &coeff_u1 = c_disc.get_derivative_coefficients(i);
+
+            for (size_t j = 0; j < coeff.size(); j++)
+               coeff_res[j] *= 2 * coeff_u1[j] / (coeff_c[j] * coeff_c[j] * coeff_c[j]);
+         }
 
          res.set_norm(this->norm_domain);
          // res.dot_transform_inverse();

@@ -81,9 +81,6 @@ private:
          this->rho = rho;
          this->u = u;
 
-         AssertThrow(false, ExcNotImplemented("Adapt RhoProblem (lin and adjoint) to 1/ρ!"));
-         // TODO: adapt this to 1/ρ instead of a (linearization and adjoint)
-
          this->rhs = std::make_shared<DivRightHandSide<dim>>(this->rho, this->u);
          this->rhs_adj = std::make_shared<L2RightHandSide<dim>>(this->u);
          this->m_adj = std::make_shared<DivRightHandSideAdjoint<dim>>(this->rho, this->u);
@@ -98,7 +95,11 @@ private:
       }
 
       virtual DiscretizedFunction<dim> forward(const DiscretizedFunction<dim>& h) {
+          // TODO: set_a to -h / rho^2
          rhs->set_a(std::make_shared<DiscretizedFunction<dim>>(h));
+
+         // TODO: add L^2-RHS with h / rho^2 * (u' / c^2)'
+
          DiscretizedFunction<dim> res = weq.run(rhs, WaveEquation<dim>::Forward);
          res.set_norm(this->norm_codomain);
          res.throw_away_derivative();
@@ -107,7 +108,7 @@ private:
       }
 
       virtual DiscretizedFunction<dim> adjoint_notransform(const DiscretizedFunction<dim>& g) {
-         // L* : Y -> Y
+                 // L* : Y -> Y
          auto tmp = std::make_shared<DiscretizedFunction<dim>>(g);
          tmp->set_norm(this->norm_codomain);
          tmp->dot_solve_mass_and_transform();
@@ -130,6 +131,9 @@ private:
 
          // res.dot_mult_mass_and_transform_inverse();
          // res.mult_mass();  // instead of dot_mult_mass_and_transform_inverse+dot_transform
+
+         // TODO: adapt this to new params
+         // should be -nabla(res)*nabla(u) / rho^2  - res / rho^2 (u'/c^2)'
 
          // M* : Y -> X
          // should be - nabla(res)*nabla(u) -> piecewise constant function -> fe spaces do not fit
