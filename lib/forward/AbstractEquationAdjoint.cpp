@@ -39,7 +39,7 @@ void AbstractEquationAdjoint<dim>::next_mesh(size_t source_idx, size_t target_id
       tmp_u.reinit(dof_handler->n_dofs());
       tmp_v.reinit(dof_handler->n_dofs());
    } else
-      dof_handler = mesh->transfer(source_idx, target_idx, { &system_rhs_u, &system_rhs_v, &tmp_u, &tmp_v });
+      dof_handler = mesh->transfer(source_idx, target_idx, { &system_rhs_u, &system_rhs_v, &tmp_u, &tmp_v, &tmp_R_adjoint });
 
    sparsity_pattern = mesh->get_sparsity_pattern(target_idx);
    constraints = mesh->get_constraint_matrix(target_idx);
@@ -469,17 +469,21 @@ DiscretizedFunction<dim> AbstractEquationAdjoint<dim>::run(std::shared_ptr<Right
       assemble_u(i);
       solve_u();
 
-      // apply R^t
+      /* apply R^t */
+
+      if (i < mesh->length() - 1)
+         res[i] += tmp_R_adjoint;
+
       if (i > 0) {
-         Vector<double> tmp1(solution_u.size());
-         Vector<double> tmp2(solution_u.size());
+         Vector<double> tmp(solution_u.size());
+         tmp_R_adjoint.reinit(solution_u.size());
 
-         tmp1.equ(theta * (1 - theta), solution_u);
-         tmp1.add(1 - theta, solution_v);
-         vmult_D_intermediate(mesh->get_mass_matrix(i), tmp2, tmp1);
+         tmp.equ(theta * (1 - theta), solution_u);
+         tmp.add(1 - theta, solution_v);
+         vmult_D_intermediate(mesh->get_mass_matrix(i), tmp_R_adjoint, tmp);
 
-         // TODO: this has to be transfered to the old grid! -> save first in different vector and then do one pass more?
-         res[i - 1] += tmp2;
+         // tmp_R_adjoint has to be transfered to grid i-1 first!
+         //res[i - 1] += tmp_R_adjoint;
       }
 
       res[i].add(theta * theta, solution_u);
@@ -498,6 +502,8 @@ DiscretizedFunction<dim> AbstractEquationAdjoint<dim>::run(std::shared_ptr<Right
    deallog.flags(f);
 
    cleanup();
+
+   return res;
 }
 
 template class AbstractEquationAdjoint<1> ;

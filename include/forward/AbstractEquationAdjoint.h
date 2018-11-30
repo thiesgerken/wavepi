@@ -102,6 +102,9 @@ protected:
    Vector<double> tmp_u;
    Vector<double> tmp_v;
 
+   // R^* has to change res[i] and res[i-1], the latter has to be transferred first
+   Vector <double> tmp_R_adjoint;
+
    // DoFHandler for the current time step
    std::shared_ptr<DoFHandler<dim>> dof_handler;
 
