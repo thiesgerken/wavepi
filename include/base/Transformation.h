@@ -37,7 +37,7 @@ class Transformation {
   /**
    * Transform a function
    */
-  virtual std::shared_ptr<Function<dim>> transform(const std::shared_ptr<Function<dim>> param) = 0;
+  virtual std::shared_ptr<LightFunction<dim>> transform(const std::shared_ptr<LightFunction<dim>> param) = 0;
 
   /**
    * Apply φ^{-1} to a given function
@@ -68,7 +68,7 @@ class IdentityTransform : public Transformation<dim> {
 
   virtual DiscretizedFunction<dim> transform(const DiscretizedFunction<dim> &param) override;
 
-  virtual std::shared_ptr<Function<dim>> transform(const std::shared_ptr<Function<dim>> param) override;
+  virtual std::shared_ptr<LightFunction<dim>> transform(const std::shared_ptr<LightFunction<dim>> param) override;
 
   virtual DiscretizedFunction<dim> transform_inverse(const DiscretizedFunction<dim> &param) override;
 
@@ -94,7 +94,7 @@ class LogTransform : public Transformation<dim> {
 
   virtual DiscretizedFunction<dim> transform(const DiscretizedFunction<dim> &param) override;
 
-  virtual std::shared_ptr<Function<dim>> transform(const std::shared_ptr<Function<dim>> param) override;
+  virtual std::shared_ptr<LightFunction<dim>> transform(const std::shared_ptr<LightFunction<dim>> param) override;
 
   virtual DiscretizedFunction<dim> transform_inverse(const DiscretizedFunction<dim> &param) override;
 
@@ -107,15 +107,13 @@ class LogTransform : public Transformation<dim> {
  private:
   double lower_bound = 0.0;
 
-  class TransformFunction : public Function<1> {
+  class TransformFunction : public LightFunction<1> {
    public:
     TransformFunction(double lb) : lower_bound(lb){};
     virtual ~TransformFunction() = default;
 
-    virtual double value(const Point<1> &p, const unsigned int component = 0) const override {
-      Assert(component == 0, ExcInternalError());
-
-      return std::log(p[0] - lower_bound);
+    virtual double evaluate(const Point<1> &p, const double time __attribute__((unused))) const override {
+          return std::log(p[0] - lower_bound);
     }
 
    private:

@@ -1,5 +1,5 @@
 /*
- * L2RightHandSide.cc
+ * L2ProductRightHandSide.cc
  *
  *  Created on: 29.06.2017
  *      Author: thies

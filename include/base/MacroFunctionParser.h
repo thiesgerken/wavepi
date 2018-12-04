@@ -8,7 +8,9 @@
 #ifndef LIB_UTIL_MACROFUNCTIONPARSER_H_
 #define LIB_UTIL_MACROFUNCTIONPARSER_H_
 
-#include <deal.II/base/function_parser.h>
+#include <base/FunctionParser.h>
+#include <base/LightFunction.h>
+
 #include <map>
 #include <string>
 #include <vector>
@@ -31,11 +33,8 @@ class MacroFunctionParser : public FunctionParser<dim> {
  public:
   virtual ~MacroFunctionParser() = default;
 
-  MacroFunctionParser(const std::string& expression, const std::map<std::string, double>& constants,
-                      bool last_is_time = false);
-
-  MacroFunctionParser(const std::vector<std::string>& expressions, const std::map<std::string, double>& constants,
-                      bool last_is_time = false);
+  MacroFunctionParser(const std::string& expression, const std::map<std::string, double>& constants);
+  MacroFunctionParser(const std::vector<std::string>& expressions, const std::map<std::string, double>& constants);
 
  private:
   static const std::string norm_replacement;

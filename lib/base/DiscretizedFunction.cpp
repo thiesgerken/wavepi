@@ -89,7 +89,7 @@ DiscretizedFunction<dim>::DiscretizedFunction(std::shared_ptr<SpaceTimeMesh<dim>
 
 template <int dim>
 DiscretizedFunction<dim>::DiscretizedFunction(DiscretizedFunction<dim>&& o)
-    : Function<dim>(),
+    : LightFunction<dim>(),
       mesh(std::move(o.mesh)),
       norm_(o.norm_),
       store_derivative(o.store_derivative),
@@ -103,7 +103,7 @@ DiscretizedFunction<dim>::DiscretizedFunction(DiscretizedFunction<dim>&& o)
 
 template <int dim>
 DiscretizedFunction<dim>::DiscretizedFunction(const DiscretizedFunction<dim>& o)
-    : Function<dim>(),
+    : LightFunction<dim>(),
       mesh(o.mesh),
       norm_(o.norm_),
       store_derivative(o.store_derivative),
@@ -908,6 +908,13 @@ const std::shared_ptr<Norm<DiscretizedFunction<dim>>> DiscretizedFunction<dim>::
 template <int dim>
 void DiscretizedFunction<dim>::set_norm(std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm) {
   this->norm_ = norm;
+}
+
+template <int dim>
+double DiscretizedFunction<dim>::evaluate(const Point<dim>& p, const double time) const {
+  const size_t time_idx = mesh->find_time(time);
+
+  return VectorTools::point_value(*mesh->get_dof_handler(time_idx), function_coefficients[time_idx], p);
 }
 
 template <int dim>

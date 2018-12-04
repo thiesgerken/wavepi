@@ -72,13 +72,13 @@ class WavePI {
   std::shared_ptr<WaveProblem<dim, Meas>> problem;
   std::shared_ptr<Transformation<dim>> transform;
 
-  std::shared_ptr<Function<dim>> param_exact;
-  std::shared_ptr<Function<dim>> param_exact_untransformed;
+  std::shared_ptr<LightFunction<dim>> param_exact;
+  std::shared_ptr<LightFunction<dim>> param_exact_untransformed;
 
   std::shared_ptr<MacroFunctionParser<dim>> initial_guess;
   std::shared_ptr<MacroFunctionParser<dim>> param_q;
   std::shared_ptr<MacroFunctionParser<dim>> param_nu;
-  std::shared_ptr<MacroFunctionParser<dim>> param_a;
+  std::shared_ptr<MacroFunctionParser<dim>> param_rho;
   std::shared_ptr<MacroFunctionParser<dim>> param_c;
 
   std::shared_ptr<MacroFunctionParser<dim>> param_background;

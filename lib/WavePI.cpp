@@ -41,7 +41,7 @@
 #include <norms/L2Coefficients.h>
 #include <norms/L2L2.h>
 #include <norms/LPWrapper.h>
-#include <problems/AProblem.h>
+#include <problems/RhoProblem.h>
 #include <problems/CProblem.h>
 #include <problems/NuProblem.h>
 #include <problems/QProblem.h>
@@ -119,7 +119,7 @@ WavePI<dim, Meas>::WavePI(std::shared_ptr<SettingsManager> cfg) : cfg(cfg) {
 
   initial_guess = std::make_shared<MacroFunctionParser<dim>>(cfg->expr_initial_guess, cfg->constants_for_exprs);
 
-  param_a  = std::make_shared<MacroFunctionParser<dim>>(cfg->expr_param_a, cfg->constants_for_exprs);
+  param_rho  = std::make_shared<MacroFunctionParser<dim>>(cfg->expr_param_rho, cfg->constants_for_exprs);
   param_nu = std::make_shared<MacroFunctionParser<dim>>(cfg->expr_param_nu, cfg->constants_for_exprs);
   param_c  = std::make_shared<MacroFunctionParser<dim>>(cfg->expr_param_c, cfg->constants_for_exprs);
   param_q  = std::make_shared<MacroFunctionParser<dim>>(cfg->expr_param_q, cfg->constants_for_exprs);
@@ -336,7 +336,7 @@ void WavePI<dim, Meas>::initialize_problem() {
 
   wave_eq = std::make_shared<WaveEquation<dim>>(mesh);
 
-  wave_eq->set_param_a(param_a);
+  wave_eq->set_param_rho(param_rho);
   wave_eq->set_param_c(param_c);
   wave_eq->set_param_q(param_q);
   wave_eq->set_param_nu(param_nu);
@@ -372,11 +372,11 @@ void WavePI<dim, Meas>::initialize_problem() {
       problem =
           std::make_shared<NuProblem<dim, Meas>>(*wave_eq, pulses, measures, transform, param_background_discretized);
       break;
-    case SettingsManager::ProblemType::a:
-      /* Reconstruct a */
-      param_exact = wave_eq->get_param_a();
+    case SettingsManager::ProblemType::rho:
+      /* Reconstruct rho */
+      param_exact = wave_eq->get_param_rho();
       problem =
-          std::make_shared<AProblem<dim, Meas>>(*wave_eq, pulses, measures, transform, param_background_discretized);
+          std::make_shared<RhoProblem<dim, Meas>>(*wave_eq, pulses, measures, transform, param_background_discretized);
       break;
     default:
       AssertThrow(false, ExcInternalError());

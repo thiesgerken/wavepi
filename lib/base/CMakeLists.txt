@@ -1,6 +1,7 @@
 # file(GLOB LIBSOURCES *.cpp)
 SET(LIBSOURCES
-        ConstantMesh.cpp          
+        ConstantMesh.cpp   
+        FunctionParser.cpp       
         SpaceTimeMesh.cpp
         AdaptiveMesh.cpp
         DiscretizedFunction.cpp 

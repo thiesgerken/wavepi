@@ -36,7 +36,7 @@ make -jN
 Generate Eclipse Project Files: (Do not do this in a child directory)
 
 ```shell
-cmake -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_ECLIPSE_VERSION=4.7 /path/to/wavepi
+cmake -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_ECLIPSE_VERSION=4.7 -DCMAKE_ECLIPSE_MAKE_ARGUMENTS=-j1 /path/to/wavepi
 ```
 
 Change Build type to release (no assertions, typically runs 10 times faster):
@@ -46,6 +46,7 @@ cmake -DCMAKE_BUILD_TYPE=Release ..
 ```
 
 Use the same command with `Debug` to go back. There are also `make` targets that switch the build type.
+To only build the documentation (Doxygen), run `make doc` inside the build directory. The command `make run-doc` will also open the result in a Browser
 
 ## MPI
 

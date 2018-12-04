@@ -5,6 +5,8 @@ SET(LIBSOURCES
         L2ProductRightHandSide.cpp        
         L2RightHandSide.cpp     
         VectorRightHandSide.cpp
+        AbstractEquation.cpp
+        AbstractEquationAdjoint.cpp
         WaveEquationBase.cpp    
         WaveEquation.cpp       
         WaveEquationAdjoint.cpp
