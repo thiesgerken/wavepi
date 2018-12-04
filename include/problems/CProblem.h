@@ -95,18 +95,35 @@ private:
 
          this->weq.set_param_c(this->c);
          this->weq_adj.set_param_c(this->c);
+
+         auto rho_cont = weq.get_param_rho();
+         rho_discretized = std::dynamic_pointer_cast<DiscretizedFunction<dim>, LightFunction<dim>>(rho_cont);
+         if (!rho_discretized) rho_discretized = std::make_shared<DiscretizedFunction<dim>>(c->get_mesh(), *rho_cont);
       }
 
       virtual DiscretizedFunction<dim> forward(const DiscretizedFunction<dim>& h) {
          auto Mh = std::make_shared<DiscretizedFunction<dim>>(h);
-         *Mh *= -1.0;
          Mh->pointwise_multiplication(u->derivative());
 
-         // TODO: multiply with -2 / c^3
+         // multiply with 2 / c^3
+         for (size_t i = 0; i < Mh->length(); i++) {
+            Vector<double> &coeff_res = Mh->get_function_coefficients(i);
+            const Vector<double> &coeff_c = c->get_function_coefficients(i);
+
+            for (size_t j = 0; j < coeff_res.size(); j++)
+               coeff_res[j] *= 2.0 / (coeff_c[j] * coeff_c[j] * coeff_c[j]);
+         }
 
          *Mh = Mh->calculate_derivative();
 
-         // TODO: multiply with 1 / rho (discretized or use "QuotientRightHandSide" for this?)
+         // multiply with 1 / rho (discretized)
+         for (size_t i = 0; i < Mh->length(); i++) {
+            Vector<double> &coeff_res = Mh->get_function_coefficients(i);
+            const Vector<double> &coeff_rho = rho_discretized->get_function_coefficients(i);
+
+            for (size_t j = 0; j < coeff_res.size(); j++)
+               coeff_res[j] /= coeff_rho[j];
+         }
 
          rhs->set_base_rhs(Mh);
 
@@ -148,32 +165,23 @@ private:
          // res.dot_transform();
          res.throw_away_derivative();
 
-         // TODO: doing this once might be enough, cache the result in WaveEquation ?!
-         auto rho_cont = weq.get_param_rho();
-         auto rho = std::dynamic_pointer_cast<DiscretizedFunction<dim>, LightFunction<dim>>(rho_cont);
-         if (!rho) rho = std::make_shared<DiscretizedFunction<dim>>(res.get_mesh(), rho_cont);
-
          for (size_t i = 0; i < res.length(); i++) {
             Vector<double> &coeff_res = res.get_function_coefficients(i);
-            const Vector<double> &coeff_rho = rho.get_function_coefficients(i);
+            const Vector<double> &coeff_rho = rho_discretized->get_function_coefficients(i);
 
-            for (size_t j = 0; j < coeff.size(); j++)
+            for (size_t j = 0; j < coeff_res.size(); j++)
                coeff_res[j] /= coeff_rho[j];
          }
 
          res = res.calculate_derivative_transpose();
 
-         // TODO: doing this once might be enough, cache the result in WaveEquation ?!
-         auto c_disc = std::dynamic_pointer_cast<DiscretizedFunction<dim>, LightFunction<dim>>(c);
-         if (!c_disc) c_disc = std::make_shared<DiscretizedFunction<dim>>(res.get_mesh(), c);
-
          for (size_t i = 0; i < res.length(); i++) {
             Vector<double> &coeff_res = res.get_function_coefficients(i);
-            const Vector<double> &coeff_c = c_disc.get_function_coefficients(i);
-            const Vector<double> &coeff_u1 = c_disc.get_derivative_coefficients(i);
+            const Vector<double> &coeff_c = c->get_function_coefficients(i);
+            const Vector<double> &coeff_u1 = u->get_derivative_coefficients(i);
 
-            for (size_t j = 0; j < coeff.size(); j++)
-               coeff_res[j] *= 2 * coeff_u1[j] / (coeff_c[j] * coeff_c[j] * coeff_c[j]);
+            for (size_t j = 0; j < coeff_res.size(); j++)
+               coeff_res[j] *= 2.0 * coeff_u1[j] / (coeff_c[j] * coeff_c[j] * coeff_c[j]);
          }
 
          res.set_norm(this->norm_domain);
@@ -203,6 +211,8 @@ private:
 
       std::shared_ptr<L2RightHandSide<dim>> rhs;
       std::shared_ptr<L2RightHandSide<dim>> rhs_adj;
+
+      std::shared_ptr<DiscretizedFunction<dim>> rho_discretized;
    };
 };
 

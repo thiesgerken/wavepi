@@ -81,8 +81,8 @@ private:
          this->rho = rho;
          this->u = u;
 
-         this->rhs = std::make_shared<DivRightHandSide<dim>>(this->rho, this->u);
-         this->rhs_adj = std::make_shared<L2RightHandSide<dim>>(this->u);
+         this->rhs = nullptr;
+         this->rhs_adj = nullptr;
          this->m_adj = std::make_shared<DivRightHandSideAdjoint<dim>>(this->rho, this->u);
 
          this->weq.set_initial_values_u(std::make_shared<Functions::ZeroFunction<dim>>(1));
@@ -92,13 +92,50 @@ private:
 
          this->weq.set_param_rho(this->rho);
          this->weq_adj.set_param_rho(this->rho);
+
+         auto c_cont = weq.get_param_c();
+         c_discretized = std::dynamic_pointer_cast<DiscretizedFunction<dim>, LightFunction<dim>>(c_cont);
+         if (!c_discretized) c_discretized = std::make_shared<DiscretizedFunction<dim>>(rho->get_mesh(), *c_cont);
       }
 
       virtual DiscretizedFunction<dim> forward(const DiscretizedFunction<dim>& h) {
-          // TODO: set_a to -h / rho^2
-         rhs->set_a(std::make_shared<DiscretizedFunction<dim>>(h));
+         // a = -h / rho^2
+         auto a = std::make_shared<DiscretizedFunction<dim>>(h);
 
-         // TODO: add L^2-RHS with h / rho^2 * (u' / c^2)'
+         // multiply with -1.0 / rho ^2
+         for (size_t i = 0; i < a->length(); i++) {
+            Vector<double> &coeff_res = a->get_function_coefficients(i);
+            const Vector<double> &coeff_rho = rho->get_function_coefficients(i);
+
+            for (size_t j = 0; j < coeff_res.size(); j++)
+               coeff_res[j] /= -1.0 * coeff_rho[j] * coeff_rho[j];
+         }
+
+         // b = h / rho^2 * (u' / c^2)'
+         auto b = std::make_shared<DiscretizedFunction<dim>>(u->derivative());
+
+         // multiply with 1 / c^2
+         for (size_t i = 0; i < b->length(); i++) {
+            Vector<double> &coeff_res = b->get_function_coefficients(i);
+            const Vector<double> &coeff_c = c_discretized->get_function_coefficients(i);
+
+            for (size_t j = 0; j < coeff_res.size(); j++)
+               coeff_res[j] /= coeff_c[j] * coeff_c[j];
+         }
+
+         *b = b->calculate_derivative();
+
+         // multiply with h / rho (discretized)
+         for (size_t i = 0; i < b->length(); i++) {
+            Vector<double> &coeff_res = b->get_function_coefficients(i);
+            const Vector<double> &coeff_rho = rho->get_function_coefficients(i);
+            const Vector<double> &coeff_h = h.get_function_coefficients(i);
+
+            for (size_t j = 0; j < coeff_res.size(); j++)
+               coeff_res[j] *= coeff_h[j] / (coeff_rho[j] * coeff_rho[j]);
+         }
+
+         this->rhs = std::make_shared<DivRightHandSide<dim>>(a, b, this->u);
 
          DiscretizedFunction<dim> res = weq.run(rhs, WaveEquation<dim>::Forward);
          res.set_norm(this->norm_codomain);
@@ -108,11 +145,11 @@ private:
       }
 
       virtual DiscretizedFunction<dim> adjoint_notransform(const DiscretizedFunction<dim>& g) {
-                 // L* : Y -> Y
+         // L* : Y -> Y
          auto tmp = std::make_shared<DiscretizedFunction<dim>>(g);
          tmp->set_norm(this->norm_codomain);
          tmp->dot_solve_mass_and_transform();
-         rhs_adj->set_base_rhs(tmp);
+         rhs_adj = std::make_shared<L2RightHandSide<dim>>(tmp);
 
          DiscretizedFunction<dim> res(weq.get_mesh());
 
@@ -130,18 +167,53 @@ private:
          res.set_norm(this->norm_codomain);
 
          // res.dot_mult_mass_and_transform_inverse();
-         // res.mult_mass();  // instead of dot_mult_mass_and_transform_inverse+dot_transform
-
-         // TODO: adapt this to new params
-         // should be -nabla(res)*nabla(u) / rho^2  - res / rho^2 (u'/c^2)'
+         res.mult_mass();  // instead of dot_mult_mass_and_transform_inverse+dot_transform
 
          // M* : Y -> X
-         // should be - nabla(res)*nabla(u) -> piecewise constant function -> fe spaces do not fit
+         // adj1 <- -nabla(res)*nabla(u) / rho^2
          // res.dot_transform();
          m_adj->set_a(std::make_shared<DiscretizedFunction<dim>>(res));
-         res = m_adj->run_adjoint(res.get_mesh());  // produces `mass * (M* res)`
-         // res.solve_mass();
+         auto adj1 = m_adj->run_adjoint(res.get_mesh());  // produces `mass * (M* res)`
 
+         adj1.solve_mass();
+
+         for (size_t i = 0; i < res.length(); i++) {
+            Vector<double> &coeff_res = adj1.get_function_coefficients(i);
+            const Vector<double> &coeff_rho = rho->get_function_coefficients(i);
+
+            for (size_t j = 0; j < coeff_res.size(); j++)
+               coeff_res[j] /= coeff_rho[j] * coeff_rho[j];
+         }
+
+         // adj2 <- -1.0*res / rho^2 (u'/c^2)'
+
+         /* M*  */
+         // res.dot_transform();
+         DiscretizedFunction<dim> adj2 = *u;
+         adj2.throw_away_derivative();
+
+         for (size_t i = 0; i < adj2.length(); i++) {
+            Vector<double> &coeff_res = adj2.get_function_coefficients(i);
+            const Vector<double> &coeff_c = c_discretized->get_function_coefficients(i);
+
+            for (size_t j = 0; j < coeff_res.size(); j++)
+               coeff_res[j] /= coeff_c[j] * coeff_c[j];
+         }
+
+         adj2 = adj2.calculate_derivative();
+
+         for (size_t i = 0; i < res.length(); i++) {
+            Vector<double> &coeff_adj2 = adj2.get_function_coefficients(i);
+            const Vector<double> &coeff_res = res.get_function_coefficients(i);
+            const Vector<double> &coeff_rho = rho->get_function_coefficients(i);
+
+            for (size_t j = 0; j < coeff_res.size(); j++)
+               coeff_adj2[j] *= -1.0 * coeff_res[j] / (coeff_rho[j] * coeff_rho[j]);
+         }
+
+         // return the sum of both
+         res = adj1;
+         res += adj2;
          res.set_norm(this->norm_domain);
          // res.dot_transform_inverse();
 
@@ -170,6 +242,8 @@ private:
       std::shared_ptr<DivRightHandSide<dim>> rhs;
       std::shared_ptr<L2RightHandSide<dim>> rhs_adj;
       std::shared_ptr<DivRightHandSideAdjoint<dim>> m_adj;
+
+      std::shared_ptr<DiscretizedFunction<dim>> c_discretized;
    };
 };
 

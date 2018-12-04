@@ -36,7 +36,7 @@ make -jN
 Generate Eclipse Project Files: (Do not do this in a child directory)
 
 ```shell
-cmake -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_ECLIPSE_VERSION=4.7 /path/to/wavepi
+cmake -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_ECLIPSE_VERSION=4.7 -DCMAKE_ECLIPSE_MAKE_ARGUMENTS=-j1 /path/to/wavepi
 ```
 
 Change Build type to release (no assertions, typically runs 10 times faster):

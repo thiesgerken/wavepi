@@ -92,15 +92,15 @@ void WaveEquationBase<dim>::fill_A(std::shared_ptr<SpaceTimeMesh<dim>> mesh, DoF
       MatrixCreator<dim>::create_A_matrix(dof_handler, mesh->get_quadrature(), destination, param_rho, param_q, time);
    else if (param_rho_disc && !param_q_disc)
       MatrixCreator<dim>::create_A_matrix(dof_handler, mesh->get_quadrature(), destination,
-            param_rho_disc->get_function_coefficients(param_rho_disc->get_time_index()), param_q, time);
+            param_rho_disc->get_function_coefficients_by_time(time), param_q, time);
    else if (!param_rho_disc && param_q_disc)
       MatrixCreator<dim>::create_A_matrix(dof_handler, mesh->get_quadrature(), destination, param_rho,
-            param_q_disc->get_function_coefficients(param_q_disc->get_time_index()), time);
+            param_q_disc->get_function_coefficients_by_time(time), time);
    else
       // (param_rho_disc && param_q_disc)
       MatrixCreator<dim>::create_A_matrix(dof_handler, mesh->get_quadrature(), destination,
-            param_rho_disc->get_function_coefficients(param_rho_disc->get_time_index()),
-            param_q_disc->get_function_coefficients(param_q_disc->get_time_index()));
+            param_rho_disc->get_function_coefficients_by_time(time),
+            param_q_disc->get_function_coefficients_by_time(time));
 }
 
 template<int dim>
@@ -108,7 +108,7 @@ void WaveEquationBase<dim>::fill_B(std::shared_ptr<SpaceTimeMesh<dim>> mesh, DoF
       const double time, SparseMatrix<double> &destination) {
    if (param_nu_disc && using_special_assembly(mesh))
       MatrixCreator<dim>::create_mass_matrix(dof_handler, mesh->get_quadrature(), destination,
-            param_nu_disc->get_function_coefficients(param_nu_disc->get_time_index()));
+            param_nu_disc->get_function_coefficients_by_time(time));
    else
       MatrixCreator<dim>::create_mass_matrix(dof_handler, mesh->get_quadrature(), destination, param_nu, time);
 }
@@ -121,15 +121,15 @@ void WaveEquationBase<dim>::fill_C(std::shared_ptr<SpaceTimeMesh<dim>> mesh, DoF
             time);
    else if (param_rho_disc && !param_c_disc)
       MatrixCreator<dim>::create_C_matrix(dof_handler, mesh->get_quadrature(), destination,
-            param_rho_disc->get_function_coefficients(param_rho_disc->get_time_index()), param_c, time);
+            param_rho_disc->get_function_coefficients_by_time(time), param_c, time);
    else if (!param_rho_disc && param_c_disc)
       MatrixCreator<dim>::create_C_matrix(dof_handler, mesh->get_quadrature(), destination, param_rho,
-            param_c_disc->get_function_coefficients(param_c_disc->get_time_index()), time);
+            param_c_disc->get_function_coefficients_by_time(time), time);
    else
       // (param_rho_disc && param_c_disc)
       MatrixCreator<dim>::create_C_matrix(dof_handler, mesh->get_quadrature(), destination,
-            param_rho_disc->get_function_coefficients(param_rho_disc->get_time_index()),
-            param_c_disc->get_function_coefficients(param_c_disc->get_time_index()));
+            param_rho_disc->get_function_coefficients_by_time(time),
+            param_c_disc->get_function_coefficients_by_time(time));
 }
 
 template<int dim>
@@ -147,15 +147,15 @@ void WaveEquationBase<dim>::fill_C_intermediate(size_t time_idx, std::shared_ptr
             param_c, next_time, current_time);
    else if (param_rho_disc && !param_c_disc)
       MatrixCreator<dim>::create_C_matrix(dof_handler, mesh->get_quadrature(), *matrix_C_intermediate,
-            param_rho_disc->get_function_coefficients(param_rho_disc->get_time_index() + 1), param_c, current_time);
+            param_rho_disc->get_function_coefficients_by_time(next_time), param_c, current_time);
 
    else if (!param_rho_disc && param_c_disc)
       MatrixCreator<dim>::create_C_matrix(dof_handler, mesh->get_quadrature(), *matrix_C_intermediate, param_rho,
-            param_c_disc->get_function_coefficients(param_c_disc->get_time_index()), next_time);
+            param_c_disc->get_function_coefficients_by_time(current_time), next_time);
    else
       MatrixCreator<dim>::create_C_matrix(dof_handler, mesh->get_quadrature(), *matrix_C_intermediate,
-            param_rho_disc->get_function_coefficients(param_rho_disc->get_time_index() + 1),
-            param_c_disc->get_function_coefficients(param_c_disc->get_time_index()));
+            param_rho_disc->get_function_coefficients_by_time(next_time),
+            param_c_disc->get_function_coefficients_by_time(current_time));
 
 }
 
@@ -174,8 +174,8 @@ void WaveEquationBase<dim>::fill_D_intermediate(size_t time_idx, std::shared_ptr
             param_rho, current_time, next_time);
    else
       MatrixCreator<dim>::create_D_intermediate_matrix(dof_handler, mesh->get_quadrature(), *matrix_D_intermediate,
-            param_rho_disc->get_function_coefficients(param_rho_disc->get_time_index()),
-            param_rho_disc->get_function_coefficients(param_rho_disc->get_time_index() + 1));
+            param_rho_disc->get_function_coefficients_by_time(current_time),
+            param_rho_disc->get_function_coefficients_by_time(next_time));
 }
 
 template class WaveEquationBase<1> ;

@@ -8,52 +8,49 @@
 #ifndef FORWARD_DIVRIGHTHANDSIDE_H_
 #define FORWARD_DIVRIGHTHANDSIDE_H_
 
-#include <deal.II/base/function.h>
+#include <base/DiscretizedFunction.h>
 #include <deal.II/base/quadrature.h>
 #include <deal.II/base/types.h>
 #include <deal.II/dofs/dof_handler.h>
 #include <deal.II/fe/fe.h>
 #include <deal.II/fe/fe_values.h>
 #include <deal.II/lac/vector.h>
-
 #include <forward/RightHandSide.h>
-
 #include <memory>
 #include <vector>
 
 namespace wavepi {
 namespace forward {
 using namespace dealii;
+using namespace wavepi::base;
 
 /**
- * implements the H^{-1} function f=div(a \nabla u) as a possible right hand side,
- * this means $`<f,v> = (-a\nabla u, \nabla v)`$ (note the sign)
+ * implements the H^{-1} function f=div(a \nabla u) + bu as a possible right hand side,
+ * this means $`<f,v> = (-a\nabla u, \nabla v) + (b u, v)`$ (note the sign)
  */
 template <int dim>
 class DivRightHandSide : public RightHandSide<dim> {
  public:
   virtual ~DivRightHandSide() = default;
 
-  /**
-   * optimization is used only when a _and_ u are discretized
-   *  if u is continuous, then u has to have an implementation of gradient
-   */
-  DivRightHandSide(std::shared_ptr<Function<dim>> a, std::shared_ptr<Function<dim>> u);
+  DivRightHandSide(std::shared_ptr<DiscretizedFunction<dim>> a, std::shared_ptr<DiscretizedFunction<dim>> b, std::shared_ptr<DiscretizedFunction<dim>> u);
 
   virtual void create_right_hand_side(const DoFHandler<dim> &dof_handler, const Quadrature<dim> &q,
                                       Vector<double> &rhs) const;
 
-  inline std::shared_ptr<Function<dim>> get_a() const { return a; }
+  inline std::shared_ptr<DiscretizedFunction<dim>> get_a() const { return a; }
+  inline void set_a(std::shared_ptr<DiscretizedFunction<dim>> a) { this->a = a; }
 
-  inline void set_a(std::shared_ptr<Function<dim>> a) { this->a = a; }
+  inline std::shared_ptr<DiscretizedFunction<dim>> get_b() const { return b; }
+ inline void set_b(std::shared_ptr<DiscretizedFunction<dim>> b) { this->b = b; }
 
-  inline std::shared_ptr<Function<dim>> get_u() const { return u; }
-
-  inline void set_u(std::shared_ptr<Function<dim>> u) { this->u = u; }
+  inline std::shared_ptr<DiscretizedFunction<dim>> get_u() const { return u; }
+  inline void set_u(std::shared_ptr<DiscretizedFunction<dim>> u) { this->u = u; }
 
  private:
-  std::shared_ptr<Function<dim>> a;
-  std::shared_ptr<Function<dim>> u;
+  std::shared_ptr<DiscretizedFunction<dim>> a;
+  std::shared_ptr<DiscretizedFunction<dim>> b;
+   std::shared_ptr<DiscretizedFunction<dim>> u;
 
   struct AssemblyScratchData {
     AssemblyScratchData(const FiniteElement<dim> &fe, const Quadrature<dim> &quad);
@@ -68,13 +65,10 @@ class DivRightHandSide : public RightHandSide<dim> {
 
   void copy_local_to_global(Vector<double> &result, const AssemblyCopyData &copy_data);
 
-  void local_assemble_dd(const Vector<double> &a, const Vector<double> &u,
+  void local_assemble(const Vector<double> &a, const Vector<double> &b, const Vector<double> &u,
                          const typename DoFHandler<dim>::active_cell_iterator &cell, AssemblyScratchData &scratch_data,
                          AssemblyCopyData &copy_data);
 
-  void local_assemble_cc(const Function<dim> *const a, const Function<dim> *const u,
-                         const typename DoFHandler<dim>::active_cell_iterator &cell, AssemblyScratchData &scratch_data,
-                         AssemblyCopyData &copy_data);
 };
 
 } /* namespace forward */
