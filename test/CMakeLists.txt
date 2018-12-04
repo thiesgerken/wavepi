@@ -1,5 +1,5 @@
-find_package(GTest)
-if (GTEST_FOUND)
+#find_package(GTest REQUIRED)
+#if (GTEST_FOUND)
     # file(GLOB LIBSOURCES *.cpp)
     SET(LIBSOURCES
             main.cpp
@@ -12,12 +12,12 @@ if (GTEST_FOUND)
         )
 
     ADD_EXECUTABLE(wavepi_test ${LIBSOURCES})
-    TARGET_LINK_LIBRARIES(wavepi_test ${GTEST_BOTH_LIBRARIES} pthread wavepi_forward wavepi_inversion wavepi_base wavepi_norms wavepi_measurements) 
+    TARGET_LINK_LIBRARIES(wavepi_test gtest gtest-main pthread wavepi_forward wavepi_inversion wavepi_base wavepi_norms wavepi_measurements)
     set_target_properties(wavepi_test PROPERTIES OUTPUT_NAME "wavepi-test")
- 
+
     #include(GoogleTest)
     #if(${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.10.0)
     #  gtest_discover_tests(wavepi_test)
     #endif()
 
-endif()
+#endif()
