@@ -28,18 +28,6 @@ build:
     - docker
   image: git.thiesgerken.de:5005/thies/wavepi/dealii:d68d619
 
-test:
-  stage: test
-  dependencies:
-    - build
-  script:
-    - cd dist
-    - ./wavepi-test
-  when: manual
-  tags:
-    - docker
-  image: git.thiesgerken.de:5005/thies/wavepi/dealii:d68d619
-
 deploy-rtg05:
   stage: deploy
   dependencies:
