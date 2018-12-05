@@ -91,7 +91,7 @@ protected:
    // solution and its derivative at the current and the last time step
    Vector<double> solution_u, solution_v;
    Vector<double> solution_u_old, solution_v_old;
-   Vector<double> rhs, rhs_old;
+   Vector<double> rhs;
 
    // handle to the right hand side used
    std::shared_ptr<RightHandSide<dim>> right_hand_side;

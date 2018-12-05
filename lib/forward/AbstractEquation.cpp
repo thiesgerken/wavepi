@@ -96,7 +96,6 @@ void AbstractEquation<dim>::cleanup() {
    system_tmp2.reinit(0);
 
    rhs.reinit(0);
-   rhs_old.reinit(0);
 }
 
 template<int dim>
@@ -137,9 +136,9 @@ void AbstractEquation<dim>::assemble_pre(std::shared_ptr<SparseMatrix<double>> m
    Vector<double> tmp(solution_u_old.size());
 
    // grid has not been changed yet,
-   // matrix_* contain the matrices of the *last* time step.
+   // matrix_* contain the matrices of the *last* time step, rhs = rhs_old
 
-   system_tmp2 = rhs_old;
+   system_tmp2 = rhs;
 
    matrix_B.vmult(tmp, solution_v_old);
    system_tmp2.add(-1.0, tmp);
@@ -315,7 +314,6 @@ DiscretizedFunction<dim> AbstractEquation<dim>::run(std::shared_ptr<RightHandSid
       double dt = time - last_time;
 
       // u -> u_old, same for v and rhs
-      rhs_old = rhs;
       solution_u_old = solution_u;
       solution_v_old = solution_v;
 
