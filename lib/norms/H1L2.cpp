@@ -129,7 +129,7 @@ void H1L2<dim>::dot_mult_mass_and_transform_inverse(DiscretizedFunction<dim>& u)
   Timer timer;
   timer.start();
 
-  if (umfpack.n() != mesh->length()) factorize_matrix(mesh);
+  if (!umfpack || umfpack->n() != mesh->length()) factorize_matrix(mesh);
 
   // just to be sure
   for (size_t i = 0; i < mesh->length(); i++)
@@ -142,7 +142,7 @@ void H1L2<dim>::dot_mult_mass_and_transform_inverse(DiscretizedFunction<dim>& u)
     for (size_t j = 0; j < mesh->length(); j++)
       tmp[j] = u[j][i];
 
-    umfpack.solve(tmp);
+    umfpack->solve(tmp);
 
     for (size_t j = 0; j < mesh->length(); j++)
       u[j][i] = tmp[j];
@@ -234,7 +234,8 @@ void H1L2<dim>::factorize_matrix(std::shared_ptr<SpaceTimeMesh<dim>> mesh) {
   for (size_t i = 0; i < mesh->length(); i++)
     matrix.add(i, i, lambdas[i]);
 
-  umfpack.factorize(matrix);
+  umfpack = std::make_shared<SparseDirectUMFPACK>();
+  umfpack->factorize(matrix);
 }
 
 template <int dim>

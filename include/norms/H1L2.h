@@ -54,7 +54,7 @@ class H1L2 : public Norm<DiscretizedFunction<dim>> {
  private:
   double alpha_;
 
-  SparseDirectUMFPACK umfpack;
+  std::shared_ptr<SparseDirectUMFPACK> umfpack;
 
   void factorize_matrix(std::shared_ptr<SpaceTimeMesh<dim>> mesh);
 };

@@ -41,10 +41,10 @@ public:
    double value(const Point<dim> &p, const unsigned int component = 0) const {
       Assert(component == 0, ExcIndexRange(component, 0, 1));
 
-      if (p.norm() < 0.5)
-         return std::sin(this->get_time() * 2 * numbers::PI);
-      else
-         return 0.0;
+      Point<dim> pc = Point<dim>::unit_vector(0);
+      pc *= 0.2;
+
+      return this->get_time() * std::sin(p.distance(pc) * 2 * numbers::PI);
    }
 };
 
@@ -86,6 +86,8 @@ void run_div_rhs_adjoint_test(int fe_order, int quad_order, int refines, int n_s
       std::shared_ptr<DiscretizedFunction<dim>> f, g;
 
       if (i == 0) {
+         // it is kind of important for this test that f and g are space dependent
+         // (otherwise quantities will be very very small)
          TestF<dim> f_cont;
          f = std::make_shared<DiscretizedFunction<dim>>(mesh, f_cont);
 
@@ -154,20 +156,20 @@ void run_div_rhs_adjoint_test(int fe_order, int quad_order, int refines, int n_s
 }  // namespace
 
 TEST(DivRightHandSide, Adjoint1DFE1) {
-   for (int i = 3; i < 10; i++)
+   for (int i = 6; i < 7; i++)
       run_div_rhs_adjoint_test<1>(1, 3, 6, 1 << i, 1e-1);
 }
 
 TEST(DivRightHandSide, Adjoint1DFE2) {
-   for (int i = 3; i < 10; i++)
+   for (int i = 6; i < 7; i++)
       run_div_rhs_adjoint_test<1>(2, 6, 4, 1 << i, 1e-1);
 }
 TEST(DivRightHandSide, Adjoint2DFE1) {
-   for (int i = 3; i < 10; i++)
+   for (int i = 6; i < 7; i++)
       run_div_rhs_adjoint_test<2>(1, 3, 5, 1 << i, 1e-1);
 }
 
 TEST(DivRightHandSide, Adjoint3DFE1) {
-   for (int i = 3; i < 9; i++)
+   for (int i = 6; i < 7; i++)
       run_div_rhs_adjoint_test<3>(1, 3, 2, 1 << i, 1e-1);
 }
