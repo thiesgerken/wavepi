@@ -254,7 +254,7 @@ void run_dot_transform_inverse_test(int fe_order, int quad_order, int refines, i
   deallog << std::endl << "----------  n_dofs / timestep: " << mesh->get_dof_handler(0)->n_dofs();
   deallog << ", n_steps: " << times.size() << "  ----------" << std::endl;
 
-  const double tol = 1e-3;
+  const double tol = 1e-2;
   const int N      = 10;
 
   Timer inverse_timer;

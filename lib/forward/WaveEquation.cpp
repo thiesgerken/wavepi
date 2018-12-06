@@ -110,33 +110,38 @@ void WaveEquation<dim>::assemble_matrices(size_t time_idx) {
 template<int dim>
 DiscretizedFunction<dim> WaveEquation<dim>::run(std::shared_ptr<RightHandSide<dim>> right_hand_side,
       typename AbstractEquation<dim>::Direction direction) {
-   // bound checking for ρ and c (if possible)
-   // (should not take long compared to the rest and can be very tricky to find out otherwise
-   //    -> do it even in release mode)
-   if (this->param_c_disc) {
-      double c_min, c_max;
-      this->param_c_disc->min_max_value(&c_min, &c_max);
+   {
+      LogStream::Prefix p("WaveEq");
+      LogStream::Prefix pp("BoundChecking");
 
-      std::stringstream bound_str;
-      bound_str << c_min << " ≤ c ≤ " << c_max;
+      // bound checking for ρ and c (if possible)
+      // (should not take long compared to the rest and can be very tricky to find out otherwise
+      //    -> do it even in release mode)
+      if (this->param_c_disc) {
+         double c_min, c_max;
+         this->param_c_disc->min_max_value(&c_min, &c_max);
 
-      AssertThrow(c_min > 0, ExcMessage("C is not positive, " + bound_str.str()));
-      AssertThrow(1.0 / (c_max * c_max) >= 1e-4, ExcMessage("C is not coercive, " + bound_str.str()));
+         std::stringstream bound_str;
+         bound_str << c_min << " ≤ c ≤ " << c_max;
 
-      deallog << bound_str.str() << std::endl;
-   }
+         AssertThrow(c_min > 0, ExcMessage("C is not positive, " + bound_str.str()));
+         AssertThrow(1.0 / (c_max * c_max) >= 1e-4, ExcMessage("C is not coercive, " + bound_str.str()));
 
-   if (this->param_rho_disc) {
-      double rho_min, rho_max;
-      this->param_rho_disc->min_max_value(&rho_min, &rho_max);
+         deallog << bound_str.str() << std::endl;
+      }
 
-      std::stringstream bound_str;
-      bound_str << rho_min << " ≤ ρ ≤ " << rho_max;
+      if (this->param_rho_disc) {
+         double rho_min, rho_max;
+         this->param_rho_disc->min_max_value(&rho_min, &rho_max);
 
-      AssertThrow(rho_min > 0, ExcMessage("A and D are not positive, " + bound_str.str()));
-      AssertThrow(1.0 / rho_max >= 1e-4, ExcMessage("A and D are not coercive, " + bound_str.str()));
+         std::stringstream bound_str;
+         bound_str << rho_min << " ≤ ρ ≤ " << rho_max;
 
-      deallog << bound_str.str() << std::endl;
+         AssertThrow(rho_min > 0, ExcMessage("A and D are not positive, " + bound_str.str()));
+         AssertThrow(1.0 / rho_max >= 1e-4, ExcMessage("A and D are not coercive, " + bound_str.str()));
+
+         deallog << bound_str.str() << std::endl;
+      }
    }
 
    return AbstractEquation<dim>::run(right_hand_side, direction);

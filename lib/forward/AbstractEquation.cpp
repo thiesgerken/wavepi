@@ -280,7 +280,6 @@ DiscretizedFunction<dim> AbstractEquation<dim>::run(std::shared_ptr<RightHandSid
       Direction direction) {
    LogStream::Prefix p("AbstractEq");
    Assert(mesh->length() >= 2, ExcInternalError());
-   Assert(mesh->length() < 10000, ExcNotImplemented());
 
    Timer timer, assembly_timer;
    timer.start();
@@ -313,7 +312,7 @@ DiscretizedFunction<dim> AbstractEquation<dim>::run(std::shared_ptr<RightHandSid
       double last_time = mesh->get_time(last_time_idx);
       double dt = time - last_time;
 
-      // u -> u_old, same for v and rhs
+      // u -> u_old, same for v
       solution_u_old = solution_u;
       solution_v_old = solution_v;
 

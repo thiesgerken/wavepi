@@ -711,8 +711,6 @@ TEST(WaveEquation, ReferenceTestNu1DFE2) {
 }
 
 TEST(WaveEquation, ReferenceTestNu2DFE1) {
-   run_reference_test_nu<2>(1, 3, 5, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, 256, false, true);
-
    for (int steps = 16; steps <= 512; steps *= 2)
       run_reference_test_nu<2>(1, 3, 6, Point<2, int>(1, 2), Point<2>(1.0, 1.5), 2 * numbers::PI, steps, steps >= 64);
 
