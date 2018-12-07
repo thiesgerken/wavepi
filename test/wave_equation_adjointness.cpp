@@ -87,9 +87,7 @@ class TestRho: public LightFunction<dim> {
 public:
    virtual ~TestRho() = default;
    virtual double evaluate(const Point<dim> &p, const double t) const {
-      if (t < 0.5 || t > 1.5) return 1.0 + p.norm();
-
-      return p.norm() + (t - 0.5) + 1.0;
+      return p.norm() + t + 1.0;
    }
 };
 
@@ -148,10 +146,11 @@ void run_wave_adjoint_test(int fe_order, int quad_order, int refines, int n_step
 
    WaveEquation<dim> wave_eq(mesh);
    if (!trivial) {
+      // TODO: DEBUG
       wave_eq.set_param_rho(std::make_shared<TestRho<dim>>());
-      wave_eq.set_param_c(std::make_shared<TestC<dim>>());
-      wave_eq.set_param_q(std::make_shared<TestQ<dim>>());
-      wave_eq.set_param_nu(std::make_shared<TestNu<dim>>());
+//      wave_eq.set_param_c(std::make_shared<TestC<dim>>());
+//      wave_eq.set_param_q(std::make_shared<TestQ<dim>>());
+//      wave_eq.set_param_nu(std::make_shared<TestNu<dim>>());
    }
 
    WaveEquationAdjoint<dim> wave_eq_adj(wave_eq);
@@ -171,16 +170,17 @@ void run_wave_adjoint_test(int fe_order, int quad_order, int refines, int n_step
          g = std::make_shared<DiscretizedFunction<dim>>(mesh, g_cont);
       } else {
          f = std::make_shared<DiscretizedFunction<dim>>(DiscretizedFunction<dim>::noise(mesh));
-
-         // make it a bit smoother, random noise might be a bit too harsh
-         f->set_norm(std::make_shared<norms::H1L2<dim>>(0.5));
-         f->dot_transform_inverse();
-
          g = std::make_shared<DiscretizedFunction<dim>>(DiscretizedFunction<dim>::noise(mesh));
 
-         // make it a bit smoother, random noise might be a bit too harsh
-         g->set_norm(std::make_shared<norms::H1L2<dim>>(0.5));
-         g->dot_transform_inverse();
+         if (n_steps > 7) {
+            // make f and g a slightly smoother, random noise might be a too harsh
+
+            f->set_norm(std::make_shared<norms::H1L2<dim>>(0.5));
+            f->dot_transform_inverse();
+
+            g->set_norm(std::make_shared<norms::H1L2<dim>>(0.5));
+            g->dot_transform_inverse();
+         }
       }
 
       f->set_norm(std::make_shared<norms::L2L2<dim>>());
@@ -244,12 +244,12 @@ void run_wave_adjoint_test(int fe_order, int quad_order, int refines, int n_step
 
 TEST(WaveEquationAdjointness, Adjoint1DFE1) {
    for (int i = 3; i < 10; i++)
-      run_wave_adjoint_test<1>(1, 3, 6, 1 << i, WaveEquationBase<1>::WaveEquationAdjoint, false, 1e-1);
+      run_wave_adjoint_test<1>(1, 3, 6, 1 << i, WaveEquationBase<1>::WaveEquationAdjoint, false, 1e-4);
 }
 
 TEST(WaveEquationAdjointness, Adjoint1DFE2) {
    for (int i = 3; i < 10; i++)
-      run_wave_adjoint_test<1>(2, 6, 4, 1 << i, WaveEquationBase<1>::WaveEquationAdjoint, false, 1e-1);
+      run_wave_adjoint_test<1>(2, 6, 4, 1 << i, WaveEquationBase<1>::WaveEquationAdjoint, false, 1e-4);
 }
 
 TEST(WaveEquationAdjointness, Backwards2DFE1) {
@@ -261,21 +261,21 @@ TEST(WaveEquationAdjointness, Backwards2DFE1) {
 
 TEST(WaveEquationAdjointness, BackwardsTrivial2DFE1) {
    for (int i = 3; i < 10; i++)
-      run_wave_adjoint_test<2>(1, 3, 5, 1 << i, WaveEquationBase<2>::WaveEquationBackwards, true, 1e-1);
+      run_wave_adjoint_test<2>(1, 3, 5, 1 << i, WaveEquationBase<2>::WaveEquationBackwards, true, 1e+1);
 }
 
 TEST(WaveEquationAdjointness, Adjoint2DFE1) {
-   for (int i = 3; i < 10; i++)
-      run_wave_adjoint_test<2>(1, 3, 5, 1 << i, WaveEquationBase<2>::WaveEquationAdjoint, false, 1e-1);
+   for (int i = 0; i < 10; i++)
+      run_wave_adjoint_test<2>(1, 3, 5, 1 << i, WaveEquationBase<2>::WaveEquationAdjoint, false, 1e-4);
 }
 
 TEST(WaveEquationAdjointness, AdjointTrivial2DFE1) {
    for (int i = 3; i < 10; i++)
-      run_wave_adjoint_test<2>(1, 3, 5, 1 << i, WaveEquationBase<2>::WaveEquationAdjoint, true, 1e-1);
+      run_wave_adjoint_test<2>(1, 3, 5, 1 << i, WaveEquationBase<2>::WaveEquationAdjoint, true, 1e-4);
 }
 
 TEST(WaveEquationAdjointness, Adjoint3DFE1) {
    for (int i = 3; i < 9; i++)
-      run_wave_adjoint_test<3>(1, 3, 2, 1 << i, WaveEquationBase<3>::WaveEquationAdjoint, false, 1e-1);
+      run_wave_adjoint_test<3>(1, 3, 2, 1 << i, WaveEquationBase<3>::WaveEquationAdjoint, false, 1e-4);
 }
 

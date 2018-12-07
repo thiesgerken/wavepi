@@ -51,7 +51,7 @@ void WaveEquationBase<dim>::fill_matrices(std::shared_ptr<SpaceTimeMesh<dim>> me
    task_group.join_all();
 }
 
-// before mesh change, let dst <- (D^n)^{-1} D^{n-1} M^{-1} src
+// let dst <- (D^n)^{-1} D^{n-1} M^{-1} src
 // ( i.e. dst <- src for time-independent D)
 template<int dim>
 void WaveEquationBase<dim>::vmult_D_intermediate(std::shared_ptr<SparseMatrix<double>> mass_matrix, Vector<double>& dst,
@@ -67,6 +67,27 @@ void WaveEquationBase<dim>::vmult_D_intermediate(std::shared_ptr<SparseMatrix<do
 
       AssertThrow(matrix_D_intermediate, ExcInternalError("matrix_D_intermediate is missing"));
       matrix_D_intermediate->vmult(dst, tmp);
+   } else {
+      dst.equ(1.0, src);
+   }
+}
+
+// let dst <- M^{-1} (D^n)^{-1} D^{n-1} src
+// ( i.e. dst <- src for time-independent D)
+template<int dim>
+void WaveEquationBase<dim>::vmult_D_intermediate_transpose(std::shared_ptr<SparseMatrix<double>> mass_matrix, Vector<double>& dst,
+      const Vector<double>& src) const {
+   if (rho_time_dependent) {
+      Vector<double> tmp(src.size());
+
+      AssertThrow(matrix_D_intermediate, ExcInternalError("matrix_D_intermediate is missing"));
+      matrix_D_intermediate->vmult(tmp, src);
+
+      SolverControl solver_control(2000, 1e-10 * tmp.l2_norm());
+      SolverCG<> cg(solver_control);
+      PreconditionIdentity precondition = PreconditionIdentity();
+
+      cg.solve(*mass_matrix, dst, tmp, precondition);
    } else {
       dst.equ(1.0, src);
    }

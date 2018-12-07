@@ -123,6 +123,10 @@ public:
    // ( i.e. dst <- src for time-independent D)
    virtual void vmult_D_intermediate(std::shared_ptr<SparseMatrix<double>> mass_matrix, Vector<double>& dst, const Vector<double>& src) const;
 
+   // before mesh change, let dst <- M^{-1} (D^n)^{-1} D^{n-1} src
+   // ( i.e. dst <- src for time-independent D)
+   virtual void vmult_D_intermediate_transpose(std::shared_ptr<SparseMatrix<double>> mass_matrix, Vector<double>& dst, const Vector<double>& src) const;
+
    // before mesh change, let dst <- (D^n)^{-1} C^{n-1} src
    // ( i.e. dst <- matrix_C * src for time-independent D)
    virtual void vmult_C_intermediate(const SparseMatrix<double>& matrix_C, Vector<double>& dst, const Vector<double>& src) const;

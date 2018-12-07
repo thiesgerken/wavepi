@@ -195,9 +195,10 @@ void AbstractEquationAdjoint<dim>::assemble_u(size_t i) {
       Vector<double> tmp2(tmp_v.size());
 
       tmp_u.add(-theta, solution_v);
-      matrix_A.vmult(tmp1, tmp_u);
-      // D^{i,i+1}M⁻¹ after multiplying with B^i, then add to system_rhs_u
-      vmult_D_intermediate(mesh->get_mass_matrix(i), tmp2, tmp1);
+
+      // M⁻¹D^{i,i+1} before multiplying with A^i, then add to system_rhs_u
+      vmult_D_intermediate_transpose(mesh->get_mass_matrix(i), tmp1, tmp_u);
+      matrix_A.vmult(tmp2, tmp1);
       system_rhs_u.add(1.0, tmp2);
 
       system_rhs_u += rhs;
@@ -220,9 +221,10 @@ void AbstractEquationAdjoint<dim>::assemble_u(size_t i) {
       Vector<double> tmp2(tmp_v.size());
 
       tmp_u.add(-theta, solution_v);
-      matrix_A.vmult(tmp1, tmp_u);
-      // D^{i,i+1}M⁻¹ after multiplying with B^i, then add to system_rhs_u
-      vmult_D_intermediate(mesh->get_mass_matrix(i), tmp2, tmp1);
+
+      // M⁻¹D^{i,i+1} before multiplying with A^i, then add to system_rhs_u
+      vmult_D_intermediate_transpose(mesh->get_mass_matrix(i), tmp1, tmp_u);
+      matrix_A.vmult(tmp2, tmp1);
       system_rhs_u.add(1.0, tmp2);
 
       system_rhs_u += rhs;
@@ -313,7 +315,7 @@ void AbstractEquationAdjoint<dim>::assemble_v(size_t i) {
        */
 
       system_rhs_v = 0.0;
-      system_matrix = IdentityMatrix(solution_u.size());
+      system_matrix = IdentityMatrix(solution_v.size());
    } else if (i == 0) {
       /*
        * (u_0, v_0)^t = (g_0, 0)^t - (M_{i+1}^1)^t (u_1, v_1)^t
@@ -332,9 +334,9 @@ void AbstractEquationAdjoint<dim>::assemble_v(size_t i) {
       vmult_C_intermediate(tmp1, tmp_v);
       system_rhs_v.add(1.0 / time_step_last, tmp1);
 
-      matrix_B.vmult(tmp1, tmp_v);
-      // D^{0,1}M⁻¹ after multiplying with B^0, then add to system_rhs_v
-      vmult_D_intermediate(mesh->get_mass_matrix(i), tmp2, tmp1);
+      // M⁻¹D^{0,1} before multiplying with B^0, then add to system_rhs_v
+      vmult_D_intermediate_transpose(mesh->get_mass_matrix(i), tmp1, tmp_v);
+      matrix_B.vmult(tmp2, tmp1);
       system_rhs_v.add(-1 * (1 - theta), tmp2);
 
       system_matrix = IdentityMatrix(solution_u.size());
@@ -359,9 +361,9 @@ void AbstractEquationAdjoint<dim>::assemble_v(size_t i) {
       vmult_C_intermediate(tmp1, tmp_v);
       system_rhs_v.add(1.0 / time_step_last, tmp1);
 
-      matrix_B.vmult(tmp1, tmp_v);
-      // D^{i,i+1}M⁻¹ after multiplying with B^i, then add to system_rhs_v
-      vmult_D_intermediate(mesh->get_mass_matrix(i), tmp2, tmp1);
+      // M⁻¹D^{i,i+1} before multiplying with B^i, then add to system_rhs_v
+      vmult_D_intermediate_transpose(mesh->get_mass_matrix(i), tmp1, tmp_v);
+      matrix_B.vmult(tmp2, tmp1);
       system_rhs_v.add(-1 * (1 - theta), tmp2);
 
       // system_matrix = 0.0; // not needed because matrix was reinited due to possible mesh change
@@ -474,7 +476,7 @@ DiscretizedFunction<dim> AbstractEquationAdjoint<dim>::run(std::shared_ptr<Right
 
       if (i < mesh->length() - 1) {
          Vector<double> tmp(solution_u.size());
-         vmult_D_intermediate(mesh->get_mass_matrix(i), tmp, tmp_R_adjoint);
+         vmult_D_intermediate_transpose(mesh->get_mass_matrix(i), tmp, tmp_R_adjoint);
 
          res[i].add(1.0, tmp);
       }
@@ -485,7 +487,7 @@ DiscretizedFunction<dim> AbstractEquationAdjoint<dim>::run(std::shared_ptr<Right
          tmp_R_adjoint.add(1 - theta, solution_v);
 
          // tmp_R_adjoint has to be transfered to grid i-1 first!
-         //res[i - 1] += " vmult_D_intermediate(tmp_R_adjoint) ";
+         //res[i - 1] += " vmult_D_intermediate_transpose(tmp_R_adjoint) ";
 
          res[i].add(theta * theta, solution_u);
          res[i].add(theta, solution_v);
