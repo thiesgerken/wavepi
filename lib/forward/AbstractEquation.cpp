@@ -158,9 +158,8 @@ void AbstractEquation<dim>::assemble_pre(std::shared_ptr<SparseMatrix<double>> m
    // system_tmp2 contains
    // Y^n = (1-θ) (D^n)^-1 D^{n-1} M^{-1} (F^n - B^n V^n - A^n U^n) + 1/dt * C^{n,n-1} V^n
 
-   system_tmp1 = solution_u_old;
-   system_tmp1 *= 1.0 / time_step;
-   system_tmp1.add((1.0 - theta), solution_v_old);
+   system_tmp1.equ(1.0 / time_step, solution_u_old);
+   system_tmp1.add(1.0 - theta, solution_v_old);
 
    // system_tmp1 contains
    // X^n = 1/dt U^n + (1-θ) V^n
@@ -196,7 +195,7 @@ void AbstractEquation<dim>::assemble_u(double time, double time_step) {
    // needed, because hanging node constraints are not already built into the sparsity pattern
    constraints->condense(system_matrix, system_rhs);
 
-   apply_boundary_conditions_v(time);
+   apply_boundary_conditions_u(time);
 }
 
 template<int dim>
