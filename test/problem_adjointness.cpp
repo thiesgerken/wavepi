@@ -62,27 +62,6 @@ public:
 };
 
 template<int dim>
-class TestF2: public LightFunction<dim> {
-public:
-   double evaluate(const Point<dim> &p, const double t) const {
-       if ((t <= 0.5) && (p.distance(actor_position) < 0.4))
-         return std::sin(t * 2 * numbers::PI);
-      else
-         return 0.0;
-   }
-
-private:
-   static const Point<dim> actor_position;
-};
-
-template<>
-const Point<1> TestF2<1>::actor_position = Point<1>(1.0);
-template<>
-const Point<2> TestF2<2>::actor_position = Point<2>(1.0, 0.5);
-template<>
-const Point<3> TestF2<3>::actor_position = Point<3>(1.0, 0.5, 0.0);
-
-template<int dim>
 class TestG: public LightFunction<dim> {
 public:
    double evaluate(const Point<dim> &p, const double t) const {
@@ -325,7 +304,7 @@ TEST(ProblemAdjointness, AdjointQ3DFE1) {
 
 /* A */
 
-TEST(ProblemAdjointness, AdjointA1DFE1) {
+TEST(ProblemAdjointness, AdjointRho1DFE1) {
    for (int i = 3; i < 10; i++)
       run_adjoint_test<1, RhoProblem<1, DiscretizedFunction<1>>>(1, 3, 6, 1 << i, std::make_shared<norms::L2L2<1>>(),
             std::make_shared<norms::L2L2<1>>(), 1e-1);
@@ -335,7 +314,7 @@ TEST(ProblemAdjointness, AdjointA1DFE1) {
             std::make_shared<norms::L2L2<1>>(), 1e-1);
 }
 
-TEST(ProblemAdjointness, AdjointA1DFE2) {
+TEST(ProblemAdjointness, AdjointRho1DFE2) {
    for (int i = 3; i < 10; i++)
       run_adjoint_test<1, RhoProblem<1, DiscretizedFunction<1>>>(2, 6, 4, 1 << i, std::make_shared<norms::L2L2<1>>(),
             std::make_shared<norms::L2L2<1>>(), 1e-1);
@@ -345,7 +324,7 @@ TEST(ProblemAdjointness, AdjointA1DFE2) {
             std::make_shared<norms::L2L2<1>>(), 1e-1);
 }
 
-TEST(ProblemAdjointness, AdjointA2DFE1) {
+TEST(ProblemAdjointness, AdjointRho2DFE1) {
    for (int i = 3; i < 9; i++)
       run_adjoint_test<2, RhoProblem<2, DiscretizedFunction<2>>>(1, 3, 5, 1 << i, std::make_shared<norms::L2L2<2>>(),
             std::make_shared<norms::L2L2<2>>(), 1e-1);
@@ -355,7 +334,7 @@ TEST(ProblemAdjointness, AdjointA2DFE1) {
             std::make_shared<norms::L2L2<2>>(), 1e-1);
 }
 
-TEST(ProblemAdjointness, AdjointA2DFE1H1H1) {
+TEST(ProblemAdjointness, AdjointRho2DFE1H1H1) {
    for (int i = 3; i < 9; i++)
       run_adjoint_test<2, RhoProblem<2, DiscretizedFunction<2>>>(1, 3, 5, 1 << i,
             std::make_shared<norms::H1H1<2>>(0.5, 0.5), std::make_shared<norms::L2L2<2>>(), 1e-1);
@@ -365,7 +344,7 @@ TEST(ProblemAdjointness, AdjointA2DFE1H1H1) {
             std::make_shared<norms::H1H1<2>>(0.5, 0.5), std::make_shared<norms::L2L2<2>>(), 1e-1);
 }
 
-TEST(ProblemAdjointness, AdjointA3DFE1) {
+TEST(ProblemAdjointness, AdjointRho3DFE1) {
    for (int i = 3; i < 5; i++)
       run_adjoint_test<3, RhoProblem<3, DiscretizedFunction<3>>>(1, 3, 2, 1 << i, std::make_shared<norms::L2L2<3>>(),
             std::make_shared<norms::L2L2<3>>(), 1e-1);

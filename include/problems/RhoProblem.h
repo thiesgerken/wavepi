@@ -56,11 +56,11 @@ protected:
       DiscretizedFunction<dim> res = this->wave_equation.run(
             std::make_shared<L2RightHandSide<dim>>(this->right_hand_sides[i]), WaveEquation<dim>::Forward);
       res.set_norm(this->norm_codomain);
-      res.throw_away_derivative();
 
-      // save a copy of res
+      // save a copy of res (with derivative)
       this->fields[i] = std::make_shared<DiscretizedFunction<dim>>(res);
 
+      res.throw_away_derivative();
       return res;
    }
 
@@ -104,11 +104,11 @@ private:
 
          // multiply with -1.0 / rho ^2
          for (size_t i = 0; i < a->length(); i++) {
-            Vector<double> &coeff_res = a->get_function_coefficients(i);
+            Vector<double> &coeff_a = a->get_function_coefficients(i);
             const Vector<double> &coeff_rho = rho->get_function_coefficients(i);
 
-            for (size_t j = 0; j < coeff_res.size(); j++)
-               coeff_res[j] /= -1.0 * coeff_rho[j] * coeff_rho[j];
+            for (size_t j = 0; j < coeff_a.size(); j++)
+               coeff_a[j] /= -1.0 * coeff_rho[j] * coeff_rho[j];
          }
 
          // b = h / rho^2 * (u' / c^2)'
@@ -154,50 +154,52 @@ private:
          DiscretizedFunction<dim> res(weq.get_mesh());
 
          if (adjoint_solver == WaveEquationBase<dim>::WaveEquationBackwards) {
-            AssertThrow((std::dynamic_pointer_cast<ConstantFunction<dim>, LightFunction<dim>>(weq.get_param_nu()) != nullptr),
-            ExcMessage("Wrong adjoint because ν≠0!"));
+            deallog << "Attention: Using adjoint = Backward integration!" << std::endl;
 
             res = weq.run(rhs_adj, WaveEquation<dim>::Backward);
             res.throw_away_derivative();
          } else if (adjoint_solver == WaveEquationBase<dim>::WaveEquationAdjoint)
-         res = weq_adj.run(rhs_adj);
+            res = weq_adj.run(rhs_adj);
          else
-         Assert(false, ExcInternalError());
+            Assert(false, ExcInternalError());
 
          res.set_norm(this->norm_codomain);
 
          // res.dot_mult_mass_and_transform_inverse();
-         res.mult_mass();  // instead of dot_mult_mass_and_transform_inverse+dot_transform
+         // res.mult_mass();  // instead of dot_mult_mass_and_transform_inverse+dot_transform
 
          // M* : Y -> X
-         // adj1 <- -nabla(res)*nabla(u) / rho^2
+         // adj1 <- nabla(res)*nabla(u) / rho^2
          // res.dot_transform();
          m_adj->set_a(std::make_shared<DiscretizedFunction<dim>>(res));
-         auto adj1 = m_adj->run_adjoint(res.get_mesh());  // produces `mass * (M* res)`
-
-         adj1.solve_mass();
+         auto adj1 = m_adj->run_adjoint(res.get_mesh());  // something like `mass * (-nabla(res)*nabla(u))`
+         adj1.set_norm(this->norm_domain);
 
          for (size_t i = 0; i < res.length(); i++) {
-            Vector<double> &coeff_res = adj1.get_function_coefficients(i);
+            Vector<double> &coeff_adj1 = adj1.get_function_coefficients(i);
             const Vector<double> &coeff_rho = rho->get_function_coefficients(i);
 
-            for (size_t j = 0; j < coeff_res.size(); j++)
-               coeff_res[j] /= coeff_rho[j] * coeff_rho[j];
+            for (size_t j = 0; j < coeff_adj1.size(); j++)
+               coeff_adj1[j] /= -1.0 * coeff_rho[j] * coeff_rho[j];
          }
 
-         // adj2 <- -1.0*res / rho^2 (u'/c^2)'
+         // adj2 <- res / rho^2 (u'/c^2)'
 
-         /* M*  */
+         // needed for adj2, but not for adj1 !!!
+         res.mult_mass();  // instead of dot_mult_mass_and_transform_inverse+dot_transform
+
+         /* M* */
          // res.dot_transform();
-         DiscretizedFunction<dim> adj2 = *u;
+         DiscretizedFunction<dim> adj2 = u->derivative();
+         adj2.set_norm(this->norm_domain);
          adj2.throw_away_derivative();
 
          for (size_t i = 0; i < adj2.length(); i++) {
-            Vector<double> &coeff_res = adj2.get_function_coefficients(i);
+            Vector<double> &coeff_adj2 = adj2.get_function_coefficients(i);
             const Vector<double> &coeff_c = c_discretized->get_function_coefficients(i);
 
-            for (size_t j = 0; j < coeff_res.size(); j++)
-               coeff_res[j] /= coeff_c[j] * coeff_c[j];
+            for (size_t j = 0; j < coeff_adj2.size(); j++)
+               coeff_adj2[j] /= coeff_c[j] * coeff_c[j];
          }
 
          adj2 = adj2.calculate_derivative();
@@ -207,8 +209,8 @@ private:
             const Vector<double> &coeff_res = res.get_function_coefficients(i);
             const Vector<double> &coeff_rho = rho->get_function_coefficients(i);
 
-            for (size_t j = 0; j < coeff_res.size(); j++)
-               coeff_adj2[j] *= -1.0 * coeff_res[j] / (coeff_rho[j] * coeff_rho[j]);
+            for (size_t j = 0; j < coeff_adj2.size(); j++)
+               coeff_adj2[j] *= coeff_res[j] / (coeff_rho[j] * coeff_rho[j]);
          }
 
          // return the sum of both

@@ -117,15 +117,14 @@ private:
          DiscretizedFunction<dim> res(weq.get_mesh());
 
          if (adjoint_solver == WaveEquationBase<dim>::WaveEquationBackwards) {
-            AssertThrow((std::dynamic_pointer_cast<ConstantFunction<dim>, LightFunction<dim>>(weq.get_param_nu()) != nullptr),
-            ExcMessage("Wrong adjoint because ν≠0!"));
+            deallog << "Attention: Using adjoint = Backward integration!" << std::endl;
 
             res = weq.run(rhs_adj, WaveEquation<dim>::Backward);
             res.throw_away_derivative();
          } else if (adjoint_solver == WaveEquationBase<dim>::WaveEquationAdjoint)
-         res = weq_adj.run(rhs_adj);
+            res = weq_adj.run(rhs_adj);
          else
-         Assert(false, ExcInternalError());
+            Assert(false, ExcInternalError());
 
          res.set_norm(this->norm_codomain);
          // res.dot_mult_mass_and_transform_inverse();
