@@ -144,7 +144,7 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
 
   prm->enter_subsection(KEY_PROBLEM);
   {
-    prm->declare_entry(KEY_PROBLEM_TYPE, "a", Patterns::Selection("a|c|q|nu|L2A|L2Q|L2Nu|L2C"),
+    prm->declare_entry(KEY_PROBLEM_TYPE, "rho", Patterns::Selection("c|nu|rho|q|L2C|L2Nu|L2Rho|L2Q"),
                        "parameter that is reconstructed");
 
     prm->declare_entry(KEY_PROBLEM_TRANSFORM, "Identity", Patterns::Selection("Identity|Log"),

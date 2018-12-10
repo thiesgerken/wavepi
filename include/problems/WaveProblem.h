@@ -82,13 +82,13 @@ public:
       // (the others did not receive the field, so they cannot do anything anyway)
       // This loop would work without MPI, but it is more readable to have different implementations here.
       for (size_t i = 0; i < right_hand_sides.size(); i++)
-      if (i % n_procs == rank)
-      derivs.push_back(derivative(i));
-      else
-      derivs.push_back(0);
+         if (i % n_procs == rank)
+            derivs.push_back(derivative(i));
+         else
+            derivs.push_back(0);
 #else
       for (size_t i = 0; i < right_hand_sides.size(); i++)
-         derivs.push_back(derivative(i));
+      derivs.push_back(derivative(i));
 #endif
 
       return std::make_unique<WaveProblem<dim, Measurement>::Linearization>(derivs, measures, current_param_transformed,
@@ -101,7 +101,6 @@ public:
 
       Timer fw_timer;
       Timer meas_timer;
-      Timer comm_timer;
 
       // save a copy of the (inverse transformed) parameter
       this->current_param = std::make_shared<DiscretizedFunction<dim>>(transform->transform_inverse(param));
@@ -111,6 +110,7 @@ public:
       if (background_param) current_param->add(1.0, *background_param);
 
 #ifdef WAVEPI_MPI
+      Timer comm_timer;
       size_t n_procs = Utilities::MPI::n_mpi_processes(MPI_COMM_WORLD);
       size_t rank = Utilities::MPI::this_mpi_process(MPI_COMM_WORLD);
 
@@ -146,30 +146,32 @@ public:
 
          comm_timer.start();
          for (size_t k = 0; k < n_procs; k++)
-         if (k != rank) {
-            deallog << "rank " << rank << " sending measurement " << i << " to rank " << k << std::endl;
-            result[i].mpi_isend(k, send_requests[i * n_procs + k]);
-         }
+            if (k != rank) {
+               deallog << "rank " << rank << " sending measurement " << i << " to rank " << k << std::endl;
+               result[i].mpi_isend(k, send_requests[i * n_procs + k]);
+            }
          comm_timer.stop();
       }
 
       deallog << "rank " << rank << " waiting on Irecvs" << std::endl;
       comm_timer.start();
       for (size_t i = 0; i < recv_requests.size(); i++)
-      for (size_t j = 0; j < recv_requests[i].size(); j++) {
-         MPI_Wait(&recv_requests[i][j], MPI_STATUS_IGNORE);
-      }
+         for (size_t j = 0; j < recv_requests[i].size(); j++) {
+            MPI_Wait(&recv_requests[i][j], MPI_STATUS_IGNORE);
+         }
       comm_timer.stop();
 
       deallog << "rank " << rank << " waiting on Isends" << std::endl;
       comm_timer.start();
       for (size_t i = 0; i < send_requests.size(); i++)
-      for (size_t j = 0; j < send_requests[i].size(); j++) {
-         MPI_Wait(&send_requests[i][j], MPI_STATUS_IGNORE);
-      }
+         for (size_t j = 0; j < send_requests[i].size(); j++) {
+            MPI_Wait(&send_requests[i][j], MPI_STATUS_IGNORE);
+         }
       comm_timer.stop();
 
       deallog << "rank " << rank << " exiting parallel section" << std::endl;
+
+      stats->time_forward_communication += comm_timer.wall_time();
 #else
       Tuple<Measurement> result;
 
@@ -189,8 +191,6 @@ public:
 
       stats->calls_measure_forward++;
       stats->time_measure_forward += meas_timer.wall_time();
-
-      stats->time_forward_communication += comm_timer.wall_time();
 
       return result;
    }
@@ -313,7 +313,6 @@ private:
 
          Timer fw_timer;
          Timer meas_timer;
-         Timer comm_timer;
 
          Tuple<Measurement> result;
          result.reserve(measures.size());
@@ -321,6 +320,7 @@ private:
          auto h_transformed = transform->inverse_derivative(*current_param_transformed, h);
 
 #ifdef WAVEPI_MPI
+         Timer comm_timer;
          size_t n_procs = Utilities::MPI::n_mpi_processes(MPI_COMM_WORLD);
          size_t rank = Utilities::MPI::this_mpi_process(MPI_COMM_WORLD);
 
@@ -359,27 +359,28 @@ private:
 
             comm_timer.start();
             for (size_t k = 0; k < n_procs; k++)
-            if (k != rank) result[i].mpi_isend(k, send_requests[i * n_procs + k]);
+               if (k != rank) result[i].mpi_isend(k, send_requests[i * n_procs + k]);
             comm_timer.stop();
          }
 
          deallog << "rank " << rank << " waiting on Irecvs " << std::endl;
          comm_timer.start();
          for (size_t i = 0; i < recv_requests.size(); i++)
-         for (size_t j = 0; j < recv_requests[i].size(); j++) {
-            MPI_Wait(&recv_requests[i][j], MPI_STATUS_IGNORE);
-         }
+            for (size_t j = 0; j < recv_requests[i].size(); j++) {
+               MPI_Wait(&recv_requests[i][j], MPI_STATUS_IGNORE);
+            }
          comm_timer.stop();
 
          deallog << "rank " << rank << " waiting on Isends" << std::endl;
          comm_timer.start();
          for (size_t i = 0; i < send_requests.size(); i++)
-         for (size_t j = 0; j < send_requests[i].size(); j++) {
-            MPI_Wait(&send_requests[i][j], MPI_STATUS_IGNORE);
-         }
+            for (size_t j = 0; j < send_requests[i].size(); j++) {
+               MPI_Wait(&send_requests[i][j], MPI_STATUS_IGNORE);
+            }
          comm_timer.stop();
 
          deallog << "rank " << rank << " exiting parallel section" << std::endl;
+         stats->time_forward_communication += comm_timer.wall_time();
 #else
          for (size_t i = 0; i < measures.size(); i++) {
             fw_timer.start();
@@ -401,8 +402,6 @@ private:
          stats->calls_measure_forward++;
          stats->time_measure_forward += meas_timer.wall_time();
 
-         stats->time_forward_communication += comm_timer.wall_time();
-
          return result;
       }
 
@@ -414,11 +413,11 @@ private:
          LogStream::Prefix p("lin_adjoint");
          Timer adj_timer;
          Timer adj_meas_timer;
-         Timer comm_timer;
 
          DiscretizedFunction<dim> result(zero());
 
 #ifdef WAVEPI_MPI
+         Timer comm_timer;
          size_t n_procs = Utilities::MPI::n_mpi_processes(MPI_COMM_WORLD);
          size_t rank = Utilities::MPI::this_mpi_process(MPI_COMM_WORLD);
 
@@ -433,7 +432,7 @@ private:
 
          comm_timer.start();
          for (size_t i = 0; i < n_procs; i++)
-         if (i != rank) private_results[i].mpi_irecv(i, recv_requests[i]);
+            if (i != rank) private_results[i].mpi_irecv(i, recv_requests[i]);
 
          comm_timer.stop();
 
@@ -459,13 +458,13 @@ private:
          comm_timer.start();
 
          for (size_t i = 0; i < n_procs; i++)
-         if (i != rank) private_results[rank].mpi_isend(i, send_requests[i]);
+            if (i != rank) private_results[rank].mpi_isend(i, send_requests[i]);
 
          deallog << "rank " << rank << " waiting on Irecvs " << std::endl;
          for (size_t i = 0; i < recv_requests.size(); i++)
-         for (size_t j = 0; j < recv_requests[i].size(); j++) {
-            MPI_Wait(&recv_requests[i][j], MPI_STATUS_IGNORE);
-         }
+            for (size_t j = 0; j < recv_requests[i].size(); j++) {
+               MPI_Wait(&recv_requests[i][j], MPI_STATUS_IGNORE);
+            }
 
          deallog << "rank " << rank << " summing all results" << std::endl;
 
@@ -474,16 +473,17 @@ private:
          // but performs the summing in arbitrary order (and different order for every node!), so the result may lead to
          // different execution paths in each process ...
          for (size_t i = 0; i < n_procs; i++)
-         result += private_results[i];
+            result += private_results[i];
 
          deallog << "rank " << rank << " waiting on Isends" << std::endl;
          for (size_t i = 0; i < send_requests.size(); i++)
-         for (size_t j = 0; j < send_requests[i].size(); j++) {
-            MPI_Wait(&send_requests[i][j], MPI_STATUS_IGNORE);
-         }
+            for (size_t j = 0; j < send_requests[i].size(); j++) {
+               MPI_Wait(&send_requests[i][j], MPI_STATUS_IGNORE);
+            }
 
          comm_timer.stop();
          deallog << "rank " << rank << " exiting parallel section" << std::endl;
+         stats->time_adjoint_communication += comm_timer.wall_time();
 #else
          for (size_t i = 0; i < measures.size(); i++) {
             adj_meas_timer.start();
@@ -522,8 +522,6 @@ private:
 
          stats->calls_measure_adjoint++;
          stats->time_measure_adjoint += adj_meas_timer.wall_time();
-
-         stats->time_adjoint_communication += comm_timer.wall_time();
 
          return result;
       }
