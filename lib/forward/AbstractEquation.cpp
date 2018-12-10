@@ -86,9 +86,6 @@ void AbstractEquation<dim>::cleanup() {
    solution_u.reinit(0);
    solution_v.reinit(0);
 
-   solution_u_old.reinit(0);
-   solution_v_old.reinit(0);
-
    system_rhs.reinit(0);
    system_rhs.reinit(0);
 
@@ -133,17 +130,17 @@ void AbstractEquation<dim>::assemble(size_t i) {
 
 template<int dim>
 void AbstractEquation<dim>::assemble_pre(std::shared_ptr<SparseMatrix<double>> mass_matrix, double time_step) {
-   Vector<double> tmp(solution_u_old.size());
+   Vector<double> tmp(solution_u.size());
 
    // grid has not been changed yet,
    // matrix_* contain the matrices of the *last* time step, rhs = rhs_old
 
    system_tmp2 = rhs;
 
-   matrix_B.vmult(tmp, solution_v_old);
+   matrix_B.vmult(tmp, solution_v);
    system_tmp2.add(-1.0, tmp);
 
-   matrix_A.vmult(tmp, solution_u_old);
+   matrix_A.vmult(tmp, solution_u);
    system_tmp2.add(-1.0, tmp);
 
    tmp.equ(1.0 - theta, system_tmp2);
@@ -152,14 +149,14 @@ void AbstractEquation<dim>::assemble_pre(std::shared_ptr<SparseMatrix<double>> m
    // (1-θ) (F^n - B^n V^n - A^n U^n)
    vmult_D_intermediate(mass_matrix, system_tmp2, tmp);
 
-   vmult_C_intermediate(tmp, solution_v_old);
+   vmult_C_intermediate(tmp, solution_v);
    system_tmp2.add(1.0 / time_step, tmp);
 
    // system_tmp2 contains
    // Y^n = (1-θ) (D^n)^-1 D^{n-1} M^{-1} (F^n - B^n V^n - A^n U^n) + 1/dt * C^{n,n-1} V^n
 
-   system_tmp1.equ(1.0 / time_step, solution_u_old);
-   system_tmp1.add(1.0 - theta, solution_v_old);
+   system_tmp1.equ(1.0 / time_step, solution_u);
+   system_tmp1.add(1.0 - theta, solution_v);
 
    // system_tmp1 contains
    // X^n = 1/dt U^n + (1-θ) V^n
@@ -289,53 +286,47 @@ DiscretizedFunction<dim> AbstractEquation<dim>::run(std::shared_ptr<RightHandSid
    // save handle to rhs function so that `assemble` can use it
    this->right_hand_side = right_hand_side;
 
-   int first_idx = direction == Backward ? mesh->length() - 1 : 0;
-
-   // set dof_handler to first grid,
-   // initialize everything and project/interpolate initial values
-   init_system(first_idx);
-
-   // create matrices and rhs for first time step
-   assemble(mesh->get_time(first_idx));
-
-   // add initial values to output data
-   u.set(first_idx, solution_u, solution_v);
-
-   for (size_t i = 1; i < mesh->length(); i++) {
+   for (size_t i = 0; i < mesh->length(); i++) {
       LogStream::Prefix pp("step-" + Utilities::int_to_string(i, 4));
-
       int time_idx = direction == Backward ? mesh->length() - 1 - i : i;
-      int last_time_idx = direction == Backward ? mesh->length() - i : i - 1;
 
-      double time = mesh->get_time(time_idx);
-      double last_time = mesh->get_time(last_time_idx);
-      double dt = time - last_time;
+      if (i == 0) {
+         // set dof_handler to first grid,
+         // initialize everything and project/interpolate initial values
+         init_system(time_idx);
 
-      // u -> u_old, same for v
-      solution_u_old = solution_u;
-      solution_v_old = solution_v;
+         // create matrices and rhs for time step zero (needed by assemble_pre in next step)
+         assemble(mesh->get_time(time_idx));
+      } else {
+         int last_time_idx = direction == Backward ? mesh->length() - i : i - 1;
 
-      // vector assembling that needs to take place on the old grid
-      assemble_pre(mesh->get_mass_matrix(last_time_idx), dt);
+         double time = mesh->get_time(time_idx);
+         double last_time = mesh->get_time(last_time_idx);
+         double dt = time - last_time;
 
-      // set dof_handler to mesh for this time step,
-      // interpolate to new mesh
-      next_mesh(last_time_idx, time_idx);
+         // vector assembling that needs to take place on the old grid
+         assemble_pre(mesh->get_mass_matrix(last_time_idx), dt);
 
-      // assemble new matrices and rhs
-      assembly_timer.start();
-      assemble(time_idx);
-      assembly_timer.stop();
+         // set dof_handler to mesh for this time step,
+         // interpolate temporary vectors to new mesh
+         // set solution_u and solution_v to zero
+         next_mesh(last_time_idx, time_idx);
 
-      // finish assembling of rhs_u
-      // and solve for u^i
-      assemble_u(time, dt);
-      solve_u();
+         // assemble new matrices and rhs
+         assembly_timer.start();
+         assemble(time_idx);
+         assembly_timer.stop();
 
-      // finish assembling of rhs_u
-      // and solve for v^i
-      assemble_v(time, dt);
-      solve_v();
+         // finish assembling of rhs_u
+         // and solve for u^i
+         assemble_u(time, dt);
+         solve_u();
+
+         // finish assembling of rhs_u
+         // and solve for v^i
+         assemble_v(time, dt);
+         solve_v();
+      }
 
       u.set(time_idx, solution_u, solution_v);
 

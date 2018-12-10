@@ -88,9 +88,8 @@ protected:
    SparseMatrix<double> matrix_B;
    SparseMatrix<double> matrix_C;
 
-   // solution and its derivative at the current and the last time step
+   // last solution and its derivative
    Vector<double> solution_u, solution_v;
-   Vector<double> solution_u_old, solution_v_old;
    Vector<double> rhs;
 
    // handle to the right hand side used

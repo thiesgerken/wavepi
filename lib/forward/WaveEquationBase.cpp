@@ -75,8 +75,8 @@ void WaveEquationBase<dim>::vmult_D_intermediate(std::shared_ptr<SparseMatrix<do
 // let dst <- M^{-1} (D^n)^{-1} D^{n-1} src
 // ( i.e. dst <- src for time-independent D)
 template<int dim>
-void WaveEquationBase<dim>::vmult_D_intermediate_transpose(std::shared_ptr<SparseMatrix<double>> mass_matrix, Vector<double>& dst,
-      const Vector<double>& src) const {
+void WaveEquationBase<dim>::vmult_D_intermediate_transpose(std::shared_ptr<SparseMatrix<double>> mass_matrix,
+      Vector<double>& dst, const Vector<double>& src) const {
    if (rho_time_dependent) {
       Vector<double> tmp(src.size());
 

@@ -66,9 +66,6 @@ void AbstractEquationAdjoint<dim>::cleanup() {
    solution_u.reinit(0);
    solution_v.reinit(0);
 
-   solution_u_old.reinit(0);
-   solution_v_old.reinit(0);
-
    system_rhs_u.reinit(0);
    system_rhs_v.reinit(0);
 
@@ -84,11 +81,6 @@ void AbstractEquationAdjoint<dim>::next_step(size_t time_idx) {
 
    double time = mesh->get_time(time_idx);
    right_hand_side->set_time(time);
-
-   if (time_idx != mesh->length() - 1) {
-      solution_u_old = solution_u;
-      solution_v_old = solution_v;
-   }
 }
 
 template<int dim>
@@ -128,15 +120,15 @@ void AbstractEquationAdjoint<dim>::assemble_u_pre(size_t i) {
 
       double time_step_last = mesh->get_time(i + 1) - mesh->get_time(i);
 
-      Vector<double> tmp = solution_u_old;
+      Vector<double> tmp = solution_u;
       tmp *= 1 / (time_step_last * time_step_last);
       matrix_C.vmult(system_rhs_u, tmp);
 
       tmp *= time_step_last * theta;
       matrix_B.vmult_add(system_rhs_u, tmp);
 
-      tmp_u.equ(-1.0 * theta * (1 - theta), solution_u_old);
-      tmp_u.add(-1.0 * (1 - theta), solution_v_old);
+      tmp_u.equ(-1.0 * theta * (1 - theta), solution_u);
+      tmp_u.add(-1.0 * (1 - theta), solution_v);
    } else {
       /*
        * (M_i^2)^t (u_i, v_i)^t = (g_i, 0)^t - (M_{i+1}^1)^t (u_{i+1}, v_{i+1})^t
@@ -150,15 +142,15 @@ void AbstractEquationAdjoint<dim>::assemble_u_pre(size_t i) {
 
       double time_step_last = mesh->get_time(i + 1) - mesh->get_time(i);
 
-      Vector<double> tmp = solution_u_old;
+      Vector<double> tmp = solution_u;
       tmp *= 1 / (time_step_last * time_step_last);
       matrix_C.vmult(system_rhs_u, tmp);
 
       tmp *= time_step_last * theta;
       matrix_B.vmult_add(system_rhs_u, tmp);
 
-      tmp_u.equ(-1.0 * theta * (1 - theta), solution_u_old);
-      tmp_u.add(-1.0 * (1 - theta), solution_v_old);
+      tmp_u.equ(-1.0 * theta * (1 - theta), solution_u);
+      tmp_u.add(-1.0 * (1 - theta), solution_v);
    }
 }
 
@@ -189,15 +181,17 @@ void AbstractEquationAdjoint<dim>::assemble_u(size_t i) {
        * u₀ = g₀ + [-θ(1-θ) D^{0,1}M⁻¹A⁰ + k₁(k₁ C¹ + θ B¹)] u₁
        *              - (1-θ) D^{0,1}M⁻¹A⁰ v₁
        * tmp_u = -θ(1-θ) u₁ - (1-θ) v₁
+       *
+       *        + some D intermediate transposes, but not applied to v_i !
        */
 
-      Vector<double> tmp1(tmp_v.size());
-      Vector<double> tmp2(tmp_v.size());
-
-      tmp_u.add(-theta, solution_v);
+      Vector<double> tmp1(tmp_u.size());
+      Vector<double> tmp2(tmp_u.size());
 
       // M⁻¹D^{i,i+1} before multiplying with A^i, then add to system_rhs_u
       vmult_D_intermediate_transpose(mesh->get_mass_matrix(i), tmp1, tmp_u);
+
+      tmp1.add(-theta, solution_v);
       matrix_A.vmult(tmp2, tmp1);
       system_rhs_u.add(1.0, tmp2);
 
@@ -213,22 +207,23 @@ void AbstractEquationAdjoint<dim>::assemble_u(size_t i) {
        *        │             - (1-θ) A^i v_{i+1} - θ A^i v_i
        *        │
        *        ╰‒‒‒  =  [k_i^2 C^i + θ k_i B^i + θ^2 A^i]
+       *
+       *        + some D intermediate transposes, but not applied to v_i !
        */
-
-      double time_step = mesh->get_time(i) - mesh->get_time(i - 1);
 
       Vector<double> tmp1(tmp_v.size());
       Vector<double> tmp2(tmp_v.size());
 
-      tmp_u.add(-theta, solution_v);
-
       // M⁻¹D^{i,i+1} before multiplying with A^i, then add to system_rhs_u
       vmult_D_intermediate_transpose(mesh->get_mass_matrix(i), tmp1, tmp_u);
+
+      tmp1.add(-theta, solution_v);
       matrix_A.vmult(tmp2, tmp1);
       system_rhs_u.add(1.0, tmp2);
 
       system_rhs_u += rhs;
 
+      double time_step = mesh->get_time(i) - mesh->get_time(i - 1);
       system_matrix = 0.0;  // important because it still holds the matrix for v !!
       system_matrix.add(1.0 / (time_step * time_step), matrix_C);
       system_matrix.add(theta / time_step, matrix_B);
@@ -267,15 +262,15 @@ void AbstractEquationAdjoint<dim>::assemble_v_pre(size_t i) {
 
       double time_step_last = mesh->get_time(1) - mesh->get_time(0);
 
-      Vector<double> tmp = solution_u_old;
+      Vector<double> tmp = solution_u;
       tmp *= (1 - theta) / time_step_last;
       matrix_C.vmult(system_rhs_v, tmp);
 
       tmp *= time_step_last * theta;
       matrix_B.vmult_add(system_rhs_v, tmp);
 
-      tmp_v.equ(theta, solution_u_old);
-      tmp_v += solution_v_old;
+      tmp_v.equ(theta, solution_u);
+      tmp_v += solution_v;
    } else {
       /*
        * (M_i^2)^t (u_i, v_i)^t = (g_i, 0)^t - (M_{i+1}^1)^t (u_{i+1}, v_{i+1})^t
@@ -289,15 +284,15 @@ void AbstractEquationAdjoint<dim>::assemble_v_pre(size_t i) {
 
       double time_step_last = mesh->get_time(i + 1) - mesh->get_time(i);
 
-      Vector<double> tmp = solution_u_old;
+      Vector<double> tmp = solution_u;
       tmp *= (1 - theta) / time_step_last;
       matrix_C.vmult(system_rhs_v, tmp);
 
       tmp *= time_step_last * theta;
       matrix_B.vmult_add(system_rhs_v, tmp);
 
-      tmp_v.equ(theta, solution_u_old);
-      tmp_v += solution_v_old;
+      tmp_v.equ(theta, solution_u);
+      tmp_v += solution_v;
    }
 }
 
@@ -323,6 +318,8 @@ void AbstractEquationAdjoint<dim>::assemble_v(size_t i) {
        * v_0 = - ((M_{i+1}^1)^t)_21 u_1 - ((M_{i+1}^1)^t)_22 v_1
        *     = [θ(k_{i+1} C^i - (1-θ) B^i) + (1-θ) (k_{i+1} C^{i+1} + θ B^{i+1})] u_1
        *       + [k_{i+1} C^i - (1-θ) B^i)] v_1
+       *
+       *        + some D intermediate transposes
        */
 
       double time_step_last = mesh->get_time(1) - mesh->get_time(0);
@@ -349,9 +346,10 @@ void AbstractEquationAdjoint<dim>::assemble_v(size_t i) {
        *        │             + [k_{i+1} C^i - (1-θ) B^i)] v_{i+1}
        *        │
        *        ╰‒‒‒  =  [k_i C^i + θ B^i]
+       *
+       *        + some D intermediate transposes
        */
 
-      double time_step = mesh->get_time(i) - mesh->get_time(i - 1);
       double time_step_last = mesh->get_time(i + 1) - mesh->get_time(i);
 
       Vector<double> tmp1(tmp_v.size());
@@ -366,7 +364,8 @@ void AbstractEquationAdjoint<dim>::assemble_v(size_t i) {
       matrix_B.vmult(tmp2, tmp1);
       system_rhs_v.add(-1 * (1 - theta), tmp2);
 
-      // system_matrix = 0.0; // not needed because matrix was reinited due to possible mesh change
+      // system_matrix <- 0 not needed because matrix was reinited due to possible mesh change
+      double time_step = mesh->get_time(i) - mesh->get_time(i - 1);
       system_matrix.add(1.0 / time_step, matrix_C);
       system_matrix.add(theta, matrix_B);
    }

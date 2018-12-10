@@ -146,11 +146,10 @@ void run_wave_adjoint_test(int fe_order, int quad_order, int refines, int n_step
 
    WaveEquation<dim> wave_eq(mesh);
    if (!trivial) {
-      // TODO: DEBUG
       wave_eq.set_param_rho(std::make_shared<TestRho<dim>>());
-//      wave_eq.set_param_c(std::make_shared<TestC<dim>>());
-//      wave_eq.set_param_q(std::make_shared<TestQ<dim>>());
-//      wave_eq.set_param_nu(std::make_shared<TestNu<dim>>());
+      wave_eq.set_param_c(std::make_shared<TestC<dim>>());
+      wave_eq.set_param_q(std::make_shared<TestQ<dim>>());
+      wave_eq.set_param_nu(std::make_shared<TestNu<dim>>());
    }
 
    WaveEquationAdjoint<dim> wave_eq_adj(wave_eq);
