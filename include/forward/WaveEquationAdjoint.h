@@ -78,6 +78,11 @@ private:
       WaveEquationBase<dim>::vmult_C_intermediate(matrix_C, dst, src);
    }
 
+   virtual void cleanup() override {
+      AbstractEquationAdjoint<dim>::cleanup();
+      WaveEquationBase<dim>::cleanup();
+   }
+
    std::shared_ptr<Function<dim>> zero;
 };
 
