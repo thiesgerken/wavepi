@@ -104,12 +104,18 @@ protected:
    using WaveEquationBase<dim>::vmult_D_intermediate;
    using WaveEquationBase<dim>::vmult_C_intermediate;
 
-   virtual void vmult_D_intermediate(const SparseMatrix<double> &mass_matrix, Vector<double>& dst, const Vector<double>& src) const {
+   virtual void vmult_D_intermediate(const SparseMatrix<double> &mass_matrix, Vector<double>& dst,
+         const Vector<double>& src) const {
       WaveEquationBase<dim>::vmult_D_intermediate(mass_matrix, dst, src);
    }
 
    virtual void vmult_C_intermediate(Vector<double>& dst, const Vector<double>& src) const {
       WaveEquationBase<dim>::vmult_C_intermediate(matrix_C, dst, src);
+   }
+
+   virtual void cleanup() override {
+      AbstractEquation<dim>::cleanup();
+      WaveEquationBase<dim>::cleanup();
    }
 private:
    std::shared_ptr<Function<dim>> initial_values_u, initial_values_v;

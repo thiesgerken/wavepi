@@ -28,6 +28,7 @@ template<int dim>
 SensorValues<dim> SensorValues<dim>::noise(std::shared_ptr<SensorDistribution<dim>> grid) {
    SensorValues<dim> res(grid);
 
+   // auto time = std::chrono::high_resolution_clock::now();
    // std::default_random_engine generator(time.time_since_epoch().count() % 1000000);
    std::default_random_engine generator(2307);
    std::uniform_real_distribution<double> distribution(-1, 1);

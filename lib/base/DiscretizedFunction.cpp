@@ -588,7 +588,7 @@ DiscretizedFunction<dim> DiscretizedFunction<dim>::noise(std::shared_ptr<SpaceTi
 
    DiscretizedFunction<dim> res(mesh);
 
-   auto time = std::chrono::high_resolution_clock::now();
+   // auto time = std::chrono::high_resolution_clock::now();
    // std::default_random_engine generator(time.time_since_epoch().count() % 1000000);
    std::default_random_engine generator(2307);
    std::uniform_real_distribution<double> distribution(-1, 1);

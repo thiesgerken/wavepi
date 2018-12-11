@@ -187,8 +187,9 @@ int main(int argc, char *argv[]) {
          } else if (cfg->measure_type == SettingsManager::MeasureType::discretized_function) {
             WavePI<1, DiscretizedFunction<1>> wavepi(cfg);
             wavepi.run();
-         } else
-         AssertThrow(false, ExcInternalError());
+         } else {
+            AssertThrow(false, ExcInternalError())
+         }
 #else
          AssertThrow(false, ExcMessage("WavePI was compiled without 1D support!"));
 #endif
@@ -200,9 +201,9 @@ int main(int argc, char *argv[]) {
          } else if (cfg->measure_type == SettingsManager::MeasureType::discretized_function) {
             WavePI<2, DiscretizedFunction<2>> wavepi(cfg);
             wavepi.run();
-         } else
-         AssertThrow(false, ExcInternalError());
-         AssertThrow(false, ExcInternalError());
+         } else {
+            AssertThrow(false, ExcInternalError())
+         }
 #else
          AssertThrow(false, ExcMessage("WavePI was compiled without 2D support!"));
 #endif
@@ -214,9 +215,9 @@ int main(int argc, char *argv[]) {
          } else if (cfg->measure_type == SettingsManager::MeasureType::discretized_function) {
             WavePI<3, DiscretizedFunction<3>> wavepi(cfg);
             wavepi.run();
-         } else
-         AssertThrow(false, ExcInternalError());
-         AssertThrow(false, ExcInternalError());
+         } else {
+            AssertThrow(false, ExcInternalError())
+         }
 #else
          AssertThrow(false, ExcMessage("WavePI was compiled without 3D support!"));
 #endif

@@ -109,7 +109,7 @@ public:
    }
 
    void fill_matrices(std::shared_ptr<SpaceTimeMesh<dim>> mesh, size_t time_idx, DoFHandler<dim> &dof_handler,
-         SparseMatrix<double> &dst_A, SparseMatrix<double> &dst_B,SparseMatrix<double> &dst_C);
+         SparseMatrix<double> &dst_A, SparseMatrix<double> &dst_B, SparseMatrix<double> &dst_C);
 
    bool is_rho_time_dependent() const {
       return rho_time_dependent;
@@ -121,15 +121,23 @@ public:
 
    // before mesh change, let dst <- (D^n)^{-1} D^{n-1} M^{-1} src
    // ( i.e. dst <- src for time-independent D)
-   virtual void vmult_D_intermediate(const SparseMatrix<double> &mass_matrix, Vector<double>& dst, const Vector<double>& src) const;
+   virtual void vmult_D_intermediate(const SparseMatrix<double> &mass_matrix, Vector<double>& dst,
+         const Vector<double>& src) const;
 
    // before mesh change, let dst <- M^{-1} (D^n)^{-1} D^{n-1} src
    // ( i.e. dst <- src for time-independent D)
-   virtual void vmult_D_intermediate_transpose(const SparseMatrix<double> &mass_matrix, Vector<double>& dst, const Vector<double>& src) const;
+   virtual void vmult_D_intermediate_transpose(const SparseMatrix<double> &mass_matrix, Vector<double>& dst,
+         const Vector<double>& src) const;
 
    // before mesh change, let dst <- (D^n)^{-1} C^{n-1} src
    // ( i.e. dst <- matrix_C * src for time-independent D)
-   virtual void vmult_C_intermediate(const SparseMatrix<double>& matrix_C, Vector<double>& dst, const Vector<double>& src) const;
+   virtual void vmult_C_intermediate(const SparseMatrix<double>& matrix_C, Vector<double>& dst,
+         const Vector<double>& src) const;
+
+   virtual void cleanup() {
+      matrix_C_intermediate.clear();
+      matrix_D_intermediate.clear();
+   }
 
 protected:
    void fill_A(std::shared_ptr<SpaceTimeMesh<dim>> mesh, DoFHandler<dim> &dof_handler, const double time,
