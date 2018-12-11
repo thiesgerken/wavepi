@@ -3,7 +3,7 @@ project(wavePI)
 include_directories("include")
 
 option(WAVEPI_WITH_MPI "compile with MPI support" OFF)
-option(WAVEPI_WITH_1D "compile with 1D support" ON)
+option(WAVEPI_WITH_1D "compile with 1D support" OFF)
 option(WAVEPI_WITH_2D "compile with 2D support" ON)
 option(WAVEPI_WITH_3D "compile with 3D support" ON)
 
