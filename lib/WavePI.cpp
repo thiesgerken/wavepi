@@ -570,6 +570,13 @@ void WavePI<dim, Meas>::run() {
 
    cfg->log_parameters();
 
+#ifdef WAVEPI_MPI
+   if (Utilities::MPI::n_mpi_processes(MPI_COMM_WORLD) > pulses.size())
+      deallog << "WARNING: More MPI processes than subproblems" << std::endl;
+   else if (pulses.size() % Utilities::MPI::n_mpi_processes(MPI_COMM_WORLD) != 0)
+      deallog << "WARNING: n_mpi_processes % pulses.size() != 0" << std::endl;
+#endif
+
    // do the inversion
    auto reconstruction = regularization->invert(*data, cfg->tau * cfg->epsilon * data->norm(), param_exact);
 
@@ -700,8 +707,8 @@ void WavePI<dim, Meas>::run() {
 }
 
 #ifdef WAVEPI_1D
-template class WavePI<1, DiscretizedFunction<1>> ;
-template class WavePI<1, SensorValues<1>> ;
+template class WavePI<1, DiscretizedFunction<1>>;
+template class WavePI<1, SensorValues<1>>;
 #endif
 
 template class WavePI<2, DiscretizedFunction<2>> ;
