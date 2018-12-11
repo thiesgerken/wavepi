@@ -113,7 +113,7 @@ protected:
    virtual void initial_values(double time) = 0;
 
    // assembling steps of u and v that need to happen on the old mesh
-   void assemble_pre(std::shared_ptr<SparseMatrix<double>> mass_matrix, double time_step);
+   void assemble_pre(const SparseMatrix<double> &mass_matrix, double time_step);
 
    // move on to the mesh of the current time step,
    // interpolating system_rhs_[u,v] and tmp_u on the next mesh
@@ -125,7 +125,7 @@ protected:
 
    // before mesh change, let dst <- (D^n)^{-1} D^{n-1} M^{-1} src
    // ( i.e. dst <- src for time-independent D)
-   virtual void vmult_D_intermediate(std::shared_ptr<SparseMatrix<double>> mass_matrix, Vector<double>& dst, const Vector<double>& src) const = 0;
+   virtual void vmult_D_intermediate(const SparseMatrix<double> &mass_matrix, Vector<double>& dst, const Vector<double>& src) const = 0;
 
    // before mesh change, let dst <- (D^n)^{-1} C^{n-1} src
    // ( i.e. dst <- matrix_C * src for time-independent D)

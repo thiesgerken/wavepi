@@ -129,7 +129,7 @@ void AbstractEquation<dim>::assemble(size_t i) {
 }
 
 template<int dim>
-void AbstractEquation<dim>::assemble_pre(std::shared_ptr<SparseMatrix<double>> mass_matrix, double time_step) {
+void AbstractEquation<dim>::assemble_pre(const SparseMatrix<double> &mass_matrix, double time_step) {
    Vector<double> tmp(solution_u.size());
 
    // grid has not been changed yet,
@@ -286,6 +286,8 @@ DiscretizedFunction<dim> AbstractEquation<dim>::run(std::shared_ptr<RightHandSid
    // save handle to rhs function so that `assemble` can use it
    this->right_hand_side = right_hand_side;
 
+   deallog << mesh->length() << std::endl;
+
    for (size_t i = 0; i < mesh->length(); i++) {
       LogStream::Prefix pp("step-" + Utilities::int_to_string(i, 4));
       int time_idx = direction == Backward ? mesh->length() - 1 - i : i;
@@ -305,7 +307,7 @@ DiscretizedFunction<dim> AbstractEquation<dim>::run(std::shared_ptr<RightHandSid
          double dt = time - last_time;
 
          // vector assembling that needs to take place on the old grid
-         assemble_pre(mesh->get_mass_matrix(last_time_idx), dt);
+         assemble_pre(*mesh->get_mass_matrix(last_time_idx), dt);
 
          // set dof_handler to mesh for this time step,
          // interpolate temporary vectors to new mesh

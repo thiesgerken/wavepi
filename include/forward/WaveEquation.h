@@ -104,7 +104,7 @@ protected:
    using WaveEquationBase<dim>::vmult_D_intermediate;
    using WaveEquationBase<dim>::vmult_C_intermediate;
 
-   virtual void vmult_D_intermediate(std::shared_ptr<SparseMatrix<double>> mass_matrix, Vector<double>& dst, const Vector<double>& src) const {
+   virtual void vmult_D_intermediate(const SparseMatrix<double> &mass_matrix, Vector<double>& dst, const Vector<double>& src) const {
       WaveEquationBase<dim>::vmult_D_intermediate(mass_matrix, dst, src);
    }
 

@@ -65,11 +65,11 @@ private:
    using WaveEquationBase<dim>::vmult_D_intermediate_transpose;
    using WaveEquationBase<dim>::vmult_C_intermediate;
 
-   virtual void vmult_D_intermediate(std::shared_ptr<SparseMatrix<double>> mass_matrix, Vector<double>& dst,
+   virtual void vmult_D_intermediate(const SparseMatrix<double> &mass_matrix, Vector<double>& dst,
          const Vector<double>& src) const {
       WaveEquationBase<dim>::vmult_D_intermediate(mass_matrix, dst, src);
    }
-   virtual void vmult_D_intermediate_transpose(std::shared_ptr<SparseMatrix<double>> mass_matrix, Vector<double>& dst,
+   virtual void vmult_D_intermediate_transpose(const SparseMatrix<double> &mass_matrix, Vector<double>& dst,
          const Vector<double>& src) const {
       WaveEquationBase<dim>::vmult_D_intermediate_transpose(mass_matrix, dst, src);
    }

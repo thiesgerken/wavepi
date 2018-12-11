@@ -114,7 +114,6 @@ WavePI<dim, Meas>::WavePI(std::shared_ptr<SettingsManager> cfg)
       break;
    default:
       AssertThrow(false, ExcMessage("WavePI:: unknown norm of codomain"))
-      ;
    }
 
    if (cfg->norm_domain_enable_wrapping)
@@ -366,7 +365,15 @@ void WavePI<dim, Meas>::initialize_problem() {
    } else
       AssertThrow(false, ExcInternalError());
 
+
+   deallog << "discretizing background parameter" << std::endl;
+
+   // WORKAROUND: force initialization of muparser object
+   // (discretizing directly breaks stuff [segfault, bad allocs], maybe due to threading.)
+   param_background->evaluate(Point<dim>::unit_vector(1), 0.0);
    auto param_background_discretized = std::make_shared<Param>(mesh, *param_background, norm_domain);
+
+   deallog << "constructing problem" << std::endl;
 
    switch (cfg->problem_type) {
    case SettingsManager::ProblemType::q:
@@ -395,7 +402,6 @@ void WavePI<dim, Meas>::initialize_problem() {
       break;
    default:
       AssertThrow(false, ExcInternalError())
-      ;
    }
 
    // transform param_exact
@@ -711,10 +717,15 @@ template class WavePI<1, DiscretizedFunction<1>>;
 template class WavePI<1, SensorValues<1>>;
 #endif
 
-template class WavePI<2, DiscretizedFunction<2>> ;
-template class WavePI<2, SensorValues<2>> ;
+#ifdef WAVEPI_2D
+template class WavePI<2, DiscretizedFunction<2>>;
+template class WavePI<2, SensorValues<2>>;
+#endif
 
-template class WavePI<3, DiscretizedFunction<3>> ;
-template class WavePI<3, SensorValues<3>> ;
+#ifdef WAVEPI_3D
+template class WavePI<3, DiscretizedFunction<3>>;
+template class WavePI<3, SensorValues<3>>;
+#endif
 
-} /* namespace wavepi */
+}
+/* namespace wavepi */

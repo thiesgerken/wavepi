@@ -124,11 +124,11 @@ protected:
 
    // after mesh change, let dst <- (D^{i+1})^{-1} D^i M^{-1} src
    // ( i.e. dst <- src for time-independent D)
-   virtual void vmult_D_intermediate(std::shared_ptr<SparseMatrix<double>> mass_matrix, Vector<double>& dst, const Vector<double>& src) const = 0;
+   virtual void vmult_D_intermediate(const SparseMatrix<double> &mass_matrix, Vector<double>& dst, const Vector<double>& src) const = 0;
 
    // after mesh change, let dst <- M^{-1} (D^{i+1})^{-1} D^i src
    // ( i.e. dst <- src for time-independent D)
-   virtual void vmult_D_intermediate_transpose(std::shared_ptr<SparseMatrix<double>> mass_matrix, Vector<double>& dst, const Vector<double>& src) const = 0;
+   virtual void vmult_D_intermediate_transpose(const SparseMatrix<double> &mass_matrix, Vector<double>& dst, const Vector<double>& src) const = 0;
 
    // after mesh change, let dst <- (D^{i+1})^{-1} C^i src
    // ( i.e. dst <- matrix_C * src for time-independent D)

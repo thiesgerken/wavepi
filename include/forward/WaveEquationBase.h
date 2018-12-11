@@ -121,11 +121,11 @@ public:
 
    // before mesh change, let dst <- (D^n)^{-1} D^{n-1} M^{-1} src
    // ( i.e. dst <- src for time-independent D)
-   virtual void vmult_D_intermediate(std::shared_ptr<SparseMatrix<double>> mass_matrix, Vector<double>& dst, const Vector<double>& src) const;
+   virtual void vmult_D_intermediate(const SparseMatrix<double> &mass_matrix, Vector<double>& dst, const Vector<double>& src) const;
 
    // before mesh change, let dst <- M^{-1} (D^n)^{-1} D^{n-1} src
    // ( i.e. dst <- src for time-independent D)
-   virtual void vmult_D_intermediate_transpose(std::shared_ptr<SparseMatrix<double>> mass_matrix, Vector<double>& dst, const Vector<double>& src) const;
+   virtual void vmult_D_intermediate_transpose(const SparseMatrix<double> &mass_matrix, Vector<double>& dst, const Vector<double>& src) const;
 
    // before mesh change, let dst <- (D^n)^{-1} C^{n-1} src
    // ( i.e. dst <- matrix_C * src for time-independent D)
@@ -156,10 +156,10 @@ protected:
    bool rho_time_dependent;
 
    // if needed: storage for (D^n)^{-1} D^{n-1}
-   std::shared_ptr<SparseMatrix<double>> matrix_D_intermediate;
+   SparseMatrix<double> matrix_D_intermediate;
 
    // if needed: storage for (D^n)^{-1} C^{n-1}
-   std::shared_ptr<SparseMatrix<double>> matrix_C_intermediate;
+   SparseMatrix<double> matrix_C_intermediate;
 };
 
 } /* namespace forward */

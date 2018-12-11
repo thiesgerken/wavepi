@@ -2,6 +2,11 @@ cmake_minimum_required(VERSION 2.8.8)
 project(wavePI)
 include_directories("include")
 
+option(WAVEPI_WITH_MPI "compile with MPI support" OFF)
+option(WAVEPI_WITH_1D "compile with 1D support" ON)
+option(WAVEPI_WITH_2D "compile with 2D support" ON)
+option(WAVEPI_WITH_3D "compile with 3D support" ON)
+
 set(BUILD_SHARED_LIBS ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
@@ -55,6 +60,21 @@ if(WAVEPI_WITH_MPI)
     add_definitions(-DWAVEPI_MPI)
 else()
     message(STATUS "Compiling without MPI support")
+endif()
+
+if(WAVEPI_WITH_1D)
+    add_definitions(-DWAVEPI_1D)
+    message(STATUS "Compiling with 1D support")
+endif()
+
+if(WAVEPI_WITH_2D)
+    add_definitions(-DWAVEPI_2D)
+    message(STATUS "Compiling with 2D support")
+endif()
+
+if(WAVEPI_WITH_3D)
+    add_definitions(-DWAVEPI_3D)
+    message(STATUS "Compiling with 3D support")
 endif()
 
 enable_testing()

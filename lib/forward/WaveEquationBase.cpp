@@ -34,8 +34,8 @@ void WaveEquationBase<dim>::fill_matrices(std::shared_ptr<SpaceTimeMesh<dim>> me
       task_group += Threads::new_task(&WaveEquationBase<dim>::fill_B, *this, mesh, dof_handler, time, dst_B);
       task_group += Threads::new_task(&WaveEquationBase<dim>::fill_C, *this, mesh, dof_handler, time, dst_C);
 
-      matrix_C_intermediate = nullptr;
-      matrix_D_intermediate = nullptr;
+      matrix_C_intermediate.clear();
+      matrix_D_intermediate.clear();
    } else {
       // possible here because fill_*_intermediate can access different time steps of ρ in parallel
       // (ρ is discretized and this is exploited by assembly tasks)
@@ -54,7 +54,7 @@ void WaveEquationBase<dim>::fill_matrices(std::shared_ptr<SpaceTimeMesh<dim>> me
 // let dst <- (D^n)^{-1} D^{n-1} M^{-1} src
 // ( i.e. dst <- src for time-independent D)
 template<int dim>
-void WaveEquationBase<dim>::vmult_D_intermediate(std::shared_ptr<SparseMatrix<double>> mass_matrix, Vector<double>& dst,
+void WaveEquationBase<dim>::vmult_D_intermediate(const SparseMatrix<double> &mass_matrix, Vector<double>& dst,
       const Vector<double>& src) const {
    if (rho_time_dependent) {
       Vector<double> tmp(src.size());
@@ -63,10 +63,10 @@ void WaveEquationBase<dim>::vmult_D_intermediate(std::shared_ptr<SparseMatrix<do
       SolverCG<> cg(solver_control);
       PreconditionIdentity precondition = PreconditionIdentity();
 
-      cg.solve(*mass_matrix, tmp, src, precondition);
+      cg.solve(mass_matrix, tmp, src, precondition);
 
-      AssertThrow(matrix_D_intermediate, ExcInternalError("matrix_D_intermediate is missing"));
-      matrix_D_intermediate->vmult(dst, tmp);
+      AssertThrow(matrix_D_intermediate.n() > 0, ExcInternalError("matrix_D_intermediate is missing"));
+      matrix_D_intermediate.vmult(dst, tmp);
    } else {
       dst.equ(1.0, src);
    }
@@ -75,19 +75,19 @@ void WaveEquationBase<dim>::vmult_D_intermediate(std::shared_ptr<SparseMatrix<do
 // let dst <- M^{-1} (D^n)^{-1} D^{n-1} src
 // ( i.e. dst <- src for time-independent D)
 template<int dim>
-void WaveEquationBase<dim>::vmult_D_intermediate_transpose(std::shared_ptr<SparseMatrix<double>> mass_matrix,
+void WaveEquationBase<dim>::vmult_D_intermediate_transpose(const SparseMatrix<double> &mass_matrix,
       Vector<double>& dst, const Vector<double>& src) const {
    if (rho_time_dependent) {
       Vector<double> tmp(src.size());
 
-      AssertThrow(matrix_D_intermediate, ExcInternalError("matrix_D_intermediate is missing"));
-      matrix_D_intermediate->vmult(tmp, src);
+      AssertThrow(matrix_D_intermediate.n() > 0, ExcInternalError("matrix_D_intermediate is missing"));
+      matrix_D_intermediate.vmult(tmp, src);
 
       SolverControl solver_control(2000, 1e-10 * tmp.l2_norm());
       SolverCG<> cg(solver_control);
       PreconditionIdentity precondition = PreconditionIdentity();
 
-      cg.solve(*mass_matrix, dst, tmp, precondition);
+      cg.solve(mass_matrix, dst, tmp, precondition);
    } else {
       dst.equ(1.0, src);
    }
@@ -99,8 +99,8 @@ template<int dim>
 void WaveEquationBase<dim>::vmult_C_intermediate(const SparseMatrix<double>& matrix_C, Vector<double>& dst,
       const Vector<double>& src) const {
    if (rho_time_dependent) {
-      AssertThrow(matrix_C_intermediate, ExcInternalError("matrix_C_intermediate is missing"));
-      matrix_C_intermediate->vmult(dst, src);
+      AssertThrow(matrix_C_intermediate.n() > 0, ExcInternalError("matrix_C_intermediate is missing"));
+      matrix_C_intermediate.vmult(dst, src);
    } else {
       matrix_C.vmult(dst, src);
    }
@@ -159,22 +159,22 @@ void WaveEquationBase<dim>::fill_C_intermediate(size_t time_idx, std::shared_ptr
    // fill with (D^{n+1})^{-1} C^n, n = time_idx on the mesh of time_idx
    // -> needs to be able to change the time in ρ to the next time if continuous ρ is used
 
-   matrix_C_intermediate = std::make_shared<SparseMatrix<double>>(*mesh->get_sparsity_pattern(time_idx));
+   matrix_C_intermediate.reinit(*mesh->get_sparsity_pattern(time_idx));
    double current_time = mesh->get_time(time_idx);
    double next_time = mesh->get_time(time_idx + 1); // does range checking in debug mode
 
    if ((!param_rho_disc && !param_c_disc) || !using_special_assembly(mesh))
-      MatrixCreator<dim>::create_C_matrix(dof_handler, mesh->get_quadrature(), *matrix_C_intermediate, param_rho,
+      MatrixCreator<dim>::create_C_matrix(dof_handler, mesh->get_quadrature(), matrix_C_intermediate, param_rho,
             param_c, next_time, current_time);
    else if (param_rho_disc && !param_c_disc)
-      MatrixCreator<dim>::create_C_matrix(dof_handler, mesh->get_quadrature(), *matrix_C_intermediate,
+      MatrixCreator<dim>::create_C_matrix(dof_handler, mesh->get_quadrature(), matrix_C_intermediate,
             param_rho_disc->get_function_coefficients_by_time(next_time), param_c, current_time);
 
    else if (!param_rho_disc && param_c_disc)
-      MatrixCreator<dim>::create_C_matrix(dof_handler, mesh->get_quadrature(), *matrix_C_intermediate, param_rho,
+      MatrixCreator<dim>::create_C_matrix(dof_handler, mesh->get_quadrature(), matrix_C_intermediate, param_rho,
             param_c_disc->get_function_coefficients_by_time(current_time), next_time);
    else
-      MatrixCreator<dim>::create_C_matrix(dof_handler, mesh->get_quadrature(), *matrix_C_intermediate,
+      MatrixCreator<dim>::create_C_matrix(dof_handler, mesh->get_quadrature(), matrix_C_intermediate,
             param_rho_disc->get_function_coefficients_by_time(next_time),
             param_c_disc->get_function_coefficients_by_time(current_time));
 
@@ -186,15 +186,15 @@ void WaveEquationBase<dim>::fill_D_intermediate(size_t time_idx, std::shared_ptr
    // fill with (D^{n+1})^{-1} D^n, n = time_idx on the mesh of time_idx
    // -> needs to be able to change the time in ρ to the next time if continuous ρ is used
 
-   matrix_D_intermediate = std::make_shared<SparseMatrix<double>>(*mesh->get_sparsity_pattern(time_idx));
+   matrix_D_intermediate.reinit(*mesh->get_sparsity_pattern(time_idx));
    double current_time = mesh->get_time(time_idx);
    double next_time = mesh->get_time(time_idx + 1); // does range checking in debug mode
 
    if (!param_rho_disc || !using_special_assembly(mesh))
-      MatrixCreator<dim>::create_D_intermediate_matrix(dof_handler, mesh->get_quadrature(), *matrix_D_intermediate,
+      MatrixCreator<dim>::create_D_intermediate_matrix(dof_handler, mesh->get_quadrature(), matrix_D_intermediate,
             param_rho, current_time, next_time);
    else
-      MatrixCreator<dim>::create_D_intermediate_matrix(dof_handler, mesh->get_quadrature(), *matrix_D_intermediate,
+      MatrixCreator<dim>::create_D_intermediate_matrix(dof_handler, mesh->get_quadrature(), matrix_D_intermediate,
             param_rho_disc->get_function_coefficients_by_time(current_time),
             param_rho_disc->get_function_coefficients_by_time(next_time));
 }

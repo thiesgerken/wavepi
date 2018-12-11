@@ -189,7 +189,7 @@ void AbstractEquationAdjoint<dim>::assemble_u(size_t i) {
       Vector<double> tmp2(tmp_u.size());
 
       // M⁻¹D^{i,i+1} before multiplying with A^i, then add to system_rhs_u
-      vmult_D_intermediate_transpose(mesh->get_mass_matrix(i), tmp1, tmp_u);
+      vmult_D_intermediate_transpose(*mesh->get_mass_matrix(i), tmp1, tmp_u);
 
       tmp1.add(-theta, solution_v);
       matrix_A.vmult(tmp2, tmp1);
@@ -215,7 +215,7 @@ void AbstractEquationAdjoint<dim>::assemble_u(size_t i) {
       Vector<double> tmp2(tmp_v.size());
 
       // M⁻¹D^{i,i+1} before multiplying with A^i, then add to system_rhs_u
-      vmult_D_intermediate_transpose(mesh->get_mass_matrix(i), tmp1, tmp_u);
+      vmult_D_intermediate_transpose(*mesh->get_mass_matrix(i), tmp1, tmp_u);
 
       tmp1.add(-theta, solution_v);
       matrix_A.vmult(tmp2, tmp1);
@@ -332,7 +332,7 @@ void AbstractEquationAdjoint<dim>::assemble_v(size_t i) {
       system_rhs_v.add(1.0 / time_step_last, tmp1);
 
       // M⁻¹D^{0,1} before multiplying with B^0, then add to system_rhs_v
-      vmult_D_intermediate_transpose(mesh->get_mass_matrix(i), tmp1, tmp_v);
+      vmult_D_intermediate_transpose(*mesh->get_mass_matrix(i), tmp1, tmp_v);
       matrix_B.vmult(tmp2, tmp1);
       system_rhs_v.add(-1 * (1 - theta), tmp2);
 
@@ -360,7 +360,7 @@ void AbstractEquationAdjoint<dim>::assemble_v(size_t i) {
       system_rhs_v.add(1.0 / time_step_last, tmp1);
 
       // M⁻¹D^{i,i+1} before multiplying with B^i, then add to system_rhs_v
-      vmult_D_intermediate_transpose(mesh->get_mass_matrix(i), tmp1, tmp_v);
+      vmult_D_intermediate_transpose(*mesh->get_mass_matrix(i), tmp1, tmp_v);
       matrix_B.vmult(tmp2, tmp1);
       system_rhs_v.add(-1 * (1 - theta), tmp2);
 
@@ -475,7 +475,7 @@ DiscretizedFunction<dim> AbstractEquationAdjoint<dim>::run(std::shared_ptr<Right
 
       if (i < mesh->length() - 1) {
          Vector<double> tmp(solution_u.size());
-         vmult_D_intermediate_transpose(mesh->get_mass_matrix(i), tmp, tmp_R_adjoint);
+         vmult_D_intermediate_transpose(*mesh->get_mass_matrix(i), tmp, tmp_R_adjoint);
 
          res[i].add(1.0, tmp);
       }
