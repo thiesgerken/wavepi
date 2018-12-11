@@ -286,8 +286,6 @@ DiscretizedFunction<dim> AbstractEquation<dim>::run(std::shared_ptr<RightHandSid
    // save handle to rhs function so that `assemble` can use it
    this->right_hand_side = right_hand_side;
 
-   deallog << mesh->length() << std::endl;
-
    for (size_t i = 0; i < mesh->length(); i++) {
       LogStream::Prefix pp("step-" + Utilities::int_to_string(i, 4));
       int time_idx = direction == Backward ? mesh->length() - 1 - i : i;
@@ -333,7 +331,7 @@ DiscretizedFunction<dim> AbstractEquation<dim>::run(std::shared_ptr<RightHandSid
       u.set(time_idx, solution_u, solution_v);
 
       std::ios::fmtflags f(deallog.flags(std::ios_base::fixed));
-      deallog << "t=" << time << std::scientific << ", ";
+      deallog << std::setprecision(2) << "t=" << time << std::scientific << ", ";
       deallog << "‖u‖=" << solution_u.l2_norm() << ", ‖v‖=" << solution_v.l2_norm() << std::endl;
       deallog.flags(f);
    }

@@ -149,14 +149,14 @@ class GenericInversionProgressListener : public InversionProgressListener<Param,
 
   virtual bool progress(InversionProgress<Param, Sol, Exact> state) {
     if (!state.finished) {
-      deallog << counter_variable << "=" << std::left << std::setfill(' ') << std::setw(2) << state.iteration_number
-              << ": rdisc=" << std::setw(5) << state.current_discrepancy / state.norm_data;
+      deallog << counter_variable << "=" << std::left << std::setfill(' ') << std::setprecision(2) << state.iteration_number
+              << ": rdisc=" << std::setprecision(5) << state.current_discrepancy / state.norm_data;
 
       if (state.norm_exact_param > 0.0) {
-        deallog << ", rnorm=" << std::setw(5) << state.norm_current_estimate / state.norm_exact_param
-                << ", rerr=" << std::setw(5) << state.current_error / state.norm_exact_param;
+        deallog << ", rnorm=" << std::setprecision(5) << state.norm_current_estimate / state.norm_exact_param
+                << ", rerr=" << std::setprecision(5) << state.current_error / state.norm_exact_param;
       } else
-        deallog << ", norm=" << std::setw(5) << state.norm_current_estimate;
+        deallog << ", norm=" << std::setprecision(5) << state.norm_current_estimate;
     } else if (state.current_discrepancy <= state.target_discrepancy)
       deallog << "Target discrepancy reached after " << state.iteration_number << " iteration"
               << (state.iteration_number != 1 ? "s" : "") << ".";
