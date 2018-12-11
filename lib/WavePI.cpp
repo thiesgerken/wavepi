@@ -249,7 +249,7 @@ std::shared_ptr<SpaceTimeMesh<dim>> WavePI<dim, Meas>::initialize_mesh(size_t ad
       size_t additional_fe_degrees) const {
    LogStream::Prefix p("initialize_mesh");
 
-   auto triangulation = std::make_shared<Triangulation<dim>>();
+   std::shared_ptr<Triangulation<dim>> triangulation = std::make_shared<Triangulation<dim>>();
 
    if (cfg->shape == SettingsManager::MeshShape::hyper_cube)
       GridGenerator::hyper_cube(*triangulation, cfg->shape_options["left"], cfg->shape_options["right"]);
@@ -287,8 +287,8 @@ std::shared_ptr<SpaceTimeMesh<dim>> WavePI<dim, Meas>::initialize_mesh(size_t ad
       times = new_times;
    }
 
-   auto mesh = std::make_shared<ConstantMesh<dim>>(times, FE_Q<dim>(cfg->fe_degree + additional_fe_degrees),
-         QGauss<dim>(cfg->quad_order), triangulation);
+   std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times,
+         FE_Q<dim>(cfg->fe_degree + additional_fe_degrees), QGauss<dim>(cfg->quad_order), triangulation);
 
    // auto a_mesh = std::make_shared<AdaptiveMesh<dim>>(cfg->times, FE_Q<dim>(cfg->fe_degree),
    //      QGauss<dim>(cfg->quad_order), triangulation);
@@ -424,17 +424,19 @@ void WavePI<dim, Meas>::synthesize_data() {
    data->add(1.0, Tuple<Meas>::noise(data_exact, cfg->epsilon * data_exact_norm));
 
 #ifdef WAVEPI_MPI
-   size_t mpi_rank = Utilities::MPI::this_mpi_process(MPI_COMM_WORLD);
+   if (Utilities::MPI::n_mpi_processes(MPI_COMM_WORLD) > 1) {
+      size_t mpi_rank = Utilities::MPI::this_mpi_process(MPI_COMM_WORLD);
 
-   if (mpi_rank == 0)
-      deallog << "distributing noisy data to other nodes" << std::endl;
-   else
-      deallog << "rank " << mpi_rank << " waiting for data from root node" << std::endl;
+      if (mpi_rank == 0)
+         deallog << "Distributing noisy data to other nodes" << std::endl;
+      else
+         deallog << "Rank " << mpi_rank << " waiting for data from root node" << std::endl;
 
-   for (size_t i = 0; i < data->size(); i++)
-      (*data)[i].mpi_bcast(0);
+      for (size_t i = 0; i < data->size(); i++)
+         (*data)[i].mpi_bcast(0);
 
-   deallog << "Distribution of data complete." << std::endl;
+      deallog << "Distribution of data complete." << std::endl;
+   }
 #endif
 }
 
@@ -473,13 +475,12 @@ void WavePI<dim, Meas>::log_error_initial(DiscretizedFunction<dim>& reconstructi
 
 template<int dim, typename Meas>
 void WavePI<dim, Meas>::run() {
-   Timer timer_data, timer_mesh_problem, timer_inversion;
-   timer_inversion.start();
+   Timer timer_data, timer_mesh_problem;
 
    if (cfg->synthesis_additional_refines > 0 || cfg->synthesis_additional_fe_degrees > 0) {
       timer_data.start();
       deallog << "Generating mesh for data synthesis" << std::endl;
-      mesh = initialize_mesh(cfg->synthesis_additional_refines, cfg->synthesis_additional_fe_degrees);
+      this->mesh = initialize_mesh(cfg->synthesis_additional_refines, cfg->synthesis_additional_fe_degrees);
 
       deallog << "Initializing problem for data synthesis" << std::endl;
       initialize_problem();
@@ -500,12 +501,12 @@ void WavePI<dim, Meas>::run() {
 
       timer_mesh_problem.start();
       deallog << "Initializing problem" << std::endl;
-      mesh = inversion_mesh;
+      this->mesh = inversion_mesh;
       initialize_problem();
       timer_mesh_problem.stop();
    } else {
       timer_mesh_problem.start();
-      mesh = initialize_mesh();
+      this->mesh = initialize_mesh();
 
       deallog << "Initializing problem" << std::endl;
       initialize_problem();
@@ -515,14 +516,17 @@ void WavePI<dim, Meas>::run() {
       timer_data.start();
       synthesize_data();
       timer_data.stop();
-
-      // we do not want the data synthesis to be a part of the stats (in the other case it also isn't)
-      problem->reset_statistics();
    }
+
+   // we do not want the data synthesis to be a part of the stats
+   problem->reset_statistics();
 
    deallog << "wall time for data synthesis        : " << Util::format_duration(timer_data.wall_time()) << std::endl;
    deallog << "wall time for mesh and problem init : " << Util::format_duration(timer_mesh_problem.wall_time())
          << std::endl;
+
+   Timer timer_inversion;
+   timer_inversion.start();
 
    std::shared_ptr<Regularization<Param, Tuple<Meas>, Exact>> regularization;
 
@@ -606,7 +610,7 @@ void WavePI<dim, Meas>::run() {
       auto stats = problem->get_statistics();
       deallog << "Statistics: " << std::endl;
 
-      deallog <<  "forward         : " << stats->calls_forward << " calls, avg "
+      deallog << "forward         : " << stats->calls_forward << " calls, avg "
             << Util::format_duration(stats->time_forward / stats->calls_forward) << " per call, " << std::fixed
             << std::setprecision(2) << (stats->time_forward / timer_inversion.wall_time() * 100) << "% of total time"
             << std::endl;
@@ -695,8 +699,10 @@ void WavePI<dim, Meas>::run() {
    }
 }
 
+#ifdef WAVEPI_1D
 template class WavePI<1, DiscretizedFunction<1>> ;
 template class WavePI<1, SensorValues<1>> ;
+#endif
 
 template class WavePI<2, DiscretizedFunction<2>> ;
 template class WavePI<2, SensorValues<2>> ;

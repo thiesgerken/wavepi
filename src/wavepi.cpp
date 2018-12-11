@@ -180,6 +180,7 @@ int main(int argc, char *argv[]) {
       deallog << Version::get_infos() << std::endl;
 
       if (cfg->dimension == 1) {
+#ifdef WAVEPI_1D
          if (cfg->measure_type == SettingsManager::MeasureType::vector) {
             WavePI<1, SensorValues<1>> wavepi(cfg);
             wavepi.run();
@@ -187,7 +188,10 @@ int main(int argc, char *argv[]) {
             WavePI<1, DiscretizedFunction<1>> wavepi(cfg);
             wavepi.run();
          } else
-            AssertThrow(false, ExcInternalError());
+         AssertThrow(false, ExcInternalError());
+#else
+         AssertThrow(false, ExcMessage("WavePI was compiled without 1D support!"));
+#endif
       } else if (cfg->dimension == 2) {
          if (cfg->measure_type == SettingsManager::MeasureType::vector) {
             WavePI<2, SensorValues<2>> wavepi(cfg);
