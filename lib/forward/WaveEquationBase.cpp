@@ -19,20 +19,24 @@ using namespace dealii;
 using namespace wavepi::base;
 
 template<int dim>
-void WaveEquationBase<dim>::fill_matrices(std::shared_ptr<SpaceTimeMesh<dim>> mesh, size_t time_idx,
-      DoFHandler<dim> &dof_handler, SparseMatrix<double> &dst_A, SparseMatrix<double> &dst_B,
+void WaveEquationBase<dim>::fill_matrices(std::shared_ptr<SpaceTimeMesh<dim>> mesh, size_t time_idx, SparseMatrix<double> &dst_A, SparseMatrix<double> &dst_B,
       SparseMatrix<double> &dst_C) {
-   const double time = mesh->get_time(time_idx);
+   //   const double time = mesh->get_time(time_idx);
 
    // this helps only a bit because each of the operations is already parallelized
    // tests show about 20%-30% (depending on dim) speedup on my Intel i5 4690
    // this assembling could be done even more efficient, by looping through the mesh once and assembling all matrices.
-   Threads::TaskGroup<void> task_group;
+
+   //   Threads::TaskGroup<void> task_group;
 
    if (!rho_time_dependent || time_idx == mesh->length() - 1) {
-      task_group += Threads::new_task(&WaveEquationBase<dim>::fill_A, *this, mesh, dof_handler, time, dst_A);
-      task_group += Threads::new_task(&WaveEquationBase<dim>::fill_B, *this, mesh, dof_handler, time, dst_B);
-      task_group += Threads::new_task(&WaveEquationBase<dim>::fill_C, *this, mesh, dof_handler, time, dst_C);
+      //      task_group += Threads::new_task(&WaveEquationBase<dim>::fill_A, *this, mesh, time_idx, dst_A);
+      //      task_group += Threads::new_task(&WaveEquationBase<dim>::fill_B, *this, mesh, time_idx, dst_B);
+      //      task_group += Threads::new_task(&WaveEquationBase<dim>::fill_C, *this, mesh, time_idx, dst_C);
+
+      this->fill_A(mesh, time_idx, dst_A);
+      this->fill_B(mesh, time_idx, dst_B);
+      this->fill_C(mesh, time_idx, dst_C);
 
       matrix_C_intermediate.clear();
       matrix_D_intermediate.clear();
@@ -40,15 +44,22 @@ void WaveEquationBase<dim>::fill_matrices(std::shared_ptr<SpaceTimeMesh<dim>> me
       // possible here because fill_*_intermediate can access different time steps of ρ in parallel
       // (ρ is discretized and this is exploited by assembly tasks)
 
-      task_group += Threads::new_task(&WaveEquationBase<dim>::fill_A, *this, mesh, dof_handler, time, dst_A);
-      task_group += Threads::new_task(&WaveEquationBase<dim>::fill_B, *this, mesh, dof_handler, time, dst_B);
-      task_group += Threads::new_task(&WaveEquationBase<dim>::fill_C, *this, mesh, dof_handler, time, dst_C);
+      //      task_group += Threads::new_task(&WaveEquationBase<dim>::fill_A, *this, mesh, time_idx, dst_A);
+      //      task_group += Threads::new_task(&WaveEquationBase<dim>::fill_B, *this, mesh, time_idx, dst_B);
+      //      task_group += Threads::new_task(&WaveEquationBase<dim>::fill_C, *this, mesh, time_idx, dst_C);
 
-      task_group += Threads::new_task(&WaveEquationBase<dim>::fill_C_intermediate, *this, time_idx, mesh, dof_handler);
-      task_group += Threads::new_task(&WaveEquationBase<dim>::fill_D_intermediate, *this, time_idx, mesh, dof_handler);
+      this->fill_A(mesh, time_idx, dst_A);
+      this->fill_B(mesh, time_idx, dst_B);
+      this->fill_C(mesh, time_idx, dst_C);
+
+      //      task_group += Threads::new_task(&WaveEquationBase<dim>::fill_C_intermediate, *this, mesh, time_idx);
+      //      task_group += Threads::new_task(&WaveEquationBase<dim>::fill_D_intermediate, *this, mesh, time_idx);
+
+      this->fill_C_intermediate(mesh, time_idx);
+      this->fill_D_intermediate(mesh, time_idx);
    }
 
-   task_group.join_all();
+//   task_group.join_all();
 }
 
 // let dst <- (D^n)^{-1} D^{n-1} M^{-1} src
@@ -75,8 +86,8 @@ void WaveEquationBase<dim>::vmult_D_intermediate(const SparseMatrix<double> &mas
 // let dst <- M^{-1} (D^n)^{-1} D^{n-1} src
 // ( i.e. dst <- src for time-independent D)
 template<int dim>
-void WaveEquationBase<dim>::vmult_D_intermediate_transpose(const SparseMatrix<double> &mass_matrix,
-      Vector<double>& dst, const Vector<double>& src) const {
+void WaveEquationBase<dim>::vmult_D_intermediate_transpose(const SparseMatrix<double> &mass_matrix, Vector<double>& dst,
+      const Vector<double>& src) const {
    if (rho_time_dependent) {
       Vector<double> tmp(src.size());
 
@@ -107,8 +118,11 @@ void WaveEquationBase<dim>::vmult_C_intermediate(const SparseMatrix<double>& mat
 }
 
 template<int dim>
-void WaveEquationBase<dim>::fill_A(std::shared_ptr<SpaceTimeMesh<dim>> mesh, DoFHandler<dim> &dof_handler,
-      const double time, SparseMatrix<double> &destination) {
+void WaveEquationBase<dim>::fill_A(std::shared_ptr<SpaceTimeMesh<dim>> mesh, size_t time_idx,
+      SparseMatrix<double> &destination) {
+   const double time = mesh->get_time(time_idx);
+   auto dof_handler = mesh->get_dof_handler(time_idx);
+
    if ((!param_rho_disc && !param_q_disc) || !using_special_assembly(mesh))
       MatrixCreator<dim>::create_A_matrix(dof_handler, mesh->get_quadrature(), destination, param_rho, param_q, time);
    else if (param_rho_disc && !param_q_disc)
@@ -125,8 +139,11 @@ void WaveEquationBase<dim>::fill_A(std::shared_ptr<SpaceTimeMesh<dim>> mesh, DoF
 }
 
 template<int dim>
-void WaveEquationBase<dim>::fill_B(std::shared_ptr<SpaceTimeMesh<dim>> mesh, DoFHandler<dim> &dof_handler,
-      const double time, SparseMatrix<double> &destination) {
+void WaveEquationBase<dim>::fill_B(std::shared_ptr<SpaceTimeMesh<dim>> mesh, size_t time_idx,
+      SparseMatrix<double> &destination) {
+   const double time = mesh->get_time(time_idx);
+   auto dof_handler = mesh->get_dof_handler(time_idx);
+
    if (param_nu_disc && using_special_assembly(mesh))
       MatrixCreator<dim>::create_mass_matrix(dof_handler, mesh->get_quadrature(), destination,
             param_nu_disc->get_function_coefficients_by_time(time));
@@ -135,8 +152,11 @@ void WaveEquationBase<dim>::fill_B(std::shared_ptr<SpaceTimeMesh<dim>> mesh, DoF
 }
 
 template<int dim>
-void WaveEquationBase<dim>::fill_C(std::shared_ptr<SpaceTimeMesh<dim>> mesh, DoFHandler<dim> &dof_handler,
-      const double time, SparseMatrix<double> &destination) {
+void WaveEquationBase<dim>::fill_C(std::shared_ptr<SpaceTimeMesh<dim>> mesh, size_t time_idx,
+      SparseMatrix<double> &destination) {
+   const double time = mesh->get_time(time_idx);
+   auto dof_handler = mesh->get_dof_handler(time_idx);
+
    if ((!param_rho_disc && !param_c_disc) || !using_special_assembly(mesh))
       MatrixCreator<dim>::create_C_matrix(dof_handler, mesh->get_quadrature(), destination, param_rho, param_c, time,
             time);
@@ -154,14 +174,14 @@ void WaveEquationBase<dim>::fill_C(std::shared_ptr<SpaceTimeMesh<dim>> mesh, DoF
 }
 
 template<int dim>
-void WaveEquationBase<dim>::fill_C_intermediate(size_t time_idx, std::shared_ptr<SpaceTimeMesh<dim>> mesh,
-      DoFHandler<dim> &dof_handler) {
+void WaveEquationBase<dim>::fill_C_intermediate(std::shared_ptr<SpaceTimeMesh<dim>> mesh, size_t time_idx) {
    // fill with (D^{n+1})^{-1} C^n, n = time_idx on the mesh of time_idx
    // -> needs to be able to change the time in ρ to the next time if continuous ρ is used
 
    matrix_C_intermediate.reinit(*mesh->get_sparsity_pattern(time_idx));
    double current_time = mesh->get_time(time_idx);
    double next_time = mesh->get_time(time_idx + 1); // does range checking in debug mode
+   auto dof_handler = mesh->get_dof_handler(time_idx);
 
    if ((!param_rho_disc && !param_c_disc) || !using_special_assembly(mesh))
       MatrixCreator<dim>::create_C_matrix(dof_handler, mesh->get_quadrature(), matrix_C_intermediate, param_rho,
@@ -177,18 +197,17 @@ void WaveEquationBase<dim>::fill_C_intermediate(size_t time_idx, std::shared_ptr
       MatrixCreator<dim>::create_C_matrix(dof_handler, mesh->get_quadrature(), matrix_C_intermediate,
             param_rho_disc->get_function_coefficients_by_time(next_time),
             param_c_disc->get_function_coefficients_by_time(current_time));
-
 }
 
 template<int dim>
-void WaveEquationBase<dim>::fill_D_intermediate(size_t time_idx, std::shared_ptr<SpaceTimeMesh<dim>> mesh,
-      DoFHandler<dim> &dof_handler) {
+void WaveEquationBase<dim>::fill_D_intermediate(std::shared_ptr<SpaceTimeMesh<dim>> mesh, size_t time_idx) {
    // fill with (D^{n+1})^{-1} D^n, n = time_idx on the mesh of time_idx
    // -> needs to be able to change the time in ρ to the next time if continuous ρ is used
 
    matrix_D_intermediate.reinit(*mesh->get_sparsity_pattern(time_idx));
    double current_time = mesh->get_time(time_idx);
    double next_time = mesh->get_time(time_idx + 1); // does range checking in debug mode
+   auto dof_handler = mesh->get_dof_handler(time_idx);
 
    if (!param_rho_disc || !using_special_assembly(mesh))
       MatrixCreator<dim>::create_D_intermediate_matrix(dof_handler, mesh->get_quadrature(), matrix_D_intermediate,

@@ -104,7 +104,7 @@ template<int dim>
 void WaveEquation<dim>::assemble_matrices(size_t time_idx) {
    LogStream::Prefix p("assemble_matrices");
 
-   this->fill_matrices(mesh, time_idx, *dof_handler, matrix_A, matrix_B, matrix_C);
+   this->fill_matrices(mesh, time_idx, matrix_A, matrix_B, matrix_C);
 }
 
 template<int dim>

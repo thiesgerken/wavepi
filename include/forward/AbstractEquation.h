@@ -37,7 +37,9 @@ public:
          : mesh(mesh) {
    }
 
-   virtual ~AbstractEquation() = default;
+   virtual ~AbstractEquation() {
+      cleanup();
+   }
 
    static void declare_parameters(ParameterHandler &prm);
    void get_parameters(ParameterHandler &prm);

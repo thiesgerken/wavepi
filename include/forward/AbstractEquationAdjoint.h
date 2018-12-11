@@ -34,7 +34,9 @@ public:
          : mesh(mesh) {
    }
 
-   virtual ~AbstractEquationAdjoint() = default;
+   virtual ~AbstractEquationAdjoint() {
+      cleanup();
+   }
 
    static void declare_parameters(ParameterHandler &prm);
    void get_parameters(ParameterHandler &prm);

@@ -108,8 +108,8 @@ public:
          this->special_assembly_tactic = 0;
    }
 
-   void fill_matrices(std::shared_ptr<SpaceTimeMesh<dim>> mesh, size_t time_idx, DoFHandler<dim> &dof_handler,
-         SparseMatrix<double> &dst_A, SparseMatrix<double> &dst_B, SparseMatrix<double> &dst_C);
+   void fill_matrices(std::shared_ptr<SpaceTimeMesh<dim>> mesh, size_t time_idx, SparseMatrix<double> &dst_A,
+         SparseMatrix<double> &dst_B, SparseMatrix<double> &dst_C);
 
    bool is_rho_time_dependent() const {
       return rho_time_dependent;
@@ -140,15 +140,12 @@ public:
    }
 
 protected:
-   void fill_A(std::shared_ptr<SpaceTimeMesh<dim>> mesh, DoFHandler<dim> &dof_handler, const double time,
-         SparseMatrix<double> &destination);
-   void fill_B(std::shared_ptr<SpaceTimeMesh<dim>> mesh, DoFHandler<dim> &dof_handler, const double time,
-         SparseMatrix<double> &destination);
-   void fill_C(std::shared_ptr<SpaceTimeMesh<dim>> mesh, DoFHandler<dim> &dof_handler, const double time,
-         SparseMatrix<double> &destination);
+   void fill_A(std::shared_ptr<SpaceTimeMesh<dim>> mesh, size_t time_idx, SparseMatrix<double> &destination);
+   void fill_B(std::shared_ptr<SpaceTimeMesh<dim>> mesh, size_t time_idx, SparseMatrix<double> &destination);
+   void fill_C(std::shared_ptr<SpaceTimeMesh<dim>> mesh, size_t time_idx, SparseMatrix<double> &destination);
 
-   void fill_C_intermediate(size_t time_idx, std::shared_ptr<SpaceTimeMesh<dim>> mesh, DoFHandler<dim> &dof_handler);
-   void fill_D_intermediate(size_t time_idx, std::shared_ptr<SpaceTimeMesh<dim>> mesh, DoFHandler<dim> &dof_handler);
+   void fill_C_intermediate(std::shared_ptr<SpaceTimeMesh<dim>> mesh, size_t time_idx);
+   void fill_D_intermediate(std::shared_ptr<SpaceTimeMesh<dim>> mesh, size_t time_idx);
 
    // treat DiscretizedFunctions as parameters and right hand side differently
    // < 0 -> no (better if much coupling present), > 0 -> yes, = 0 automatically (default)

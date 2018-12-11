@@ -399,162 +399,162 @@ void MatrixCreator<dim>::copy_local_to_global(SparseMatrix<double> &matrix, cons
 }
 
 template<int dim>
-void MatrixCreator<dim>::create_A_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad,
+void MatrixCreator<dim>::create_A_matrix(std::shared_ptr<DoFHandler<dim>> dof, const Quadrature<dim> &quad,
       SparseMatrix<double> &matrix, std::shared_ptr<LightFunction<dim>> rho, std::shared_ptr<LightFunction<dim>> q,
       const double time) {
    AssertThrow(rho, ExcZero());
    AssertThrow(q, ExcZero());
 
-   WorkStream::run(dof.begin_active(), dof.end(),
+   WorkStream::run(dof->begin_active(), dof->end(),
          std::bind(&MatrixCreator<dim>::local_assemble_A_cc, rho.get(), q.get(), time, std::placeholders::_1,
                std::placeholders::_2, std::placeholders::_3),
          std::bind(&MatrixCreator<dim>::copy_local_to_global, std::ref(matrix), std::placeholders::_1),
-         LaplaceAssemblyScratchData(dof.get_fe(), quad), AssemblyCopyData());
+         LaplaceAssemblyScratchData(dof->get_fe(), quad), AssemblyCopyData());
 }
 
 template<int dim>
-void MatrixCreator<dim>::create_A_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad,
+void MatrixCreator<dim>::create_A_matrix(std::shared_ptr<DoFHandler<dim>> dof, const Quadrature<dim> &quad,
       SparseMatrix<double> &matrix, std::shared_ptr<LightFunction<dim>> rho, const Vector<double> &q,
       const double time) {
    AssertThrow(rho, ExcZero());
-   Assert(q.size() == dof.n_dofs(), ExcDimensionMismatch(q.size(), dof.n_dofs()));
+   Assert(q.size() == dof->n_dofs(), ExcDimensionMismatch(q.size(), dof->n_dofs()));
 
-   WorkStream::run(dof.begin_active(), dof.end(),
+   WorkStream::run(dof->begin_active(), dof->end(),
          std::bind(&MatrixCreator<dim>::local_assemble_A_cd, rho.get(), std::ref(q), time, std::placeholders::_1,
                std::placeholders::_2, std::placeholders::_3),
          std::bind(&MatrixCreator<dim>::copy_local_to_global, std::ref(matrix), std::placeholders::_1),
-         LaplaceAssemblyScratchData(dof.get_fe(), quad), AssemblyCopyData());
+         LaplaceAssemblyScratchData(dof->get_fe(), quad), AssemblyCopyData());
 }
 
 template<int dim>
-void MatrixCreator<dim>::create_A_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad,
+void MatrixCreator<dim>::create_A_matrix(std::shared_ptr<DoFHandler<dim>> dof, const Quadrature<dim> &quad,
       SparseMatrix<double> &matrix, const Vector<double> &rho, std::shared_ptr<LightFunction<dim>> q,
       const double time) {
    AssertThrow(q, ExcZero());
-   Assert(rho.size() == dof.n_dofs(), ExcDimensionMismatch(rho.size(), dof.n_dofs()));
+   Assert(rho.size() == dof->n_dofs(), ExcDimensionMismatch(rho.size(), dof->n_dofs()));
 
-   WorkStream::run(dof.begin_active(), dof.end(),
+   WorkStream::run(dof->begin_active(), dof->end(),
          std::bind(&MatrixCreator<dim>::local_assemble_A_dc, std::ref(rho), q.get(), time, std::placeholders::_1,
                std::placeholders::_2, std::placeholders::_3),
          std::bind(&MatrixCreator<dim>::copy_local_to_global, std::ref(matrix), std::placeholders::_1),
-         LaplaceAssemblyScratchData(dof.get_fe(), quad), AssemblyCopyData());
+         LaplaceAssemblyScratchData(dof->get_fe(), quad), AssemblyCopyData());
 }
 
 template<int dim>
-void MatrixCreator<dim>::create_A_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad,
+void MatrixCreator<dim>::create_A_matrix(std::shared_ptr<DoFHandler<dim>> dof, const Quadrature<dim> &quad,
       SparseMatrix<double> &matrix, const Vector<double> &rho, const Vector<double> &q) {
-   Assert(rho.size() == dof.n_dofs(), ExcDimensionMismatch(rho.size(), dof.n_dofs()));
-   Assert(q.size() == dof.n_dofs(), ExcDimensionMismatch(q.size(), dof.n_dofs()));
+   Assert(rho.size() == dof->n_dofs(), ExcDimensionMismatch(rho.size(), dof->n_dofs()));
+   Assert(q.size() == dof->n_dofs(), ExcDimensionMismatch(q.size(), dof->n_dofs()));
 
-   WorkStream::run(dof.begin_active(), dof.end(),
+   WorkStream::run(dof->begin_active(), dof->end(),
          std::bind(&MatrixCreator<dim>::local_assemble_A_dd, std::ref(rho), std::ref(q), std::placeholders::_1,
                std::placeholders::_2, std::placeholders::_3),
          std::bind(&MatrixCreator<dim>::copy_local_to_global, std::ref(matrix), std::placeholders::_1),
-         LaplaceAssemblyScratchData(dof.get_fe(), quad), AssemblyCopyData());
+         LaplaceAssemblyScratchData(dof->get_fe(), quad), AssemblyCopyData());
 }
 
 template<int dim>
-void MatrixCreator<dim>::create_C_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad,
+void MatrixCreator<dim>::create_C_matrix(std::shared_ptr<DoFHandler<dim>> dof, const Quadrature<dim> &quad,
       SparseMatrix<double> &matrix, std::shared_ptr<LightFunction<dim>> rho, std::shared_ptr<LightFunction<dim>> c,
       const double time_rho, const double time_c) {
    AssertThrow(rho, ExcZero());
    AssertThrow(c, ExcZero());
 
-   WorkStream::run(dof.begin_active(), dof.end(),
+   WorkStream::run(dof->begin_active(), dof->end(),
          std::bind(&MatrixCreator<dim>::local_assemble_C_cc, rho.get(), c.get(), time_rho, time_c,
                std::placeholders::_1, std::placeholders::_2, std::placeholders::_3),
          std::bind(&MatrixCreator<dim>::copy_local_to_global, std::ref(matrix), std::placeholders::_1),
-         MassAssemblyScratchData(dof.get_fe(), quad), AssemblyCopyData());
+         MassAssemblyScratchData(dof->get_fe(), quad), AssemblyCopyData());
 }
 
 template<int dim>
-void MatrixCreator<dim>::create_C_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad,
+void MatrixCreator<dim>::create_C_matrix(std::shared_ptr<DoFHandler<dim>> dof, const Quadrature<dim> &quad,
       SparseMatrix<double> &matrix, std::shared_ptr<LightFunction<dim>> rho, const Vector<double> &c,
       const double time_rho) {
    AssertThrow(rho, ExcZero());
-   Assert(c.size() == dof.n_dofs(), ExcDimensionMismatch(c.size(), dof.n_dofs()));
+   Assert(c.size() == dof->n_dofs(), ExcDimensionMismatch(c.size(), dof->n_dofs()));
 
-   WorkStream::run(dof.begin_active(), dof.end(),
+   WorkStream::run(dof->begin_active(), dof->end(),
          std::bind(&MatrixCreator<dim>::local_assemble_C_cd, rho.get(), std::ref(c), time_rho, std::placeholders::_1,
                std::placeholders::_2, std::placeholders::_3),
          std::bind(&MatrixCreator<dim>::copy_local_to_global, std::ref(matrix), std::placeholders::_1),
-         MassAssemblyScratchData(dof.get_fe(), quad), AssemblyCopyData());
+         MassAssemblyScratchData(dof->get_fe(), quad), AssemblyCopyData());
 }
 
 template<int dim>
-void MatrixCreator<dim>::create_C_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad,
+void MatrixCreator<dim>::create_C_matrix(std::shared_ptr<DoFHandler<dim>> dof, const Quadrature<dim> &quad,
       SparseMatrix<double> &matrix, const Vector<double> &rho, std::shared_ptr<LightFunction<dim>> c,
       const double time_c) {
    AssertThrow(c, ExcZero());
-   Assert(rho.size() == dof.n_dofs(), ExcDimensionMismatch(rho.size(), dof.n_dofs()));
+   Assert(rho.size() == dof->n_dofs(), ExcDimensionMismatch(rho.size(), dof->n_dofs()));
 
-   WorkStream::run(dof.begin_active(), dof.end(),
+   WorkStream::run(dof->begin_active(), dof->end(),
          std::bind(&MatrixCreator<dim>::local_assemble_C_dc, std::ref(rho), c.get(), time_c, std::placeholders::_1,
                std::placeholders::_2, std::placeholders::_3),
          std::bind(&MatrixCreator<dim>::copy_local_to_global, std::ref(matrix), std::placeholders::_1),
-         MassAssemblyScratchData(dof.get_fe(), quad), AssemblyCopyData());
+         MassAssemblyScratchData(dof->get_fe(), quad), AssemblyCopyData());
 }
 
 template<int dim>
-void MatrixCreator<dim>::create_C_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad,
+void MatrixCreator<dim>::create_C_matrix(std::shared_ptr<DoFHandler<dim>> dof, const Quadrature<dim> &quad,
       SparseMatrix<double> &matrix, const Vector<double> &rho, const Vector<double> &c) {
-   Assert(rho.size() == dof.n_dofs(), ExcDimensionMismatch(rho.size(), dof.n_dofs()));
-   Assert(c.size() == dof.n_dofs(), ExcDimensionMismatch(c.size(), dof.n_dofs()));
+   Assert(rho.size() == dof->n_dofs(), ExcDimensionMismatch(rho.size(), dof->n_dofs()));
+   Assert(c.size() == dof->n_dofs(), ExcDimensionMismatch(c.size(), dof->n_dofs()));
 
-   WorkStream::run(dof.begin_active(), dof.end(),
+   WorkStream::run(dof->begin_active(), dof->end(),
          std::bind(&MatrixCreator<dim>::local_assemble_C_dd, std::ref(rho), std::ref(c), std::placeholders::_1,
                std::placeholders::_2, std::placeholders::_3),
          std::bind(&MatrixCreator<dim>::copy_local_to_global, std::ref(matrix), std::placeholders::_1),
-         MassAssemblyScratchData(dof.get_fe(), quad), AssemblyCopyData());
+         MassAssemblyScratchData(dof->get_fe(), quad), AssemblyCopyData());
 }
 
 template<int dim>
-void MatrixCreator<dim>::create_D_intermediate_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad,
+void MatrixCreator<dim>::create_D_intermediate_matrix(std::shared_ptr<DoFHandler<dim>> dof, const Quadrature<dim> &quad,
       SparseMatrix<double> &matrix, const Vector<double> &rho_current, const Vector<double> &rho_next) {
-   Assert(rho_current.size() == dof.n_dofs(), ExcDimensionMismatch(rho_current.size(), dof.n_dofs()));
-   Assert(rho_next.size() == dof.n_dofs(), ExcDimensionMismatch(rho_next.size(), dof.n_dofs()));
+   Assert(rho_current.size() == dof->n_dofs(), ExcDimensionMismatch(rho_current.size(), dof->n_dofs()));
+   Assert(rho_next.size() == dof->n_dofs(), ExcDimensionMismatch(rho_next.size(), dof->n_dofs()));
 
-   WorkStream::run(dof.begin_active(), dof.end(),
+   WorkStream::run(dof->begin_active(), dof->end(),
          std::bind(&MatrixCreator<dim>::local_assemble_D_intermediate_d, std::ref(rho_current), std::ref(rho_next),
                std::placeholders::_1, std::placeholders::_2, std::placeholders::_3),
          std::bind(&MatrixCreator<dim>::copy_local_to_global, std::ref(matrix), std::placeholders::_1),
-         MassAssemblyScratchData(dof.get_fe(), quad), AssemblyCopyData());
+         MassAssemblyScratchData(dof->get_fe(), quad), AssemblyCopyData());
 }
 
 template<int dim>
-void MatrixCreator<dim>::create_D_intermediate_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad,
+void MatrixCreator<dim>::create_D_intermediate_matrix(std::shared_ptr<DoFHandler<dim>> dof, const Quadrature<dim> &quad,
       SparseMatrix<double> &matrix, std::shared_ptr<LightFunction<dim>> rho, double current_time, double next_time) {
    AssertThrow(rho, ExcZero());
 
-   WorkStream::run(dof.begin_active(), dof.end(),
+   WorkStream::run(dof->begin_active(), dof->end(),
          std::bind(&MatrixCreator<dim>::local_assemble_D_intermediate_c, rho.get(), current_time, next_time,
                std::placeholders::_1, std::placeholders::_2, std::placeholders::_3),
          std::bind(&MatrixCreator<dim>::copy_local_to_global, std::ref(matrix), std::placeholders::_1),
-         MassAssemblyScratchData(dof.get_fe(), quad), AssemblyCopyData());
+         MassAssemblyScratchData(dof->get_fe(), quad), AssemblyCopyData());
 }
 
 template<int dim>
-void MatrixCreator<dim>::create_mass_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad,
+void MatrixCreator<dim>::create_mass_matrix(std::shared_ptr<DoFHandler<dim>> dof, const Quadrature<dim> &quad,
       SparseMatrix<double> &matrix, const Vector<double> &c) {
-   Assert(c.size() == dof.n_dofs(), ExcDimensionMismatch(c.size(), dof.n_dofs()));
+   Assert(c.size() == dof->n_dofs(), ExcDimensionMismatch(c.size(), dof->n_dofs()));
 
-   WorkStream::run(dof.begin_active(), dof.end(),
+   WorkStream::run(dof->begin_active(), dof->end(),
          std::bind(&MatrixCreator<dim>::local_assemble_mass_d, std::ref(c), std::placeholders::_1,
                std::placeholders::_2, std::placeholders::_3),
          std::bind(&MatrixCreator<dim>::copy_local_to_global, std::ref(matrix), std::placeholders::_1),
-         MassAssemblyScratchData(dof.get_fe(), quad), AssemblyCopyData());
+         MassAssemblyScratchData(dof->get_fe(), quad), AssemblyCopyData());
 }
 
 template<int dim>
-void MatrixCreator<dim>::create_mass_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad,
+void MatrixCreator<dim>::create_mass_matrix(std::shared_ptr<DoFHandler<dim>> dof, const Quadrature<dim> &quad,
       SparseMatrix<double> &matrix, std::shared_ptr<LightFunction<dim>> c, const double time) {
    AssertThrow(c, ExcZero());
 
-   WorkStream::run(dof.begin_active(), dof.end(),
+   WorkStream::run(dof->begin_active(), dof->end(),
          std::bind(&MatrixCreator<dim>::local_assemble_mass_c, c.get(), time, std::placeholders::_1,
                std::placeholders::_2, std::placeholders::_3),
          std::bind(&MatrixCreator<dim>::copy_local_to_global, std::ref(matrix), std::placeholders::_1),
-         MassAssemblyScratchData(dof.get_fe(), quad), AssemblyCopyData());
+         MassAssemblyScratchData(dof->get_fe(), quad), AssemblyCopyData());
 }
 
 template class MatrixCreator<1> ;

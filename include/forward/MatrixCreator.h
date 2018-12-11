@@ -37,7 +37,7 @@ public:
     * i.e. the bilinear form (u,v) ↦ ∇u·∇v/ρ + quv.
     * ρ and q must be valid function handles.
     */
-   static void create_A_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
+   static void create_A_matrix(std::shared_ptr<DoFHandler<dim>> dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
          std::shared_ptr<LightFunction<dim>> rho, std::shared_ptr<LightFunction<dim>> q, const double time);
 
    /**
@@ -45,7 +45,7 @@ public:
     * i.e. the bilinear form (u,v) ↦ ∇u·∇v/ρ + quv.
     * ρ must be a valid function handle and q a discretized function on the same mesh.
     */
-   static void create_A_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
+   static void create_A_matrix(std::shared_ptr<DoFHandler<dim>> dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
          std::shared_ptr<LightFunction<dim>> rho, const Vector<double> &q, const double time);
 
    /**
@@ -53,7 +53,7 @@ public:
     * i.e. the bilinear form (u,v) ↦ ∇u·∇v/ρ + quv.
     * q must be a valid function handle and ρ a discretized function on the same mesh.
     */
-   static void create_A_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
+   static void create_A_matrix(std::shared_ptr<DoFHandler<dim>> dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
          const Vector<double> &rho, std::shared_ptr<LightFunction<dim>> q, const double time);
 
    /**
@@ -61,7 +61,7 @@ public:
     * i.e. the bilinear form (u,v) ↦ ∇u·∇v/ρ + quv.
     * ρ and q are supplied as discretized FE functions  (living on the same mesh).
     */
-   static void create_A_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
+   static void create_A_matrix(std::shared_ptr<DoFHandler<dim>> dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
          const Vector<double> &rho, const Vector<double> &q);
 
    /**
@@ -69,55 +69,55 @@ public:
     * you could just pass this coefficient to `dealii::MatrixCreator::create_mass_matrix`, but in tests this took 20x
     * longer than when using the continuous version. This implementation did it in 2x the time.
     */
-   static void create_mass_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
+   static void create_mass_matrix(std::shared_ptr<DoFHandler<dim>> dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
          const Vector<double> &c);
 
    /**
     * like `dealii::MatrixCreator::create_mass_matrix`, but with a LightFunction<dim>
      */
-   static void create_mass_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
+   static void create_mass_matrix(std::shared_ptr<DoFHandler<dim>> dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
          std::shared_ptr<LightFunction<dim>> c, const double time);
 
    /**
     * discretizes the bilinear form (u,v) ↦ uv/(ρ c²).
     * ρ and c must be valid function handles.
     */
-   static void create_C_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
+   static void create_C_matrix(std::shared_ptr<DoFHandler<dim>> dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
          std::shared_ptr<LightFunction<dim>> rho, std::shared_ptr<LightFunction<dim>> c, const double time_rho, const double time_c);
 
    /**
     * discretizes the bilinear form (u,v) ↦ uv/(ρ c²).
     *  ρ must be a valid function handle and c a discretized function on the same mesh.
     */
-   static void create_C_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
+   static void create_C_matrix(std::shared_ptr<DoFHandler<dim>> dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
          std::shared_ptr<LightFunction<dim>> rho, const Vector<double> &c, const double time_rho);
 
    /**
     * discretizes the bilinear form (u,v) ↦ uv/(ρ c²).
     * c must be a valid function handle and ρ a discretized function on the same mesh.
     */
-   static void create_C_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
+   static void create_C_matrix(std::shared_ptr<DoFHandler<dim>> dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
          const Vector<double> &rho, std::shared_ptr<LightFunction<dim>> c, const double time_c);
 
    /**
     * discretizes the bilinear form (u,v) ↦ uv/(ρ c²).
     * ρ and c are supplied as discretized FE functions  (living on the same mesh).
     */
-   static void create_C_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
+   static void create_C_matrix(std::shared_ptr<DoFHandler<dim>> dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
          const Vector<double> &rho, const Vector<double> &c);
 
    /**
     * discretizes the bilinear form (u,v) ↦ uv ρ^n/ρ^{n+1}.
     * ρ is supplied as a discretized FE function.
     */
-   static void create_D_intermediate_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
+   static void create_D_intermediate_matrix(std::shared_ptr<DoFHandler<dim>> dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
          const Vector<double> &rho_current, const Vector<double> &rho_next);
 
    /**
     * discretizes the bilinear form (u,v) ↦ uv ρ^n/ρ^{n+1}.
     * ρ must be a valid function handle, which will be modified (need to change its time)
     */
-   static void create_D_intermediate_matrix(const DoFHandler<dim> &dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
+   static void create_D_intermediate_matrix(std::shared_ptr<DoFHandler<dim>> dof, const Quadrature<dim> &quad, SparseMatrix<double> &matrix,
          std::shared_ptr<LightFunction<dim>> rho, double current_time, double next_time);
 
 private:
