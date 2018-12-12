@@ -861,7 +861,7 @@ void DiscretizedFunction<dim>::write_pvd(std::string path, std::string filename,
    AssertThrow(pvd_output, ExcMessage("write_pvd :: output handle invalid"));
 
    DataOutBase::write_pvd_record(pvd_output, times_and_names);
-   deallog << "Wrote " << filename << std::endl;
+   // deallog << "Wrote " << filename << std::endl;
 }
 
 template<int dim>
@@ -882,7 +882,7 @@ void DiscretizedFunction<dim>::write_vtu(const std::string name, const std::stri
    AssertThrow(output, ExcMessage("write_vtk :: output handle invalid"));
 
    data_out.write_vtu(output);
-   deallog << "Wrote " << filename << std::endl;
+   // deallog << "Wrote " << filename << std::endl;
 }
 
 template<int dim>
