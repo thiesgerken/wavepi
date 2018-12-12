@@ -556,9 +556,9 @@ public:
    void write_pvd(std::string path, std::string filename, std::string name) const;
 
    /**
-    * vtk output of a specified time step
+    * vtu output of a specified time step
     */
-   void write_vtk(const std::string name, const std::string name_deriv, const std::string filename, size_t i) const;
+   void write_vtu(const std::string name, const std::string name_deriv, const std::string filename, size_t i) const;
 
    /**
     * @}

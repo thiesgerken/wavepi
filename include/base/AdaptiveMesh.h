@@ -62,8 +62,6 @@ class AdaptiveMesh : public SpaceTimeMesh<dim> {
 
   virtual size_t memory_consumption() const override;
 
-  virtual bool allows_parallel_access() const override { return false; }
-
   /**
    * refine / coarsen this Adaptive Mesh.
    *

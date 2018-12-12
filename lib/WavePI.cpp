@@ -710,8 +710,6 @@ void WavePI<dim, Meas>::run() {
       deallog << "total wall time for the inversion : " << Util::format_duration(timer_inversion.wall_time())
             << std::endl;
    }
-
-   deallog << mesh.use_count() << std::endl;
 }
 
 #ifdef WAVEPI_1D

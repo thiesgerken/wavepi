@@ -101,11 +101,6 @@ class SpaceTimeMesh {
    */
   virtual std::shared_ptr<Triangulation<dim>> get_triangulation(size_t idx) = 0;
 
-  /*
-   *  essentially, whether get_dof_handler is thread-safe.
-   */
-  virtual bool allows_parallel_access() const = 0;
-
   /**
    * takes some vectors defined on the mesh of time step source_time_index and interpolates them onto the mesh for
    * target_time_index, changing the given Vectors. Also returns an appropriate DoFHandler for target_time_index

@@ -50,8 +50,6 @@ class ConstantMesh : public SpaceTimeMesh<dim> {
 
   virtual std::size_t memory_consumption() const override;
 
-  virtual bool allows_parallel_access() const override { return true; }
-
  private:
   using SpaceTimeMesh<dim>::times;
   using SpaceTimeMesh<dim>::fe;

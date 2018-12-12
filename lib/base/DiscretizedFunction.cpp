@@ -850,38 +850,22 @@ void DiscretizedFunction<dim>::write_pvd(std::string path, std::string filename,
    Assert(mesh->length() < 10000, ExcNotImplemented());  // 4 digits are ok
    std::vector<std::pair<double, std::string>> times_and_names(mesh->length(), std::pair<double, std::string>(0.0, ""));
 
-   if (mesh->allows_parallel_access()) {
-      Threads::TaskGroup<void> task_group;
-      {
-         LogStream::Prefix pp("write_vtu");
+   for (size_t i = 0; i < mesh->length(); i++) {
+      const std::string vtuname = filename + "-" + Utilities::int_to_string(i, 4) + ".vtu";
+      times_and_names[i] = std::pair<double, std::string>(mesh->get_time(i), vtuname);
 
-         for (size_t i = 0; i < mesh->length(); i++) {
-            const std::string vtuname = filename + "-" + Utilities::int_to_string(i, 4) + ".vtu";
-            times_and_names[i] = std::pair<double, std::string>(mesh->get_time(i), vtuname);
-
-            task_group += Threads::new_task(&DiscretizedFunction<dim>::write_vtk, *this, name, name_deriv,
-                  path + vtuname, i);
-         }
-
-         task_group.join_all();
-      }
-   } else {
-      for (size_t i = 0; i < mesh->length(); i++) {
-         const std::string vtuname = filename + "-" + Utilities::int_to_string(i, 4) + ".vtu";
-         times_and_names[i] = std::pair<double, std::string>(mesh->get_time(i), vtuname);
-
-         write_vtk(name, name_deriv, path + vtuname, i);
-      }
+      write_vtu(name, name_deriv, path + vtuname, i);
    }
 
    std::ofstream pvd_output(path + filename + ".pvd");
-   AssertThrow(pvd_output, ExcInternalError());
+   AssertThrow(pvd_output, ExcMessage("write_pvd :: output handle invalid"));
 
    DataOutBase::write_pvd_record(pvd_output, times_and_names);
+   deallog << "Wrote " << filename << std::endl;
 }
 
 template<int dim>
-void DiscretizedFunction<dim>::write_vtk(const std::string name, const std::string name_deriv,
+void DiscretizedFunction<dim>::write_vtu(const std::string name, const std::string name_deriv,
       const std::string filename, size_t i) const {
    DataOut<dim> data_out;
 
@@ -895,9 +879,10 @@ void DiscretizedFunction<dim>::write_vtk(const std::string name, const std::stri
    deallog << "Writing " << filename << std::endl;
 
    std::ofstream output(filename.c_str());
-   AssertThrow(output, ExcInternalError());
+   AssertThrow(output, ExcMessage("write_vtk :: output handle invalid"));
 
    data_out.write_vtu(output);
+   deallog << "Wrote " << filename << std::endl;
 }
 
 template<int dim>
@@ -1021,7 +1006,7 @@ template<int dim>
 void DiscretizedFunction<dim>::mpi_send(size_t destination) {
    for (size_t i = 0; i < mesh->length(); i++)
       MPI_Send(&function_coefficients[i][0], function_coefficients[i].size(), MPI_DOUBLE, destination, 1,
-            MPI_COMM_WORLD);
+      MPI_COMM_WORLD);
 
    if (store_derivative) {
       for (size_t i = 0; i < mesh->length(); i++)
@@ -1050,7 +1035,7 @@ void DiscretizedFunction<dim>::mpi_isend(size_t destination, std::vector<MPI_Req
    for (size_t i = 0; i < mesh->length(); i++) {
       reqs.emplace_back();
       MPI_Isend(&function_coefficients[i][0], function_coefficients[i].size(), MPI_DOUBLE, destination, 1,
-            MPI_COMM_WORLD, &reqs[i]);
+      MPI_COMM_WORLD, &reqs[i]);
    }
 
    if (store_derivative) {
