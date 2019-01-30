@@ -2,8 +2,8 @@ FROM debian:jessie
 
 RUN echo "deb http://deb.debian.org/debian jessie-backports main contrib" >> /etc/apt/sources.list
 RUN apt-get update && apt-get upgrade -y
-RUN apt-get install -t jessie-backports cmake make gcc g++ curl git  -y
-RUN apt-get install libopenmpi-dev libtbb-dev openmpi-bin libgtest-dev libmuparser-dev locales -y
+RUN apt-get install libopenmpi-dev libtbb-dev openmpi-bin locales -y
+RUN apt-get install -t jessie-backports cmake make gcc g++ curl git libgtest-dev libmuparser-dev -y
 
 RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
     locale-gen

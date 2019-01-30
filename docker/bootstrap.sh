@@ -4,11 +4,11 @@ echo "** Building & Installing deal.II **"
 cd /root
 git clone https://github.com/dealii/dealii.git
 cd dealii
-git checkout 5ccbabd128ca9e24f470caa22cc00cd1a93b46ef
+git checkout d68d619f14dab0cc4225178165f4c50fd0dd0e21
 mkdir build
 cd build
 cmake .. -DDEAL_II_WITH_MPI=ON -DCMAKE_INSTALL_PREFIX=/usr/local -DDEAL_II_COMPONENT_EXAMPLES=OFF
-make -j2
+make -j8
 make install
 # keep a copy of the configuration log
 cp detailed.log /root/dealii.log
@@ -21,7 +21,7 @@ cd boost_1_62_0
 # deal.II must not find boost, otherwise it will try to link dynamically to it.
 # (therefore putting it in local, and build deal.II first)
 ./bootstrap.sh --prefix=/usr/local
-./b2 -j2
+./b2 -j8
 ./b2 install
 
 echo "** Building & Installing GTest **"
@@ -29,7 +29,7 @@ cd /root
 mkdir gtest
 cd gtest
 cmake /usr/src/gtest
-make -j2
+make -j8
 cp libgtest.a libgtest_main.a /usr/lib/
 
 echo "** Cleaning up **"
