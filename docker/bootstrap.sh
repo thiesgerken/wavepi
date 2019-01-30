@@ -1,15 +1,10 @@
 #!/bin/bash
 
-echo "deb http://deb.debian.org/debian jessie-backports main contrib" >> /etc/apt/sources.list
-apt-get update && apt-get upgrade -y
-apt-get install -t jessie-backports cmake make gcc g++ curl git libgtest-dev libmuparser-dev -y
-apt-get install libopenmpi-dev libtbb-dev openmpi-bin -y
-
 echo "** Building & Installing deal.II **"
 cd /root
 git clone https://github.com/dealii/dealii.git
 cd dealii
-git checkout d68d619f14dab0cc4225178165f4c50fd0dd0e21
+git checkout 5ccbabd128ca9e24f470caa22cc00cd1a93b46ef
 mkdir build
 cd build
 cmake .. -DDEAL_II_WITH_MPI=ON -DCMAKE_INSTALL_PREFIX=/usr/local -DDEAL_II_COMPONENT_EXAMPLES=OFF
