@@ -70,7 +70,8 @@ target_link_libraries(wavepi
                       wavepi_measurements
                       wavepi_forward
                       wavepi_inversion
-                      wavepi_norms)
+                      wavepi_norms
+                      ${Boost_LIBRARIES})
 
 add_custom_command(TARGET wavepi POST_BUILD
                    # COMMAND ${CMAKE_COMMAND} -E remove

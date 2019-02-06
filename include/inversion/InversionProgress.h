@@ -191,7 +191,9 @@ class CtrlCProgressListener : public InversionProgressListener<Param, Sol, Exact
   }
 
   virtual bool progress(InversionProgress<Param, Sol, Exact> state __attribute((unused))) {
-    return this->last_return_value = !abort;
+     this->last_return_value = !abort;
+
+     return this->last_return_value;
   }
 
  private:
@@ -503,7 +505,8 @@ class BoundCheckProgressListener : public InversionProgressListener<DiscretizedF
 
     if (est_max > upper_bound) deallog << "constraint estimate ≤ " << upper_bound << " violated" << std::endl;
 
-    return this->last_return_value = (est_min >= lower_bound && est_max <= upper_bound);
+    this->last_return_value = (est_min >= lower_bound && est_max <= upper_bound);
+    return this->last_return_value;
   }
 
   double get_lower_bound() const { return lower_bound; }
@@ -749,7 +752,10 @@ class WatchdogProgressListener : public InversionProgressListener<Param, Sol, Ex
   }
 
   virtual bool progress(InversionProgress<Param, Sol, Exact> state) {
-    if (state.finished) return this->last_return_value = true;
+    if (state.finished) {
+       this->last_return_value = true;
+       return this->last_return_value;
+    }
 
     if (state.iteration_number == 0) discrepancies.clear();
 
@@ -761,19 +767,22 @@ class WatchdogProgressListener : public InversionProgressListener<Param, Sol, Ex
         discrepancies[discrepancies.size() - 2] < state.current_discrepancy) {
       deallog << "current discrepancy > last discrepancy" << std::endl;
       deallog << "Aborting Iteration!" << std::endl;
-      return this->last_return_value = false;
+      this->last_return_value = false;
+      return this->last_return_value;
     }
 
     if (max_iter > 0 && state.iteration_number >= max_iter) {
       deallog << "Iteration number exceeds maximum iteration count" << std::endl;
       deallog << "Aborting Iteration!" << std::endl;
-      return this->last_return_value = false;
+      this->last_return_value = false;
+      return this->last_return_value;
     }
 
     if (initial_disc_factor > 1 && state.current_discrepancy > initial_disc_factor * discrepancies[0]) {
       deallog << "current discrepancy > " << initial_disc_factor << " ⋅ initial discrepancy" << std::endl;
       deallog << "Aborting Iteration!" << std::endl;
-      return this->last_return_value = false;
+      this->last_return_value = false;
+      return this->last_return_value;
     }
 
     if (disc_slope_percentage > 0 && disc_slope_percentage * discrepancies.size() >= disc_slope_min_values) {
@@ -806,11 +815,13 @@ class WatchdogProgressListener : public InversionProgressListener<Param, Sol, Ex
 
       if (slope > disc_max_slope) {
         deallog << "slope is too large; Aborting Iteration!" << std::endl;
-        return this->last_return_value = false;
+        this->last_return_value = false;
+        return this->last_return_value;
       }
     }
 
-    return this->last_return_value = true;
+    this->last_return_value = true;
+    return this->last_return_value;
   }
 
   bool get_disc_increasing() const { return disc_increasing; }
