@@ -30,6 +30,7 @@
 #include <measurements/CubeBoundaryDistribution.h>
 #include <measurements/DeltaMeasure.h>
 #include <measurements/FieldMeasure.h>
+#include <measurements/MaskedFieldMeasure.h>
 #include <measurements/GridDistribution.h>
 #include <measurements/SensorDistribution.h>
 #include <measurements/SensorValues.h>
@@ -201,8 +202,12 @@ get_measure_meas(3)
     cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM_DATA);                                             \
     cfg->prm->enter_subsection(SettingsManager::KEY_PROBLEM_DATA_I + Utilities::int_to_string(config_idx, 1)); \
     std::shared_ptr<Measure<Param, DiscretizedFunction<D>>> measure;                                           \
-    if (cfg->measures[config_idx] == SettingsManager::Measure::field) {                                        \
+    if (cfg->measures[config_idx] == SettingsManager::Measure::field)                                          \
       measure = std::make_shared<FieldMeasure<D>>(mesh, norm);                                                 \
+    else if (cfg->measures[config_idx] == SettingsManager::Measure::masked_field) {                            \
+      auto mask = std::make_shared<MacroFunctionParser<D>>(cfg->expr_masks[config_idx], cfg->constants_for_exprs); \
+      auto mask_disc = std::make_shared<DiscretizedFunction<D>>(mesh, *mask, norm);                            \
+      measure = std::make_shared<MaskedFieldMeasure<D>>(mesh, norm, mask_disc);                                \
     } else                                                                                                     \
       AssertThrow(false, ExcInternalError());                                                                  \
     cfg->prm->leave_subsection();                                                                              \

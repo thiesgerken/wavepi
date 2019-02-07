@@ -85,6 +85,7 @@ const std::string SettingsManager::KEY_PROBLEM_DATA_RHS                   = "rig
 const std::string SettingsManager::KEY_PROBLEM_DATA_CONFIG                = "configurations";
 const std::string SettingsManager::KEY_PROBLEM_DATA_I                     = "config ";  // + number
 const std::string SettingsManager::KEY_PROBLEM_DATA_I_MEASURE             = "measure";
+const std::string SettingsManager::KEY_PROBLEM_DATA_I_MASK                = "mask";
 const std::string SettingsManager::KEY_PROBLEM_DATA_I_SENSOR_DISTRIBUTION = "sensor distribution";
 
 const std::string SettingsManager::KEY_INVERSION        = "inversion";
@@ -225,11 +226,14 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
         GridDistribution<2>::declare_parameters(*prm);
         CubeBoundaryDistribution<2>::declare_parameters(*prm);
 
-        prm->declare_entry(KEY_PROBLEM_DATA_I_MEASURE, "Field", Patterns::Selection("Field|Convolution|Delta"),
+        prm->declare_entry(KEY_PROBLEM_DATA_I_MEASURE, "Field", Patterns::Selection("Field|MaskedField|Convolution|Delta"),
                            "type of measurements");
 
         prm->declare_entry(KEY_PROBLEM_DATA_I_SENSOR_DISTRIBUTION, "Grid", Patterns::Selection("Grid|CubeBoundary"),
                            "in case of simulated sensors, their location on the mesh");
+
+        prm->declare_entry(KEY_PROBLEM_DATA_I_MASK, "1", Patterns::Anything(),
+                               "in case of MaskedField, the mask function");
 
         prm->leave_subsection();
       }
@@ -453,6 +457,8 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
 
       configs.clear();
       measures.clear();
+      sensor_distributions.clear();
+      expr_masks.clear();
 
       try {
         for (auto is : Utilities::split_string_list(prm->get(KEY_PROBLEM_DATA_CONFIG), ';')) {
@@ -479,6 +485,9 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
         if (measure_desc == "Field") {
           measures.push_back(Measure::field);
           my_measure_type = MeasureType::discretized_function;
+        } else if (measure_desc == "MaskedField") {
+          measures.push_back(Measure::masked_field);
+          my_measure_type = MeasureType::discretized_function;
         } else if (measure_desc == "Convolution") {
           measures.push_back(Measure::convolution);
           my_measure_type = MeasureType::vector;
@@ -501,7 +510,8 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
           AssertThrow(false, ExcMessage("Unknown sensor distribution: " + distrib_desc));
         }
 
-        prm->leave_subsection();
+        expr_masks.push_back(prm->get(KEY_PROBLEM_DATA_I_MASK));
+                    prm->leave_subsection();
       }
 
       for (size_t i = 0; i < num_rhs; i++) {

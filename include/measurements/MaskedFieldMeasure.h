@@ -5,8 +5,8 @@
  *      Author: thies
  */
 
-#ifndef INCLUDE_MEASUREMENTS_FIELDMEASURE_H_
-#define INCLUDE_MEASUREMENTS_FIELDMEASURE_H_
+#ifndef INCLUDE_MEASUREMENTS_MASKEDFIELDMEASURE_H_
+#define INCLUDE_MEASUREMENTS_MASKEDFIELDMEASURE_H_
 
 #include <base/DiscretizedFunction.h>
 #include <base/Norm.h>
@@ -25,27 +25,32 @@ using namespace wavepi::base;
  * This way one can still reconstruct from the whole field even when the rest of the code expects measurement operators.
  */
 template <int dim>
-class FieldMeasure : public Measure<DiscretizedFunction<dim>, DiscretizedFunction<dim>> {
+class MaskedFieldMeasure : public Measure<DiscretizedFunction<dim>, DiscretizedFunction<dim>> {
  public:
-  virtual ~FieldMeasure() = default;
+  virtual ~MaskedFieldMeasure() = default;
 
-  FieldMeasure(std::shared_ptr<SpaceTimeMesh<dim>> mesh, std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm)
-      : mesh(mesh), norm(norm) {
+  MaskedFieldMeasure(std::shared_ptr<SpaceTimeMesh<dim>> mesh, std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm, std::shared_ptr<DiscretizedFunction<dim>> mask)
+      : mesh(mesh), norm(norm) , mask(mask) {
     AssertThrow(mesh && norm, ExcNotInitialized());
   }
 
   virtual DiscretizedFunction<dim> evaluate(const DiscretizedFunction<dim>& field) override {
-    AssertThrow(mesh == field.get_mesh(), ExcMessage("FieldMeasure called with different meshes"));
-    AssertThrow(*norm == *field.get_norm(), ExcMessage("FieldMeasure called with different norms"));
+    AssertThrow(mesh == field.get_mesh(), ExcMessage("MaskedFieldMeasure called with different meshes"));
+    AssertThrow(*norm == *field.get_norm(), ExcMessage("MaskedFieldMeasure called with different norms"));
 
-    return field;
+    auto tmp = field;
+    tmp.pointwise_multiplication(*mask);
+
+    return tmp;
   }
 
   virtual DiscretizedFunction<dim> adjoint(const DiscretizedFunction<dim>& measurements) override {
-    AssertThrow(mesh == measurements.get_mesh(), ExcMessage("FieldMeasure called with different meshes"));
-    AssertThrow(*norm == *measurements.get_norm(), ExcMessage("FieldMeasure called with different norms"));
+    AssertThrow(mesh == measurements.get_mesh(), ExcMessage("MaskedFieldMeasure called with different meshes"));
+    AssertThrow(*norm == *measurements.get_norm(), ExcMessage("MaskedFieldMeasure called with different norms"));
 
-    return measurements;
+    auto tmp = measurements;
+    tmp.pointwise_multiplication(*mask);
+    return tmp;
   }
 
   virtual DiscretizedFunction<dim> zero() override { return DiscretizedFunction<dim>(mesh, norm); }
@@ -53,6 +58,7 @@ class FieldMeasure : public Measure<DiscretizedFunction<dim>, DiscretizedFunctio
  private:
   std::shared_ptr<SpaceTimeMesh<dim>> mesh;
   std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm;
+  std::shared_ptr<DiscretizedFunction<dim>> mask;
 };
 
 }  // namespace measurements
