@@ -421,8 +421,11 @@ void WavePI<dim, Meas>::synthesize_data() {
   LogStream::Prefix p("generate_data");
   LogStream::Prefix pp("run");  // make logs of forward operator appear in the right level
 
+  deallog << "Discretizing exact parameter" << std::endl;
   DiscretizedFunction<dim> param_exact_disc(mesh, *param_exact);
   param_exact_disc.set_norm(norm_domain);
+
+  deallog << "Computing exact data" << std::endl;
   Tuple<Meas> data_exact = problem->forward(param_exact_disc);
 
   double data_exact_norm = data_exact.norm();
