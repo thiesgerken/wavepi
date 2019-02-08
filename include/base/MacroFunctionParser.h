@@ -11,6 +11,7 @@
 #include <base/FunctionParser.h>
 #include <base/LightFunction.h>
 
+#include <math.h>
 #include <map>
 #include <string>
 #include <vector>
@@ -36,10 +37,42 @@ class MacroFunctionParser : public FunctionParser<dim> {
   MacroFunctionParser(const std::string& expression, const std::map<std::string, double>& constants);
   MacroFunctionParser(const std::vector<std::string>& expressions, const std::map<std::string, double>& constants);
 
+  /**
+   * if expression contains a known function name then return a instance of that, otherwise use expression and constants
+   * to create a MacroFunctionParser.
+   */
+  static std::shared_ptr<LightFunction<dim>> parse(const std::string& expression,
+                                                   const std::map<std::string, double>& constants);
+
  private:
   static const std::string norm_replacement;
 
   static std::string replace(const std::string& expr);
+};
+
+template <int dim>
+class RingShapeFunction : public LightFunction<dim> {
+ public:
+  virtual ~RingShapeFunction() = default;
+
+  virtual double evaluate(const Point<dim>& p, const double time) const;
+
+ private:
+  const double radius1 = 0.3;
+  const double radius2 = 0.8;
+};
+
+template <int dim>
+class LShapeDotFunction : public LightFunction<dim> {
+ public:
+  virtual ~LShapeDotFunction() = default;
+
+  virtual double evaluate(const Point<dim>& p, const double time) const;
+
+ private:
+  const double dot_radius    = 0.3;
+  const double l_width       = 0.3;
+  const double boundary_dist = 0.2;
 };
 
 }  // namespace base

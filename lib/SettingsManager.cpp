@@ -125,7 +125,7 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
 
   prm->enter_subsection(KEY_MESH);
   {
-    prm->declare_entry(KEY_MESH_END_TIME, "6", Patterns::Double(0), "time horizon T");
+    prm->declare_entry(KEY_MESH_END_TIME, "6.28318530718", Patterns::Double(0), "time horizon T");
     prm->declare_entry(KEY_MESH_INITIAL_REFINES, "5", Patterns::Integer(0), "refines of the (initial) spatial grid");
     prm->declare_entry(KEY_MESH_INITIAL_TIME_STEPS, "256", Patterns::Integer(2), "(initial) number of time steps");
 
@@ -145,8 +145,7 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
 
   prm->enter_subsection(KEY_PROBLEM);
   {
-    prm->declare_entry(KEY_PROBLEM_TYPE, "rho", Patterns::Selection("c|nu|rho|q|L2C|L2Nu|L2Rho|L2Q"),
-                       "parameter that is reconstructed");
+    prm->declare_entry(KEY_PROBLEM_TYPE, "rho", Patterns::Selection("c|nu|rho|q"), "parameter that is reconstructed");
 
     prm->declare_entry(KEY_PROBLEM_TRANSFORM, "Identity", Patterns::Selection("Identity|Log"),
                        "transformation to apply to the parameter (e.g. to get rid of constraints)");
@@ -216,7 +215,7 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
       prm->declare_entry(KEY_PROBLEM_DATA_CONFIG, "0", Patterns::Anything(),
                          "configuration to use for which right hand side, "
                          "separated by semicolons");
-      prm->declare_entry(KEY_PROBLEM_DATA_RHS, "if(norm{x|y|z} < 0.2, sin(t), 0.0)", Patterns::Anything(),
+      prm->declare_entry(KEY_PROBLEM_DATA_RHS, "if(norm{x|y|z} < 0.1, sin(2*t), 0.0)", Patterns::Anything(),
                          "right hand sides, separated by semicolons");
 
       for (size_t i = 0; i < num_configurations; i++) {
@@ -226,14 +225,14 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
         GridDistribution<2>::declare_parameters(*prm);
         CubeBoundaryDistribution<2>::declare_parameters(*prm);
 
-        prm->declare_entry(KEY_PROBLEM_DATA_I_MEASURE, "Field", Patterns::Selection("Field|MaskedField|Convolution|Delta"),
-                           "type of measurements");
+        prm->declare_entry(KEY_PROBLEM_DATA_I_MEASURE, "Field",
+                           Patterns::Selection("Field|MaskedField|Convolution|Delta"), "type of measurements");
 
         prm->declare_entry(KEY_PROBLEM_DATA_I_SENSOR_DISTRIBUTION, "Grid", Patterns::Selection("Grid|CubeBoundary"),
                            "in case of simulated sensors, their location on the mesh");
 
         prm->declare_entry(KEY_PROBLEM_DATA_I_MASK, "1", Patterns::Anything(),
-                               "in case of MaskedField, the mask function");
+                           "in case of MaskedField, the mask function");
 
         prm->leave_subsection();
       }
@@ -399,33 +398,16 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
 
     std::string problem = prm->get(KEY_PROBLEM_TYPE);
 
-    if (problem == "L2Rho" || problem == "rho")
+    if (problem == "rho")
       problem_type = ProblemType::rho;
-    else if (problem == "L2Q" || problem == "q")
+    else if (problem == "q")
       problem_type = ProblemType::q;
-    else if (problem == "L2Nu" || problem == "nu")
+    else if (problem == "nu")
       problem_type = ProblemType::nu;
-    else if (problem == "L2C" || problem == "c")
+    else if (problem == "c")
       problem_type = ProblemType::c;
     else
-      AssertThrow(false, ExcInternalError());
-
-    if (problem[0] == 'L' && problem[1] == '2') {
-      std::cerr << "Warning: problem_type == '" << problem
-                << "' is deprecated, spaces are set through norm_domain and "
-                   "norm_codomain!"
-                << std::endl;
-
-      // change setting so that rewrite of configs yields new format
-      if (problem == "L2Rho")
-        prm->set(KEY_PROBLEM_TYPE, "rho");
-      else if (problem == "L2Q")
-        prm->set(KEY_PROBLEM_TYPE, "q");
-      else if (problem == "L2Nu")
-        prm->set(KEY_PROBLEM_TYPE, "nu");
-      else if (problem == "L2C")
-        prm->set(KEY_PROBLEM_TYPE, "c");
-    }
+      AssertThrow(false, ExcMessage("unknown problem type"));
 
     std::string constants_list            = prm->get(KEY_PROBLEM_CONSTANTS);
     std::vector<std::string> const_listed = Utilities::split_string_list(constants_list, ',');
@@ -441,7 +423,7 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
     }
 
     expr_initial_guess    = prm->get(KEY_PROBLEM_GUESS);
-    expr_param_rho          = prm->get(KEY_PROBLEM_PARAM_RHO);
+    expr_param_rho        = prm->get(KEY_PROBLEM_PARAM_RHO);
     expr_param_nu         = prm->get(KEY_PROBLEM_PARAM_NU);
     expr_param_c          = prm->get(KEY_PROBLEM_PARAM_C);
     expr_param_q          = prm->get(KEY_PROBLEM_PARAM_Q);
@@ -511,7 +493,7 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
         }
 
         expr_masks.push_back(prm->get(KEY_PROBLEM_DATA_I_MASK));
-                    prm->leave_subsection();
+        prm->leave_subsection();
       }
 
       for (size_t i = 0; i < num_rhs; i++) {

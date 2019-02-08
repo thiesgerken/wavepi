@@ -75,13 +75,13 @@ class WavePI {
   std::shared_ptr<LightFunction<dim>> param_exact;
   std::shared_ptr<LightFunction<dim>> param_exact_untransformed;
 
-  std::shared_ptr<MacroFunctionParser<dim>> initial_guess;
-  std::shared_ptr<MacroFunctionParser<dim>> param_q;
-  std::shared_ptr<MacroFunctionParser<dim>> param_nu;
-  std::shared_ptr<MacroFunctionParser<dim>> param_rho;
-  std::shared_ptr<MacroFunctionParser<dim>> param_c;
+  std::shared_ptr<LightFunction<dim>> initial_guess;
+  std::shared_ptr<LightFunction<dim>> param_q;
+  std::shared_ptr<LightFunction<dim>> param_nu;
+  std::shared_ptr<LightFunction<dim>> param_rho;
+  std::shared_ptr<LightFunction<dim>> param_c;
 
-  std::shared_ptr<MacroFunctionParser<dim>> param_background;
+  std::shared_ptr<LightFunction<dim>> param_background;
 
   std::vector<std::shared_ptr<Function<dim>>> pulses;
 
