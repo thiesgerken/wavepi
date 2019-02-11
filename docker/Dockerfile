@@ -10,5 +10,12 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en  
 ENV LC_ALL en_US.UTF-8     
 
-ADD bootstrap.sh /root/bootstrap.sh
-RUN bash /root/bootstrap.sh
+# deal.II must not find shared boost library, otherwise it will try to link dynamically to it!
+ADD boost.sh /root/boost.sh
+RUN bash /root/boost.sh
+
+ADD dealII.sh /root/dealII.sh
+RUN bash /root/dealII.sh
+
+ADD gtest.sh /root/gtest.sh
+RUN bash /root/gtest.sh

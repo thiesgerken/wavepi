@@ -42,7 +42,7 @@ class MacroFunctionParser : public FunctionParser<dim> {
    * to create a MacroFunctionParser.
    */
   static std::shared_ptr<LightFunction<dim>> parse(const std::string& expression,
-                                                   const std::map<std::string, double>& constants);
+                                                   const std::map<std::string, double>& constants, double shape_scale);
 
  private:
   static const std::string norm_replacement;
@@ -54,10 +54,13 @@ template <int dim>
 class RingShapeFunction : public LightFunction<dim> {
  public:
   virtual ~RingShapeFunction() = default;
+  RingShapeFunction(double shape_scale) : shape_scale(shape_scale) {}
 
   virtual double evaluate(const Point<dim>& p, const double time) const;
 
  private:
+  double shape_scale;
+
   const double radius1 = 0.3;
   const double radius2 = 0.8;
 };
@@ -66,11 +69,14 @@ template <int dim>
 class LShapeDotFunction : public LightFunction<dim> {
  public:
   virtual ~LShapeDotFunction() = default;
+  LShapeDotFunction(double shape_scale) : shape_scale(shape_scale) {}
 
   virtual double evaluate(const Point<dim>& p, const double time) const;
 
  private:
-  const double dot_radius    = 0.3;
+  double shape_scale;
+
+  const double dot_radius    = 0.45;
   const double l_width       = 0.3;
   const double boundary_dist = 0.2;
 };

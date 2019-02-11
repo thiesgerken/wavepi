@@ -49,11 +49,12 @@ const std::string MacroFunctionParser<3>::norm_replacement = "sqrt(pow($1,2)+pow
 
 template <int dim>
 std::shared_ptr<LightFunction<dim>> MacroFunctionParser<dim>::parse(const std::string& expression,
-                                                                    const std::map<std::string, double>& constants) {
+                                                                    const std::map<std::string, double>& constants,
+                                                                    double shape_scale) {
   if (expression == "MovingRingSegment") {
-    return std::make_shared<RingShapeFunction<dim>>();
+    return std::make_shared<RingShapeFunction<dim>>(shape_scale);
   } else if (expression == "PulsingLDot") {
-    return std::make_shared<LShapeDotFunction<dim>>();
+    return std::make_shared<LShapeDotFunction<dim>>(shape_scale);
   } else
     return std::make_shared<MacroFunctionParser<dim>>(expression, constants);
 }
@@ -70,13 +71,15 @@ double RingShapeFunction<2>::evaluate(const Point<2>& p, const double time) cons
   if (r < radius1 || r > radius2) return 0.0;
 
   double phi = atan2(p[1], p[0]);
-  // todo: not working (change in 3D as well)
   if (phi < 0) phi += 2 * M_PI;
 
-  double tm = fmod(time, 2.0 * M_PI);
+  double tm  = fmod(time, 2.0 * M_PI);
+  double tm2 = fmod(time + M_PI / 2.0, 2.0 * M_PI);
 
   if (phi >= tm && phi <= tm + M_PI / 2.0)
-    return 1.0;
+    return shape_scale;
+  else if (tm2 < tm && phi <= tm2)
+    return shape_scale;
   else
     return 0.0;
 }
@@ -87,10 +90,15 @@ double RingShapeFunction<3>::evaluate(const Point<3>& p, const double time) cons
   if (r < radius1 || r > radius2) return 0.0;
 
   double phi = atan2(p[1], p[0]);
+  if (phi < 0) phi += 2 * M_PI;
+
   double tm  = fmod(time, 2.0 * M_PI);
+  double tm2 = fmod(time + M_PI / 2.0, 2.0 * M_PI);
 
   if (phi >= tm && phi <= tm + M_PI / 2.0)
-    return 1.0;
+    return shape_scale;
+  else if (tm2 < tm && phi <= tm2)
+    return shape_scale;
   else
     return 0.0;
 }
@@ -105,33 +113,32 @@ template <>
 double LShapeDotFunction<2>::evaluate(const Point<2>& p, const double time) const {
   double value = 0.0;
 
-  double dist_dot_sq = (p[0] - boundary_dist - dot_radius) * (p[0] - boundary_dist - dot_radius) +
-                       (p[1] - boundary_dist - dot_radius) * (p[1] - boundary_dist - dot_radius);
+  double dist_dot_sq = (p[0] - (1 - boundary_dist - dot_radius)) * (p[0] - (1 - boundary_dist - dot_radius)) +
+                       (p[1] - (1 - boundary_dist - dot_radius)) * (p[1] - (1 - boundary_dist - dot_radius));
 
-  if (dist_dot_sq <= dot_radius * dot_radius) value -= dist_dot_sq / (dot_radius * dot_radius);
+  if (dist_dot_sq <= dot_radius * dot_radius) value -= 1.0 - dist_dot_sq / (dot_radius * dot_radius);
 
   if (p[0] >= -1.0 + boundary_dist && p[0] <= 1.0 - boundary_dist && p[1] >= -1.0 + boundary_dist &&
       p[1] <= -1.0 + boundary_dist + l_width)
     value += 1.0;
-  else if (p[0] >= -1.0 + boundary_dist && p[0] <= 1.0 - boundary_dist && p[1] >= -1.0 + boundary_dist &&
-           p[1] <= -1.0 + boundary_dist + l_width)
+  else if (p[1] >= -1.0 + boundary_dist && p[1] <= 1.0 - boundary_dist && p[0] >= -1.0 + boundary_dist &&
+           p[0] <= -1.0 + boundary_dist + l_width)
     value += 1.0;
 
   if (value == 0.0) return 0.0;
-  value *= 0.2 + 0.8 * abs(sin(time / 2));  // C^infty in [0, 2pi], but not if periodically extended.
-
-  return value;
+  value *= 0.2 + 0.8 * sin(time) * sin(time);
+  return shape_scale * value;
 }
 
 template <>
 double LShapeDotFunction<3>::evaluate(const Point<3>& p, const double time) const {
   double value = 0.0;
 
-  double dist_dot_sq = (p[0] - boundary_dist - dot_radius) * (p[0] - boundary_dist - dot_radius) +
-                       (p[1] - boundary_dist - dot_radius) * (p[1] - boundary_dist - dot_radius) +
-                       (p[2] - boundary_dist - dot_radius) * (p[2] - boundary_dist - dot_radius);
+  double dist_dot_sq = (p[0] - (1 - boundary_dist - dot_radius)) * (p[0] - (1 - boundary_dist - dot_radius)) +
+                       (p[1] - (1 - boundary_dist - dot_radius)) * (p[1] - (1 - boundary_dist - dot_radius)) +
+                       (p[2] - (1 - boundary_dist - dot_radius)) * (p[2] - (1 - boundary_dist - dot_radius));
 
-  if (dist_dot_sq <= dot_radius * dot_radius) value -= dist_dot_sq / (dot_radius * dot_radius);
+  if (dist_dot_sq <= dot_radius * dot_radius) value -= 1.0 - dist_dot_sq / (dot_radius * dot_radius);
 
   if (p[0] >= -1.0 + boundary_dist && p[0] <= 1.0 - boundary_dist && p[1] >= -1.0 + boundary_dist &&
       p[1] <= 1.0 - boundary_dist && p[2] >= -1.0 + boundary_dist && p[2] <= -1.0 + boundary_dist + l_width)
@@ -144,9 +151,9 @@ double LShapeDotFunction<3>::evaluate(const Point<3>& p, const double time) cons
     value += 1.0;
 
   if (value == 0.0) return 0.0;
-  value *= 0.2 + 0.8 * sin(time / 2);
+  value *= 0.2 + 0.8 * sin(time) * sin(time);
 
-  return value;
+  return shape_scale * value;
 }
 
 template class RingShapeFunction<1>;

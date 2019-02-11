@@ -76,6 +76,7 @@ const std::string SettingsManager::KEY_PROBLEM_PARAM_Q          = "parameter q";
 const std::string SettingsManager::KEY_PROBLEM_PARAM_C          = "parameter c";
 const std::string SettingsManager::KEY_PROBLEM_PARAM_NU         = "parameter nu";
 const std::string SettingsManager::KEY_PROBLEM_PARAM_BACKGROUND = "background parameter";
+const std::string SettingsManager::KEY_PROBLEM_SHAPE_SCALE      = "shape scaling";
 
 const std::string SettingsManager::KEY_PROBLEM_DATA                       = "data";
 const std::string SettingsManager::KEY_PROBLEM_DATA_ADDITIONAL_REFINES    = "additional refines";
@@ -201,6 +202,8 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
     prm->declare_entry(KEY_PROBLEM_PARAM_NU, "0.0", Patterns::Anything(), "parameter ν");
     prm->declare_entry(KEY_PROBLEM_PARAM_BACKGROUND, "0.0", Patterns::Anything(),
                        "background parameter (added to all arguments of the forward operator, including exact data)");
+    prm->declare_entry(KEY_PROBLEM_SHAPE_SCALE, "1.0", Patterns::Double(0),
+                       "scaling parameter applied to all shapes that are used");
 
     prm->enter_subsection(KEY_PROBLEM_DATA);
     {
@@ -428,6 +431,8 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
     expr_param_c          = prm->get(KEY_PROBLEM_PARAM_C);
     expr_param_q          = prm->get(KEY_PROBLEM_PARAM_Q);
     expr_param_background = prm->get(KEY_PROBLEM_PARAM_BACKGROUND);
+
+    shape_scale = prm->get_double(KEY_PROBLEM_SHAPE_SCALE);
 
     prm->enter_subsection(KEY_PROBLEM_DATA);
     {

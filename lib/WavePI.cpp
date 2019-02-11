@@ -120,10 +120,10 @@ WavePI<dim, Meas>::WavePI(std::shared_ptr<SettingsManager> cfg) : cfg(cfg) {
 
   initial_guess = std::make_shared<MacroFunctionParser<dim>>(cfg->expr_initial_guess, cfg->constants_for_exprs);
 
-  param_rho = MacroFunctionParser<dim>::parse(cfg->expr_param_rho, cfg->constants_for_exprs);
-  param_nu  = MacroFunctionParser<dim>::parse(cfg->expr_param_nu, cfg->constants_for_exprs);
-  param_c   = MacroFunctionParser<dim>::parse(cfg->expr_param_c, cfg->constants_for_exprs);
-  param_q   = MacroFunctionParser<dim>::parse(cfg->expr_param_q, cfg->constants_for_exprs);
+  param_rho = MacroFunctionParser<dim>::parse(cfg->expr_param_rho, cfg->constants_for_exprs, cfg->shape_scale);
+  param_nu  = MacroFunctionParser<dim>::parse(cfg->expr_param_nu, cfg->constants_for_exprs, cfg->shape_scale);
+  param_c   = MacroFunctionParser<dim>::parse(cfg->expr_param_c, cfg->constants_for_exprs, cfg->shape_scale);
+  param_q   = MacroFunctionParser<dim>::parse(cfg->expr_param_q, cfg->constants_for_exprs, cfg->shape_scale);
 
   param_background = std::make_shared<MacroFunctionParser<dim>>(cfg->expr_param_background, cfg->constants_for_exprs);
 }
@@ -355,6 +355,7 @@ void WavePI<dim, Meas>::initialize_problem() {
 
   wave_eq = std::make_shared<WaveEquation<dim>>(mesh);
 
+  // (the exact parameter is inserted later again as a discretized variant)
   wave_eq->set_param_rho(param_rho);
   wave_eq->set_param_c(param_c);
   wave_eq->set_param_q(param_q);
