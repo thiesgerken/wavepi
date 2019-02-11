@@ -193,9 +193,9 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
                        "constants for the function declarations,\nin the form "
                        "`var1=value1, var2=value2, ...`.");
 
-    prm->declare_entry(KEY_PROBLEM_GUESS, "0.5", Patterns::Anything(), "initial guess");
+    prm->declare_entry(KEY_PROBLEM_GUESS, "0.0", Patterns::Anything(), "initial guess");
 
-    prm->declare_entry(KEY_PROBLEM_PARAM_RHO, "1.0", Patterns::Anything(), "parameter ρ");
+    prm->declare_entry(KEY_PROBLEM_PARAM_RHO, "2.0", Patterns::Anything(), "parameter ρ");
     prm->declare_entry(KEY_PROBLEM_PARAM_Q, "0.0", Patterns::Anything(), "parameter q");
     prm->declare_entry(KEY_PROBLEM_PARAM_C, "2.0", Patterns::Anything(), "parameter c");
     prm->declare_entry(KEY_PROBLEM_PARAM_NU, "0.0", Patterns::Anything(), "parameter ν");
@@ -215,8 +215,8 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
       prm->declare_entry(KEY_PROBLEM_DATA_CONFIG, "0", Patterns::Anything(),
                          "configuration to use for which right hand side, "
                          "separated by semicolons");
-      prm->declare_entry(KEY_PROBLEM_DATA_RHS, "if(norm{x|y|z} < 0.1, sin(2*t), 0.0)", Patterns::Anything(),
-                         "right hand sides, separated by semicolons");
+      prm->declare_entry(KEY_PROBLEM_DATA_RHS, "if(t<3.14, if(norm{x|y|z} < 0.1, sin(2*t), 0.0), 0.0)",
+                         Patterns::Anything(), "right hand sides, separated by semicolons");
 
       for (size_t i = 0; i < num_configurations; i++) {
         prm->enter_subsection(KEY_PROBLEM_DATA_I + Utilities::int_to_string(i, 1));

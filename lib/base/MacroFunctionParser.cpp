@@ -70,7 +70,10 @@ double RingShapeFunction<2>::evaluate(const Point<2>& p, const double time) cons
   if (r < radius1 || r > radius2) return 0.0;
 
   double phi = atan2(p[1], p[0]);
-  double tm  = fmod(time, 2.0 * M_PI);
+  // todo: not working (change in 3D as well)
+  if (phi < 0) phi += 2 * M_PI;
+
+  double tm = fmod(time, 2.0 * M_PI);
 
   if (phi >= tm && phi <= tm + M_PI / 2.0)
     return 1.0;

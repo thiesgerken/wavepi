@@ -50,9 +50,9 @@ string(REPLACE "-O3"
                CMAKE_CXX_FLAGS_RELEASE
                "${CMAKE_CXX_FLAGS_RELEASE}")
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -Wall")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -Wall -fPIC")
 set(CMAKE_CXX_FLAGS_RELEASE
-    "${CMAKE_CXX_FLAGS_RELEASE} -O3 -s -Wall -Wno-unused-parameter")
+    "${CMAKE_CXX_FLAGS_RELEASE} -O3 -s -Wall -Wno-unused-parameter -fPIC")
 set(CMAKE_CXX_STANDARD 14)
 
 string(REPLACE "-O2"
