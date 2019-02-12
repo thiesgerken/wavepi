@@ -127,7 +127,7 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
   prm->enter_subsection(KEY_MESH);
   {
     prm->declare_entry(KEY_MESH_END_TIME, "6.28318530718", Patterns::Double(0), "time horizon T");
-    prm->declare_entry(KEY_MESH_INITIAL_REFINES, "5", Patterns::Integer(0), "refines of the (initial) spatial grid");
+    prm->declare_entry(KEY_MESH_INITIAL_REFINES, "6", Patterns::Integer(0), "refines of the (initial) spatial grid");
     prm->declare_entry(KEY_MESH_INITIAL_TIME_STEPS, "256", Patterns::Integer(2), "(initial) number of time steps");
 
     prm->enter_subsection(KEY_MESH_SHAPE);
@@ -196,7 +196,7 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
 
     prm->declare_entry(KEY_PROBLEM_GUESS, "0.0", Patterns::Anything(), "initial guess");
 
-    prm->declare_entry(KEY_PROBLEM_PARAM_RHO, "2.0", Patterns::Anything(), "parameter ρ");
+    prm->declare_entry(KEY_PROBLEM_PARAM_RHO, "1.0", Patterns::Anything(), "parameter ρ");
     prm->declare_entry(KEY_PROBLEM_PARAM_Q, "0.0", Patterns::Anything(), "parameter q");
     prm->declare_entry(KEY_PROBLEM_PARAM_C, "2.0", Patterns::Anything(), "parameter c");
     prm->declare_entry(KEY_PROBLEM_PARAM_NU, "0.0", Patterns::Anything(), "parameter ν");
