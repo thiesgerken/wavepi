@@ -149,8 +149,9 @@ class GenericInversionProgressListener : public InversionProgressListener<Param,
 
   virtual bool progress(InversionProgress<Param, Sol, Exact> state) {
     if (!state.finished) {
-      deallog << counter_variable << "=" << std::left << std::setfill(' ') << std::setprecision(2) << state.iteration_number
-              << ": rdisc=" << std::setprecision(5) << state.current_discrepancy / state.norm_data;
+      deallog << counter_variable << "=" << std::left << std::setfill(' ') << std::setprecision(2)
+              << state.iteration_number << ": rdisc=" << std::setprecision(5)
+              << state.current_discrepancy / state.norm_data;
 
       if (state.norm_exact_param > 0.0) {
         deallog << ", rnorm=" << std::setprecision(5) << state.norm_current_estimate / state.norm_exact_param
@@ -191,9 +192,9 @@ class CtrlCProgressListener : public InversionProgressListener<Param, Sol, Exact
   }
 
   virtual bool progress(InversionProgress<Param, Sol, Exact> state __attribute((unused))) {
-     this->last_return_value = !abort;
+    this->last_return_value = !abort;
 
-     return this->last_return_value;
+    return this->last_return_value;
   }
 
  private:
@@ -614,9 +615,9 @@ class StatOutputProgressListener : public InversionProgressListener<Param, Sol, 
     csv_file << std::endl;
     csv_file.close();
 
-    std::string cmd = "cat " + file_prefix + ".gplot | gnuplot > /dev/null 2>&1";
-    if (std::system(cmd.c_str()) != 0 && state.iteration_number > 0)
-      deallog << "gnuplot exited with status code != 0 " << std::endl;
+    // std::string cmd = "cat " + file_prefix + ".gplot | gnuplot > /dev/null 2>&1";
+    // if (std::system(cmd.c_str()) != 0 && state.iteration_number > 0)
+    //   deallog << "gnuplot exited with status code != 0 " << std::endl;
 
     return true;
   }
@@ -753,8 +754,8 @@ class WatchdogProgressListener : public InversionProgressListener<Param, Sol, Ex
 
   virtual bool progress(InversionProgress<Param, Sol, Exact> state) {
     if (state.finished) {
-       this->last_return_value = true;
-       return this->last_return_value;
+      this->last_return_value = true;
+      return this->last_return_value;
     }
 
     if (state.iteration_number == 0) discrepancies.clear();
