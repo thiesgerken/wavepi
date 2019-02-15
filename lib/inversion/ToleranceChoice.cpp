@@ -64,35 +64,35 @@ void ToleranceChoice::add_iteration(double new_discrepancy, int steps) {
     return;
   }
 
-  if (csv_file.tellp() == 0) {
-    csv_file << "Tolerance,Required Steps" << std::endl;
-
-    std::ofstream gplot_file(tolerance_prefix + ".gplot", std::ios::out | std::ios::trunc);
-
-    if (gplot_file) {
-      gplot_file << "set xlabel 'Iteration'" << std::endl;
-      gplot_file << "set grid" << std::endl;
-      gplot_file << "set term png size 1200,500" << std::endl;
-      gplot_file << "set output '" << tolerance_prefix << ".png'" << std::endl;
-      gplot_file << "set datafile separator ','" << std::endl;
-      gplot_file << "set key outside" << std::endl;
-
-      gplot_file << "plot for [col=1:2] '" << tolerance_prefix
-                 << ".csv' using 0:col with linespoints title columnheader" << std::endl;
-
-      gplot_file << "set term svg size 1200,500 name 'REGINN'" << std::endl;
-      gplot_file << "set output '" << tolerance_prefix << ".svg'" << std::endl;
-      gplot_file << "replot" << std::endl;
-    } else
-      deallog << "Could not open " + tolerance_prefix + ".gplot" + " for output!" << std::endl;
-  }
+  if (csv_file.tellp() == 0) csv_file << "Tolerance,Required Steps" << std::endl;
 
   csv_file << previous_tolerances[previous_tolerances.size() - 1] << "," << required_steps[required_steps.size() - 1];
   csv_file << std::endl;
   csv_file.close();
 
-  std::string cmd = "cat " + tolerance_prefix + ".gplot | gnuplot > /dev/null 2>&1";
-  if (std::system(cmd.c_str()) != 0) deallog << "gnuplot exited with status code != 0 " << std::endl;
+  std::ofstream gplot_file(tolerance_prefix + ".gplot", std::ios::out | std::ios::trunc);
+
+  if (gplot_file) {
+    gplot_file << "set xlabel 'Iteration'" << std::endl;
+    gplot_file << "set grid" << std::endl;
+    gplot_file << "set term png size 1200,500" << std::endl;
+    gplot_file << "set output '" << tolerance_prefix << ".png'" << std::endl;
+    gplot_file << "set datafile separator ','" << std::endl;
+    gplot_file << "set key outside" << std::endl;
+
+    gplot_file << "plot for [col=1:2] '" << tolerance_prefix << ".csv' using 0:col with linespoints title columnheader"
+               << std::endl;
+
+    gplot_file << "set term svg size 1200,500 name 'REGINN'" << std::endl;
+    gplot_file << "set output '" << tolerance_prefix << ".svg'" << std::endl;
+    gplot_file << "replot" << std::endl;
+
+    gplot_file.close();
+
+    std::string cmd = "cat " + tolerance_prefix + ".gplot | gnuplot > /dev/null 2>&1";
+    if (std::system(cmd.c_str()) != 0) deallog << "gnuplot exited with status code != 0 " << std::endl;
+  } else
+    deallog << "Could not open " + tolerance_prefix + ".gplot" + " for output!" << std::endl;
 }
 
 }  // namespace inversion

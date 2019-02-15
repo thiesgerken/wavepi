@@ -562,48 +562,13 @@ class StatOutputProgressListener : public InversionProgressListener<Param, Sol, 
       return true;
     }
 
+    int num_cols = state.norm_exact_param > 0 ? 4 : 3;
+
     if (csv_file.tellp() == 0) {
-      int num_cols;
-
-      if (state.norm_exact_param > 0) {
+      if (state.norm_exact_param > 0)
         csv_file << "Iteration,rel. Discrepancy,rel. Norm,rel. Error" << std::endl;
-        num_cols = 4;
-      } else {
+      else
         csv_file << "Iteration,rel. Discrepancy,Norm" << std::endl;
-        num_cols = 3;
-      }
-
-      std::ofstream gplot_file(file_prefix + ".gplot", std::ios::out | std::ios::trunc);
-
-      if (gplot_file) {
-        int w = 1600;
-        int h = 700;
-
-        gplot_file << "set term png size " << w << "," << h << std::endl;
-        gplot_file << "set output '" << file_prefix << ".png'" << std::endl;
-        gplot_file << "set grid" << std::endl;
-        gplot_file << "set datafile separator ','" << std::endl;
-
-        gplot_file << "stats '" << file_prefix << ".csv' using 1 name 'x' nooutput" << std::endl;
-        gplot_file << "stats '" << file_prefix << ".csv' using 2 name 'y' nooutput" << std::endl;
-
-        gplot_file << "set xtics ceil(x_max/20)" << std::endl;
-        gplot_file << "set ytics ceil(y_max/15 * 10)/10.0" << std::endl;
-
-        gplot_file << "set yrange [0:*]" << std::endl;
-        gplot_file << "set xrange [0:*]" << std::endl;
-
-        gplot_file << "set key outside" << std::endl;
-        gplot_file << "set xlabel 'Iteration'" << std::endl;
-
-        gplot_file << "plot for [col=2:" << num_cols << "] '" << file_prefix
-                   << ".csv' using 1:col with linespoints title columnheader" << std::endl;
-
-        gplot_file << "set term svg size " << w << "," << h << " name 'History'" << std::endl;
-        gplot_file << "set output '" << file_prefix << ".svg'" << std::endl;
-        gplot_file << "replot" << std::endl;
-      } else
-        deallog << "Could not open " + file_prefix + ".gplot" + " for output!" << std::endl;
     }
 
     double norm_exact_param = state.norm_exact_param > 0 ? state.norm_exact_param : 1.0;
@@ -615,9 +580,43 @@ class StatOutputProgressListener : public InversionProgressListener<Param, Sol, 
     csv_file << std::endl;
     csv_file.close();
 
-    // std::string cmd = "cat " + file_prefix + ".gplot | gnuplot > /dev/null 2>&1";
-    // if (std::system(cmd.c_str()) != 0 && state.iteration_number > 0)
-    //   deallog << "gnuplot exited with status code != 0 " << std::endl;
+    std::ofstream gplot_file(file_prefix + ".gplot", std::ios::out | std::ios::trunc);
+
+    if (gplot_file) {
+      int w = 1600;
+      int h = 700;
+
+      gplot_file << "set term png size " << w << "," << h << std::endl;
+      gplot_file << "set output '" << file_prefix << ".png'" << std::endl;
+      gplot_file << "set grid" << std::endl;
+      gplot_file << "set datafile separator ','" << std::endl;
+
+      gplot_file << "stats '" << file_prefix << ".csv' using 1 name 'x' nooutput" << std::endl;
+      gplot_file << "stats '" << file_prefix << ".csv' using 2 name 'y' nooutput" << std::endl;
+
+      gplot_file << "set xtics ceil(x_max/20)" << std::endl;
+      gplot_file << "set ytics ceil(y_max/15 * 10)/10.0" << std::endl;
+
+      gplot_file << "set yrange [0:*]" << std::endl;
+      gplot_file << "set xrange [0:*]" << std::endl;
+
+      gplot_file << "set key outside" << std::endl;
+      gplot_file << "set xlabel 'Iteration'" << std::endl;
+
+      gplot_file << "plot for [col=2:" << num_cols << "] '" << file_prefix
+                 << ".csv' using 1:col with linespoints title columnheader" << std::endl;
+
+      gplot_file << "set term svg size " << w << "," << h << " name 'History'" << std::endl;
+      gplot_file << "set output '" << file_prefix << ".svg'" << std::endl;
+      gplot_file << "replot" << std::endl;
+
+      gplot_file.close();
+
+      std::string cmd = "cat " + file_prefix + ".gplot | gnuplot > /dev/null 2>&1";
+      if (state.iteration_number > 0 && std::system(cmd.c_str()) != 0)
+        deallog << "gnuplot exited with status code != 0 " << std::endl;
+    } else
+      deallog << "Could not open " + file_prefix + ".gplot" + " for output!" << std::endl;
 
     return true;
   }
