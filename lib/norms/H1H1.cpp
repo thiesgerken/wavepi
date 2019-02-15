@@ -274,12 +274,12 @@ void H1H1<dim>::dot_mult_mass_and_transform_inverse(DiscretizedFunction<dim>& u)
 
 template <int dim>
 std::string H1H1<dim>::name() const {
-  return "H¹([0, T], H¹(Ω))";
+  return "H¹([0,T], H¹(Ω))";
 }
 
 template <int dim>
 std::string H1H1<dim>::unique_id() const {
-  return "H¹([0, T], H¹(Ω)) with ɣ=" + std::to_string(gamma_) + ", α=" + std::to_string(alpha_);
+  return "H¹([0,T], H¹(Ω)) with ɣ=" + std::to_string(gamma_) + ", α=" + std::to_string(alpha_);
 }
 
 template class H1H1<1>;

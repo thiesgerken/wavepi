@@ -53,7 +53,7 @@ protected:
    }
 
    virtual DiscretizedFunction<dim> forward(size_t i) {
-      this->wave_equation.set_param_q(this->current_param);
+      this->wave_equation.set_param_nu(this->current_param);
 
       DiscretizedFunction<dim> res = this->wave_equation.run(
             std::make_shared<L2RightHandSide<dim>>(this->right_hand_sides[i]), WaveEquation<dim>::Forward);
