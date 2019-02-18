@@ -356,7 +356,7 @@ void WavePI<dim, Meas>::initialize_problem() {
   wave_eq = std::make_shared<WaveEquation<dim>>(mesh);
 
   // (the exact parameter is inserted later again as a discretized variant)
-  wave_eq->set_param_rho(param_rho);
+  wave_eq->set_param_rho(param_rho, cfg->rho_dynamic);
   wave_eq->set_param_c(param_c);
   wave_eq->set_param_q(param_q);
   wave_eq->set_param_nu(param_nu);
