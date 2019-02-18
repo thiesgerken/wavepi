@@ -127,7 +127,7 @@ protected:
 
    // before mesh change, let dst <- (D^n)^{-1} D^{n-1} M^{-1} src
    // ( i.e. dst <- src for time-independent D)
-   virtual void vmult_D_intermediate(const SparseMatrix<double> &mass_matrix, Vector<double>& dst, const Vector<double>& src) const = 0;
+   virtual void vmult_D_intermediate(const SparseMatrix<double> &mass_matrix, Vector<double>& dst, const Vector<double>& src, double tolerance) const = 0;
 
    // before mesh change, let dst <- (D^n)^{-1} C^{n-1} src
    // ( i.e. dst <- matrix_C * src for time-independent D)

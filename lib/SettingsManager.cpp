@@ -68,15 +68,16 @@ const std::string SettingsManager::KEY_PROBLEM_NORM_H2L2PLUSL2H1ALPHA = "H2L2+L2
 const std::string SettingsManager::KEY_PROBLEM_NORM_H2L2PLUSL2H1BETA  = "H2L2+L2H1 beta";
 const std::string SettingsManager::KEY_PROBLEM_NORM_H2L2PLUSL2H1GAMMA = "H2L2+L2H1 gamma";
 
-const std::string SettingsManager::KEY_PROBLEM_EPSILON          = "epsilon";
-const std::string SettingsManager::KEY_PROBLEM_CONSTANTS        = "constants";
-const std::string SettingsManager::KEY_PROBLEM_GUESS            = "initial guess";
-const std::string SettingsManager::KEY_PROBLEM_PARAM_RHO        = "parameter rho";
-const std::string SettingsManager::KEY_PROBLEM_PARAM_Q          = "parameter q";
-const std::string SettingsManager::KEY_PROBLEM_PARAM_C          = "parameter c";
-const std::string SettingsManager::KEY_PROBLEM_PARAM_NU         = "parameter nu";
-const std::string SettingsManager::KEY_PROBLEM_PARAM_BACKGROUND = "background parameter";
-const std::string SettingsManager::KEY_PROBLEM_SHAPE_SCALE      = "shape scaling";
+const std::string SettingsManager::KEY_PROBLEM_EPSILON           = "epsilon";
+const std::string SettingsManager::KEY_PROBLEM_CONSTANTS         = "constants";
+const std::string SettingsManager::KEY_PROBLEM_GUESS             = "initial guess";
+const std::string SettingsManager::KEY_PROBLEM_PARAM_RHO         = "parameter rho";
+const std::string SettingsManager::KEY_PROBLEM_PARAM_RHO_DYNAMIC = "parameter rho dynamic";
+const std::string SettingsManager::KEY_PROBLEM_PARAM_Q           = "parameter q";
+const std::string SettingsManager::KEY_PROBLEM_PARAM_C           = "parameter c";
+const std::string SettingsManager::KEY_PROBLEM_PARAM_NU          = "parameter nu";
+const std::string SettingsManager::KEY_PROBLEM_PARAM_BACKGROUND  = "background parameter";
+const std::string SettingsManager::KEY_PROBLEM_SHAPE_SCALE       = "shape scaling";
 
 const std::string SettingsManager::KEY_PROBLEM_DATA                       = "data";
 const std::string SettingsManager::KEY_PROBLEM_DATA_ADDITIONAL_REFINES    = "additional refines";
@@ -197,6 +198,8 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
     prm->declare_entry(KEY_PROBLEM_GUESS, "0.0", Patterns::Anything(), "initial guess");
 
     prm->declare_entry(KEY_PROBLEM_PARAM_RHO, "1.0", Patterns::Anything(), "parameter ρ");
+    prm->declare_entry(KEY_PROBLEM_PARAM_RHO_DYNAMIC, "true", Patterns::Bool(),
+                       "parameter ρ time-dependent? (performance)");
     prm->declare_entry(KEY_PROBLEM_PARAM_Q, "0.0", Patterns::Anything(), "parameter q");
     prm->declare_entry(KEY_PROBLEM_PARAM_C, "2.0", Patterns::Anything(), "parameter c");
     prm->declare_entry(KEY_PROBLEM_PARAM_NU, "0.0", Patterns::Anything(), "parameter ν");
@@ -433,6 +436,7 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
     expr_param_background = prm->get(KEY_PROBLEM_PARAM_BACKGROUND);
 
     shape_scale = prm->get_double(KEY_PROBLEM_SHAPE_SCALE);
+    rho_dynamic = prm->get_bool(KEY_PROBLEM_PARAM_RHO_DYNAMIC);
 
     prm->enter_subsection(KEY_PROBLEM_DATA);
     {

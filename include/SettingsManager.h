@@ -67,6 +67,7 @@ class SettingsManager {
   static const std::string KEY_PROBLEM_CONSTANTS;
   static const std::string KEY_PROBLEM_GUESS;
   static const std::string KEY_PROBLEM_PARAM_RHO;
+  static const std::string KEY_PROBLEM_PARAM_RHO_DYNAMIC;
   static const std::string KEY_PROBLEM_PARAM_Q;
   static const std::string KEY_PROBLEM_PARAM_C;
   static const std::string KEY_PROBLEM_PARAM_NU;
@@ -177,6 +178,7 @@ class SettingsManager {
   std::string expr_param_c;
   std::string expr_param_background;
   double shape_scale;
+  bool rho_dynamic;
 
   size_t num_rhs;
   std::vector<std::string> exprs_rhs;

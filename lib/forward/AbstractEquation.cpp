@@ -147,7 +147,7 @@ void AbstractEquation<dim>::assemble_pre(const SparseMatrix<double> &mass_matrix
 
    // tmp contains
    // (1-θ) (F^n - B^n V^n - A^n U^n)
-   vmult_D_intermediate(mass_matrix, system_tmp2, tmp);
+   vmult_D_intermediate(mass_matrix, system_tmp2, tmp, this->solver_tolerance);
 
    vmult_C_intermediate(tmp, solution_v);
    system_tmp2.add(1.0 / time_step, tmp);
