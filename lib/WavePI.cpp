@@ -717,6 +717,7 @@ void WavePI<dim, Meas>::run() {
             << std::endl;
     deallog << "total wall time for the inversion : " << Util::format_duration(timer_inversion.wall_time())
             << std::endl;
+    deallog << "total cpu time for the inversion : " << Util::format_duration(timer_inversion.cpu_time()) << std::endl;
   }
 }
 
