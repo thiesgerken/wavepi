@@ -13,7 +13,7 @@ build:
   script:
     - mkdir -p build
     - cd build
-    - cmake .. -DCMAKE_BUILD_TYPE=Release -DWAVEPI_WITH_MPI=ON -DWAVEPI_WITH_1D=OFF -DWAVEPI_WITH_2D=ON -DWAVEPI_WITH_3D=ON
+    - cmake .. -DCMAKE_BUILD_TYPE=Release -DWAVEPI_WITH_MPI=OFF -DWAVEPI_WITH_1D=OFF -DWAVEPI_WITH_2D=ON -DWAVEPI_WITH_3D=ON
     - make -j2
     - mkdir -p ../dist
     - mkdir -p ../dist/bin
