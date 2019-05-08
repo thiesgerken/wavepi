@@ -707,6 +707,7 @@ void WavePI<dim, Meas>::run() {
     unaccounted_time -= stats->time_io;
     unaccounted_time -= stats->time_postprocessing;
 
+#ifdef WAVEPI_MPI
     if (Utilities::MPI::n_mpi_processes(MPI_COMM_WORLD) > 1) {
       // (might not be zero if timers have never been started)
 
@@ -714,6 +715,7 @@ void WavePI<dim, Meas>::run() {
       unaccounted_time -= stats->time_linearization_forward_communication;
       unaccounted_time -= stats->time_linearization_adjoint_communication;
     }
+#endif
 
     // most likely spent doing vector operations, norm evalutations, etc. for the inversion methods
     // and some of it for setup (interpolation, mesh generation, ...)
