@@ -63,7 +63,7 @@ configure_file(${CMAKE_SOURCE_DIR}/lib/Version.cpp.in
 
 list(APPEND LIBSOURCES "${CMAKE_CURRENT_BINARY_DIR}/Version.cpp")
 
-add_library(wavepi ${LIBSOURCES})
+add_library(wavepi STATIC ${LIBSOURCES})
 deal_ii_setup_target(wavepi)
 target_link_libraries(wavepi
                       wavepi_base

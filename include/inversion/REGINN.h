@@ -94,7 +94,13 @@ class REGINN : public NewtonRegularization<Param, Sol, Exact> {
       inner_stats = std::make_shared<InnerStatOutputProgressListener<Param, Sol, Exact>>(prm);
 
       // only add stat output for the master node in case of MPI
-      if (Utilities::MPI::this_mpi_process(MPI_COMM_WORLD) == 0) linear_solver->add_listener(inner_stats);
+#ifdef WAVEPI_MPI
+      size_t mpi_rank = Utilities::MPI::this_mpi_process(MPI_COMM_WORLD);
+#else
+      size_t mpi_rank = 0;
+#endif
+
+      if (mpi_rank == 0) linear_solver->add_listener(inner_stats);
 
       inner_watchdog = std::make_shared<WatchdogProgressListener<Param, Sol, Exact>>(prm, true, "linear watchdog");
       linear_solver->add_listener(inner_watchdog);

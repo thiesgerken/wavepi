@@ -7,5 +7,5 @@ set(LIBSOURCES
     ConstantMaxIterChoice.cpp
     FibonacciMaxIterChoice.cpp)
 
-add_library(wavepi_inversion ${LIBSOURCES})
+add_library(wavepi_inversion STATIC ${LIBSOURCES})
 deal_ii_setup_target(wavepi_inversion)

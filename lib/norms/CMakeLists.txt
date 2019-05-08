@@ -8,7 +8,7 @@ set(LIBSOURCES
     L2Coefficients.cpp
     LPWrapper.cpp)
 
-add_library(wavepi_norms ${LIBSOURCES})
+add_library(wavepi_norms STATIC ${LIBSOURCES})
 target_link_libraries(wavepi_norms wavepi_base)
 
 deal_ii_setup_target(wavepi_norms)
