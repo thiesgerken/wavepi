@@ -28,10 +28,10 @@ find_package(Boost
              QUIET
              COMPONENTS filesystem program_options regex)
 
-if(WAVEPI_WITH_MPI)
-  find_package(MPI REQUIRED)
-  include_directories(${MPI_CXX_INCLUDE_PATH})
-endif()
+# need to include headers to MPI (deal.II needs them if it was configured that
+# way)
+find_package(MPI REQUIRED)
+include_directories(${MPI_CXX_INCLUDE_PATH})
 
 find_package(deal.II
              9.1.0
