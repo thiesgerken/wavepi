@@ -2,6 +2,7 @@ cache:
   key: ${CI_JOB_NAME}
   paths:
     - build
+    - build-mpi
 
 stages:
   - build
@@ -13,13 +14,20 @@ build:
   script:
     - mkdir -p build
     - cd build
-    - cmake .. -DCMAKE_BUILD_TYPE=Release -DWAVEPI_WITH_MPI=ON -DWAVEPI_WITH_1D=OFF -DWAVEPI_WITH_2D=ON -DWAVEPI_WITH_3D=ON
+    - cmake .. -DCMAKE_BUILD_TYPE=Release -DWAVEPI_WITH_MPI=OFF -DWAVEPI_WITH_1D=OFF -DWAVEPI_WITH_2D=ON -DWAVEPI_WITH_3D=ON
     - make -j2
     - mkdir -p ../dist
     - mkdir -p ../dist/bin
     - mkdir -p ../dist/lib
-    - for f in $(find . -name "libwavepi*.so"); do cp $f ../dist/lib; done
+    # - for f in $(find . -name "libwavepi*.so"); do cp $f ../dist/lib; done
     - for f in wavepi*; do cp $f ../dist/bin; done
+    # also build mpi version
+    - cd ..
+    - mkdir -p build-mpi
+    - cd build-mpi
+    - cmake .. -DCMAKE_BUILD_TYPE=Release -DWAVEPI_WITH_MPI=ON -DWAVEPI_WITH_1D=OFF -DWAVEPI_WITH_2D=ON -DWAVEPI_WITH_3D=ON
+    - make -j2
+    - cp wavepi ../dist/bin/wavepi-mpi
   artifacts:
     expire_in: 1 week
     paths:

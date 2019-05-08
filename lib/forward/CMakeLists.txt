@@ -13,6 +13,6 @@ set(LIBSOURCES
     DistributionRightHandSide.cpp
     MatrixCreator.cpp)
 
-add_library(wavepi_forward ${LIBSOURCES})
+add_library(wavepi_forward STATIC ${LIBSOURCES})
 target_link_libraries(wavepi_forward wavepi_base)
 deal_ii_setup_target(wavepi_forward)

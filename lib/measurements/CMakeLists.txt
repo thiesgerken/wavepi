@@ -7,6 +7,6 @@ set(LIBSOURCES
     GridDistribution.cpp
     CubeBoundaryDistribution.cpp)
 
-add_library(wavepi_measurements ${LIBSOURCES})
+add_library(wavepi_measurements STATIC ${LIBSOURCES})
 target_link_libraries(wavepi_measurements wavepi_base)
 deal_ii_setup_target(wavepi_measurements)

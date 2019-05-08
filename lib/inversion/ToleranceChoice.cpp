@@ -52,8 +52,10 @@ void ToleranceChoice::add_iteration(double new_discrepancy, int steps) {
 
   if (!tolerance_prefix.size()) return;
 
+#ifdef WAVEPI_MPI
   // only rank 0 does the output
   if (Utilities::MPI::this_mpi_process(MPI_COMM_WORLD) != 0) return;
+#endif
 
   // truncate if i == 0
   auto opts = discrepancies.size() == 1 ? std::ios::trunc : std::ios::app;

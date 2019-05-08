@@ -10,5 +10,5 @@ set(LIBSOURCES
     Transformation.cpp
     Util.cpp)
 
-add_library(wavepi_base ${LIBSOURCES})
+add_library(wavepi_base STATIC ${LIBSOURCES})
 deal_ii_setup_target(wavepi_base)

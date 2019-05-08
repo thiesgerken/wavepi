@@ -33,9 +33,15 @@ using namespace wavepi::measurements;
 namespace po = boost::program_options;
 
 int main(int argc, char *argv[]) {
+#ifdef WAVEPI_MPI
   Utilities::MPI::MPI_InitFinalize mpi_init(argc, argv);
+
   size_t mpi_rank = Utilities::MPI::this_mpi_process(MPI_COMM_WORLD);
   size_t mpi_size = Utilities::MPI::n_mpi_processes(MPI_COMM_WORLD);
+#else
+  size_t mpi_rank = 0;
+  size_t mpi_size = 1;
+#endif
 
   try {
     po::options_description desc(Version::get_identification() + "\nsupported options");
