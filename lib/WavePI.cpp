@@ -676,6 +676,7 @@ void WavePI<dim, Meas>::run() {
             << std::setprecision(2) << (stats->time_postprocessing / timer_inversion.wall_time() * 100)
             << "% of total time" << std::endl;
 
+#ifdef WAVEPI_MPI
     if (Utilities::MPI::n_mpi_processes(MPI_COMM_WORLD) > 1) {
       deallog << " Additional time needed for MPI communication:" << std::endl;
       deallog << "  forward         : average "
@@ -696,6 +697,7 @@ void WavePI<dim, Meas>::run() {
               << (stats->time_linearization_adjoint_communication / timer_inversion.wall_time() * 100)
               << "% of total time" << std::endl;
     }
+#endif
 
     double unaccounted_time = timer_inversion.wall_time();
     unaccounted_time -= stats->time_duality;
