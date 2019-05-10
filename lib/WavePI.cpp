@@ -265,7 +265,7 @@ get_measure_meas(1)
 
     GridGenerator::hyper_ball(*triangulation, center, cfg->shape_options["radius"]);
   } else if (cfg->shape == SettingsManager::MeshShape::cheese) {
-    std::vector<unsigned int> holes({2, 1});
+    std::vector<unsigned int> holes({1, 1});
 
     if (dim == 3) holes.push_back(1);
 
