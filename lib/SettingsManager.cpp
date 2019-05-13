@@ -147,7 +147,8 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
 
   prm->enter_subsection(KEY_PROBLEM);
   {
-    prm->declare_entry(KEY_PROBLEM_TYPE, "rho", Patterns::Selection("c|nu|rho|q"), "parameter that is reconstructed");
+    prm->declare_entry(KEY_PROBLEM_TYPE, "rho", Patterns::Selection("c|nu|rho|rho_constant|q"),
+                       "parameter that is reconstructed");
 
     prm->declare_entry(KEY_PROBLEM_TRANSFORM, "Identity", Patterns::Selection("Identity|Log"),
                        "transformation to apply to the parameter (e.g. to get rid of constraints)");
@@ -412,6 +413,8 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
       problem_type = ProblemType::nu;
     else if (problem == "c")
       problem_type = ProblemType::c;
+    else if (problem == "rho_constant")
+      problem_type = ProblemType::rho_constant;
     else
       AssertThrow(false, ExcMessage("unknown problem type"));
 
