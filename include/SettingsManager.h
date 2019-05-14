@@ -122,7 +122,7 @@ class SettingsManager {
   /**
    * possible transforms
    */
-  enum class TransformType { identity, log };
+  enum class TransformType { identity, log, artanh };
 
   /**
    * possible norms

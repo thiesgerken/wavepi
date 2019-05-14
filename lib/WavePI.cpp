@@ -369,6 +369,10 @@ void WavePI<dim, Meas>::initialize_problem() {
     auto tmp = std::make_shared<LogTransform<dim>>();
     tmp->get_parameters(*cfg->prm);
     transform = tmp;
+  } else if (cfg->transform == SettingsManager::TransformType::artanh) {
+    auto tmp = std::make_shared<ArtanhTransform<dim>>();
+    tmp->get_parameters(*cfg->prm);
+    transform = tmp;
   } else
     AssertThrow(false, ExcInternalError());
 
