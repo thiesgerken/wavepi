@@ -151,7 +151,7 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
     prm->declare_entry(KEY_PROBLEM_TYPE, "rho", Patterns::Selection("c|nu|rho|rho_constant|q"),
                        "parameter that is reconstructed");
 
-    prm->declare_entry(KEY_PROBLEM_TRANSFORM, "Identity", Patterns::Selection("Identity|Log"),
+    prm->declare_entry(KEY_PROBLEM_TRANSFORM, "Identity", Patterns::Selection("Identity|Log|Artanh"),
                        "transformation to apply to the parameter (e.g. to get rid of constraints)");
 
     prm->declare_entry(KEY_PROBLEM_NORM_DOMAIN, "L2L2",
@@ -401,6 +401,8 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
       transform = TransformType::identity;
     else if (transform_s == "Log")
       transform = TransformType::log;
+    else if (transform_s == "Artanh")
+      transform = TransformType::artanh;
     else
       AssertThrow(false, ExcMessage("Cannot parse transform type"));
 
