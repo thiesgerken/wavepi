@@ -80,7 +80,7 @@ class IdentityTransform : public Transformation<dim> {
 };
 
 /**
- * Transformation with φ: (x₀,∞) → ℝ,  φ(x) = log(x-x₀) (pointwise).
+ * Transformation with φ: (x₀,∞) → ℝ,  φ(x) = log(x-x₀) (applied pointwise).
  */
 template <int dim>
 class LogTransform : public Transformation<dim> {
@@ -122,7 +122,7 @@ class LogTransform : public Transformation<dim> {
 };
 
 /**
- * Transformation with φ: (a,b) → ℝ,  φ(x) = tanh⁻¹(((2x-(a+b))/(b-a)) (pointwise).
+ * Transformation with φ: (a,b) → ℝ,  φ(x) = tanh⁻¹(((2x-(a+b))/(b-a)) (applied pointwise).
  * inverse: φ⁻¹(z) = (b-a)/2 tanh(z) + (a+b)/2
  */
 template <int dim>

@@ -177,8 +177,10 @@ DiscretizedFunction<dim> ArtanhTransform<dim>::inverse_derivative(const Discreti
   DiscretizedFunction<dim> tmp(param.get_mesh(), param.get_norm());
 
   for (size_t i = 0; i < param.length(); i++)
-    for (size_t j = 0; j < param[i].size(); j++)
-      tmp[i][j] = (upper_bound-lower_bound)/2 * 1/(1-(param[i][j]*param[i][j])) * h[i][j];
+    for (size_t j = 0; j < param[i].size(); j++) {
+      double u = std::cosh(param[i][j]);
+      tmp[i][j] = (upper_bound-lower_bound)/2 * 1/(u*u) * h[i][j];
+    }
 
   return tmp;
 }
