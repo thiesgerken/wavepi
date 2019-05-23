@@ -8,7 +8,7 @@ cd /root
 # git submodule init
 # git submodule update
 # curl https://netcologne.dl.sourceforge.net/project/boost/boost/1.62.0/boost_1_62_0.tar.gz -O
-curl https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.tar.gz -O
+curl https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.tar.gz -OL
 tar xfz boost_1_70_0.tar.gz
 cd boost_1_70_0
 ./bootstrap.sh --prefix=/usr
