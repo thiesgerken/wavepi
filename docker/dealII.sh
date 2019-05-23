@@ -4,7 +4,7 @@ echo "** Building & Installing deal.II **"
 cd /root
 git clone https://github.com/dealii/dealii.git
 cd dealii
-git checkout d68d619f14dab0cc4225178165f4c50fd0dd0e21
+git checkout v9.1.0
 mkdir build
 cd build
 cmake .. -DDEAL_II_WITH_MPI=ON -DCMAKE_INSTALL_PREFIX=/usr/local -DDEAL_II_COMPONENT_EXAMPLES=OFF

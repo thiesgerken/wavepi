@@ -10,9 +10,8 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en  
 ENV LC_ALL en_US.UTF-8     
 
-# deal.II must not find shared boost library, otherwise it will try to link dynamically to it!
-ADD boost.sh /root/boost.sh
-RUN bash /root/boost.sh
+# ADD boost.sh /root/boost.sh
+# RUN bash /root/boost.sh
 
 ADD dealII.sh /root/dealII.sh
 RUN bash /root/dealII.sh

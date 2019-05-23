@@ -6,6 +6,7 @@ curl https://netcologne.dl.sourceforge.net/project/boost/boost/1.62.0/boost_1_62
 tar xfz boost_1_62_0.tar.gz
 cd boost_1_62_0
 ./bootstrap.sh --prefix=/usr
+# deal.II must not find shared boost library, otherwise it will try to link dynamically to it!
 ./b2 cxxflags=-fPIC cflags=-fPIC -j2 variant=release link=static threading=multi runtime-link=static install
 
 echo "** Cleaning up **"
