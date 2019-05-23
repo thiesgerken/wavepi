@@ -335,6 +335,14 @@ get_measure_meas(1)
   // (in case of !store_derivative, twice this amount otherwise)
   deallog << "expected size of a DiscretizedFunction<" << dim << ">: " << mem / (1024 * 1024) << " MiB" << std::endl;
 
+  auto pattern = mesh->get_sparsity_pattern(0);
+  deallog << "Sparsity pattern nnz=" << pattern->n_nonzero_elements() << "="
+          << pattern->n_nonzero_elements() / (double)mesh->get_dof_handler(0)->n_dofs()
+          << "*n_dofs, bandwidth=" << pattern->bandwidth() << ", max entries per row=" << pattern->max_entries_per_row()
+          << std::endl;
+
+  // TODO: also output sparsity pattern
+
   return mesh;
 }
 
