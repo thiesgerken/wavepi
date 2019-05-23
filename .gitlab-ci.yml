@@ -34,7 +34,7 @@ build:
       - dist
   tags:
     - docker
-  image: git.thiesgerken.de:5005/thies/wavepi/dealii:d68d619
+  image: git.thiesgerken.de:5005/thies/wavepi/dealii
 
 deploy-rtg05:
   stage: deploy
