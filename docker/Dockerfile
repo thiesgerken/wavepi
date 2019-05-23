@@ -2,6 +2,8 @@ FROM debian:jessie
 
 # RUN echo "deb http://deb.debian.org/debian jessie-backports main contrib" >> /etc/apt/sources.list
 RUN echo "deb [check-valid-until=no] http://archive.debian.org/debian jessie-backports main contrib" >> /etc/apt/sources.list
+RUN echo "Acquire::Check-Valid-Until \"false\";" >> /etc/apt/apt.conf
+
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install libopenmpi-dev libtbb-dev openmpi-bin locales -y
 RUN apt-get install -t jessie-backports cmake make gcc g++ curl git libgtest-dev libmuparser-dev -y
