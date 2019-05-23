@@ -60,7 +60,7 @@ set(
   CMAKE_CXX_FLAGS_RELEASE
   "${CMAKE_CXX_FLAGS_RELEASE} -fext-numeric-literals -O3 -s -Wall -Wno-unused-parameter -fPIC"
   )
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 
 string(REPLACE "-O2"
                ""
