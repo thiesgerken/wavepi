@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8.8)
 project(wavePI)
 include_directories("include")
+set(CMAKE_CXX_STANDARD 11)
 
 option(WAVEPI_WITH_MPI "compile with MPI support" OFF)
 option(WAVEPI_WITH_1D "compile with 1D support" OFF)
@@ -11,12 +12,14 @@ set(BUILD_SHARED_LIBS ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 add_custom_target(debug
-                  COMMAND ${CMAKE_COMMAND} -DCMAKE_BUILD_TYPE=Debug
+                  COMMAND ${CMAKE_COMMAND}
+                          -DCMAKE_BUILD_TYPE=Debug
                           ${CMAKE_SOURCE_DIR}
                   COMMENT "Switch CMAKE_BUILD_TYPE to Debug")
 
 add_custom_target(release
-                  COMMAND ${CMAKE_COMMAND} -DCMAKE_BUILD_TYPE=Release
+                  COMMAND ${CMAKE_COMMAND}
+                          -DCMAKE_BUILD_TYPE=Release
                           ${CMAKE_SOURCE_DIR}
                   COMMENT "Switch CMAKE_BUILD_TYPE to Release")
 
