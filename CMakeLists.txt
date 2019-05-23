@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 2.8.8)
 project(wavePI)
 include_directories("include")
-set(CMAKE_CXX_STANDARD 11)
 
 option(WAVEPI_WITH_MPI "compile with MPI support" OFF)
 option(WAVEPI_WITH_1D "compile with 1D support" OFF)
@@ -55,10 +54,13 @@ string(REPLACE "-O3"
                CMAKE_CXX_FLAGS_RELEASE
                "${CMAKE_CXX_FLAGS_RELEASE}")
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -Wall -fPIC")
-set(CMAKE_CXX_FLAGS_RELEASE
-    "${CMAKE_CXX_FLAGS_RELEASE} -O3 -s -Wall -Wno-unused-parameter -fPIC")
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_FLAGS_DEBUG
+    "${CMAKE_CXX_FLAGS_DEBUG} -fext-numeric-literals -O0 -Wall -fPIC")
+set(
+  CMAKE_CXX_FLAGS_RELEASE
+  "${CMAKE_CXX_FLAGS_RELEASE} -fext-numeric-literals -O3 -s -Wall -Wno-unused-parameter -fPIC"
+  )
+set(CMAKE_CXX_STANDARD 11)
 
 string(REPLACE "-O2"
                ""
