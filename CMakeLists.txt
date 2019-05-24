@@ -11,12 +11,14 @@ set(BUILD_SHARED_LIBS ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 add_custom_target(debug
-                  COMMAND ${CMAKE_COMMAND} -DCMAKE_BUILD_TYPE=Debug
+                  COMMAND ${CMAKE_COMMAND}
+                          -DCMAKE_BUILD_TYPE=Debug
                           ${CMAKE_SOURCE_DIR}
                   COMMENT "Switch CMAKE_BUILD_TYPE to Debug")
 
 add_custom_target(release
-                  COMMAND ${CMAKE_COMMAND} -DCMAKE_BUILD_TYPE=Release
+                  COMMAND ${CMAKE_COMMAND}
+                          -DCMAKE_BUILD_TYPE=Release
                           ${CMAKE_SOURCE_DIR}
                   COMMENT "Switch CMAKE_BUILD_TYPE to Release")
 
@@ -52,9 +54,12 @@ string(REPLACE "-O3"
                CMAKE_CXX_FLAGS_RELEASE
                "${CMAKE_CXX_FLAGS_RELEASE}")
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -Wall -fPIC")
-set(CMAKE_CXX_FLAGS_RELEASE
-    "${CMAKE_CXX_FLAGS_RELEASE} -O3 -s -Wall -Wno-unused-parameter -fPIC")
+set(CMAKE_CXX_FLAGS_DEBUG
+    "${CMAKE_CXX_FLAGS_DEBUG} -fext-numeric-literals -O0 -Wall -fPIC")
+set(
+  CMAKE_CXX_FLAGS_RELEASE
+  "${CMAKE_CXX_FLAGS_RELEASE} -fext-numeric-literals -O3 -s -Wall -Wno-unused-parameter -fPIC"
+  )
 set(CMAKE_CXX_STANDARD 14)
 
 string(REPLACE "-O2"

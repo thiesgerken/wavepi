@@ -9,6 +9,7 @@
 #define INCLUDE_INVERSION_INVERSIONPROGRESS_H_
 
 #include <boost/filesystem/operations.hpp>
+#include <boost/filesystem.hpp>
 
 #include <deal.II/base/exceptions.h>
 #include <deal.II/base/logstream.h>
@@ -28,6 +29,8 @@
 #include <memory>
 #include <sstream>
 #include <string>
+
+namespace fs = boost::filesystem; 
 
 namespace wavepi {
 namespace inversion {
@@ -241,21 +244,19 @@ class OutputProgressListener : public InversionProgressListener<DiscretizedFunct
                         "output if the discrepancy decreased by at least this factor since the last output. Set to ≤ 0 "
                         "to disable this rule.");
       prm.declare_entry("last", "true", Patterns::Bool(), "output the last iteration before exit");
-
+      prm.declare_entry("sparsity pattern", "true", Patterns::Bool(),
+                        "output the first sparsity pattern on the first iteration");
       prm.declare_entry("data", "true", Patterns::Bool(),
                         "output the problem's right hand side on the first iteration");
       prm.declare_entry(
           "exact", "true", Patterns::Bool(),
           "output the problem's exact solution on the first iteration\n(if available and discretized on first grid)");
-
       prm.declare_entry(
           "exact transformed", "false", Patterns::Bool(),
           "output the problem's exact solution on the first iteration\n(if available and discretized on first grid)");
-
       prm.declare_entry("estimate transformed", "false", Patterns::Bool(), "output the transformed current estimate");
       prm.declare_entry("estimate", "true", Patterns::Bool(), "output the current estimate");
       prm.declare_entry("residual", "true", Patterns::Bool(), "output the current residual");
-
       prm.declare_entry("destination", "./step-{{i}}/", Patterns::DirectoryName(),
                         "output path for step {{i}}; has to end with a slash");
     }
@@ -271,6 +272,7 @@ class OutputProgressListener : public InversionProgressListener<DiscretizedFunct
       save_last = prm.get_bool("last");
 
       save_data              = prm.get_bool("data");
+      save_sparsity          = prm.get_bool("sparsity pattern");
       save_exact             = prm.get_bool("exact");
       save_exact_transformed = prm.get_bool("exact transformed");
 
@@ -289,6 +291,40 @@ class OutputProgressListener : public InversionProgressListener<DiscretizedFunct
     subs["i"] = Utilities::int_to_string(state.iteration_number, 4);
 
     std::string dest = Util::replace(destination_prefix, subs);
+
+    if (save_sparsity && state.iteration_number == 0) {
+      boost::filesystem::create_directories(dest);
+      deallog << "Saving sparsity pattern in " << dest << std::endl;
+    
+      auto pattern = state.current_estimate->get_mesh()->get_sparsity_pattern(0);
+
+      fs::ofstream gplot_file(fs::path(dest) / "sparsity_pattern.gnuplot", std::ios::out);
+      if (gplot_file) {
+        pattern->print_gnuplot(gplot_file);
+        gplot_file.close();
+      } else {
+        deallog << "Could not open " << fs::path(dest) / "sparsity_pattern.gnuplot" << " for output!" << std::endl;
+        return true;
+      }
+
+      fs::ofstream txt_file(fs::path(dest) / "sparsity_pattern.txt", std::ios::out);
+      if (txt_file) {
+        pattern->print(txt_file);
+        txt_file.close();
+      } else {
+        deallog << "Could not open " << fs::path(dest) / "sparsity_pattern.txt" << " for output!" << std::endl;
+        return true;
+      }
+
+      fs::ofstream svg_file(fs::path(dest) / "sparsity_pattern.svg", std::ios::out);
+      if (svg_file) {
+        pattern->print_svg(svg_file);
+        svg_file.close();
+      } else {
+        deallog << "Could not open " << fs::path(dest) / "sparsity_pattern.svg" << " for output!" << std::endl;
+        return true;
+      }            
+    }
 
     if (save_exact_transformed && state.iteration_number == 0 && state.exact_param && transform) {
       std::string filename = Util::replace(filename_exact_transformed, subs);
@@ -445,6 +481,7 @@ class OutputProgressListener : public InversionProgressListener<DiscretizedFunct
   bool save_exact             = true;   // (once)
   bool save_exact_transformed = false;  // (once)
   bool save_data              = true;   // (once)
+  bool save_sparsity          = true;   // (once)
 
   // save the last one
   bool save_last = true;

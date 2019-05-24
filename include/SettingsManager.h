@@ -92,7 +92,7 @@ class SettingsManager {
   /**
    * possible problems
    */
-  enum class ProblemType { q, rho, c, nu };
+  enum class ProblemType { q, rho, c, nu, rho_constant };
 
   /**
    * possible nonlinear methods
@@ -122,7 +122,7 @@ class SettingsManager {
   /**
    * possible transforms
    */
-  enum class TransformType { identity, log };
+  enum class TransformType { identity, log, artanh };
 
   /**
    * possible norms

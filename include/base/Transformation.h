@@ -80,7 +80,7 @@ class IdentityTransform : public Transformation<dim> {
 };
 
 /**
- * Transformation with φ(x) = log(x) (pointwise).
+ * Transformation with φ: (x₀,∞) → ℝ,  φ(x) = log(x-x₀) (applied pointwise).
  */
 template <int dim>
 class LogTransform : public Transformation<dim> {
@@ -113,11 +113,56 @@ class LogTransform : public Transformation<dim> {
     virtual ~TransformFunction() = default;
 
     virtual double evaluate(const Point<1> &p, const double time __attribute__((unused))) const override {
-          return std::log(p[0] - lower_bound);
+      return std::log(p[0] - lower_bound);
     }
 
    private:
     double lower_bound;
+  };
+};
+
+/**
+ * Transformation with φ: (a,b) → ℝ,  φ(x) = tanh⁻¹(((2x-(a+b))/(b-a)) (applied pointwise).
+ * inverse: φ⁻¹(z) = (b-a)/2 tanh(z) + (a+b)/2
+ */
+template <int dim>
+class ArtanhTransform : public Transformation<dim> {
+ public:
+  ArtanhTransform()          = default;
+  virtual ~ArtanhTransform() = default;
+
+  static void declare_parameters(ParameterHandler &prm);
+
+  void get_parameters(ParameterHandler &prm);
+
+  virtual DiscretizedFunction<dim> transform(const DiscretizedFunction<dim> &param) override;
+
+  virtual std::shared_ptr<LightFunction<dim>> transform(const std::shared_ptr<LightFunction<dim>> param) override;
+
+  virtual DiscretizedFunction<dim> transform_inverse(const DiscretizedFunction<dim> &param) override;
+
+  virtual DiscretizedFunction<dim> inverse_derivative(const DiscretizedFunction<dim> &param,
+                                                      const DiscretizedFunction<dim> &h) override;
+
+  virtual DiscretizedFunction<dim> inverse_derivative_transpose(const DiscretizedFunction<dim> &param,
+                                                                const DiscretizedFunction<dim> &g) override;
+
+ private:
+  double lower_bound = 0.0;
+  double upper_bound = 0.0;
+
+  class TransformFunction : public LightFunction<1> {
+   public:
+    TransformFunction(double lb, double ub) : lower_bound(lb), upper_bound(ub) {};
+    virtual ~TransformFunction() = default;
+
+    virtual double evaluate(const Point<1> &p, const double time __attribute__((unused))) const override {
+      return std::atanh((2 * p[0] - (lower_bound + upper_bound)) / (upper_bound - lower_bound));
+    }
+
+   private:
+    double lower_bound; 
+    double upper_bound;
   };
 };
 

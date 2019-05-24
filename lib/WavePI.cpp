@@ -43,6 +43,7 @@
 #include <norms/L2L2.h>
 #include <norms/LPWrapper.h>
 #include <problems/CProblem.h>
+#include <problems/ConstantRhoProblem.h>
 #include <problems/NuProblem.h>
 #include <problems/QProblem.h>
 #include <problems/RhoProblem.h>
@@ -334,6 +335,14 @@ get_measure_meas(1)
   // (in case of !store_derivative, twice this amount otherwise)
   deallog << "expected size of a DiscretizedFunction<" << dim << ">: " << mem / (1024 * 1024) << " MiB" << std::endl;
 
+  auto pattern = mesh->get_sparsity_pattern(0);
+  deallog << "Sparsity pattern nnz=" << pattern->n_nonzero_elements() << "="
+          << pattern->n_nonzero_elements() / (double)mesh->get_dof_handler(0)->n_dofs()
+          << "*n_dofs, bandwidth=" << pattern->bandwidth() << ", max entries per row=" << pattern->max_entries_per_row()
+          << std::endl;
+
+  // TODO: also output sparsity pattern
+
   return mesh;
 }
 
@@ -366,6 +375,10 @@ void WavePI<dim, Meas>::initialize_problem() {
     transform = std::make_shared<IdentityTransform<dim>>();
   else if (cfg->transform == SettingsManager::TransformType::log) {
     auto tmp = std::make_shared<LogTransform<dim>>();
+    tmp->get_parameters(*cfg->prm);
+    transform = tmp;
+  } else if (cfg->transform == SettingsManager::TransformType::artanh) {
+    auto tmp = std::make_shared<ArtanhTransform<dim>>();
     tmp->get_parameters(*cfg->prm);
     transform = tmp;
   } else
@@ -404,6 +417,12 @@ void WavePI<dim, Meas>::initialize_problem() {
       param_exact = wave_eq->get_param_rho();
       problem =
           std::make_shared<RhoProblem<dim, Meas>>(*wave_eq, pulses, measures, transform, param_background_discretized);
+      break;
+    case SettingsManager::ProblemType::rho_constant:
+      /* Reconstruct rho */
+      param_exact = wave_eq->get_param_rho();
+      problem     = std::make_shared<ConstantRhoProblem<dim, Meas>>(*wave_eq, pulses, measures, transform,
+                                                                param_background_discretized);
       break;
     default:
       AssertThrow(false, ExcInternalError())
