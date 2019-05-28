@@ -34,7 +34,6 @@
 #include <measurements/MaskedFieldMeasure.h>
 #include <measurements/SensorDistribution.h>
 #include <measurements/SensorValues.h>
-#include <mpi.h>
 #include <norms/H1H1.h>
 #include <norms/H1L2.h>
 #include <norms/H2L2.h>
@@ -475,7 +474,8 @@ void WavePI<dim, Meas>::synthesize_data() {
 
 template <int dim, typename Meas>
 void WavePI<dim, Meas>::log_error(DiscretizedFunction<dim>& reconstruction,
-                                  std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm, DiscretizedFunction<dim>& exact) {
+                                  std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm,
+                                  DiscretizedFunction<dim>& exact) {
   reconstruction.set_norm(norm);
 
   double norm_exact = 0.0;
@@ -623,7 +623,7 @@ void WavePI<dim, Meas>::run() {
 
   Param param_exact_untrans_disc(mesh, *param_exact_untransformed);
   param_exact_untrans_disc.set_norm(reconstruction.get_norm());
- 
+
   log_error(reconstruction, norm_domain, param_exact_untrans_disc);
   deallog << "reconstruction error in other norms: " << std::endl;
 
@@ -638,7 +638,7 @@ void WavePI<dim, Meas>::run() {
   initial_guess_untrans_disc.set_norm(reconstruction.get_norm());
 
   reconstruction -= initial_guess_untrans_disc;
- param_exact_untrans_disc -= initial_guess_untrans_disc;
+  param_exact_untrans_disc -= initial_guess_untrans_disc;
 
   log_error_initial(reconstruction, norm_domain, param_exact_untrans_disc);
   deallog << "Reconstruction error in other norms: " << std::endl;
