@@ -73,7 +73,10 @@ void WaveEquationBase<dim>::vmult_D_intermediate(const SparseMatrix<double> &mas
 
     SolverControl solver_control(2000, tolerance * src.l2_norm());
     SolverCG<> cg(solver_control);
-    PreconditionIdentity precondition = PreconditionIdentity();
+
+    // PreconditionIdentity precondition = PreconditionIdentity();
+    PreconditionSSOR<SparseMatrix<double>> precondition;
+    precondition.initialize(mass_matrix, PreconditionSSOR<SparseMatrix<double>>::AdditionalData(1.0));
 
     cg.solve(mass_matrix, tmp, src, precondition);
 
@@ -97,7 +100,10 @@ void WaveEquationBase<dim>::vmult_D_intermediate_transpose(const SparseMatrix<do
 
     SolverControl solver_control(2000, tolerance * tmp.l2_norm());
     SolverCG<> cg(solver_control);
-    PreconditionIdentity precondition = PreconditionIdentity();
+  
+    // PreconditionIdentity precondition = PreconditionIdentity();
+    PreconditionSSOR<SparseMatrix<double>> precondition;
+    precondition.initialize(mass_matrix, PreconditionSSOR<SparseMatrix<double>>::AdditionalData(1.0));
 
     cg.solve(mass_matrix, dst, tmp, precondition);
   } else {

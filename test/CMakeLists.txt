@@ -13,6 +13,7 @@ target_link_libraries(wavepi_test
                       gtest
                       gtest_main
                       pthread
+                      wavepi
                       wavepi_forward
                       wavepi_inversion
                       wavepi_base

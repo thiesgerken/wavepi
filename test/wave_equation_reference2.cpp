@@ -20,12 +20,14 @@
 #include <deal.II/base/timer.h>
 #include <deal.II/fe/fe_q.h>
 #include <deal.II/grid/grid_generator.h>
+#include <deal.II/grid/grid_tools.h>
 #include <deal.II/grid/tria.h>
 #include <forward/L2RightHandSide.h>
 #include <forward/WaveEquation.h>
 #include <gtest/gtest.h>
 #include <norms/L2L2.h>
 #include <stddef.h>
+#include <fstream>
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -77,8 +79,7 @@ class TestFOnlyTime : public LightFunction<dim> {
       tmp2 *= sin(p[i]);
 
     // 1/rho (u'/c^2)'
-    double tmp =
-        tmp2 * (sin(t) - (1 + t) * cos(t)) / ((1 + t) * (1 + t) * (1 + t));
+    double tmp = tmp2 * (sin(t) - (1 + t) * cos(t)) / ((1 + t) * (1 + t) * (1 + t));
 
     // div (nabla u / rho)
 
@@ -152,11 +153,13 @@ class TestV : public LightFunction<dim> {
 };
 
 template <int dim>
-void run_reference_test2(std::shared_ptr<SpaceTimeMesh<dim>> mesh, bool expect = true, bool save = false) {
+void run_reference_test2(std::shared_ptr<SpaceTimeMesh<dim>> mesh, int refines, bool expect = true, bool save = false,
+                         std::shared_ptr<std::ofstream> log = nullptr, int precondition = -1) {
   deallog << std::endl << "----------  n_dofs(0): " << mesh->get_dof_handler(0)->n_dofs();
   deallog << ", n_steps: " << mesh->get_times().size() << "  ----------" << std::endl;
 
   WaveEquation<dim> wave_eq(mesh);
+  wave_eq.set_precondition_max_age(precondition);
 
   wave_eq.set_param_rho(std::make_shared<TestRho<dim>>());
   wave_eq.set_param_c(std::make_shared<TestC<dim>>());
@@ -167,7 +170,11 @@ void run_reference_test2(std::shared_ptr<SpaceTimeMesh<dim>> mesh, bool expect =
   wave_eq.set_initial_values_u(u_cont);
   wave_eq.set_initial_values_v(v_cont);
 
+  Timer timer;
+  timer.start();
   DiscretizedFunction<dim> solu = wave_eq.run(std::make_shared<L2RightHandSide<dim>>(std::make_shared<TestF<dim>>()));
+  timer.stop();
+
   DiscretizedFunction<dim> solv = solu.derivative();
   solu.throw_away_derivative();
 
@@ -202,20 +209,29 @@ void run_reference_test2(std::shared_ptr<SpaceTimeMesh<dim>> mesh, bool expect =
     tmp.write_pvd("./", "diff", "udiff");
   }
 
-  deallog << std::scientific << " rerr(u) = " << err_u << ", rerr(v) = " << err_v << std::endl;
+  deallog << std::scientific << " rerr(u) = " << err_u << ", rerr(v) = " << err_v << ", cpu time = " << std::fixed
+          << std::setprecision(2) << timer.cpu_time() << std::endl;
+
+double dt = mesh->get_time(1) - mesh->get_time(0);
+double h =  dealii::GridTools::maximal_cell_diameter(*mesh->get_triangulation(0));
+ 
+  if (log)
+    *log << std::scientific << mesh->length() << " " << dt << " " << refines << " " << h << " " << err_u << " " << err_v << " " << std::fixed
+         << std::setprecision(2) << timer.cpu_time() << std::endl;
 }
 }  // namespace
 
 template <int dim>
 void run_reference_test2_constant(int fe_order, int quad_order, int refines, int steps, bool expect = true,
-                                  bool save = false) {
+                                  bool save = false, std::shared_ptr<std::ofstream> log = nullptr,
+                                  int precondition = -1) {
   auto triangulation = std::make_shared<Triangulation<dim>>();
   GridGenerator::hyper_cube(*triangulation, 0.0, numbers::PI);
   Util::set_all_boundary_ids(*triangulation, 0);
   triangulation->refine_global(refines);
 
   double t_end   = 3.0;
-  double t_start = 0.0, dt = t_end / (steps-1);
+  double t_start = 0.0, dt = t_end / (steps - 1);
   std::vector<double> times;
 
   for (size_t i = 0; t_start + i * dt <= t_end; i++)
@@ -226,21 +242,47 @@ void run_reference_test2_constant(int fe_order, int quad_order, int refines, int
 
   std::shared_ptr<SpaceTimeMesh<dim>> mesh = std::make_shared<ConstantMesh<dim>>(times, fe, quad, triangulation);
 
-  run_reference_test2<dim>(mesh, expect, save);
+  return run_reference_test2<dim>(mesh, refines, expect, save, log, precondition);
 }
 
 TEST(WaveEquation, ReferenceTestParameters2DFE1) {
-//   for (int steps = 6; steps <= 128; steps = (int) (steps * 1.41))
-   //  run_reference_test2_constant<2>(1, 4, 7, steps, steps >= 64);
+  for (int r = 4; r <= 8; r++) {
+    auto file_time = std::make_shared<std::ofstream>("./ReferenceTestParameters2DFE1_time" + std::to_string(r) + ".dat",
+                                                     std::ios_base::trunc);
+    ASSERT_TRUE(*file_time) << "could not open file for output";
+
+    for (int steps = 6; steps <= 128; steps = (int)(steps * 1.41))
+      run_reference_test2_constant<2>(1, 4, r, steps, steps >= 64, false, file_time);
+    file_time->close();
+  }
+
+  auto file_space = std::make_shared<std::ofstream>("./ReferenceTestParameters2DFE1_space.dat", std::ios_base::trunc);
+  ASSERT_TRUE(*file_space) << "could not open file for output";
 
   for (int refine = 1; refine <= 8; refine++)
-    run_reference_test2_constant<2>(1, 4, refine, 128, false);
+    run_reference_test2_constant<2>(1, 4, refine, 128, refine >= 4, false, file_space);
+  file_space->close();
 }
 
 TEST(WaveEquation, ReferenceTestParameters3DFE1) {
   for (int steps = 8; steps <= 32; steps *= 2)
-    run_reference_test2_constant<3>(1, 3, 3, steps, steps >= 32);
+    run_reference_test2_constant<3>(1, 3, 3, steps, steps >= 32, false, nullptr);
 
-  for (int refine = 2; refine >= 0; refine--)
-    run_reference_test2_constant<3>(1, 3, refine, 32, false);
+  for (int refine = 1; refine <= 4; refine++)
+    run_reference_test2_constant<3>(1, 3, refine, 32, refine >= 2, false, nullptr);
+}
+
+TEST(WaveEquation, PreconditionTest2DFE1) {
+  for (int i = 0; i <= 9; i++) {
+    int max_age;
+    if (i == 0)
+      max_age = -1;
+    else if (i == 1)
+      max_age = 0;
+    else
+      max_age = 1 << (i - 2);
+
+    run_reference_test2_constant<2>(1, 4, 6, 128, false, false, nullptr, max_age);
+    deallog << " precon = " << max_age << std::endl;
+  }
 }
