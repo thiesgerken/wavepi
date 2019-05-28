@@ -129,7 +129,7 @@ private:
          for (size_t i = 0; i < b->length(); i++) {
             Vector<double> &coeff_res = b->get_function_coefficients(i);
             const Vector<double> &coeff_rho = rho->get_function_coefficients(i);
-            const Vector<double> &coeff_h = h.get_function_coefficients(i);
+            const Vector<double> &coeff_h = h[i];
 
             for (size_t j = 0; j < coeff_res.size(); j++)
                coeff_res[j] *= coeff_h[j] / (coeff_rho[j] * coeff_rho[j]);
@@ -176,7 +176,7 @@ private:
          adj1.set_norm(this->norm_domain);
 
          for (size_t i = 0; i < res.length(); i++) {
-            Vector<double> &coeff_adj1 = adj1.get_function_coefficients(i);
+            Vector<double> &coeff_adj1 = adj1[i];
             const Vector<double> &coeff_rho = rho->get_function_coefficients(i);
 
             for (size_t j = 0; j < coeff_adj1.size(); j++)
@@ -195,7 +195,7 @@ private:
          adj2.throw_away_derivative();
 
          for (size_t i = 0; i < adj2.length(); i++) {
-            Vector<double> &coeff_adj2 = adj2.get_function_coefficients(i);
+            Vector<double> &coeff_adj2 = adj2[i];
             const Vector<double> &coeff_c = c_discretized->get_function_coefficients(i);
 
             for (size_t j = 0; j < coeff_adj2.size(); j++)
@@ -205,8 +205,8 @@ private:
          adj2 = adj2.calculate_derivative();
 
          for (size_t i = 0; i < res.length(); i++) {
-            Vector<double> &coeff_adj2 = adj2.get_function_coefficients(i);
-            const Vector<double> &coeff_res = res.get_function_coefficients(i);
+            Vector<double> &coeff_adj2 = adj2[i];
+            const Vector<double> &coeff_res = res[i];
             const Vector<double> &coeff_rho = rho->get_function_coefficients(i);
 
             for (size_t j = 0; j < coeff_adj2.size(); j++)

@@ -1,12 +1,12 @@
 /*
- * L2L2.cpp
+ * L2H1.cpp
  *
- *  Created on: 13.03.2018
+ *  Created on: 28.05.2019
  *      Author: thies
  */
 
 #include <deal.II/numerics/vector_tools.h>
-#include <norms/L2L2.h>
+#include <norms/L2H1.h>
 
 using namespace dealii;
 
@@ -14,7 +14,7 @@ namespace wavepi {
 namespace norms {
 
 template <int dim>
-double L2L2<dim>::absolute_error(const DiscretizedFunction<dim>& u, Function<dim>& v) {
+double L2H1<dim>::absolute_error(const DiscretizedFunction<dim>& u, Function<dim>& v) {
   auto mesh     = u.get_mesh();
   double result = 0;
 
@@ -24,10 +24,10 @@ double L2L2<dim>::absolute_error(const DiscretizedFunction<dim>& u, Function<dim
 
     v.set_time(mesh->get_time(i));
     VectorTools::integrate_difference(*mesh->get_dof_handler(i), u[i], v, cellwise_error, QGauss<dim>(5),
-                                      VectorTools::NormType::L2_norm);
+                                      VectorTools::NormType::H1_norm);
 
     double nrm =
-        VectorTools::compute_global_error(*mesh->get_triangulation(i), cellwise_error, VectorTools::NormType::L2_norm);
+        VectorTools::compute_global_error(*mesh->get_triangulation(i), cellwise_error, VectorTools::NormType::H1_norm);
 
     if (i > 0) result += nrm * nrm / 2 * (std::abs(mesh->get_time(i) - mesh->get_time(i - 1)));
     if (i < mesh->length() - 1) result += nrm * nrm / 2 * (std::abs(mesh->get_time(i + 1) - mesh->get_time(i)));
@@ -37,13 +37,14 @@ double L2L2<dim>::absolute_error(const DiscretizedFunction<dim>& u, Function<dim
 }
 
 template <int dim>
-double L2L2<dim>::norm(const DiscretizedFunction<dim>& u) const {
+double L2H1<dim>::norm(const DiscretizedFunction<dim>& u) const {
   auto mesh     = u.get_mesh();
   double result = 0;
 
   // trapezoidal rule in time:
   for (size_t i = 0; i < mesh->length(); i++) {
-    double nrm2 = mesh->get_mass_matrix(i)->matrix_norm_square(u[i]);
+    double nrm2 =
+        mesh->get_mass_matrix(i)->matrix_norm_square(u[i]) + mesh->get_laplace_matrix(i)->matrix_norm_square(u[i]);
 
     if (i > 0) result += nrm2 / 2 * (std::abs(mesh->get_time(i) - mesh->get_time(i - 1)));
     if (i < mesh->length() - 1) result += nrm2 / 2 * (std::abs(mesh->get_time(i + 1) - mesh->get_time(i)));
@@ -73,13 +74,14 @@ double L2L2<dim>::norm(const DiscretizedFunction<dim>& u) const {
 }
 
 template <int dim>
-double L2L2<dim>::dot(const DiscretizedFunction<dim>& u, const DiscretizedFunction<dim>& v) const {
+double L2H1<dim>::dot(const DiscretizedFunction<dim>& u, const DiscretizedFunction<dim>& v) const {
   auto mesh     = u.get_mesh();
   double result = 0.0;
 
   // trapezoidal rule in time:
   for (size_t i = 0; i < mesh->length(); i++) {
-    double doti = mesh->get_mass_matrix(i)->matrix_scalar_product(u[i], v[i]);
+    double doti = mesh->get_mass_matrix(i)->matrix_scalar_product(u[i], v[i]) +
+                  mesh->get_laplace_matrix(i)->matrix_scalar_product(u[i], v[i]);
 
     if (i > 0) result += doti / 2 * (std::abs(mesh->get_time(i) - mesh->get_time(i - 1)));
     if (i < mesh->length() - 1) result += doti / 2 * (std::abs(mesh->get_time(i + 1) - mesh->get_time(i)));
@@ -120,19 +122,19 @@ double L2L2<dim>::dot(const DiscretizedFunction<dim>& u, const DiscretizedFuncti
 }
 
 template <int dim>
-void L2L2<dim>::dot_transform(DiscretizedFunction<dim>& u) {
+void L2H1<dim>::dot_transform(DiscretizedFunction<dim>& u) {
   u.mult_mass();
   dot_solve_mass_and_transform(u);
 }
 
 template <int dim>
-void L2L2<dim>::dot_transform_inverse(DiscretizedFunction<dim>& u) {
+void L2H1<dim>::dot_transform_inverse(DiscretizedFunction<dim>& u) {
   u.solve_mass();
   dot_mult_mass_and_transform_inverse(u);
 }
 
 template <int dim>
-void L2L2<dim>::dot_solve_mass_and_transform(DiscretizedFunction<dim>& u) {
+void L2H1<dim>::dot_solve_mass_and_transform(DiscretizedFunction<dim>& u) {
   auto mesh = u.get_mesh();
 
   for (size_t i = 0; i < mesh->length(); i++) {
@@ -146,7 +148,7 @@ void L2L2<dim>::dot_solve_mass_and_transform(DiscretizedFunction<dim>& u) {
 }
 
 template <int dim>
-void L2L2<dim>::dot_mult_mass_and_transform_inverse(DiscretizedFunction<dim>& u) {
+void L2H1<dim>::dot_mult_mass_and_transform_inverse(DiscretizedFunction<dim>& u) {
   auto mesh = u.get_mesh();
 
   // trapezoidal rule in time:
@@ -161,18 +163,18 @@ void L2L2<dim>::dot_mult_mass_and_transform_inverse(DiscretizedFunction<dim>& u)
 }
 
 template <int dim>
-std::string L2L2<dim>::name() const {
-  return "L²([0,T], L²(Ω))";
+std::string L2H1<dim>::name() const {
+  return "L²([0,T], H¹(Ω))";
 }
 
 template <int dim>
-std::string L2L2<dim>::unique_id() const {
-  return "L²([0,T], L²(Ω))";
+std::string L2H1<dim>::unique_id() const {
+  return "L²([0,T], H¹(Ω))";
 }
 
-template class L2L2<1>;
-template class L2L2<2>;
-template class L2L2<3>;
+template class L2H1<1>;
+template class L2H1<2>;
+template class L2H1<3>;
 
 } /* namespace norms */
 } /* namespace wavepi */

@@ -25,6 +25,7 @@
 #include <forward/L2RightHandSide.h>
 #include <forward/WaveEquation.h>
 #include <gtest/gtest.h>
+#include <norms/L2H1.h>
 #include <norms/L2L2.h>
 #include <stddef.h>
 #include <fstream>
@@ -123,17 +124,34 @@ class TestRhoOnlyTime : public LightFunction<dim> {
 };
 
 template <int dim>
-class TestU : public LightFunction<dim> {
+class TestU : public Function<dim> {
  public:
   virtual ~TestU() = default;
 
-  virtual double evaluate(const Point<dim> &p, const double t) const {
+  virtual double value(const Point<dim> &p, const unsigned int component __attribute__((unused))) const {
     double tmp = 1;
 
     for (size_t i = 0; i < dim; i++)
       tmp *= sin(p[i]);
 
-    return cos(t) * tmp;
+    return cos(this->get_time()) * tmp;
+  }
+
+  virtual Tensor<1, dim, double> gradient(const Point<dim> &p,
+                                          const unsigned int component __attribute__((unused))) const {
+    Tensor<1, dim, double> res;
+
+    for (size_t j = 0; j < dim; j++) {
+      double tmp = 1;
+
+      for (size_t i = 0; i < dim; i++)
+        if (i != j) tmp *= sin(p[i]);
+
+      tmp *= cos(p[j]);
+      res[j] = cos(this->get_time()) * tmp;
+    }
+
+    return res;
   }
 };
 
@@ -178,30 +196,38 @@ void run_reference_test2(std::shared_ptr<SpaceTimeMesh<dim>> mesh, int refines, 
   DiscretizedFunction<dim> solv = solu.derivative();
   solu.throw_away_derivative();
 
-  solu.set_norm(std::make_shared<norms::L2L2<dim>>());
-  solv.set_norm(std::make_shared<norms::L2L2<dim>>());
-
-  double err_u       = norms::L2L2<dim>::absolute_error(solu, *u_cont);
-  err_u /= solu.norm();
-
-  double err_v       = norms::L2L2<dim>::absolute_error(solv, *v_cont);
-  err_v /= solv.norm();
-
   DiscretizedFunction<dim> u_disc(mesh, *u_cont);
-  u_disc.set_norm(std::make_shared<norms::L2L2<dim>>());
-  DiscretizedFunction<dim> tmp(solu);
-  tmp -= u_disc;
-  double err_u_disc = tmp.norm() / u_disc.norm();
+  DiscretizedFunction<dim> tmp_u(solu);
+  tmp_u -= u_disc;
 
   DiscretizedFunction<dim> v_disc(mesh, *v_cont);
+  DiscretizedFunction<dim> tmp_v(solv);
+  tmp_v -= v_disc;
+
+  u_disc.set_norm(std::make_shared<norms::L2L2<dim>>());
+  double err_u_L2L2 = norms::L2L2<dim>::absolute_error(solu, *u_cont) / u_disc.norm();
+
+  u_disc.set_norm(std::make_shared<norms::L2H1<dim>>());
+  double err_u_L2H1 = norms::L2H1<dim>::absolute_error(solu, *u_cont) / u_disc.norm();
+
   v_disc.set_norm(std::make_shared<norms::L2L2<dim>>());
-  tmp = solv;
-  tmp -= v_disc;
-  double err_v_disc = tmp.norm() / v_disc.norm();
+  double err_v_L2L2 = norms::L2L2<dim>::absolute_error(solv, *v_cont) / v_disc.norm();
+
+  tmp_u.set_norm(std::make_shared<norms::L2L2<dim>>());
+  u_disc.set_norm(std::make_shared<norms::L2L2<dim>>());
+  double err_u_L2L2_disc = tmp_u.norm() / u_disc.norm();
+
+  tmp_u.set_norm(std::make_shared<norms::L2H1<dim>>());
+  u_disc.set_norm(std::make_shared<norms::L2H1<dim>>());
+  double err_u_L2H1_disc = tmp_u.norm() / u_disc.norm();
+
+  tmp_v.set_norm(std::make_shared<norms::L2L2<dim>>());
+  v_disc.set_norm(std::make_shared<norms::L2L2<dim>>());
+  double err_v_L2L2_disc = tmp_v.norm() / v_disc.norm();
 
   if (expect) {
-    EXPECT_LT(err_u, 1e-1);
-    EXPECT_LT(err_v, 1e-1);
+    EXPECT_LT(err_u_L2L2, 1e-1);
+    EXPECT_LT(err_v_L2L2, 1e-1);
   }
 
   if (save) {
@@ -215,14 +241,17 @@ void run_reference_test2(std::shared_ptr<SpaceTimeMesh<dim>> mesh, int refines, 
     tmp.write_pvd("./", "diff", "udiff");
   }
 
-  deallog << std::scientific << " rerr(u) = " << err_u << ", rerr(v) = " << err_v << ", rerr_disc(u) = " << err_u_disc << ", rerr_disc(v) = " << err_v_disc << ", cpu time = " << std::fixed << std::setprecision(2) << timer.cpu_time() << std::endl;
+  deallog << std::scientific << " L2L2 rerr of u = " << err_u_L2L2 << " (disc: " << err_u_L2L2_disc
+          << "), L2L2 rerr of v = " << err_v_L2L2 << " (disc: " << err_v_L2L2_disc
+          << "), L2H1 rerr of u = " << err_u_L2H1 << " (disc: " << err_u_L2H1_disc << "), cpu = " << std::fixed
+          << std::setprecision(2) << timer.cpu_time() << "s" << std::endl;
 
   double dt = mesh->get_time(1) - mesh->get_time(0);
   double h  = dealii::GridTools::maximal_cell_diameter(*mesh->get_triangulation(0));
 
   if (log)
-    *log << std::scientific << mesh->length() << " " << dt << " " << refines << " " << h << " " << err_u << " " << err_v
-         << " " << std::fixed << std::setprecision(2) << timer.cpu_time() << std::endl;
+    *log << std::scientific << mesh->length() << " " << dt << " " << refines << " " << h << " " << err_u_L2L2 << " "
+         << err_v_L2L2 << " " << err_u_L2H1 << std::endl;
 }
 
 template <int dim>
