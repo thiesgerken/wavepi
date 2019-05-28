@@ -38,12 +38,12 @@ class SensorDistribution {
   /**
    * total number of points
    */
-  inline size_t size() const { return space_time_points.size(); }
+  size_t size() const { return space_time_points.size(); }
 
   /**
    * access every point, ordering given by `times()`.
    */
-  inline const Point<dim + 1>& operator[](const size_t i) const {
+  const Point<dim + 1>& operator[](const size_t i) const {
     Assert(i < size(), ExcIndexRange(i, 0, size()));
 
     return space_time_points[i];
@@ -52,12 +52,12 @@ class SensorDistribution {
   /**
    * get times that are used in measurement points
    */
-  inline const std::vector<double>& get_times() const { return times; }
+  const std::vector<double>& get_times() const { return times; }
 
   /**
    * get points that belong to one time (-index)
    */
-  inline const std::vector<Point<dim>>& get_points_per_time(size_t time_index) const {
+  const std::vector<Point<dim>>& get_points_per_time(size_t time_index) const {
     Assert(time_index < times.size(), ExcIndexRange(time_index, 0, times.size()));
     return points_per_time[time_index];
   }
@@ -75,7 +75,7 @@ class SensorDistribution {
    * get points that are used in measurement points. Might not be supported for every distribution, use
    * `times_per_point_available` before.
    */
-  inline const std::vector<Point<dim>>& get_points() const {
+  const std::vector<Point<dim>>& get_points() const {
     Assert(times_per_point_available(), ExcMessage("!times_per_point_available()"));
     return points;
   }
@@ -84,7 +84,7 @@ class SensorDistribution {
    * get times that belong to one point (-index). Might not be supported for every distribution, use
    * `times_per_point_available` before.
    */
-  inline const std::vector<double>& get_times_per_point(size_t point_index) const {
+  const std::vector<double>& get_times_per_point(size_t point_index) const {
     Assert(times_per_point_available(), ExcMessage("!times_per_point_available()"));
     Assert(point_index < points.size(), ExcIndexRange(point_index, 0, points.size()));
     return times_per_point[point_index];

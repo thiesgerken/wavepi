@@ -62,7 +62,7 @@ class AbstractEquation {
   double solver_tolerance = 1e-8;
   int solver_max_iter     = 10000;
 
-  int precondition_max_age = 0;
+  int precondition_max_age = 4;
 
   // SparseILU<double> precondition_u;
   PreconditionSSOR<SparseMatrix<double>> precondition_u;

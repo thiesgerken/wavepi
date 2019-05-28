@@ -37,7 +37,7 @@ template <int dim, typename Meas>
 class WavePI {
   using Param = DiscretizedFunction<dim>;
   using Sol   = DiscretizedFunction<dim>;
-  using Exact = Function<dim>;
+  using Exact = DiscretizedFunction<dim>;
 
  public:
   /**
@@ -73,6 +73,7 @@ class WavePI {
   std::shared_ptr<Transformation<dim>> transform;
 
   std::shared_ptr<LightFunction<dim>> param_exact;
+  std::shared_ptr<DiscretizedFunction<dim>> param_exact_disc;
   std::shared_ptr<LightFunction<dim>> param_exact_untransformed;
 
   std::shared_ptr<LightFunction<dim>> initial_guess;
@@ -127,7 +128,7 @@ class WavePI {
    */
   void interpolate_data(std::shared_ptr<SpaceTimeMesh<dim>> target_mesh);
 
-  void log_error(DiscretizedFunction<dim>& reconstruction, std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm);
+  void log_error(DiscretizedFunction<dim>& reconstruction, std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm, DiscretizedFunction<dim>& exact);
   void log_error_initial(DiscretizedFunction<dim>& reconstruction_minus_initial,
                          std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm,
                          DiscretizedFunction<dim>& exact_minus_initial);

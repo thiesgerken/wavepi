@@ -224,7 +224,7 @@ template <typename Param, typename Sol, typename Exact>
 bool CtrlCProgressListener<Param, Sol, Exact>::handler_installed = false;
 
 template <int dim, typename Meas>
-class OutputProgressListener : public InversionProgressListener<DiscretizedFunction<dim>, Meas, Function<dim>> {
+class OutputProgressListener : public InversionProgressListener<DiscretizedFunction<dim>, Meas, DiscretizedFunction<dim>> {
  public:
   virtual ~OutputProgressListener() = default;
 
@@ -286,7 +286,7 @@ class OutputProgressListener : public InversionProgressListener<DiscretizedFunct
     prm.leave_subsection();
   }
 
-  virtual bool progress(InversionProgress<DiscretizedFunction<dim>, Meas, Function<dim>> state) {
+  virtual bool progress(InversionProgress<DiscretizedFunction<dim>, Meas, DiscretizedFunction<dim>> state) {
     std::map<std::string, std::string> subs;
     subs["i"] = Utilities::int_to_string(state.iteration_number, 4);
 
@@ -333,8 +333,7 @@ class OutputProgressListener : public InversionProgressListener<DiscretizedFunct
       deallog << "Saving transformed exact parameter in " << dest << std::endl;
       LogStream::Prefix p = LogStream::Prefix("Output");
 
-      DiscretizedFunction<dim> exact_disc(state.current_estimate->get_mesh(), *state.exact_param);
-      exact_disc.write_pvd(dest, filename, "param");
+      state.exact_param->write_pvd(dest, filename, "param");
     }
 
     if (save_exact && state.iteration_number == 0 && state.exact_param) {
@@ -344,10 +343,11 @@ class OutputProgressListener : public InversionProgressListener<DiscretizedFunct
       deallog << "Saving exact parameter in " << dest << std::endl;
       LogStream::Prefix p = LogStream::Prefix("Output");
 
-      DiscretizedFunction<dim> exact_disc(state.current_estimate->get_mesh(), *state.exact_param);
-      if (transform) exact_disc = transform->transform_inverse(exact_disc);
-
+      if (transform) {
+       auto  exact_disc = transform->transform_inverse(*state.exact_param);
       exact_disc.write_pvd(dest, filename, "param");
+    } else  
+     state.exact_param->write_pvd(dest, filename, "param");
     }
 
     if (save_data && state.iteration_number == 0) {
@@ -496,8 +496,8 @@ class OutputProgressListener : public InversionProgressListener<DiscretizedFunct
   double discrepancy_min = 0;
 };
 
-template <int dim, typename Meas>
-class BoundCheckProgressListener : public InversionProgressListener<DiscretizedFunction<dim>, Meas, Function<dim>> {
+template <int dim, typename Meas, typename Exact>
+class BoundCheckProgressListener : public InversionProgressListener<DiscretizedFunction<dim>, Meas, Exact> {
  public:
   virtual ~BoundCheckProgressListener() = default;
 
@@ -526,7 +526,7 @@ class BoundCheckProgressListener : public InversionProgressListener<DiscretizedF
     prm.leave_subsection();
   }
 
-  virtual bool progress(InversionProgress<DiscretizedFunction<dim>, Meas, Function<dim>> state) {
+  virtual bool progress(InversionProgress<DiscretizedFunction<dim>, Meas, Exact> state) {
     double est_min = std::numeric_limits<double>::infinity();
     double est_max = -std::numeric_limits<double>::infinity();
 

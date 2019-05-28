@@ -442,11 +442,11 @@ void WavePI<dim, Meas>::synthesize_data() {
   LogStream::Prefix pp("run");  // make logs of forward operator appear in the right level
 
   deallog << "Discretizing exact parameter" << std::endl;
-  DiscretizedFunction<dim> param_exact_disc(mesh, *param_exact);
-  param_exact_disc.set_norm(norm_domain);
+  param_exact_disc = std::make_shared<DiscretizedFunction<dim>>(mesh, *param_exact);
+  param_exact_disc->set_norm(norm_domain);
 
   deallog << "Computing exact data" << std::endl;
-  Tuple<Meas> data_exact = problem->forward(param_exact_disc);
+  Tuple<Meas> data_exact = problem->forward(*param_exact_disc);
 
   double data_exact_norm = data_exact.norm();
 
@@ -475,11 +475,11 @@ void WavePI<dim, Meas>::synthesize_data() {
 
 template <int dim, typename Meas>
 void WavePI<dim, Meas>::log_error(DiscretizedFunction<dim>& reconstruction,
-                                  std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm) {
+                                  std::shared_ptr<Norm<DiscretizedFunction<dim>>> norm, DiscretizedFunction<dim>& exact) {
   reconstruction.set_norm(norm);
 
   double norm_exact = 0.0;
-  double err        = reconstruction.absolute_error(*param_exact_untransformed, &norm_exact);
+  double err        = reconstruction.absolute_error(exact, &norm_exact);
 
   if (norm_exact > 1e-16)
     deallog << "Relative " << norm->name() << " error of the reconstruction: " << err / norm_exact << std::endl;
@@ -601,7 +601,7 @@ void WavePI<dim, Meas>::run() {
 
   regularization->add_listener(std::make_shared<GenericInversionProgressListener<Param, Tuple<Meas>, Exact>>("i"));
   regularization->add_listener(std::make_shared<CtrlCProgressListener<Param, Tuple<Meas>, Exact>>());
-  regularization->add_listener(std::make_shared<BoundCheckProgressListener<dim, Tuple<Meas>>>(*cfg->prm));
+  regularization->add_listener(std::make_shared<BoundCheckProgressListener<dim, Tuple<Meas>, Exact>>(*cfg->prm));
   regularization->add_listener(std::make_shared<WatchdogProgressListener<Param, Tuple<Meas>, Exact>>(*cfg->prm));
 
   regularization->add_post_processor(std::make_shared<BoundEnforcingPostProcessor<dim>>(*cfg->prm));
@@ -616,29 +616,29 @@ void WavePI<dim, Meas>::run() {
 #endif
 
   // do the inversion
-  auto reconstruction = regularization->invert(*data, cfg->tau * cfg->epsilon * data->norm(), param_exact);
+  auto reconstruction = regularization->invert(*data, cfg->tau * cfg->epsilon * data->norm(), param_exact_disc);
 
   // transform back and output errors in the untransformed setting
   reconstruction = transform->transform_inverse(reconstruction);
 
-  log_error(reconstruction, norm_domain);
+  Param param_exact_untrans_disc(mesh, *param_exact_untransformed);
+  param_exact_untrans_disc.set_norm(reconstruction.get_norm());
+ 
+  log_error(reconstruction, norm_domain, param_exact_untrans_disc);
   deallog << "reconstruction error in other norms: " << std::endl;
 
-  log_error(reconstruction, norm_vector);
-  log_error(reconstruction, norm_l2l2);
-  log_error(reconstruction, norm_h1l2);
-  log_error(reconstruction, norm_h1h1);
-  log_error(reconstruction, norm_h2l2);
+  log_error(reconstruction, norm_vector, param_exact_untrans_disc);
+  log_error(reconstruction, norm_l2l2, param_exact_untrans_disc);
+  log_error(reconstruction, norm_h1l2, param_exact_untrans_disc);
+  log_error(reconstruction, norm_h1h1, param_exact_untrans_disc);
+  log_error(reconstruction, norm_h2l2, param_exact_untrans_disc);
 
   // same for reconstruction - initial guess
   Param initial_guess_untrans_disc(mesh, *initial_guess);
   initial_guess_untrans_disc.set_norm(reconstruction.get_norm());
 
   reconstruction -= initial_guess_untrans_disc;
-
-  Param param_exact_untrans_disc(mesh, *param_exact_untransformed);
-  param_exact_untrans_disc.set_norm(reconstruction.get_norm());
-  param_exact_untrans_disc -= initial_guess_untrans_disc;
+ param_exact_untrans_disc -= initial_guess_untrans_disc;
 
   log_error_initial(reconstruction, norm_domain, param_exact_untrans_disc);
   deallog << "Reconstruction error in other norms: " << std::endl;

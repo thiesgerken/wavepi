@@ -43,31 +43,31 @@ public:
 
    virtual DiscretizedFunction<dim> run(std::shared_ptr<RightHandSide<dim>> right_hand_side);
 
-   inline double get_theta() const {
+   double get_theta() const {
       return theta;
    }
-   inline void set_theta(double theta) {
+   void set_theta(double theta) {
       this->theta = theta;
    }
 
-   inline std::shared_ptr<SpaceTimeMesh<dim>> get_mesh() const {
+   std::shared_ptr<SpaceTimeMesh<dim>> get_mesh() const {
       return this->mesh;
    }
-   inline void set_mesh(std::shared_ptr<SpaceTimeMesh<dim>> mesh) {
+   void set_mesh(std::shared_ptr<SpaceTimeMesh<dim>> mesh) {
       this->mesh = mesh;
    }
 
-   inline double get_solver_tolerance() const {
+   double get_solver_tolerance() const {
       return solver_tolerance;
    }
-   inline void set_solver_tolerance(double solver_tolerance) {
+   void set_solver_tolerance(double solver_tolerance) {
       this->solver_tolerance = solver_tolerance;
    }
 
-   inline int get_solver_max_iter() const {
+   int get_solver_max_iter() const {
       return solver_max_iter;
    }
-   inline void set_solver_max_iter(int solver_max_iter) {
+   void set_solver_max_iter(int solver_max_iter) {
       this->solver_max_iter = solver_max_iter;
    }
 

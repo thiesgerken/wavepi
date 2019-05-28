@@ -6,9 +6,35 @@
  */
 
 #include <norms/L2L2.h>
+#include <deal.II/numerics/vector_tools.h>
+
+using namespace dealii;
 
 namespace wavepi {
 namespace norms {
+
+template <int dim>
+double L2L2<dim>::absolute_error(const DiscretizedFunction<dim>& u, Function<dim>& v) {
+  auto mesh     = u.get_mesh();
+  double result = 0;
+
+  // trapezoidal rule in time:
+  for (size_t i = 0; i < mesh->length(); i++) {
+    Vector<double> cellwise_error;
+
+    v.set_time(mesh->get_time(i));
+    VectorTools::integrate_difference(*mesh->get_dof_handler(i), u.get_function_coefficients(i), v, cellwise_error,
+                                      QGauss<dim>(5), VectorTools::NormType::L2_norm);
+
+    double nrm =
+        VectorTools::compute_global_error(*mesh->get_triangulation(i), cellwise_error, VectorTools::NormType::L2_norm);
+
+    if (i > 0) result += nrm * nrm / 2 * (std::abs(mesh->get_time(i) - mesh->get_time(i - 1)));
+    if (i < mesh->length() - 1) result += nrm * nrm / 2 * (std::abs(mesh->get_time(i + 1) - mesh->get_time(i)));
+  }
+
+  return std::sqrt(result);
+}
 
 template <int dim>
 double L2L2<dim>::norm(const DiscretizedFunction<dim>& u) const {

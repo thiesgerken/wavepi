@@ -181,19 +181,23 @@ void run_reference_test2(std::shared_ptr<SpaceTimeMesh<dim>> mesh, int refines, 
   solu.set_norm(std::make_shared<norms::L2L2<dim>>());
   solv.set_norm(std::make_shared<norms::L2L2<dim>>());
 
+  double err_u       = norms::L2L2<dim>::absolute_error(solu, *u_cont);
+  err_u /= solu.norm();
+
+  double err_v       = norms::L2L2<dim>::absolute_error(solv, *v_cont);
+  err_v /= solv.norm();
+
   DiscretizedFunction<dim> u_disc(mesh, *u_cont);
-  DiscretizedFunction<dim> v_disc(mesh, *v_cont);
-
   u_disc.set_norm(std::make_shared<norms::L2L2<dim>>());
-  v_disc.set_norm(std::make_shared<norms::L2L2<dim>>());
-
   DiscretizedFunction<dim> tmp(solu);
   tmp -= u_disc;
-  double err_u = tmp.norm() / u_disc.norm();
+  double err_u_disc = tmp.norm() / u_disc.norm();
 
+  DiscretizedFunction<dim> v_disc(mesh, *v_cont);
+  v_disc.set_norm(std::make_shared<norms::L2L2<dim>>());
   tmp = solv;
   tmp -= v_disc;
-  double err_v = tmp.norm() / v_disc.norm();
+  double err_v_disc = tmp.norm() / v_disc.norm();
 
   if (expect) {
     EXPECT_LT(err_u, 1e-1);
@@ -201,25 +205,25 @@ void run_reference_test2(std::shared_ptr<SpaceTimeMesh<dim>> mesh, int refines, 
   }
 
   if (save) {
-    solu.write_pvd("./", "solu", "u");
-    u_disc.write_pvd("./", "refu", "uref");
+    DiscretizedFunction<dim> u_disc2(mesh, *u_cont);
 
     DiscretizedFunction<dim> tmp(solu);
-    tmp -= u_disc;
+    tmp -= u_disc2;
+
+    u_disc2.write_pvd("./", "refu", "uref");
+    solu.write_pvd("./", "solu", "u");
     tmp.write_pvd("./", "diff", "udiff");
   }
 
-  deallog << std::scientific << " rerr(u) = " << err_u << ", rerr(v) = " << err_v << ", cpu time = " << std::fixed
-          << std::setprecision(2) << timer.cpu_time() << std::endl;
+  deallog << std::scientific << " rerr(u) = " << err_u << ", rerr(v) = " << err_v << ", rerr_disc(u) = " << err_u_disc << ", rerr_disc(v) = " << err_v_disc << ", cpu time = " << std::fixed << std::setprecision(2) << timer.cpu_time() << std::endl;
 
-double dt = mesh->get_time(1) - mesh->get_time(0);
-double h =  dealii::GridTools::maximal_cell_diameter(*mesh->get_triangulation(0));
- 
+  double dt = mesh->get_time(1) - mesh->get_time(0);
+  double h  = dealii::GridTools::maximal_cell_diameter(*mesh->get_triangulation(0));
+
   if (log)
-    *log << std::scientific << mesh->length() << " " << dt << " " << refines << " " << h << " " << err_u << " " << err_v << " " << std::fixed
-         << std::setprecision(2) << timer.cpu_time() << std::endl;
+    *log << std::scientific << mesh->length() << " " << dt << " " << refines << " " << h << " " << err_u << " " << err_v
+         << " " << std::fixed << std::setprecision(2) << timer.cpu_time() << std::endl;
 }
-}  // namespace
 
 template <int dim>
 void run_reference_test2_constant(int fe_order, int quad_order, int refines, int steps, bool expect = true,
@@ -246,30 +250,53 @@ void run_reference_test2_constant(int fe_order, int quad_order, int refines, int
 }
 
 TEST(WaveEquation, ReferenceTestParameters2DFE1) {
-  for (int r = 4; r <= 8; r++) {
-    auto file_time = std::make_shared<std::ofstream>("./ReferenceTestParameters2DFE1_time" + std::to_string(r) + ".dat",
-                                                     std::ios_base::trunc);
-    ASSERT_TRUE(*file_time) << "could not open file for output";
+  auto file_time = std::make_shared<std::ofstream>("./ReferenceTestParameters2DFE1_time.dat", std::ios_base::trunc);
+  ASSERT_TRUE(*file_time) << "could not open file for output";
 
-    for (int steps = 6; steps <= 128; steps = (int)(steps * 1.41))
-      run_reference_test2_constant<2>(1, 4, r, steps, steps >= 64, false, file_time);
-    file_time->close();
-  }
+  for (int steps = 6; steps <= 128; steps = (int)(steps * 1.41))
+    run_reference_test2_constant<2>(1, 5, 8, steps, steps >= 64, false, file_time);
+  file_time->close();
 
   auto file_space = std::make_shared<std::ofstream>("./ReferenceTestParameters2DFE1_space.dat", std::ios_base::trunc);
   ASSERT_TRUE(*file_space) << "could not open file for output";
 
   for (int refine = 1; refine <= 8; refine++)
-    run_reference_test2_constant<2>(1, 4, refine, 128, refine >= 4, false, file_space);
+    run_reference_test2_constant<2>(1, 5, refine, 128, refine >= 4, false, file_space);
+  file_space->close();
+}
+
+TEST(WaveEquation, ReferenceTestParameters2DFE2) {
+  auto file_space = std::make_shared<std::ofstream>("./ReferenceTestParameters2DFE2_space.dat", std::ios_base::trunc);
+  ASSERT_TRUE(*file_space) << "could not open file for output";
+
+  for (int refine = 1; refine <= 5; refine++)
+    run_reference_test2_constant<2>(2, 5, refine, 1024, refine >= 4, false, file_space);
   file_space->close();
 }
 
 TEST(WaveEquation, ReferenceTestParameters3DFE1) {
-  for (int steps = 8; steps <= 32; steps *= 2)
-    run_reference_test2_constant<3>(1, 3, 3, steps, steps >= 32, false, nullptr);
+  auto file_time = std::make_shared<std::ofstream>("./ReferenceTestParameters3DFE1_time.dat", std::ios_base::trunc);
+  ASSERT_TRUE(*file_time) << "could not open file for output";
+
+  for (int steps = 4; steps <= 15; steps = (int)(steps * 1.41))
+    run_reference_test2_constant<3>(1, 5, 5, steps, steps >= 64, false, file_time);
+  file_time->close();
+
+  auto file_space = std::make_shared<std::ofstream>("./ReferenceTestParameters3DFE1_space.dat", std::ios_base::trunc);
+  ASSERT_TRUE(*file_space) << "could not open file for output";
+
+  for (int refine = 1; refine <= 5; refine++)
+    run_reference_test2_constant<3>(1, 5, refine, 128, refine >= 4, false, file_space);
+  file_space->close();
+}
+
+TEST(WaveEquation, ReferenceTestParameters3DFE2) {
+  auto file_space = std::make_shared<std::ofstream>("./ReferenceTestParameters3DFE2_space.dat", std::ios_base::trunc);
+  ASSERT_TRUE(*file_space) << "could not open file for output";
 
   for (int refine = 1; refine <= 4; refine++)
-    run_reference_test2_constant<3>(1, 3, refine, 32, refine >= 2, false, nullptr);
+    run_reference_test2_constant<3>(2, 5, refine, 128, refine >= 4, false, file_space);
+  file_space->close();
 }
 
 TEST(WaveEquation, PreconditionTest2DFE1) {
@@ -282,7 +309,23 @@ TEST(WaveEquation, PreconditionTest2DFE1) {
     else
       max_age = 1 << (i - 2);
 
-    run_reference_test2_constant<2>(1, 4, 6, 128, false, false, nullptr, max_age);
+    run_reference_test2_constant<2>(1, 5, 6, 128, false, false, nullptr, max_age);
     deallog << " precon = " << max_age << std::endl;
   }
 }
+
+TEST(WaveEquation, PreconditionTest2DFE2) {
+  for (int i = 0; i <= 9; i++) {
+    int max_age;
+    if (i == 0)
+      max_age = -1;
+    else if (i == 1)
+      max_age = 0;
+    else
+      max_age = 1 << (i - 2);
+
+    run_reference_test2_constant<2>(2, 5, 6, 128, false, false, nullptr, max_age);
+    deallog << " precon = " << max_age << std::endl;
+  }
+}
+}  // namespace

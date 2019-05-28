@@ -48,8 +48,8 @@ class H1L2 : public Norm<DiscretizedFunction<dim>> {
 
   virtual std::string unique_id() const override;
 
-  inline double alpha() const { return alpha_; }
-  inline void alpha(double alpha) { alpha_ = alpha; }
+  double alpha() const { return alpha_; }
+  void alpha(double alpha) { alpha_ = alpha; }
 
  private:
   double alpha_;
