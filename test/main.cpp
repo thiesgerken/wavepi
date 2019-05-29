@@ -7,6 +7,7 @@
 
 #include <deal.II/base/logstream.h>
 #include <deal.II/base/mpi.h>
+#include <deal.II/base/timer.h>
 #include <gtest/gtest.h>
 #include <fstream>
 #include <Version.h>
@@ -28,5 +29,11 @@ int main(int argc, char **argv) {
   deallog << Version::get_identification() << std::endl;
   deallog << Version::get_infos() << std::endl;
 
-  return RUN_ALL_TESTS();
+  Timer timer; timer.start();
+  int rc = RUN_ALL_TESTS();
+  timer.stop();
+
+  deallog << "Total wall time: " << timer.wall_time() << "s, cpu time: " << timer.cpu_time() << "s" << std::endl;
+
+  return rc;
 }
