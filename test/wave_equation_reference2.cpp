@@ -40,55 +40,25 @@ using namespace wavepi::forward;
 using namespace wavepi::base;
 using namespace wavepi;
 
+/*****
+NOTE: This module is used for automatic figure generation 
+and should therefore only be changed together with the thesis! 
+*****/
+
 template <int dim>
-class TestF : public LightFunction<dim> {
+class TestQ : public LightFunction<dim> {
  public:
-  virtual ~TestF() = default;
+  virtual ~TestQ() = default;
 
-  virtual double evaluate(const Point<dim> &p, const double t) const {
-    double tmp2 = 1;
-    for (size_t i = 0; i < dim; i++)
-      tmp2 *= sin(p[i]);
-
-    // 1/rho (u'/c^2)'
-    double tmp =
-        tmp2 * (sin(t) - (1 + t) * cos(t)) / ((1 + t) * (1 + t) * (1 + t) * (1 + p[0]) * (1 + p[0]) * (1 + p[1]));
-
-    // div (nabla u / rho)
-
-    double fac = cos(t) / ((1 + t) * (1 + p[1]));
-    tmp -= -dim * fac * tmp2;
-
-    double tmp3 = cos(p[1]);
-    for (size_t i = 0; i < dim; i++)
-      if (i != 1) tmp3 *= sin(p[i]);
-
-    tmp -= -1 * fac * tmp3 / (1 + p[1]);
-
-    return tmp;
-  }
+  virtual double evaluate(const Point<dim> &p, const double t) const { return 0.05*t+0.05*p[0]*p[1]; }
 };
 
 template <int dim>
-class TestFOnlyTime : public LightFunction<dim> {
+class TestNu : public LightFunction<dim> {
  public:
-  virtual ~TestFOnlyTime() = default;
+  virtual ~TestNu() = default;
 
-  virtual double evaluate(const Point<dim> &p, const double t) const {
-    double tmp2 = 1;
-    for (size_t i = 0; i < dim; i++)
-      tmp2 *= sin(p[i]);
-
-    // 1/rho (u'/c^2)'
-    double tmp = tmp2 * (sin(t) - (1 + t) * cos(t)) / ((1 + t) * (1 + t) * (1 + t));
-
-    // div (nabla u / rho)
-
-    double fac = cos(t) / (1 + t);
-    tmp -= -dim * fac * tmp2;
-
-    return tmp;
-  }
+  virtual double evaluate(const Point<dim> &p, const double t) const { return 0.05*abs(cos(p[1]*t)); }
 };
 
 template <int dim>
@@ -108,22 +78,6 @@ class TestRho : public LightFunction<dim> {
 };
 
 template <int dim>
-class TestCOnlyTime : public LightFunction<dim> {
- public:
-  virtual ~TestCOnlyTime() = default;
-
-  virtual double evaluate(const Point<dim> &p, const double t) const { return sqrt(1 + t); }
-};
-
-template <int dim>
-class TestRhoOnlyTime : public LightFunction<dim> {
- public:
-  virtual ~TestRhoOnlyTime() = default;
-
-  virtual double evaluate(const Point<dim> &p, const double t) const { return 1 + t; }
-};
-
-template <int dim>
 class TestU : public Function<dim> {
  public:
   virtual ~TestU() = default;
@@ -135,6 +89,15 @@ class TestU : public Function<dim> {
       tmp *= sin(p[i]);
 
     return cos(this->get_time()) * tmp;
+  }
+
+  virtual double evaluate(const Point<dim> &p, double t) const {
+    double tmp = 1;
+
+    for (size_t i = 0; i < dim; i++)
+      tmp *= sin(p[i]);
+
+    return cos(t) * tmp;
   }
 
   virtual Tensor<1, dim, double> gradient(const Point<dim> &p,
@@ -171,6 +134,43 @@ class TestV : public LightFunction<dim> {
 };
 
 template <int dim>
+class TestF : public LightFunction<dim> {
+ public:
+  virtual ~TestF() = default;
+
+  virtual double evaluate(const Point<dim> &p, const double t) const {
+    double tmp2 = 1;
+    for (size_t i = 0; i < dim; i++)
+      tmp2 *= sin(p[i]);
+
+    // 1/rho (u'/c^2)'
+    double tmp =
+        tmp2 * (sin(t) - (1 + t) * cos(t)) / ((1 + t) * (1 + t) * (1 + t) * (1 + p[0]) * (1 + p[0]) * (1 + p[1]));
+
+    // div (nabla u / rho)
+
+    double fac = cos(t) / ((1 + t) * (1 + p[1]));
+    tmp -= -dim * fac * tmp2;
+
+    double tmp3 = cos(p[1]);
+    for (size_t i = 0; i < dim; i++)
+      if (i != 1) tmp3 *= sin(p[i]);
+
+    tmp -= -1 * fac * tmp3 / (1 + p[1]);
+
+    // q and nu
+    tmp+= q.evaluate(p, t) * u.evaluate(p,t) + nu.evaluate(p,t)*v.evaluate(p,t); 
+
+    return tmp;
+  }
+
+  TestQ<dim> q; 
+  TestNu<dim> nu;
+  TestU<dim> u; 
+  TestV<dim> v;
+};
+
+template <int dim>
 void run_reference_test2(std::shared_ptr<SpaceTimeMesh<dim>> mesh, int refines, bool expect = true, bool save = false,
                          std::shared_ptr<std::ofstream> log = nullptr, int precondition = -1) {
   deallog << std::endl << "----------  n_dofs(0): " << mesh->get_dof_handler(0)->n_dofs();
@@ -181,6 +181,8 @@ void run_reference_test2(std::shared_ptr<SpaceTimeMesh<dim>> mesh, int refines, 
 
   wave_eq.set_param_rho(std::make_shared<TestRho<dim>>());
   wave_eq.set_param_c(std::make_shared<TestC<dim>>());
+  wave_eq.set_param_q(std::make_shared<TestQ<dim>>());
+  wave_eq.set_param_nu(std::make_shared<TestNu<dim>>());
 
   auto u_cont = std::make_shared<TestU<dim>>();
   auto v_cont = std::make_shared<TestV<dim>>();
@@ -283,13 +285,13 @@ TEST(WaveEquation, ReferenceTestParameters2DFE1) {
   ASSERT_TRUE(*file_time) << "could not open file for output";
 
   for (int steps = 6; steps <= 128; steps = (int)(steps * 1.41))
-    run_reference_test2_constant<2>(1, 5, 8, steps, steps >= 64, false, file_time);
+    run_reference_test2_constant<2>(1, 5, 9, steps, steps >= 64, false, file_time);
   file_time->close();
 
   auto file_space = std::make_shared<std::ofstream>("./ReferenceTestParameters2DFE1_space.dat", std::ios_base::trunc);
   ASSERT_TRUE(*file_space) << "could not open file for output";
 
-  for (int refine = 1; refine <= 8; refine++)
+  for (int refine = 1; refine <= 9; refine++)
     run_reference_test2_constant<2>(1, 5, refine, 128, refine >= 4, false, file_space);
   file_space->close();
 }
@@ -307,14 +309,14 @@ TEST(WaveEquation, ReferenceTestParameters3DFE1) {
   auto file_time = std::make_shared<std::ofstream>("./ReferenceTestParameters3DFE1_time.dat", std::ios_base::trunc);
   ASSERT_TRUE(*file_time) << "could not open file for output";
 
-  for (int steps = 4; steps <= 15; steps = (int)(steps * 1.41))
-    run_reference_test2_constant<3>(1, 5, 5, steps, steps >= 64, false, file_time);
+  for (int steps = 4; steps <= 32; steps = (int)(steps * 1.41))
+    run_reference_test2_constant<3>(1, 5, 6, steps, steps >= 64, false, file_time);
   file_time->close();
 
   auto file_space = std::make_shared<std::ofstream>("./ReferenceTestParameters3DFE1_space.dat", std::ios_base::trunc);
   ASSERT_TRUE(*file_space) << "could not open file for output";
 
-  for (int refine = 1; refine <= 5; refine++)
+  for (int refine = 1; refine <= 6; refine++)
     run_reference_test2_constant<3>(1, 5, refine, 128, refine >= 4, false, file_space);
   file_space->close();
 }
