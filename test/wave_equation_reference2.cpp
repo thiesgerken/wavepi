@@ -284,7 +284,7 @@ TEST(WaveEquation, ReferenceTestParameters2DFE1) {
   auto file_time = std::make_shared<std::ofstream>("./ReferenceTestParameters2DFE1_time.dat", std::ios_base::trunc);
   ASSERT_TRUE(*file_time) << "could not open file for output";
 
-  for (int steps = 6; steps <= 128; steps = (int)(steps * 1.41))
+  for (int steps = 4; steps <= 128; steps = (int)(steps * 1.41))
     run_reference_test2_constant<2>(1, 5, 9, steps, steps >= 64, false, file_time);
   file_time->close();
 
