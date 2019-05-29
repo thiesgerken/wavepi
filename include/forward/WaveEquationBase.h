@@ -47,47 +47,47 @@ class WaveEquationBase {
   // uses special functions for matrix assembly when discretized parameters are passed, which is a lot better for P1
   // elements. For P2 elements and 3 dimensions it actually turns out to be worse (too much coupling going on,
   // evaluating the polynomial is actually cheaper) in that case, you should turn of the specialization.
-  inline bool is_special_assembly_recommended(std::shared_ptr<SpaceTimeMesh<dim>> mesh __attribute((unused))) const {
+  bool is_special_assembly_recommended(std::shared_ptr<SpaceTimeMesh<dim>> mesh __attribute((unused))) const {
     return true;  // mesh->get_quadrature().size() < (1 << dim) || dim < 3;
   }
 
-  inline bool using_special_assembly(std::shared_ptr<SpaceTimeMesh<dim>> mesh) {
+  bool using_special_assembly(std::shared_ptr<SpaceTimeMesh<dim>> mesh) {
     return special_assembly_tactic == 0 ? is_special_assembly_recommended(mesh) : (special_assembly_tactic > 0);
   }
 
-  inline std::shared_ptr<LightFunction<dim>> get_param_rho() const { return param_rho; }
+  std::shared_ptr<LightFunction<dim>> get_param_rho() const { return param_rho; }
 
-  inline void set_param_rho(std::shared_ptr<LightFunction<dim>> param_rho, bool is_time_dependent = true) {
+  void set_param_rho(std::shared_ptr<LightFunction<dim>> param_rho, bool is_time_dependent = true) {
     this->param_rho      = param_rho;
     this->param_rho_disc = std::dynamic_pointer_cast<DiscretizedFunction<dim>, LightFunction<dim>>(param_rho);
 
     this->rho_time_dependent = is_time_dependent;
   }
 
-  inline std::shared_ptr<LightFunction<dim>> get_param_c() const { return param_c; }
+  std::shared_ptr<LightFunction<dim>> get_param_c() const { return param_c; }
 
-  inline void set_param_c(std::shared_ptr<LightFunction<dim>> param_c) {
+  void set_param_c(std::shared_ptr<LightFunction<dim>> param_c) {
     this->param_c      = param_c;
     this->param_c_disc = std::dynamic_pointer_cast<DiscretizedFunction<dim>, LightFunction<dim>>(param_c);
   }
 
-  inline std::shared_ptr<LightFunction<dim>> get_param_nu() const { return param_nu; }
+  std::shared_ptr<LightFunction<dim>> get_param_nu() const { return param_nu; }
 
-  inline void set_param_nu(std::shared_ptr<LightFunction<dim>> param_nu) {
+  void set_param_nu(std::shared_ptr<LightFunction<dim>> param_nu) {
     this->param_nu      = param_nu;
     this->param_nu_disc = std::dynamic_pointer_cast<DiscretizedFunction<dim>, LightFunction<dim>>(param_nu);
   }
 
-  inline std::shared_ptr<LightFunction<dim>> get_param_q() const { return param_q; }
+  std::shared_ptr<LightFunction<dim>> get_param_q() const { return param_q; }
 
-  inline void set_param_q(std::shared_ptr<LightFunction<dim>> param_q) {
+  void set_param_q(std::shared_ptr<LightFunction<dim>> param_q) {
     this->param_q      = param_q;
     this->param_q_disc = std::dynamic_pointer_cast<DiscretizedFunction<dim>, LightFunction<dim>>(param_q);
   }
 
-  inline int get_special_assembly_tactic() const { return special_assembly_tactic; }
+  int get_special_assembly_tactic() const { return special_assembly_tactic; }
 
-  inline void set_special_assembly_tactic(int special_assembly_tactic) {
+  void set_special_assembly_tactic(int special_assembly_tactic) {
     if (special_assembly_tactic > 0)
       this->special_assembly_tactic = 1;
     else if (special_assembly_tactic < 0)

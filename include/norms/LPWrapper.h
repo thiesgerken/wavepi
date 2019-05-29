@@ -52,8 +52,8 @@ class LPWrapper : public Norm<DiscretizedFunction<dim>> {
 
   virtual std::string unique_id() const override;
 
-  inline double p() const { return p_; }
-  inline void p(double p) {
+  double p() const { return p_; }
+  void p(double p) {
     AssertThrow(p > 1, ExcMessage("LPWrapper: p<=1 not supported!"));
     p_ = p;
     q_ = p / (p - 1);

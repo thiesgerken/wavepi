@@ -47,13 +47,13 @@ class DivRightHandSideAdjoint : public RightHandSide<dim> {
 
   DiscretizedFunction<dim> run_adjoint(std::shared_ptr<SpaceTimeMesh<dim>> mesh);
 
-  inline std::shared_ptr<Function<dim>> get_a() const { return a; }
+  std::shared_ptr<Function<dim>> get_a() const { return a; }
 
-  inline void set_a(std::shared_ptr<Function<dim>> a) { this->a = a; }
+  void set_a(std::shared_ptr<Function<dim>> a) { this->a = a; }
 
-  inline std::shared_ptr<Function<dim>> get_u() const { return u; }
+  std::shared_ptr<Function<dim>> get_u() const { return u; }
 
-  inline void set_u(std::shared_ptr<Function<dim>> u) { this->u = u; }
+  void set_u(std::shared_ptr<Function<dim>> u) { this->u = u; }
 
  private:
   std::shared_ptr<Function<dim>> a;

@@ -133,7 +133,7 @@ class ConstantRhoProblem : public WaveProblem<dim, Measurement> {
       for (size_t i = 0; i < b->length(); i++) {
         Vector<double> &coeff_res       = b->get_function_coefficients(i);
         const Vector<double> &coeff_rho = rho->get_function_coefficients(i);
-        const Vector<double> &coeff_h   = h.get_function_coefficients(i);
+        const Vector<double> &coeff_h   = h[i];
 
         for (size_t j = 0; j < coeff_res.size(); j++)
           coeff_res[j] *= coeff_h[j] / (coeff_rho[j] * coeff_rho[j]);
@@ -180,7 +180,7 @@ class ConstantRhoProblem : public WaveProblem<dim, Measurement> {
       adj1.set_norm(this->norm_domain);
 
       for (size_t i = 0; i < res.length(); i++) {
-        Vector<double> &coeff_adj1      = adj1.get_function_coefficients(i);
+        Vector<double> &coeff_adj1      = adj1[i];
         const Vector<double> &coeff_rho = rho->get_function_coefficients(i);
 
         for (size_t j = 0; j < coeff_adj1.size(); j++)
@@ -199,7 +199,7 @@ class ConstantRhoProblem : public WaveProblem<dim, Measurement> {
       adj2.throw_away_derivative();
 
       for (size_t i = 0; i < adj2.length(); i++) {
-        Vector<double> &coeff_adj2    = adj2.get_function_coefficients(i);
+        Vector<double> &coeff_adj2    = adj2[i];
         const Vector<double> &coeff_c = c_discretized->get_function_coefficients(i);
 
         for (size_t j = 0; j < coeff_adj2.size(); j++)
@@ -209,8 +209,8 @@ class ConstantRhoProblem : public WaveProblem<dim, Measurement> {
       adj2 = adj2.calculate_derivative();
 
       for (size_t i = 0; i < res.length(); i++) {
-        Vector<double> &coeff_adj2      = adj2.get_function_coefficients(i);
-        const Vector<double> &coeff_res = res.get_function_coefficients(i);
+        Vector<double> &coeff_adj2      = adj2[i];
+        const Vector<double> &coeff_res = res[i];
         const Vector<double> &coeff_rho = rho->get_function_coefficients(i);
 
         for (size_t j = 0; j < coeff_adj2.size(); j++)
@@ -224,9 +224,9 @@ class ConstantRhoProblem : public WaveProblem<dim, Measurement> {
       // res.dot_transform_inverse();
 
       // averaging in time
-      Vector<double> &coeff_zero = res.get_function_coefficients(0);
+      Vector<double> &coeff_zero = res[0];
       for (size_t i = 1; i < res.length(); i++) {
-        const Vector<double> &coeff_res = res.get_function_coefficients(i);
+        const Vector<double> &coeff_res = res[i];
 
         for (size_t j = 0; j < coeff_res.size(); j++)
           coeff_zero[j] += coeff_res[j];
@@ -235,7 +235,7 @@ class ConstantRhoProblem : public WaveProblem<dim, Measurement> {
       coeff_zero *= 1.0 / res.length();
 
       for (size_t i = 1; i < res.length(); i++)
-        res.set_function_coefficients(i, res.get_function_coefficients(0));
+        res.set_function_coefficients(i, res[0]);
 
       return res;
     }

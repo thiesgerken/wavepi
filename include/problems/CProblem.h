@@ -165,7 +165,7 @@ private:
          res.throw_away_derivative();
 
          for (size_t i = 0; i < res.length(); i++) {
-            Vector<double> &coeff_res = res.get_function_coefficients(i);
+            Vector<double> &coeff_res = res[i];
             const Vector<double> &coeff_rho = rho_discretized->get_function_coefficients(i);
 
             for (size_t j = 0; j < coeff_res.size(); j++)
@@ -175,7 +175,7 @@ private:
          res = res.calculate_derivative_transpose();
 
          for (size_t i = 0; i < res.length(); i++) {
-            Vector<double> &coeff_res = res.get_function_coefficients(i);
+            Vector<double> &coeff_res = res[i];
             const Vector<double> &coeff_c = c->get_function_coefficients(i);
             const Vector<double> &coeff_u1 = u->get_derivative_coefficients(i);
 

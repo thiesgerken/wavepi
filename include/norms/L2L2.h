@@ -27,6 +27,8 @@ class L2L2 : public Norm<DiscretizedFunction<dim>> {
   virtual ~L2L2() = default;
   L2L2()          = default;
 
+  static double absolute_error(const DiscretizedFunction<dim>& u, Function<dim>& v);
+
   virtual double norm(const DiscretizedFunction<dim>& u) const override;
 
   virtual double dot(const DiscretizedFunction<dim>& u, const DiscretizedFunction<dim>& v) const override;

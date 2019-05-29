@@ -3,6 +3,7 @@ set(LIBSOURCES
     measurements.cpp
     discretized_function.cpp
     wave_equation.cpp
+    wave_equation_reference2.cpp
     wave_equation_adjointness.cpp
     problem_adjointness.cpp
     div_right_hand_side.cpp)
@@ -12,6 +13,7 @@ target_link_libraries(wavepi_test
                       gtest
                       gtest_main
                       pthread
+                      wavepi
                       wavepi_forward
                       wavepi_inversion
                       wavepi_base

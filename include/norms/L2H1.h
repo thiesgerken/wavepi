@@ -1,36 +1,33 @@
 /*
- * H1L2.h
+ * L2H1.h
  *
- *  Created on: 13.03.2018
+ *  Created on: 28.05.2019
  *      Author: thies
  */
 
-#ifndef INCLUDE_NORMS_H1L2_H_
-#define INCLUDE_NORMS_H1L2_H_
+#ifndef INCLUDE_NORMS_L2H1_H_
+#define INCLUDE_NORMS_L2H1_H_
 
 #include <base/DiscretizedFunction.h>
 #include <base/Norm.h>
-#include <base/SpaceTimeMesh.h>
-#include <deal.II/lac/sparse_direct.h>
-#include <memory>
 #include <string>
 
 namespace wavepi {
 namespace norms {
 
 using namespace wavepi::base;
-using namespace dealii;
 
 /**
- * H¹([0,T], L²(Ω)) norm, using the trapezoidal rule in time (approximation),
- * the mass matrix in space (exact) and finite differences of order h² (inner) and h (boundary)
- * Implements (u,v) = (u,v)_L² + α (u',v')_L² with positive α.
+ * L²([0,T], L²(Ω)) norm, using the trapezoidal rule in time (approximation)
+ * and the mass matrix in space (exact)
  */
 template <int dim>
-class H1L2 : public Norm<DiscretizedFunction<dim>> {
+class L2H1 : public Norm<DiscretizedFunction<dim>> {
  public:
-  virtual ~H1L2() = default;
-  H1L2(double alpha);
+  virtual ~L2H1() = default;
+  L2H1()          = default;
+
+  static double absolute_error(const DiscretizedFunction<dim>& u, Function<dim>& v);
 
   virtual double norm(const DiscretizedFunction<dim>& u) const override;
 
@@ -47,19 +44,9 @@ class H1L2 : public Norm<DiscretizedFunction<dim>> {
   virtual std::string name() const override;
 
   virtual std::string unique_id() const override;
-
-  double alpha() const { return alpha_; }
-  void alpha(double alpha) { alpha_ = alpha; }
-
- private:
-  double alpha_;
-
-  std::shared_ptr<SparseDirectUMFPACK> umfpack;
-
-  void factorize_matrix(std::shared_ptr<SpaceTimeMesh<dim>> mesh);
 };
 
 } /* namespace norms */
 } /* namespace wavepi */
 
-#endif /* INCLUDE_NORMS_H1L2_H_ */
+#endif /* INCLUDE_NORMS_L2H1_H_ */

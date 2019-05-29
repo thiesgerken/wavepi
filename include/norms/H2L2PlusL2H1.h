@@ -47,14 +47,14 @@ class H2L2PlusL2H1 : public Norm<DiscretizedFunction<dim>> {
 
   virtual std::string unique_id() const override;
 
-  inline double alpha() const { return alpha_; }
-  inline void alpha(double alpha) { alpha_ = alpha; }
+  double alpha() const { return alpha_; }
+  void alpha(double alpha) { alpha_ = alpha; }
 
-  inline double beta() const { return beta_; }
-  inline void beta(double beta) { beta_ = beta; }
+  double beta() const { return beta_; }
+  void beta(double beta) { beta_ = beta; }
 
-  inline double gamma() const { return gamma_; }
-  inline void gamma(double gamma) { gamma_ = gamma; }
+  double gamma() const { return gamma_; }
+  void gamma(double gamma) { gamma_ = gamma; }
 
  private:
   double alpha_;

@@ -45,7 +45,7 @@ class SpaceTimeMesh {
   /**
    * @return `Quadrature` that was passed to the constructor.
    */
-  inline const Quadrature<dim>& get_quadrature() const { return quad; }
+  const Quadrature<dim>& get_quadrature() const { return quad; }
 
   /**
    * @return an estimate for the memory consumption (in bytes) of this object.
@@ -112,14 +112,14 @@ class SpaceTimeMesh {
   /**
    * @return time points used in this discretization (in ascending order).
    */
-  inline const std::vector<double>& get_times() const { return times; }
+  const std::vector<double>& get_times() const { return times; }
 
   /**
    * Shortcut for `get_times()[idx]` (with range checking in debug mode).
    *
    * @return `get_times()[idx]`
    */
-  inline double get_time(size_t idx) const {
+  double get_time(size_t idx) const {
     Assert(0 <= idx && idx < times.size(), ExcIndexRange(idx, 0, times.size()));
 
     return times[idx];
@@ -130,7 +130,7 @@ class SpaceTimeMesh {
    *
    * @return `get_times().size()`
    */
-  inline size_t length() const { return times.size(); }
+  size_t length() const { return times.size(); }
 
   /**
    * Tries to find a given time in the times vector using a binary search.

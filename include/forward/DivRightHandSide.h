@@ -38,19 +38,19 @@ class DivRightHandSide : public RightHandSide<dim> {
   virtual void create_right_hand_side(const DoFHandler<dim> &dof_handler, const Quadrature<dim> &q,
                                       Vector<double> &rhs) const;
 
-  inline std::shared_ptr<DiscretizedFunction<dim>> get_a() const { return a; }
-  inline void set_a(std::shared_ptr<DiscretizedFunction<dim>> a) { this->a = a; }
+  std::shared_ptr<DiscretizedFunction<dim>> get_a() const { return a; }
+  void set_a(std::shared_ptr<DiscretizedFunction<dim>> a) { this->a = a; }
 
-  inline std::shared_ptr<DiscretizedFunction<dim>> get_b() const { return b; }
- inline void set_b(std::shared_ptr<DiscretizedFunction<dim>> b) { this->b = b; }
+  std::shared_ptr<DiscretizedFunction<dim>> get_b() const { return b; }
+  void set_b(std::shared_ptr<DiscretizedFunction<dim>> b) { this->b = b; }
 
-  inline std::shared_ptr<DiscretizedFunction<dim>> get_u() const { return u; }
-  inline void set_u(std::shared_ptr<DiscretizedFunction<dim>> u) { this->u = u; }
+  std::shared_ptr<DiscretizedFunction<dim>> get_u() const { return u; }
+  void set_u(std::shared_ptr<DiscretizedFunction<dim>> u) { this->u = u; }
 
  private:
   std::shared_ptr<DiscretizedFunction<dim>> a;
   std::shared_ptr<DiscretizedFunction<dim>> b;
-   std::shared_ptr<DiscretizedFunction<dim>> u;
+  std::shared_ptr<DiscretizedFunction<dim>> u;
 
   struct AssemblyScratchData {
     AssemblyScratchData(const FiniteElement<dim> &fe, const Quadrature<dim> &quad);

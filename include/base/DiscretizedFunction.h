@@ -167,7 +167,7 @@ public:
    /**
     * @returns `store_derivative`
     */
-   inline bool has_derivative() const {
+   bool has_derivative() const {
       return store_derivative;
    }
 
@@ -258,23 +258,6 @@ public:
    double relative_error(const DiscretizedFunction<dim>& other) const;
 
    /**
-    * Calculate the absolute error to a given continuous function.
-    * Uses the norm specified by `set_norm`.
-    *
-    * @param other The other function.
-    */
-   double absolute_error(Function<dim>& other) const;
-
-   /**
-    * Calculate the absolute error to a given continuous function.
-    * Uses the norm specified by `set_norm`.
-    *
-    * @param other The other function.
-    * @param norm_out `double` that is filled with the norm of `other`, or `nullptr`.
-    */
-   double absolute_error(Function<dim>& other, double* norm_out) const;
-
-   /**
     * Calculate the absolute error to a given discretized function.
     * Uses the norm specified by `set_norm`.
     *
@@ -355,7 +338,7 @@ public:
     *
     * @param idx the time index
     */
-   inline const Vector<double>& get_function_coefficients(size_t idx) const {
+   const Vector<double>& get_function_coefficients(size_t idx) const {
       Assert(idx >= 0 && idx < mesh->length(), ExcIndexRange(idx, 0, mesh->length()));
 
       return function_coefficients[idx];
@@ -366,7 +349,7 @@ public:
     *
     * @param idx the time index
     */
-   inline const Vector<double>& get_function_coefficients_by_time(double time) const {
+   const Vector<double>& get_function_coefficients_by_time(double time) const {
       return function_coefficients[mesh->find_time(time)];
    }
 
@@ -375,7 +358,7 @@ public:
     *
     * @param idx the time index
     */
-   inline const Vector<double>& get_derivative_coefficients(size_t idx) const {
+   const Vector<double>& get_derivative_coefficients(size_t idx) const {
       Assert(store_derivative, ExcInvalidState());
       Assert(idx >= 0 && idx < mesh->length(), ExcIndexRange(idx, 0, mesh->length()));
 
@@ -387,7 +370,7 @@ public:
     *
     * @param idx the time index
     */
-   inline Vector<double>& get_function_coefficients(size_t idx) {
+   Vector<double>& get_function_coefficients(size_t idx) {
       Assert(idx >= 0 && idx < mesh->length(), ExcIndexRange(idx, 0, mesh->length()));
 
       return function_coefficients[idx];
@@ -398,7 +381,7 @@ public:
     *
     * @param idx the time index
     */
-   inline Vector<double>& get_derivative_coefficients(size_t idx) {
+   Vector<double>& get_derivative_coefficients(size_t idx) {
       Assert(store_derivative, ExcInvalidState());
       Assert(idx >= 0 && idx < mesh->length(), ExcIndexRange(idx, 0, mesh->length()));
 
@@ -408,7 +391,7 @@ public:
    /**
     * same as `get_function_coefficients`.
     */
-   inline const Vector<double>& operator[](size_t idx) const {
+   const Vector<double>& operator[](size_t idx) const {
       Assert(idx >= 0 && idx < mesh->length(), ExcIndexRange(idx, 0, mesh->length()));
 
       return function_coefficients[idx];
@@ -417,7 +400,7 @@ public:
    /**
     * same as `get_function_coefficients`.
     */
-   inline Vector<double>& operator[](size_t idx) {
+   Vector<double>& operator[](size_t idx) {
       Assert(idx >= 0 && idx < mesh->length(), ExcIndexRange(idx, 0, mesh->length()));
 
       return function_coefficients[idx];
@@ -430,7 +413,7 @@ public:
     * @param u new function coefficients
     * @param v new time derivative coefficients
     */
-   inline void set(size_t idx, const Vector<double>& u, const Vector<double>& v) {
+   void set(size_t idx, const Vector<double>& u, const Vector<double>& v) {
       Assert(mesh, ExcNotInitialized());
       Assert(store_derivative, ExcInternalError());
       Assert(idx >= 0 && idx < mesh->length(), ExcIndexRange(idx, 0, mesh->length()));
@@ -449,7 +432,7 @@ public:
     * @param idx the time index
     * @param u new function coefficients
     */
-   inline void set_function_coefficients(size_t idx, const Vector<double>& u) {
+   void set_function_coefficients(size_t idx, const Vector<double>& u) {
       Assert(mesh, ExcNotInitialized());
       Assert(!store_derivative, ExcInternalError());
       Assert(idx >= 0 && idx < mesh->length(), ExcIndexRange(idx, 0, mesh->length()));
@@ -462,7 +445,7 @@ public:
    /**
     * returns the number of time steps in this function (short hand for this->get_mesh()->length())
     */
-   inline size_t length() const {
+   size_t length() const {
       return function_coefficients.size();
    }
 
