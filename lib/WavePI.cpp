@@ -625,7 +625,8 @@ void WavePI<dim, Meas>::run() {
   param_exact_untrans_disc.set_norm(reconstruction.get_norm());
 
   log_error(reconstruction, norm_domain, param_exact_untrans_disc);
-  deallog << "reconstruction error in other norms: " << std::endl;
+
+  deallog << "reconstruction error with respect to other norms: " << std::endl;
 
   log_error(reconstruction, norm_vector, param_exact_untrans_disc);
   log_error(reconstruction, norm_l2l2, param_exact_untrans_disc);
@@ -641,8 +642,6 @@ void WavePI<dim, Meas>::run() {
   param_exact_untrans_disc -= initial_guess_untrans_disc;
 
   log_error_initial(reconstruction, norm_domain, param_exact_untrans_disc);
-  deallog << "Reconstruction error in other norms: " << std::endl;
-
   log_error_initial(reconstruction, norm_vector, param_exact_untrans_disc);
   log_error_initial(reconstruction, norm_l2l2, param_exact_untrans_disc);
   log_error_initial(reconstruction, norm_h1l2, param_exact_untrans_disc);
