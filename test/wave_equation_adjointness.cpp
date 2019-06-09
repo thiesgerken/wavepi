@@ -271,7 +271,7 @@ TEST(WaveEquationAdjointness, Adjoint2DFE1) {
   auto f = std::make_shared<std::ofstream>("./WaveEquationAdjointness_Adjoint2DFE1.dat", std::ios_base::trunc);
   ASSERT_TRUE(*f) << "could not open file for output";
 
-  for (int i = 0; i < 10; i++)
+  for (int i = 3; i < 10; i++)
     run_wave_adjoint_test<2>(1, 5, 5, 1 << i, WaveEquationBase<2>::WaveEquationAdjoint, false, 1e-4, f);
 }
 
@@ -283,13 +283,13 @@ TEST(WaveEquationAdjointness, AdjointTrivial2DFE1) {
     run_wave_adjoint_test<2>(1, 5, 5, 1 << i, WaveEquationBase<2>::WaveEquationAdjoint, true, 1e-4, f);
 }
 
-TEST(WaveEquationAdjointness, Adjoint2DFE2) {
-  auto f = std::make_shared<std::ofstream>("./WaveEquationAdjointness_Adjoint2DFE2.dat", std::ios_base::trunc);
-  ASSERT_TRUE(*f) << "could not open file for output";
+// TEST(WaveEquationAdjointness, Adjoint2DFE2) {
+//   auto f = std::make_shared<std::ofstream>("./WaveEquationAdjointness_Adjoint2DFE2.dat", std::ios_base::trunc);
+//   ASSERT_TRUE(*f) << "could not open file for output";
 
-  for (int i = 0; i < 10; i++)
-    run_wave_adjoint_test<2>(2, 5, 5, 1 << i, WaveEquationBase<2>::WaveEquationAdjoint, false, 1e-4, f);
-}
+//   for (int i = 3; i < 10; i++)
+//     run_wave_adjoint_test<2>(2, 5, 5, 1 << i, WaveEquationBase<2>::WaveEquationAdjoint, false, 1e-4, f);
+// }
 
 TEST(WaveEquationAdjointness, Adjoint3DFE1) {
   auto f = std::make_shared<std::ofstream>("./WaveEquationAdjointness_Adjoint3DFE1.dat", std::ios_base::trunc);
