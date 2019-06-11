@@ -40,6 +40,11 @@ using namespace wavepi::forward;
 using namespace wavepi::base;
 using namespace wavepi;
 
+/*****
+NOTE: This module is used for automatic figure generation 
+and should therefore only be changed together with the thesis! 
+*****/
+
 template <int dim>
 class TestF : public LightFunction<dim> {
  public:
@@ -106,13 +111,6 @@ class TestQ : public LightFunction<dim> {
 
   static const Point<dim> q_position;
 };
-
-template <>
-const Point<1> TestQ<1>::q_position = Point<1>(-1.0);
-template <>
-const Point<2> TestQ<2>::q_position = Point<2>(-1.0, 0.5);
-template <>
-const Point<3> TestQ<3>::q_position = Point<3>(-1.0, 0.5, 0.0);
 
 template <int dim>
 void run_wave_adjoint_test(int fe_order, int quad_order, int refines, int n_steps,
