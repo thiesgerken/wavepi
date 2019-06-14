@@ -1,11 +1,11 @@
 /*
- * RiederToleranceChoice.cpp
+ * WinklerToleranceChoice.cpp
  *
  *  Created on: 26.07.2017
  *      Author: thies
  */
 
-#include <inversion/RiederToleranceChoice.h>
+#include <inversion/WinklerToleranceChoice.h>
 
 #include <algorithm>
 #include <cmath>
@@ -16,16 +16,15 @@ namespace inversion {
 
 using namespace dealii;
 
-RiederToleranceChoice::RiederToleranceChoice(double tol_start, double tol_max, double zeta, double beta,
+WinklerToleranceChoice::WinklerToleranceChoice(double tol_max, double zeta, double beta,
                                              bool safeguarding)
-    : tol_start(tol_start), tol_max(tol_max), zeta(zeta), beta(beta), safeguarding(safeguarding) {}
+    : tol_max(tol_max), zeta(zeta), beta(beta), safeguarding(safeguarding) {}
 
-RiederToleranceChoice::RiederToleranceChoice(ParameterHandler &prm) { get_parameters(prm); }
+WinklerToleranceChoice::WinklerToleranceChoice(ParameterHandler &prm) { get_parameters(prm); }
 
-void RiederToleranceChoice::declare_parameters(ParameterHandler &prm) {
-  prm.enter_subsection("RiederToleranceChoice");
+void WinklerToleranceChoice::declare_parameters(ParameterHandler &prm) {
+  prm.enter_subsection("WinklerToleranceChoice");
   {
-    prm.declare_entry("tol start", "0.9", Patterns::Double(0, 1), "rel. starting tolerance");
     prm.declare_entry("tol max", "0.999", Patterns::Double(0, 1), "rel. maximum tolerance");
     prm.declare_entry("zeta", "0.95", Patterns::Double(0, 1), "factor to decrease tolerance by");
     prm.declare_entry("beta", "1.0", Patterns::Double(0), "allowed speed of iteration numbers");
@@ -35,10 +34,9 @@ void RiederToleranceChoice::declare_parameters(ParameterHandler &prm) {
   prm.leave_subsection();
 }
 
-void RiederToleranceChoice::get_parameters(ParameterHandler &prm) {
-  prm.enter_subsection("RiederToleranceChoice");
+void WinklerToleranceChoice::get_parameters(ParameterHandler &prm) {
+  prm.enter_subsection("WinklerToleranceChoice");
   {
-    tol_start    = prm.get_double("tol start");
     tol_max      = prm.get_double("tol max");
     zeta         = prm.get_double("zeta");
     beta         = prm.get_double("beta");
@@ -49,13 +47,18 @@ void RiederToleranceChoice::get_parameters(ParameterHandler &prm) {
   ToleranceChoice::get_parameters(prm);
 }
 
-double RiederToleranceChoice::calculate_tolerance() const {
+double WinklerToleranceChoice::calculate_tolerance() const {
   int k = previous_tolerances.size();
 
   double tol_tilde;
 
-  if (k < 2)
-    tol_tilde = tol_start;
+  // Original: 
+  // if (k < 2)
+  //   tol_tilde = tol_start;
+  if (k == 0)
+    tol_tilde = 1;
+  else if (k==1) 
+    tol_tilde = discrepancies[0] / initial_discrepancy;
   else if (required_steps[k - 1] >= required_steps[k - 2] && required_steps[k - 2] > 5)
     // last condition in else if is new: do not regard less than 5 inner iterations as an increase
     tol_tilde =

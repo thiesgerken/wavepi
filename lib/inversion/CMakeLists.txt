@@ -3,6 +3,7 @@ set(LIBSOURCES
     ToleranceChoice.cpp
     ConstantToleranceChoice.cpp
     RiederToleranceChoice.cpp
+    WinklerToleranceChoice.cpp
     MaxIterChoice.cpp
     ConstantMaxIterChoice.cpp
     FibonacciMaxIterChoice.cpp)
