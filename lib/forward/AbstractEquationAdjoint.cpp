@@ -485,7 +485,7 @@ DiscretizedFunction<dim> AbstractEquationAdjoint<dim>::run(std::shared_ptr<Right
       tmp_R_adjoint.equ(theta * (1 - theta), solution_u);
       tmp_R_adjoint.add(1 - theta, solution_v);
 
-      // tmp_R_adjoint has to be transfered to grid i-1 first!
+      // tmp_R_adjoint has to be transferred to grid i-1 first!
       // res[i - 1] += " vmult_D_intermediate_transpose(tmp_R_adjoint) ";
 
       res[i].add(theta * theta, solution_u);

@@ -284,7 +284,7 @@ TEST(WaveEquation, ReferenceTestParameters2DFE1) {
   auto file_time = std::make_shared<std::ofstream>("./ReferenceTestParameters2DFE1_time.dat", std::ios_base::trunc);
   ASSERT_TRUE(*file_time) << "could not open file for output";
 
-  for (int steps = 6; steps <= 128; steps = (int)(steps * 1.41))
+  for (int steps = 4; steps <= 128; steps = (int)(steps * 1.41))
     run_reference_test2_constant<2>(1, 5, 9, steps, steps >= 64, false, file_time);
   file_time->close();
 
@@ -292,7 +292,7 @@ TEST(WaveEquation, ReferenceTestParameters2DFE1) {
   ASSERT_TRUE(*file_space) << "could not open file for output";
 
   for (int refine = 1; refine <= 9; refine++)
-    run_reference_test2_constant<2>(1, 5, refine, 128, refine >= 4, false, file_space);
+    run_reference_test2_constant<2>(1, 5, refine, 256, refine >= 4, false, file_space);
   file_space->close();
 }
 
@@ -309,7 +309,7 @@ TEST(WaveEquation, ReferenceTestParameters3DFE1) {
   auto file_time = std::make_shared<std::ofstream>("./ReferenceTestParameters3DFE1_time.dat", std::ios_base::trunc);
   ASSERT_TRUE(*file_time) << "could not open file for output";
 
-  for (int steps = 4; steps <= 32; steps = (int)(steps * 1.41))
+  for (int steps = 4; steps <= 16; steps = (int)(steps * 1.41))
     run_reference_test2_constant<3>(1, 5, 6, steps, steps >= 64, false, file_time);
   file_time->close();
 
@@ -317,7 +317,7 @@ TEST(WaveEquation, ReferenceTestParameters3DFE1) {
   ASSERT_TRUE(*file_space) << "could not open file for output";
 
   for (int refine = 1; refine <= 6; refine++)
-    run_reference_test2_constant<3>(1, 5, refine, 128, refine >= 4, false, file_space);
+    run_reference_test2_constant<3>(1, 5, refine, 256, refine >= 4, false, file_space);
   file_space->close();
 }
 
