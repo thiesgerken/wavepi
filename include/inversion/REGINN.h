@@ -24,6 +24,7 @@
 #include <inversion/NewtonRegularization.h>
 #include <inversion/NonlinearProblem.h>
 #include <inversion/RiederToleranceChoice.h>
+#include <inversion/WinklerToleranceChoice.h>
 
 #include <iostream>
 #include <memory>
@@ -60,11 +61,12 @@ class REGINN : public NewtonRegularization<Param, Sol, Exact> {
                         "regularization method for the linear subproblems");
       prm.declare_entry("tolerance choice", "Rieder", Patterns::Selection("Rieder|Constant"),
                         "algorithm that chooses the target discrepancies for the linear subproblems");
-      prm.declare_entry("maximum iteration choice", "Constant", Patterns::Selection("Fibonacci|Constant"),
+      prm.declare_entry("maximum iteration choice", "Fibonacci", Patterns::Selection("Fibonacci|Constant"),
                         "algorithm that chooses the maximum iteration counts for the linear subproblems");
 
       ToleranceChoice::declare_parameters(prm);
       RiederToleranceChoice::declare_parameters(prm);
+      WinklerToleranceChoice::declare_parameters(prm);
       ConstantToleranceChoice::declare_parameters(prm);
       FibonacciMaxIterChoice::declare_parameters(prm);
       ConstantMaxIterChoice::declare_parameters(prm);
@@ -112,6 +114,8 @@ class REGINN : public NewtonRegularization<Param, Sol, Exact> {
 
       if (stol_choice == "Rieder")
         tol_choice = std::make_shared<RiederToleranceChoice>(prm);
+      else  if (stol_choice == "Winkler")
+        tol_choice = std::make_shared<WinklerToleranceChoice>(prm);
       else if (stol_choice == "Constant")
         tol_choice = std::make_shared<ConstantToleranceChoice>(prm);
       else
