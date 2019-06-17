@@ -67,7 +67,7 @@ It is common C++ practice to put all the code of templated classes into the head
 Use `cloc` to count the lines of code in this project. To obtain meaningful results, exclude the build directory (assumed to be in `build`) and `doc`:
 
 ```shell
-cloc . --exclude-dir=build,doc,examples
+cloc . --exclude-dir=build,doc,.vscode
 ```
 
 ## Shell Autocompletion (ZSH)
