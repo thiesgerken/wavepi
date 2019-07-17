@@ -43,6 +43,7 @@
 #include <norms/LPWrapper.h>
 #include <problems/CProblem.h>
 #include <problems/ConstantRhoProblem.h>
+#include <problems/ConstantCProblem.h>
 #include <problems/NuProblem.h>
 #include <problems/QProblem.h>
 #include <problems/RhoProblem.h>
@@ -423,6 +424,12 @@ void WavePI<dim, Meas>::initialize_problem() {
       problem     = std::make_shared<ConstantRhoProblem<dim, Meas>>(*wave_eq, pulses, measures, transform,
                                                                 param_background_discretized);
       break;
+    case SettingsManager::ProblemType::c_constant:
+      /* Reconstruct rho */
+      param_exact = wave_eq->get_param_c();
+      problem     = std::make_shared<ConstantCProblem<dim, Meas>>(*wave_eq, pulses, measures, transform,
+                                                                param_background_discretized);
+      break;      
     default:
       AssertThrow(false, ExcInternalError())
   }

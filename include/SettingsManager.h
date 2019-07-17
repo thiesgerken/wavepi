@@ -92,7 +92,7 @@ class SettingsManager {
   /**
    * possible problems
    */
-  enum class ProblemType { q, rho, c, nu, rho_constant };
+  enum class ProblemType { q, rho, c, nu, rho_constant, c_constant };
 
   /**
    * possible nonlinear methods
