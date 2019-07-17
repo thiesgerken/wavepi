@@ -55,6 +55,8 @@ std::shared_ptr<LightFunction<dim>> MacroFunctionParser<dim>::parse(const std::s
     return std::make_shared<RingShapeFunction<dim>>(shape_scale);
   } else if (expression == "PulsingLDot") {
     return std::make_shared<LShapeDotFunction<dim>>(shape_scale);
+  } else if (expression == "PulsingLDotConstant") {
+    return std::make_shared<LShapeDotConstantFunction<dim>>(shape_scale);
   } else
     return std::make_shared<MacroFunctionParser<dim>>(expression, constants);
 }
@@ -156,6 +158,55 @@ double LShapeDotFunction<3>::evaluate(const Point<3>& p, const double time) cons
   return shape_scale * value;
 }
 
+
+template <>
+double LShapeDotConstantFunction<1>::evaluate(const Point<1>& p __attribute__((unused)),
+                                      const double time __attribute__((unused))) const {
+  throw ExcNotImplemented("LShapeDotConstantFunction<1>");
+}
+
+template <>
+double LShapeDotConstantFunction<2>::evaluate(const Point<2>& p, const double time __attribute__((unused))) const {
+  double value = 0.0;
+
+  double dist_dot_sq = (p[0] - (1 - boundary_dist - dot_radius)) * (p[0] - (1 - boundary_dist - dot_radius)) +
+                       (p[1] - (1 - boundary_dist - dot_radius)) * (p[1] - (1 - boundary_dist - dot_radius));
+
+  if (dist_dot_sq <= dot_radius * dot_radius) value -= 1.0 - dist_dot_sq / (dot_radius * dot_radius);
+
+  if (p[0] >= -1.0 + boundary_dist && p[0] <= 1.0 - boundary_dist && p[1] >= -1.0 + boundary_dist &&
+      p[1] <= -1.0 + boundary_dist + l_width)
+    value += 1.0;
+  else if (p[1] >= -1.0 + boundary_dist && p[1] <= 1.0 - boundary_dist && p[0] >= -1.0 + boundary_dist &&
+           p[0] <= -1.0 + boundary_dist + l_width)
+    value += 1.0;
+
+  return shape_scale * value;
+}
+
+template <>
+double LShapeDotConstantFunction<3>::evaluate(const Point<3>& p, const double time __attribute__((unused))) const {
+  double value = 0.0;
+
+  double dist_dot_sq = (p[0] - (1 - boundary_dist - dot_radius)) * (p[0] - (1 - boundary_dist - dot_radius)) +
+                       (p[1] - (1 - boundary_dist - dot_radius)) * (p[1] - (1 - boundary_dist - dot_radius)) +
+                       (p[2] - (1 - boundary_dist - dot_radius)) * (p[2] - (1 - boundary_dist - dot_radius));
+
+  if (dist_dot_sq <= dot_radius * dot_radius) value -= 1.0 - dist_dot_sq / (dot_radius * dot_radius);
+
+  if (p[0] >= -1.0 + boundary_dist && p[0] <= 1.0 - boundary_dist && p[1] >= -1.0 + boundary_dist &&
+      p[1] <= 1.0 - boundary_dist && p[2] >= -1.0 + boundary_dist && p[2] <= -1.0 + boundary_dist + l_width)
+    value += 1.0;
+  else if (p[1] >= -1.0 + boundary_dist && p[1] <= 1.0 - boundary_dist && p[2] >= -1.0 + boundary_dist &&
+           p[2] <= 1.0 - boundary_dist && p[0] >= -1.0 + boundary_dist && p[0] <= -1.0 + boundary_dist + l_width)
+    value += 1.0;
+  else if (p[2] >= -1.0 + boundary_dist && p[2] <= 1.0 - boundary_dist && p[0] >= -1.0 + boundary_dist &&
+           p[0] <= 1.0 - boundary_dist && p[1] >= -1.0 + boundary_dist && p[1] <= -1.0 + boundary_dist + l_width)
+    value += 1.0;
+
+  return shape_scale * value;
+}
+
 template class RingShapeFunction<1>;
 template class RingShapeFunction<2>;
 template class RingShapeFunction<3>;
@@ -163,6 +214,10 @@ template class RingShapeFunction<3>;
 template class LShapeDotFunction<1>;
 template class LShapeDotFunction<2>;
 template class LShapeDotFunction<3>;
+
+template class LShapeDotConstantFunction<1>;
+template class LShapeDotConstantFunction<2>;
+template class LShapeDotConstantFunction<3>;
 
 template class MacroFunctionParser<1>;
 template class MacroFunctionParser<2>;

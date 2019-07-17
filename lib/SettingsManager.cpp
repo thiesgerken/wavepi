@@ -148,7 +148,7 @@ void SettingsManager::declare_parameters(std::shared_ptr<ParameterHandler> prm) 
 
   prm->enter_subsection(KEY_PROBLEM);
   {
-    prm->declare_entry(KEY_PROBLEM_TYPE, "rho", Patterns::Selection("c|nu|rho|rho_constant|q"),
+    prm->declare_entry(KEY_PROBLEM_TYPE, "rho", Patterns::Selection("c|c_constant|nu|rho|rho_constant|q"),
                        "parameter that is reconstructed");
 
     prm->declare_entry(KEY_PROBLEM_TRANSFORM, "Identity", Patterns::Selection("Identity|Log|Artanh"),
@@ -418,6 +418,8 @@ void SettingsManager::get_parameters(std::shared_ptr<ParameterHandler> prm) {
       problem_type = ProblemType::c;
     else if (problem == "rho_constant")
       problem_type = ProblemType::rho_constant;
+    else if (problem == "c_constant")
+      problem_type = ProblemType::c_constant;
     else
       AssertThrow(false, ExcMessage("unknown problem type"));
 

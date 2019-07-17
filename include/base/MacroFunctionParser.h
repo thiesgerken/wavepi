@@ -81,6 +81,22 @@ class LShapeDotFunction : public LightFunction<dim> {
   const double boundary_dist = 0.2;
 };
 
+template <int dim>
+class LShapeDotConstantFunction : public LightFunction<dim> {
+ public:
+  virtual ~LShapeDotConstantFunction() = default;
+  LShapeDotConstantFunction(double shape_scale) : shape_scale(shape_scale) {}
+
+  virtual double evaluate(const Point<dim>& p, const double time) const;
+
+ private:
+  double shape_scale;
+
+  const double dot_radius    = 0.45;
+  const double l_width       = 0.3;
+  const double boundary_dist = 0.2;
+};
+
 }  // namespace base
 } /* namespace wavepi */
 
