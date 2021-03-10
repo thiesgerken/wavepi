@@ -1,25 +1,22 @@
 # WavePI (Parameter Identification for Wave Equations)
 
-[![build status](https://git.thiesgerken.de/thies/wavepi/badges/master/build.svg)](https://git.thiesgerken.de/thies/wavepi/commits/master)
+© 2017-2019 Thies Gerken, University of Bremen, `tgerken@math.uni-bremen.de`
 
-© 2017 Thies Gerken, University of Bremen, `tgerken@math.uni-bremen.de`
-
-Developed as part of my PhD-Project [*Dynamic Inverse Problems for Wave Equations*](https://git.thiesgerken.de/thies/promotion)
-
-This is a work in progress, cf. [issue tracker](https://git.thiesgerken.de/thies/wavepi/issues).
+Developed as part of my PhD-Project [_Dynamic Inverse Problems for Wave Phenomena_](https://nbn-resolving.de/urn:nbn:de:gbv:46-00107730-18)
 
 ## Dependencies
 
- * `cmake   >= 2.8.8`
- * `deal.II >= 9.1.0-pre`
- * `boost   >= 1.62`
- * `gtest   >= 1.8.0` (optional)
+- `cmake >= 2.8.8`
+- `deal.II >= 9.1.0-pre`
+- `boost >= 1.62`
+- `gtest >= 1.8.0` (optional)
 
 Note that `deal.II` has to be configured with [TBB](https://www.threadingbuildingblocks.org/), MPI and UMFPACK support (either bundled or external). I use
 
 ```shell
 cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DDEAL_II_WITH_MPI=ON
 ```
+
 for configuring `deal.II`.
 
 ## How to Build
