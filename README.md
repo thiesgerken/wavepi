@@ -4,6 +4,8 @@
 
 Developed as part of my PhD-Project [_Dynamic Inverse Problems for Wave Phenomena_](https://nbn-resolving.de/urn:nbn:de:gbv:46-00107730-18)
 
+![sample reconstruction](reconstruction.png)
+
 ## Dependencies
 
 - `cmake >= 2.8.8`
@@ -57,25 +59,14 @@ When using `CMake >= 3.10`, one can also run the tests using [`ctest`](https://c
 
 ## Remarks on the Code
 
-It is common C++ practice to put all the code of templated classes into the header file, because the compiler needs to instantiate them for every compilation unit. For classes/functions that only depend on the dimensions I ignored this and just added instances for one, two and three dimensions to increase compilation speed.
-
-## Code size
-
-Use `cloc` to count the lines of code in this project. To obtain meaningful results, exclude the build directory (assumed to be in `build`) and `doc`:
-
-```shell
-cloc . --exclude-dir=build,doc,.vscode
-```
+It is common C++ practice to put all the code of templated classes into the header file, because the compiler needs to instantiate them for every compilation unit. For classes/functions that only depend on the space dimension as a template parameter, I ignored this rule and just added instances for one, two and three dimensions to increase compilation speed, as is common also in `deal.II`.
 
 ## Shell Autocompletion (ZSH)
 
 Put (or symlink) [completions.zsh](completions.zsh) in `~/.zsh-completions` and make sure you have the following lines in `~/.zshrc`:
 
 ```shell
-# folder of all of your autocomplete functions
 fpath=($HOME/.zsh-completions $fpath)
-
-# enable autocomplete function
 autoload -U compinit
 compinit
 ```
